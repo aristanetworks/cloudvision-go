@@ -4,6 +4,7 @@
 package provider
 
 import (
+	"arista/schema"
 	"arista/types"
 )
 
@@ -18,7 +19,7 @@ import (
 type Provider interface {
 	// Run() kicks off the provider.  This method does not return until Stop()
 	// is invoked, and is thus usually invoked by doing `go provider.Run()'.
-	Run()
+	Run(s *schema.Schema, root types.Entity, notification chan<- types.Notification)
 
 	// Stop() asks the provider to stop executing and clean up any Goroutines
 	// it has started and release any resources it had acquired.
