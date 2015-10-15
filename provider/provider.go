@@ -21,6 +21,9 @@ type Provider interface {
 	// is invoked, and is thus usually invoked by doing `go provider.Run()'.
 	Run(s *schema.Schema, root types.Entity, notification chan<- types.Notification)
 
+	// WaitForNotification() waits for a provider to be able to send on the notification channel
+	WaitForNotification()
+
 	// Stop() asks the provider to stop executing and clean up any Goroutines
 	// it has started and release any resources it had acquired.
 	// The provider will then stop, asynchronously.
