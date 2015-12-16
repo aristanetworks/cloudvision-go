@@ -6,6 +6,8 @@ package provider
 import (
 	"arista/schema"
 	"arista/types"
+
+	"github.com/aristanetworks/goarista/key"
 )
 
 // A Provider "owns" certain entities.  There are providers for entities
@@ -32,5 +34,10 @@ type Provider interface {
 	// Write asks the provider to apply the updates carried by the given
 	// Notification to its data source (e.g. by sending an update to Sysdb
 	// or updating a Smash table, etc.).  The error is returned asynchronsouly.
-	Write(notif types.Notification, result chan<- error)
+	// relatedEntities is a map of entities that are related to this write that
+	// are not held inside the notif.  For example, in a delete, relatedEntities
+	// contains the entity being deleted.
+	// (relatedEntities has to be a map[key.Key]interface{} to work with the
+	// Key.SetToMap and Key.GetFromMap funcs)
+	Write(notif types.Notification, result chan<- error, relatedEntities map[key.Key]interface{})
 }
