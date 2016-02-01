@@ -40,4 +40,11 @@ type Provider interface {
 	// (relatedEntities has to be a map[key.Key]interface{} to work with the
 	// Key.SetToMap and Key.GetFromMap funcs)
 	Write(notif types.Notification, result chan<- error, relatedEntities map[key.Key]interface{})
+
+	// InstantiateChild asks the provider to instantiate the new child
+	// entity in the provider's data source.  k is the key in the
+	// parent's collection that this entity is being instantiated
+	// in. If the entity is not part of a collection k should be nil.
+	InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
+		k key.Key, ctorArgs map[string]interface{}) error
 }
