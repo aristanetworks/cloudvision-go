@@ -6,6 +6,7 @@ package provider
 import (
 	"arista/schema"
 	"arista/types"
+	"fmt"
 
 	"github.com/aristanetworks/goarista/key"
 )
@@ -45,6 +46,31 @@ type Provider interface {
 	// entity in the provider's data source.  k is the key in the
 	// parent's collection that this entity is being instantiated
 	// in. If the entity is not part of a collection k should be nil.
+	// Can return ErrParentNotFound.
 	InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
 		k key.Key, ctorArgs map[string]interface{}) error
+}
+
+// ErrParentNotFound comes from InstantiateChild when the child's
+// parent is unknown.
+type ErrParentNotFound struct {
+	childPath  string
+	parentPath string
+}
+
+// NewErrParentNotFound creates a new ErrParentNotFound
+func NewErrParentNotFound(childPath string, parentPath string) error {
+	return &ErrParentNotFound{
+		childPath:  childPath,
+		parentPath: parentPath}
+}
+
+func (e *ErrParentNotFound) Error() string {
+	return fmt.Sprintf("Parent of %s (%s) not found", e.childPath, e.parentPath)
+}
+
+// IsParentNotFound tells you if an error is a ErrParentNotFound
+func IsParentNotFound(err error) bool {
+	_, ok := err.(*ErrParentNotFound)
+	return ok
 }
