@@ -8,7 +8,6 @@ package provider
 import (
 	"arista/schema"
 	"arista/types"
-	"arista/util"
 
 	"github.com/aristanetworks/goarista/key"
 )
@@ -19,14 +18,19 @@ import (
 func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) ([]types.Notification, error) {
 	notifs := make([]types.Notification, 2)
-	if child.GetDef().IsDirectory() {
+	def := child.GetDef().(*schema.TypeDef)
+	if def.IsDirectory() {
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
 		// directory's attributes, which are internal.
 		notifs[0] = types.NewNotificationWithEntity(types.NowInMilliseconds(), child.Path(),
 			&[]key.Key{}, nil, child)
 	} else {
-		initialAttrs := util.CopyStringMapToKeyMap(ctorArgs)
+		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
+		for attrName := range def.Attrs {
+			v, _ := child.GetAttribute(attrName)
+			initialAttrs[key.New(attrName)] = v
+		}
 		// Transform any collection into a pointer.
 		var path string
 		for k, v := range initialAttrs {
