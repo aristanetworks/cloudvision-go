@@ -16,7 +16,7 @@ import (
 // Providers to use to generate the notifications associated with
 // instantiating a child
 func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDef,
-	k key.Key, ctorArgs map[string]interface{}) ([]types.Notification, error) {
+	k key.Key) []types.Notification {
 	notifs := make([]types.Notification, 2)
 	def := child.GetDef().(*schema.TypeDef)
 	if def.IsDirectory() {
@@ -58,5 +58,5 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 		notifs[1] = types.NewNotificationWithEntity(types.NowInMilliseconds(),
 			path, nil, &map[key.Key]interface{}{k: child.Ptr()}, parent)
 	}
-	return notifs, nil
+	return notifs
 }
