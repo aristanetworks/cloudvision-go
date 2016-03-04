@@ -26,19 +26,16 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 		notifs[0] = types.NewNotificationWithEntity(types.NowInMilliseconds(), child.Path(),
 			&[]key.Key{}, nil, child)
 	} else {
+		path := child.Path()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
 		for attrName := range def.Attrs {
 			v, _ := child.GetAttribute(attrName)
-			initialAttrs[key.New(attrName)] = v
-		}
-		// Transform any collection into a pointer.
-		var path string
-		for k, v := range initialAttrs {
+			attrKey := key.New(attrName)
 			if _, ok := v.(types.Collection); ok {
-				if path == "" { // If we don't yet know our child's path..
-					path = child.Path() // .. compute it only once.
-				}
-				initialAttrs[k] = types.Pointer{Pointer: path + "/" + k.Key().(string)}
+				// Transform any collection into a pointer.
+				initialAttrs[attrKey] = types.Pointer{Pointer: path + "/" + attrName}
+			} else {
+				initialAttrs[attrKey] = v
 			}
 		}
 		notifs[0] = types.NewUpdates(child, initialAttrs)
