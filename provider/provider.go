@@ -37,12 +37,7 @@ type Provider interface {
 	// Write asks the provider to apply the updates carried by the given
 	// Notification to its data source (e.g. by sending an update to Sysdb
 	// or updating a Smash table, etc.).  The error is returned asynchronsouly.
-	// relatedEntities is a map of entities that are related to this write that
-	// are not held inside the notif.  For example, in a delete, relatedEntities
-	// contains the entity being deleted.
-	// (relatedEntities has to be a map[key.Key]interface{} to work with the
-	// Key.SetToMap and Key.GetFromMap funcs)
-	Write(notif types.Notification, result chan<- error, relatedEntities map[key.Key]interface{})
+	Write(notif types.Notification, result chan<- error)
 
 	// InstantiateChild asks the provider to instantiate the new child
 	// entity in the provider's data source.  k is the key in the
