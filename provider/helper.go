@@ -19,12 +19,12 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 	k key.Key) []types.Notification {
 	notifs := make([]types.Notification, 2)
 	def := child.GetDef().(*schema.TypeDef)
+	t := types.NowInMilliseconds()
 	if def.IsDirectory() {
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
 		// directory's attributes, which are internal.
-		notifs[0] = types.NewNotificationWithEntity(types.NowInMilliseconds(), child.Path(),
-			&[]key.Key{}, nil, child)
+		notifs[0] = types.NewNotificationWithEntity(t, child.Path(), &[]key.Key{}, nil, child)
 	} else {
 		path := child.Path()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
@@ -38,7 +38,7 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 				initialAttrs[attrKey] = v
 			}
 		}
-		notifs[0] = types.NewUpdates(child, initialAttrs)
+		notifs[0] = types.NewNotificationWithEntity(t, child.Path(), nil, &initialAttrs, child)
 	}
 	parent := child.Parent()
 	attrName := attrDef.Name
@@ -52,8 +52,8 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 		if !parent.GetDef().IsDirectory() {
 			path += "/" + attrName
 		}
-		notifs[1] = types.NewNotificationWithEntity(types.NowInMilliseconds(),
-			path, nil, &map[key.Key]interface{}{k: child.Ptr()}, parent)
+		notifs[1] = types.NewNotificationWithEntity(t, path, nil,
+			&map[key.Key]interface{}{k: child.Ptr()}, parent)
 	}
 	return notifs
 }
