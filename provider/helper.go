@@ -8,6 +8,7 @@ package provider
 import (
 	"arista/schema"
 	"arista/types"
+	"fmt"
 
 	"github.com/aristanetworks/goarista/key"
 )
@@ -56,4 +57,28 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 			&map[key.Key]interface{}{k: child.Ptr()}, parent)
 	}
 	return notifs
+}
+
+// NotificationsForDeleteChild blah
+func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
+	k key.Key) ([]types.Notification, error) {
+	parent := child.Parent()
+	if parent == nil {
+		return nil, fmt.Errorf("Can't generate notifications. Entity %q has nil parent",
+			child.Path())
+	}
+
+	notifs := make([]types.Notification, 2)
+	t := types.NowInMilliseconds()
+	path := parent.Path()
+	if attrDef.IsCollection() {
+		// Use path to collection
+		path += "/" + attrDef.Name
+	} else {
+		// Key is attribute name
+		k = key.New(attrDef.Name)
+	}
+	notifs[0] = types.NewNotificationWithEntity(t, path, &[]key.Key{k}, nil, parent)
+	notifs[1] = types.NewNotificationWithEntity(t, child.Path(), &[]key.Key{}, nil, child)
+	return notifs, nil
 }

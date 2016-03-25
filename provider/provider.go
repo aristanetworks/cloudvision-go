@@ -51,6 +51,9 @@ type Provider interface {
 	// Can return ErrParentNotFound.
 	InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
 		k key.Key, ctorArgs map[string]interface{}) error
+
+	// DeleteChild asks the provider to drop this entity.
+	DeleteChild(child types.Entity, attrDef *schema.AttrDef, k key.Key) error
 }
 
 // ErrParentNotFound comes from InstantiateChild when the child's
