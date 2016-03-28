@@ -47,7 +47,11 @@ type Provider interface {
 	InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
 		k key.Key, ctorArgs map[string]interface{}) error
 
-	// DeleteChild asks the provider to drop this entity.
+	// DeleteChild asks the provider to drop the child entity.
+	// attrDef is the attribute under which this entity was instantiated.
+	// If the attribute is a collection, k should be set to the key in
+	// that collection corresponding to this child. If the attribute
+	// is a singleton k should be nil.
 	DeleteChild(child types.Entity, attrDef *schema.AttrDef, k key.Key) error
 }
 
