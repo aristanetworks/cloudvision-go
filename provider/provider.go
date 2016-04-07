@@ -36,8 +36,8 @@ type Provider interface {
 
 	// Write asks the provider to apply the updates carried by the given
 	// Notification to its data source (e.g. by sending an update to Sysdb
-	// or updating a Smash table, etc.).  The error is returned asynchronsouly.
-	Write(notif types.Notification, result chan<- error)
+	// or updating a Smash table, etc.).
+	Write(notif types.Notification) error
 
 	// InstantiateChild asks the provider to instantiate the new child
 	// entity in the provider's data source.  k is the key in the
