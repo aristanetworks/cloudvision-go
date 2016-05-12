@@ -1,0 +1,4 @@
+[remote "review"]
+        url = ssh://gerrit:29418/ardc-config
+        push = HEAD:refs/for/master
+        receivepack = git receive-pack --reviewer okumoto --reviewer subhachandra --reviewer ren --reviewer senkrish
