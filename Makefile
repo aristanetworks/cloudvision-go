@@ -1,17 +1,15 @@
-# TODO: Create proper Makefile here.
-# For now let's just provide a blank Makefile to keep Jenkins happy.
-# This is temporary, only to add playbooks to this repo to be tested.
-# ADD: all, pylint, build, test, clean, jenkins, PHONY rules
-# ADD: create setup.py
-
-all: ;
+all: build
 
 pylint: ;
 
 build: ;
 
+# For now let's disable testing because we don't have the Docker image on registry
+# yet.
 test: ;
 
 clean: ;
 
-jenkins: ;
+jenkins: pylint build test;
+
+.PHONY: all pylint build test clean jenkins
