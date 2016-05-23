@@ -6,8 +6,8 @@ pylint:
 build:
 		./setup.py build
 
-test: ;
-#		PYTHONPATH=$(PYTHONPATH):. ./setup.py test
+test:
+		PYTHONPATH=$(PYTHONPATH):. ./setup.py test
 
 clean:
 		./setup.py clean -a

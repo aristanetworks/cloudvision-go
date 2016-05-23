@@ -25,10 +25,8 @@ EXPOSE 22
 ENV ANSIBLE_INVENTORY=/test_ansible_hosts
 
 COPY ssh /root/.ssh
+RUN chown root /root/.ssh
+RUN chmod 700 /root/.ssh/
 RUN chmod 600 /root/.ssh/*
-
-COPY ./ssh/id_rsa /etc/ssh/ssh_host_rsa_key
-COPY ./ssh/id_rsa.pub /etc/ssh/ssh_host_rsa_key.pub
-RUN chmod 600 /etc/ssh/ssh_host_*
 
 CMD ["/usr/sbin/sshd", "-D"]

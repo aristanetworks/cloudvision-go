@@ -102,10 +102,16 @@ class Config( object ):
    testplbk = 'master_test.yml'
 
    # Path to RSA public host key.
-   path_to_hostpub = './dockerfiles/ar_fedora/ssh/id_rsa.pub'
+   if debug:
+      path_to_hostpub = 'dockerfiles/ar_fedora/ssh/id_rsa.pub'
+   else:
+      path_to_hostpub = 'test/dockerfiles/ar_fedora/ssh/id_rsa.pub'
 
    # Relative path to playbooks directory.
-   playbooks_dir = '../playbooks/'
+   if debug:
+      playbooks_dir = '../playbooks/'
+   else:
+      playbooks_dir = './playbooks/'
 
 
 class Cmd( object ):
@@ -120,6 +126,7 @@ class Cmd( object ):
    ex = 'docker exec -t %s /bin/bash -c "%s"'
    delete = 'rm %s'
    kill = 'echo %s | xargs -I %% sh -c "docker stop %%; docker rm %%" > /dev/null'
+   ans_pl = 'ansible-playbook master_test.yml'
 
 
 
@@ -222,11 +229,11 @@ class TestAnsiblePushTests( unittest.TestCase ):
       logger.info( 'Initialized %d/%d test custom servers.', len( conf.servs ), 
                                                              conf.num )
 
-      # XXX: Bypasses troublesome host key authentication. Shouldn't do this in
-      # production setting.
-      #self.callcmd( cmd.ex % ( conf.ansible_serv, 
-      #   'sed -i \'s/#host_key_checking = False/host_key_checking = False/\' %s' %
-      #   '/etc/ansible/ansible.cfg' ) )
+      # Ansible -- stop disconnecting SSH sessions on your own!
+      self.callcmd( cmd.ex % ( conf.ansible_serv, 
+         'sed -i \'s/#ssh_args = -o ControlMaster=auto -o ControlPersist=60s/'
+         'ssh_args = -o ControlMaster=no/\' %s' %
+         '/etc/ansible/ansible.cfg' ) )
 
       # Create mock 'ansible_hosts' file for the pseudo-servers we just created.
       hosts = conf.ash_template % ( '\n'.join( [ conf.ash_host % ( sv, ip ) for sv, 
@@ -253,8 +260,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
             
             # Copy over mock known_hosts file to ansible server container. 
             self.callcmd( cmd.copy % ( conf.kh_f, '%s:/root/.ssh/known_hosts' 
-                                                  % conf.ansible_serv ) )
-            self.callcmd( cmd.copy % ( conf.kh_f, '%s:/root/etc/ssh/ssh_known_hosts'
                                                   % conf.ansible_serv ) )
 
             # Let's remove the temporary file we wrote.
@@ -321,7 +326,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # From Ansible-server, run master test playbook that will run all other
       # playbooks.
       ret = self.callcmd( cmd.ex % ( conf.ansible_serv,
-                                     'ansible-playbook master_test.yml' ) )
+                                     cmd.ans_pl ) )
 
       if ret:
          logger.error( 'Something went wrong playing the playbooks.' )
