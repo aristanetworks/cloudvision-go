@@ -1,0 +1,8 @@
+---
+- name: This is the top level file used by ansible-pull.
+  hosts: all
+  become: yes
+  become_user: root
+
+- include: playbooks/postfix.yml
+...
