@@ -69,7 +69,7 @@ class Config( object ):
       client_serv = 'sv%s_w'
    else:
       # Docker image built and available on Arista Docker registry.
-      dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config'
+      dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:36d011e'
 
       # Ansible server name.
       ansible_serv = 'as'
