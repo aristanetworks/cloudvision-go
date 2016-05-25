@@ -1,0 +1,18 @@
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+#---
+#- hosts: all
+#  become: yes
+#  become_user: root
+#  tasks:
+#      - name: "Update motd message"
+#        lineinfile: 
+#           dest: '/etc/motd'
+#           line: "[Ansible] This machine is managed by Ansible."
+#           create: yes
+#      - name: "Test"
+#        script: test_updateMotd.py
+#...
+            
+

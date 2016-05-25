@@ -1,8 +1,13 @@
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
 ---
 - name: This is the top level file used by ansible-pull.
   hosts: all
   become: yes
   become_user: root
 
+# -------------- ADD YOUR PLAYBOOK BELOW THIS LINE -----------------
 - include: playbooks/postfix.yml
+#- include: playbooks/updateMotd.yml
 ...
