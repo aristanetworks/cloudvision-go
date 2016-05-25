@@ -1,18 +1,34 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-#---
-#- hosts: all
-#  become: yes
-#  become_user: root
-#  tasks:
-#      - name: "Update motd message"
-#        lineinfile: 
-#           dest: '/etc/motd'
-#           line: "[Ansible] This machine is managed by Ansible."
-#           create: yes
-#      - name: "Test"
-#        script: test_updateMotd.py
-#...
+---
+- hosts: all
+  become: yes
+  become_user: root
+  vars:
+     aroraConfigMotd: "/var/lib/AroraConfig/updateMotd"
+     f: '/etc/motd'
+     msg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
+     exprToMatch: "^[ANSIBLE]"
+  tasks:
+      - stat: path="{{aroraConfigMotd}}"
+        register: fixMotd
+
+      - block:
+         - name: "Update motd message"
+           lineinfile: 
+              dest: "{{ f }}"
+              regexp: "{{ exprToMatch }}"
+              insertbefore: BOF
+              line: "{{ msg }}"
+              create: yes
+
+         - name: "TEST"
+           script: test/test_updateMotd.sh
+           when: TEST is defined
+
+        when: fixMotd.stat.exists == True
+
+...
             
 

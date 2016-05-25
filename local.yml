@@ -9,5 +9,5 @@
 
 # -------------- ADD YOUR PLAYBOOK BELOW THIS LINE -----------------
 - include: playbooks/postfix.yml
-#- include: playbooks/updateMotd.yml
+- include: playbooks/updateMotd.yml
 ...

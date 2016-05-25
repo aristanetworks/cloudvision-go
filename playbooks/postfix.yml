@@ -27,7 +27,12 @@
      - block:
         - name: "Ensure postfix is installed and is latest."
           yum: name=postfix state=latest
-          when: False
+         
+        - name: "Start postfix, in case it is reinstalled."
+          command: postfix start
+          # We ignore errors from this step if postfix is already running. If postfix
+          # is already running then changes below will force reload, which is fine.
+          ignore_errors: yes
 
         - name: "Postfix canonize regexp."
           lineinfile:
@@ -38,7 +43,7 @@
         - name: "Outgoing sender should be @arista.com and not @aristanetworks.com"
           lineinfile:
              dest: "{{postfixMainCf}}"
-             line: "sendercanonical_maps = regexp:{{canonicalizeFile}}"
+             line: "sender_canonical_maps = regexp:{{canonicalFile}}"
           notify: "reload postfix"
 
         - name: "Specify relay host."
@@ -48,14 +53,14 @@
              line: "relayhost = aristanetworks.com"
           notify: "reload postfix"
 
-        - name: "Default mailbox size is to small to handle reviewboard messages."
+        - name: "Default mailbox size is too small to handle reviewboard messages."
           lineinfile:
              dest: "{{postfixMainCf}}"
              regexp: "mailbox_size_limit = \\d*"
              line: "mailbox_size_limit = {{maxMsgSize}}"
           notify: "reload postfix"
 
-        - name: "Default message size is to small to handle reviewboard messages."
+        - name: "Default message size is too small to handle reviewboard messages."
           lineinfile:
              dest: "{{postfixMainCf}}"
              regexp: "message_size_limit = \\d*"
@@ -88,11 +93,17 @@
         #----------------------------------------------------------------------
         # End: Temp action to remove prior changes we do not need.
         #----------------------------------------------------------------------
-       when: fixPostfix.stat.exists == True
 
+        - name: "TEST"
+          script: test/test_postfix.py
+          when: TEST is defined
+
+       when: fixPostfix.stat.exists == True
+         
+     
   handlers:
      - name: "reload postfix"
        command: postfix reload
      - name: "postmap canonical"
-       command: postmap /etc/postfix/canonical
+       command: postmap {{canonicalFile}}
 ...
