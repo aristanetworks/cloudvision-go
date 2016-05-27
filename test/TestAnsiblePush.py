@@ -197,6 +197,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
    def setAnsibleConfig( self ): #pylint:disable-msg=R0201
       '''
       Centralized function to set custom Ansible Server configuration settings.
+      These settings are the ones that should also be part of the Ansible 
       '''
       # Ansible -- stop disconnecting SSH sessions on your own!
       self.callcmd( cmd.ex % ( conf.ansible_serv, 
@@ -256,7 +257,8 @@ class TestAnsiblePushTests( unittest.TestCase ):
       fd, tmp_host_f = tempfile.mkstemp()
       os.write( fd, hosts )
       os.close( fd )
-      # SCP mock ansible hosts file over to as
+      # SCP mock ansible hosts file over to as, where it is expected to be read:
+      # '/etc/ansible/hosts'
       self.callcmd( cmd.copy % ( tmp_host_f, '%s:/test_ansible_hosts' % 
                                  conf.ansible_serv ) )
       os.unlink( tmp_host_f )

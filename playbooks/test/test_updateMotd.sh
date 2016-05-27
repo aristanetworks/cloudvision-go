@@ -45,3 +45,5 @@ then
    echo "Expected Ansible config message not found in beginning of /etc/motd." 1>&2
    exit 1
 fi
+
+exit 0

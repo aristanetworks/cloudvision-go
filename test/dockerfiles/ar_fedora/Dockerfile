@@ -19,10 +19,10 @@ RUN yum install -y \
    python \
    hostname \
    sshpass \
-   ansible
+
+RUN yum install -y https://archive.fedoraproject.org/pub/fedora/linux/updates/23/x86_64/a/ansible-2.0.2.0-1.fc23.noarch.rpm
 
 EXPOSE 22
-ENV ANSIBLE_INVENTORY=/test_ansible_hosts
 
 COPY ssh /root/.ssh
 RUN chown root /root/.ssh
