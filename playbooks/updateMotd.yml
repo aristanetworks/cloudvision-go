@@ -7,8 +7,8 @@
   become_user: root
   vars:
      aroraConfigMotd: "/var/lib/AroraConfig/updateMotd"
-     f: '/etc/motd'
-     msg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
+     motdPath: '/etc/motd'
+     ansibleCfgMsg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
      exprToMatch: "^[ANSIBLE]"
   tasks:
       - stat: path="{{aroraConfigMotd}}"
@@ -17,10 +17,10 @@
       - block:
          - name: "Update motd message"
            lineinfile: 
-              dest: "{{ f }}"
+              dest: "{{ motdPath }}"
               regexp: "{{ exprToMatch }}"
               insertbefore: BOF
-              line: "{{ msg }}"
+              line: "{{ ansibleCfgMsg }}"
               create: yes
 
          - name: "TEST"
@@ -28,7 +28,4 @@
            when: TEST is defined
 
         when: fixMotd.stat.exists == True
-
 ...
-            
-

@@ -67,7 +67,7 @@ class Config( object ):
 
    # Docker image built and available on Arista Docker registry.
    dockerImg = ( 'ar_fedora' if DEBUG else
-                 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:36d011e' )
+                 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:c4320ed' )
 
    # Ansible server name.
    ansible_serv = 'as_w' if DEBUG else 'as'
@@ -88,6 +88,24 @@ class Config( object ):
    # Relative path to ping.yml
    ping_plbk = './ping.yml' if DEBUG else './test/ping.yml'
 
+   # Main master playbook to be run.
+   local = 'local.yml'
+
+   # Test-only ping playbook
+   ping = 'ping.yml'
+
+   # Expected path to sentinel files
+   sentinels_path = '/var/lib/AroraConfig/'
+
+   # Path to fetching the pre-made Ansible config file.
+   ansible_cfg = '../ansible.cfg' if DEBUG else './ansible.cfg'
+
+   # Destination path to put Ansible config file.
+   dest_ansible_cfg = '/etc/ansible/ansible.cfg'
+
+   # Destination path to put Ansible hosts file.
+   dest_ansible_hosts = '/etc/ansible/hosts'
+
    # Ansible server IP
    as_ip = ""
 
@@ -102,15 +120,6 @@ class Config( object ):
 
    # Test-only entry in 'known_hosts"
    kh_host = '%s,%s %s\n'
-
-   # Main master playbook to be run.
-   local = 'local.yml'
-
-   # Test-only ping playbook
-   ping = 'ping.yml'
-
-   # Expected path to sentinel files
-   sentinels_path = '/var/lib/AroraConfig/'
 
 class Cmd( object ):
    '''
@@ -167,42 +176,21 @@ class TestAnsiblePushTests( unittest.TestCase ):
       return subprocess.check_output( command, shell=True ).strip( '\n' )
 
 
-   def clean( self ): #pylint:disable-msg=R0201
+   def clean( self, preclean=False ): #pylint:disable-msg=R0201
       '''
       Clean up all spawned docker instances.
       '''
       logger.info( 'Killing all spawned docker containers for this test.' )
-      containers = ' '.join( conf.servs.keys() ) 
+
+      if preclean:
+         servs = [ conf.client_serv % n for n in range( conf.num ) ]
+         containers = ' '.join( servs )
+      else:
+         containers = ' '.join( conf.servs.keys() ) 
       containers += ' %s' % conf.ansible_serv
 
       # Kill and remove all containers.
       self.callcmd( cmd.kill % containers )
-
-
-   # XXX: MOVE THIS TO DOCKERFILE ASAP
-   def stuffThatReallyShouldBeInTheDockerFile( self, node ):
-      '''
-      Collecting changes that should go to Dockerfile. Really shouldn't be here.
-      ALL THE STUFF HERE SHOULD GO IN THE DOCKERFILE LATER!!!!!!
-      '''
-      # Install Ansible 2.0
-      logger.info( '%s: Remove Ansible 1.9', node )
-      self.callcmd( cmd.ex_no_output % ( node, 'yum -y remove ansible' ) )
-      logger.info( '%s: Install Ansible 2.0', node )
-      self.callcmd( cmd.ex_no_output % ( node, 
-         ( 'yum install -y https://archive.fedoraproject.org/pub/fedora/linux/'
-           'updates/23/x86_64/a/ansible-2.0.2.0-1.fc23.noarch.rpm' ) ) )
-
-
-   def setAnsibleConfig( self ): #pylint:disable-msg=R0201
-      '''
-      Centralized function to set custom Ansible Server configuration settings.
-      These settings are the ones that should also be part of the Ansible 
-      '''
-      # Ansible -- stop disconnecting SSH sessions on your own!
-      self.callcmd( cmd.ex % ( conf.ansible_serv, 
-         'sed -i \'s/#ssh_args = -o ControlMaster=auto -o ControlPersist=60s/'
-         'ssh_args = -o ControlMaster=no/\' /etc/ansible/ansible.cfg' ) )
 
 
    def setUp( self ):
@@ -215,8 +203,8 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # already exist it would spew a lot of unwanted error messages to log. Also
       # doesn't delete all previous containers if number of containers for this run
       # is different. For now, this is good enough.
-      logging.warning( '\nAttempting to clean up runaway containers.' )
-      self.clean()
+      logging.warning( '\nAttempting to clean up containers from aborted session.' )
+      self.clean( preclean=True )
       
 
       # ========== CREATE SERVERS ==========
@@ -225,8 +213,9 @@ class TestAnsiblePushTests( unittest.TestCase ):
       self.callcmd( cmd.create % ( conf.ansible_serv, conf.dockerImg ) )
       conf.as_ip = self.getcmd( cmd.inspectIP % conf.ansible_serv ) 
       assert conf.as_ip
+      self.callcmd( cmd.copy % ( conf.ansible_cfg, 
+                    '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_cfg ) ) )
       logger.info( 'Initialized test Ansible host.' )
-      self.stuffThatReallyShouldBeInTheDockerFile( conf.ansible_serv ) # XXX
 
       # Create client servers.
       for i in range( conf.num ):
@@ -238,7 +227,9 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
          conf.servs[ curr ] = self.getcmd( cmd.inspectIP % curr ) 
          assert conf.servs[ curr ]
-         self.stuffThatReallyShouldBeInTheDockerFile( curr ) # XXX
+         self.callcmd( cmd.copy % ( conf.ansible_cfg, 
+                       '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_cfg ) ) )
+
 
       # Let's make sure that we don't have zero client servers ready to test on. It
       # would be pointless to run the test if we don't have any client servers. 
@@ -247,9 +238,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
 
       # ========== SET UP ANSIBLE SERVER ==========
-      # Set custom Ansible Server (as) configurations.
-      self.setAnsibleConfig()
-
       # Create mock 'ansible_hosts' file for the pseudo-servers we just created.
       logger.info( 'Creating and copying over ansible_hosts file to as.' )
       hosts = conf.ash_template % ( '\n'.join( [ conf.ash_host % ( sv, ip ) for sv, 
@@ -259,8 +247,8 @@ class TestAnsiblePushTests( unittest.TestCase ):
       os.close( fd )
       # SCP mock ansible hosts file over to as, where it is expected to be read:
       # '/etc/ansible/hosts'
-      self.callcmd( cmd.copy % ( tmp_host_f, '%s:/test_ansible_hosts' % 
-                                 conf.ansible_serv ) )
+      self.callcmd( cmd.copy % ( tmp_host_f,
+                    '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_hosts ) ) )
       os.unlink( tmp_host_f )
 
       # Create mock known_hosts file.

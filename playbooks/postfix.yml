@@ -27,7 +27,13 @@
      - block:
         - name: "Ensure postfix is installed and is latest."
           yum: name=postfix state=latest
-         
+          when: TEST is not defined
+      
+        # https://github.com/docker/docker/issues/10180
+        - name: "Ensure postfix is installed, rebuild cached MariaDB - TEST ENV ONLY"
+          shell: rpm --rebuilddb && yum -y install postfix
+          when: TEST is defined
+
         - name: "Start postfix, in case it is reinstalled."
           command: postfix start
           # We ignore errors from this step if postfix is already running. If postfix
