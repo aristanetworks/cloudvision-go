@@ -70,10 +70,10 @@ class Config( object ):
                  'registry.docker.sjc.aristanetworks.com:5000/ardc-config:c4320ed' )
 
    # Ansible server name.
-   ansible_serv = 'as_w' if DEBUG else 'as'
+   ansible_sv = 'as' if DEBUG else 'ardc_config_as'
 
    # Template for client server names.
-   client_serv = 'sv%s_w' if DEBUG else 'sv%s'
+   client_serv = 'sv%s' if DEBUG else 'ardc_config_sv%s'
 
    # Path to RSA public host key.
    path_to_hostpub = ( 'dockerfiles/ar_fedora/ssh/id_rsa.pub' if DEBUG else 
@@ -97,14 +97,14 @@ class Config( object ):
    # Expected path to sentinel files
    sentinels_path = '/var/lib/AroraConfig/'
 
+   # Destination path to put Ansible hosts file.
+   dest_ansible_hosts = '/etc/ansible/hosts'
+
    # Path to fetching the pre-made Ansible config file.
    ansible_cfg = '../ansible.cfg' if DEBUG else './ansible.cfg'
 
    # Destination path to put Ansible config file.
    dest_ansible_cfg = '/etc/ansible/ansible.cfg'
-
-   # Destination path to put Ansible hosts file.
-   dest_ansible_hosts = '/etc/ansible/hosts'
 
    # Ansible server IP
    as_ip = ""
@@ -133,7 +133,10 @@ class Cmd( object ):
    ex = 'docker exec -t %s /bin/bash -c "%s"'
    ex_no_output = 'docker exec -t %s /bin/bash -c "%s" > /dev/null'
    delete = 'rm %s'
-   kill = 'echo %s | xargs -I %% sh -c "docker stop %%; docker rm %%" > /dev/null'
+   # We can't just kill and remove every container because there are other containers
+   # running on this same node as where the test runs.
+   kill = ( 'echo %s | xargs -I %% sh -c "docker kill %%; docker rm %%"' 
+            '> /dev/null 2>&1' )
    ans_pl = 'ansible-playbook %s -e "TEST=true"'
 
 
@@ -159,7 +162,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       '''
       ret = subprocess.call( command, shell=True )
       if ret:
-         logger.error( 'Returned code %d: %s', ret, command )
+         logger.error( 'Call failed with error %s.', ret )
       return ret
 
 
@@ -187,10 +190,15 @@ class TestAnsiblePushTests( unittest.TestCase ):
          containers = ' '.join( servs )
       else:
          containers = ' '.join( conf.servs.keys() ) 
-      containers += ' %s' % conf.ansible_serv
+      containers += ' %s' % conf.ansible_sv
 
       # Kill and remove all containers.
-      self.callcmd( cmd.kill % containers )
+      ret = self.callcmd( cmd.kill % containers )
+      if ret:
+         if preclean:
+            logging.warning( 'No runaway containers to remove.' )
+         else:
+            logging.error( 'Couldn\'t remove containers.' )
 
 
    def setUp( self ):
@@ -203,18 +211,18 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # already exist it would spew a lot of unwanted error messages to log. Also
       # doesn't delete all previous containers if number of containers for this run
       # is different. For now, this is good enough.
-      logging.warning( '\nAttempting to clean up containers from aborted session.' )
+      logging.warning( 'Attempting to remove runaway containers from previous run.' )
       self.clean( preclean=True )
       
 
       # ========== CREATE SERVERS ==========
       # Create main ansible server. If ansible server couldn't be created, don't
       # even bother with rest of testing.
-      self.callcmd( cmd.create % ( conf.ansible_serv, conf.dockerImg ) )
-      conf.as_ip = self.getcmd( cmd.inspectIP % conf.ansible_serv ) 
+      self.callcmd( cmd.create % ( conf.ansible_sv, conf.dockerImg ) )
+      conf.as_ip = self.getcmd( cmd.inspectIP % conf.ansible_sv ) 
       assert conf.as_ip
       self.callcmd( cmd.copy % ( conf.ansible_cfg, 
-                    '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_cfg ) ) )
+                    '%s:%s' % ( conf.ansible_sv, conf.dest_ansible_cfg ) ) )
       logger.info( 'Initialized test Ansible host.' )
 
       # Create client servers.
@@ -228,7 +236,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
          conf.servs[ curr ] = self.getcmd( cmd.inspectIP % curr ) 
          assert conf.servs[ curr ]
          self.callcmd( cmd.copy % ( conf.ansible_cfg, 
-                       '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_cfg ) ) )
+                       '%s:%s' % ( conf.ansible_sv, conf.dest_ansible_cfg ) ) )
 
 
       # Let's make sure that we don't have zero client servers ready to test on. It
@@ -248,7 +256,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # SCP mock ansible hosts file over to as, where it is expected to be read:
       # '/etc/ansible/hosts'
       self.callcmd( cmd.copy % ( tmp_host_f,
-                    '%s:%s' % ( conf.ansible_serv, conf.dest_ansible_hosts ) ) )
+                    '%s:%s' % ( conf.ansible_sv, conf.dest_ansible_hosts ) ) )
       os.unlink( tmp_host_f )
 
       # Create mock known_hosts file.
@@ -261,9 +269,10 @@ class TestAnsiblePushTests( unittest.TestCase ):
          os.write( fd, known_hosts )
          os.close( fd )
          # Copy over mock known_hosts file to ansible server container. 
-         self.callcmd( cmd.copy % ( tmp_kh_f, '%s:/root/.ssh/known_hosts' 
-                                               % conf.ansible_serv ) )
+         #self.callcmd( cmd.copy % ( tmp_kh_f, '%s:/root/.ssh/known_hosts' 
+         #                                      % conf.ansible_sv ) )
          os.unlink( tmp_kh_f )
+
 
       # ========== SET UP HOST SERVERS ==========
       # Get a list of playbooks available. These are the names of the sentinels,
@@ -284,6 +293,8 @@ class TestAnsiblePushTests( unittest.TestCase ):
       '''
       Tearing down testing environment.
       '''
+      self.callcmd( cmd.ex % ( conf.ansible_sv, 'cat /var/log/ansible.log' ) )
+
       self.clean()
       logging.shutdown()
 
@@ -293,26 +304,28 @@ class TestAnsiblePushTests( unittest.TestCase ):
       Runs master_test.yml, which is the master test playbook to run in order to run
       all other ansible playbooks to test for both test and production playbooks.
       '''   
-      # Copy playbooks directory and its playbooks over to ansible server container.
+      # Copy playbooks directory and its playbooks over to ansible server.
       # This could be done by the Dockerfile, but wasn't in case the 
       # directory/name/location of the playbooks changed.
-      self.callcmd( cmd.copy % ( conf.playbooks, '%s:/' % conf.ansible_serv ) )
+      logger.info( 'Copying playbooks to Ansible server.' )
+      self.callcmd( cmd.copy % ( conf.playbooks, '%s:/' % conf.ansible_sv ) )
 
       # Copy over local.yml ansible server container.
-      self.callcmd( cmd.copy % ( conf.local_plbk, '%s:/' % conf.ansible_serv ) )
+      self.callcmd( cmd.copy % ( conf.local_plbk, '%s:/' % conf.ansible_sv ) )
    
       # Copy over ping.yml ansible server container.
-      self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_serv ) )
+      self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_sv ) )
 
       # On Ansible server, run ping.yml as a test.
-      ret = self.callcmd( cmd.ex % ( conf.ansible_serv, cmd.ans_pl % conf.ping ) )
+      ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.ping ) )
 
       if ret:
          logger.error( 'Failed ping test. Aborting.' )
          sys.exit( 1 )
 
+
       # On Ansible server, run local.yml which plays all the playbooks.
-      ret = self.callcmd( cmd.ex % ( conf.ansible_serv, cmd.ans_pl % conf.local ) )
+      ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
 
       if ret:
          logger.error( 'Something went wrong playing the playbooks. Aborting.' )
@@ -321,3 +334,4 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
 if __name__ == '__main__':
    unittest.main( verbosity=2 )
+   print '\n'

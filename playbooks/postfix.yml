@@ -104,7 +104,7 @@
           script: test/test_postfix.py
           when: TEST is defined
 
-       when: fixPostfix.stat.exists == True
+       when: fixPostfix.stat.exists == True 
          
      
   handlers:
