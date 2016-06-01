@@ -29,11 +29,14 @@ Replace the 'PACKAGE' with appropriate package name and 'PLAYBOOK' with the play
      become: yes
      become_user: root
      vars:
-        aroraConfigPACKAGE:       "/var/lib/AroraConfig/PACKAGE"
-        # other variables you want to define goes here...
+        PLAYBOOK_aroraConfigPACKAGE:       "/var/lib/AroraConfig/PACKAGE"
+        # IMPORTANT: prefix every variable you want to define with the 
+        #            playbook name. This avoids variable name collisions 
+        #            between differentplaybooks.
+        #            Other variables you want to define goes here...
 
      tasks:
-        - stat: path="{{aroraConfigPACKAGE}}"
+        - stat: path="{{ PLAYBOOK_aroraConfigPACKAGE }}"
           register: fixPACKAGE
 
         - block:

@@ -6,26 +6,19 @@
   become: yes
   become_user: root
   vars:
-     aroraConfigMotd: "/var/lib/AroraConfig/updateMotd"
-     motdPath: '/etc/motd'
-     ansibleCfgMsg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
-     exprToMatch: "^[ANSIBLE]"
+     updateMotd_motdPath: '/etc/motd'
+     updateMotd_ansibleCfgMsg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
+     updateMotd_exprToMatch: "^[ANSIBLE]"
   tasks:
-      - stat: path="{{aroraConfigMotd}}"
-        register: fixMotd
+     - name: "Update /etc/motd message"
+       lineinfile: 
+          dest: "{{ updateMotd_motdPath }}"
+          regexp: "{{ updateMotd_exprToMatch }}"
+          insertbefore: BOF
+          line: "{{ updateMotd_ansibleCfgMsg }}"
+          create: yes
 
-      - block:
-         - name: "Update motd message"
-           lineinfile: 
-              dest: "{{ motdPath }}"
-              regexp: "{{ exprToMatch }}"
-              insertbefore: BOF
-              line: "{{ ansibleCfgMsg }}"
-              create: yes
-
-         - name: "TEST"
-           script: test/test_updateMotd.sh
-           when: TEST is defined
-
-        when: fixMotd.stat.exists == True
+     - name: "TEST"
+       script: test/test_updateMotd.sh
+       when: TEST is defined
 ...
