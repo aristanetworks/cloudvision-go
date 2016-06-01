@@ -9,6 +9,7 @@ import logging
 import unittest
 import tempfile
 
+
 # Description
 # ===========
 # This test provides a framework *ONLY* to test playbooks under 'playbooks' folder
@@ -100,11 +101,8 @@ class Config( object ):
    # Destination path to put Ansible hosts file.
    dest_ansible_hosts = '/etc/ansible/hosts'
 
-   # Path to fetching the pre-made Ansible config file.
-   ansible_cfg = '../ansible.cfg' if DEBUG else './ansible.cfg'
-
    # Destination path to put Ansible config file.
-   dest_ansible_cfg = '/etc/ansible/ansible.cfg'
+   as_cfg = '/etc/ansible/ansible.cfg'
 
    # Ansible server IP
    as_ip = ""
@@ -201,6 +199,32 @@ class TestAnsiblePushTests( unittest.TestCase ):
             logging.error( 'Couldn\'t remove containers.' )
 
 
+   def ansibleServerConfigs( self ): #pylint:disable-msg=R0201
+      '''
+      Some manual configuration settings specific for server. This should be in line
+      with config.yml. This is the workaround of not keeping our a centralized copy
+      of ansible.cfg, but instead using a playbook to apply the config changes.
+
+      '''
+      # XXX: If something is really different from deployment env then the settings
+      # here are probably very different from the deployment env.
+      # XXX: If something is really broken, check that the settings changed here are
+      # the same ones as those in config.yml.
+
+      # Disable host key checking
+      self.callcmd( cmd.ex % ( conf.ansible_sv,
+                    'sed -i \'/host_key_checking/c\host_key_checking = False\' %s' %
+                    conf.as_cfg ) )
+
+      # SSH args - stop auto disconnects after timeout
+      self.callcmd( cmd.ex % ( conf.ansible_sv,
+         'sed -i \'/ssh_args/c\ssh_args = -o ControlMaster=no\' %s' % conf.as_cfg ) )
+
+      # Enable pipelining
+      self.callcmd( cmd.ex % ( conf.ansible_sv,
+         'sed -i \'/pipelining/c\pipelining = True\' %s' % conf.as_cfg ) )
+
+
    def setUp( self ):
       '''
       Set up main ansible server and client servers as docker instances for 
@@ -221,8 +245,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
       self.callcmd( cmd.create % ( conf.ansible_sv, conf.dockerImg ) )
       conf.as_ip = self.getcmd( cmd.inspectIP % conf.ansible_sv ) 
       assert conf.as_ip
-      self.callcmd( cmd.copy % ( conf.ansible_cfg, 
-                    '%s:%s' % ( conf.ansible_sv, conf.dest_ansible_cfg ) ) )
       logger.info( 'Initialized test Ansible host.' )
 
       # Create client servers.
@@ -235,8 +257,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
          conf.servs[ curr ] = self.getcmd( cmd.inspectIP % curr ) 
          assert conf.servs[ curr ]
-         self.callcmd( cmd.copy % ( conf.ansible_cfg, 
-                       '%s:%s' % ( conf.ansible_sv, conf.dest_ansible_cfg ) ) )
 
 
       # Let's make sure that we don't have zero client servers ready to test on. It
@@ -247,6 +267,9 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
       # ========== SET UP ANSIBLE SERVER ==========
       # Create mock 'ansible_hosts' file for the pseudo-servers we just created.
+      logger.info( 'Setting Ansible configuration settings on ansible server' )
+      self.ansibleServerConfigs()
+
       logger.info( 'Creating and copying over ansible_hosts file to as.' )
       hosts = conf.ash_template % ( '\n'.join( [ conf.ash_host % ( sv, ip ) for sv, 
                                                  ip in conf.servs.items() ] ) )

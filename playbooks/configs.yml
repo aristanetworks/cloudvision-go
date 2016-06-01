@@ -1,9 +1,33 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-# YAML to test for ansible configurations that we want changed
 ---
 - hosts: all
   become: yes
   become_user: root
+  vars:
+    configs_ansibleCfgPath: '/etc/ansible/ansible.cfg'
+  tasks:
+    # XXX: we don't want this in deployment ...
+    - name: "Disable strict host key checking -- too lazy for ECDSA"
+      lineinfile:
+        dest: "{{ configs_ansibleCfgPath }}"
+        regexp: "^(|#)host_key_checking"   
+        line: "host_key_checking = False"
+
+    - name: "Disable SSH auto disconnect after timeout"
+      lineinfile:
+        dest: "{{ configs_ansibleCfgPath }}"
+        regexp: "^ssh_args"
+        line: "ssh_args = -o ControlMaster=no"
+
+    - name: "Enable pipelining for faster runs"
+      lineinfile:
+        dest: "{{ configs_ansibleCfgPath }}"
+        regexp: "^(|#)pipelining"
+        line: "pipelining = True"
+
+    - name: "TEST"
+      script: test/test_configs.sh
+      when: TEST is defined
 ...
