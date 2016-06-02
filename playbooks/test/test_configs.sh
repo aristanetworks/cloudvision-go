@@ -9,13 +9,13 @@ then
    exit 1
 fi
 
-if ! grep -q "ssh_args = -o ControlMaster=no" "$CONFIG_FILE"
+if ! grep -q "ssh_args = -o ControlMaster=no" $CONFIG_FILE
 then
    echo 'Incorrect ssh arguments setting' 1>&2
    exit 1
 fi
 
-if ! grep -q "pipelining = True" "$CONFIG_FILE"
+if ! grep -q "pipelining = True" $CONFIG_FILE
 then
    echo 'Incorrect SSH pipelining setting' 1>&2
    exit 1

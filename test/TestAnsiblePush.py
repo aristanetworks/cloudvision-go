@@ -4,6 +4,7 @@
 
 import os
 import sys
+import glob
 import subprocess
 import logging
 import unittest
@@ -199,6 +200,16 @@ class TestAnsiblePushTests( unittest.TestCase ):
             logging.error( 'Couldn\'t remove containers.' )
 
 
+   def tearDown( self ):
+      '''
+      Tearing down testing environment.
+      '''
+      self.callcmd( cmd.ex % ( conf.ansible_sv, 'cat /var/log/ansible.log' ) )
+
+      self.clean()
+      logging.shutdown()
+
+
    def ansibleServerConfigs( self ): #pylint:disable-msg=R0201
       '''
       Some manual configuration settings specific for server. This should be in line
@@ -225,11 +236,72 @@ class TestAnsiblePushTests( unittest.TestCase ):
          'sed -i \'/pipelining/c\pipelining = True\' %s' % conf.as_cfg ) )
 
 
+   def checkPlaybooks( self ): #pylint:disable-msg=R0201
+      '''
+      Runs coarse sanity check against the playbooks to see if they meet the minimum
+      requirements for testing. This is more to coerce tests to be written regardless
+      of the test's actual content.
+
+      '''
+
+      # We want people to at least *try* to use the testing framework before their 
+      # playbook gets added to the repo.
+      # The structure we are looking are is:
+      #           - name: "TEST"
+      #             script: test/test_PLAYBOOK.py
+      #             when: TEST is defined
+      #
+      # XXX: This testing would be much easier if we actually wrote a custom Ansible
+      # module only for testing that people can easily include.
+      # XXX: This does not guarantee that these lines follow one immediately after
+      # another, but guarantees the order of the lines and the fact that these lines
+      # do exist in the file.
+      playbooks = glob.glob( os.path.join( conf.playbooks, '*.yml' ) )
+      if len( playbooks ) == 0:
+         logger.error( 'No playbooks found to sanity check.' )
+         sys.exit( 1 )
+
+      for play in playbooks:
+         with open( play, 'r' ) as pl: 
+
+            expectedLns = []
+            expectedLns.append( '- name: "TEST"' )
+            expectedLns.append( 'script: test/' )
+            expectedLns.append( 'when: TEST is defined' ) 
+
+            for line in pl:
+               if len( expectedLns ) == 0:
+                  break
+
+               line = line.lstrip()
+               if len( line ) == 0:
+                  continue
+               elif line[0] == '#':
+                  continue
+               elif expectedLns[ 0 ] in line:
+                  expectedLns.pop( 0 )
+            
+            if len( expectedLns ):
+               logger.error( 'No testing found for playbook "%s".', play )
+               sys.exit( 1 )
+            else:
+               logger.info( 'Looks like there is testing in playbook "%s".', play )
+
+
    def setUp( self ):
       '''
       Set up main ansible server and client servers as docker instances for 
       this test that simulates actual datacenter environment.
+
       '''   
+      logger.info( 'Starting tests...' )
+
+      # ========== SANITY CHECK PLAYBOOKS ==========
+      # Sanity check that playbooks have testing framework included.
+      logger.info( 'Sanity checking playbooks for tests.' )
+      self.checkPlaybooks()
+
+
       # ========== TRY TO CLEAN UP ENV ==========
       # This isn't the cleanest way to do it since if these containers don't
       # already exist it would spew a lot of unwanted error messages to log. Also
@@ -237,7 +309,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # is different. For now, this is good enough.
       logging.warning( 'Attempting to remove runaway containers from previous run.' )
       self.clean( preclean=True )
-      
+
 
       # ========== CREATE SERVERS ==========
       # Create main ansible server. If ansible server couldn't be created, don't
@@ -267,7 +339,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
       # ========== SET UP ANSIBLE SERVER ==========
       # Create mock 'ansible_hosts' file for the pseudo-servers we just created.
-      logger.info( 'Setting Ansible configuration settings on ansible server' )
+      logger.info( 'Setting Ansible configuration settings on ansible server.' )
       self.ansibleServerConfigs()
 
       logger.info( 'Creating and copying over ansible_hosts file to as.' )
@@ -312,16 +384,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
                                          ( conf.sentinels_path, st ) ) )
 
 
-   def tearDown( self ):
-      '''
-      Tearing down testing environment.
-      '''
-      self.callcmd( cmd.ex % ( conf.ansible_sv, 'cat /var/log/ansible.log' ) )
-
-      self.clean()
-      logging.shutdown()
-
-
    def test( self ):
       '''
       Runs master_test.yml, which is the master test playbook to run in order to run
@@ -345,7 +407,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
       if ret:
          logger.error( 'Failed ping test. Aborting.' )
          sys.exit( 1 )
-
 
       # On Ansible server, run local.yml which plays all the playbooks.
       ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )

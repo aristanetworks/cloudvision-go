@@ -32,7 +32,7 @@ Replace the 'PACKAGE' with appropriate package name and 'PLAYBOOK' with the play
         PLAYBOOK_aroraConfigPACKAGE:       "/var/lib/AroraConfig/PACKAGE"
         # IMPORTANT: prefix every variable you want to define with the 
         #            playbook name. This avoids variable name collisions 
-        #            between differentplaybooks.
+        #            between different playbooks.
         #            Other variables you want to define goes here...
 
      tasks:
