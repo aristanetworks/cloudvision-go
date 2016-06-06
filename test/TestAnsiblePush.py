@@ -161,7 +161,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       '''
       ret = subprocess.call( command, shell=True )
       if ret:
-         logger.error( 'Call failed with error %s.', ret )
+         logger.error( 'Docker exec call terminated with error %s.', ret )
       return ret
 
 
@@ -204,9 +204,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       '''
       Tearing down testing environment.
       '''
-      self.callcmd( cmd.ex % ( conf.ansible_sv, 'cat /var/log/ansible.log' ) )
-
-      self.clean()
+      #self.clean()
       logging.shutdown()
 
 

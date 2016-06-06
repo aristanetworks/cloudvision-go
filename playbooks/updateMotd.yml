@@ -8,12 +8,17 @@
   vars:
      updateMotd_motdPath: '/etc/motd'
      updateMotd_ansibleCfgMsg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
-     updateMotd_exprToMatch: "^[ANSIBLE]"
+     updateMotd_exprToMatch: "^\\[ANSIBLE\\]"
   tasks:
-     - name: "Update /etc/motd message"
+     - name: "Remove duplicate /etc/motd messages"
        lineinfile: 
           dest: "{{ updateMotd_motdPath }}"
           regexp: "{{ updateMotd_exprToMatch }}"
+          state: absent
+
+     - name: "Add /etc/motd message"
+       lineinfile: 
+          dest: "{{ updateMotd_motdPath }}"
           insertbefore: BOF
           line: "{{ updateMotd_ansibleCfgMsg }}"
           create: yes
