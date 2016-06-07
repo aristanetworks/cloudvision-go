@@ -11,17 +11,19 @@
 # - specify the relay host.
 # - specify the max size of messages
 # - undo some changes we no longer need.
-- hosts: all
+
+- name: "postfix"
+  hosts: all
   become: yes
   become_user: root
   vars:
-     aroraConfigPostfix:       "/var/lib/AroraConfig/postfix"
-     postFixEtc:                "/etc/postfix"
-     postfixMainCf:             "{{postFixEtc}}/main.cf"
-     canonicalFile:          "{{postFixEtc}}/canonical.arista"
-     maxMsgSize:                1073741824
+     postfix_aroraConfigPostfix: "/var/lib/AroraConfig/postfix"
+     postfix_etc:                "/etc/postfix"
+     postfix_mainCf:             "{{postfix_etc}}/main.cf"
+     postfix_canonicalFile:      "{{postfix_etc}}/canonical.arista"
+     postfix_maxMsgSize:         1073741824
   tasks:
-     - stat: path="{{aroraConfigPostfix}}"
+     - stat: path="{{postfix_aroraConfigPostfix}}"
        register: fixPostfix
 
      - block:
@@ -42,35 +44,35 @@
 
         - name: "Postfix canonize regexp."
           lineinfile:
-             dest: "{{canonicalFile}}"
+             dest: "{{postfix_canonicalFile}}"
              line: "/^(.*@)(.*)aristanetworks.com$/     ${1}arista.com"
              create: yes
 
         - name: "Outgoing sender should be @arista.com and not @aristanetworks.com"
           lineinfile:
-             dest: "{{postfixMainCf}}"
-             line: "sender_canonical_maps = regexp:{{canonicalFile}}"
+             dest: "{{postfix_mainCf}}"
+             line: "sender_canonical_maps = regexp:{{postfix_canonicalFile}}"
           notify: "reload postfix"
 
         - name: "Specify relay host."
           lineinfile:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "relayhost = aristanetworks.com"
              line: "relayhost = aristanetworks.com"
           notify: "reload postfix"
 
         - name: "Default mailbox size is too small to handle reviewboard messages."
           lineinfile:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "mailbox_size_limit = \\d*"
-             line: "mailbox_size_limit = {{maxMsgSize}}"
+             line: "mailbox_size_limit = {{postfix_maxMsgSize}}"
           notify: "reload postfix"
 
         - name: "Default message size is too small to handle reviewboard messages."
           lineinfile:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "message_size_limit = \\d*"
-             line: "message_size_limit = {{maxMsgSize}}"
+             line: "message_size_limit = {{postfix_maxMsgSize}}"
           notify: "reload postfix"
 
         #----------------------------------------------------------------------
@@ -78,21 +80,21 @@
         #----------------------------------------------------------------------
         - name: "Undo adding mydomain"
           replace:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "^[ \t]*(mydomain = .*$)"
              replace: "#\\1"
           notify: "reload postfix"
 
         - name: "Undo adding myorigin"
           replace:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "^[ \t]*(myorigin = .*$)"
              replace: "#\\1"
           notify: "reload postfix"
 
         - name: "Undo adding fallback_transport"
           replace:
-             dest: "{{postfixMainCf}}"
+             dest: "{{postfix_mainCf}}"
              regexp: "^[ \t]*(fallback_transport = .*)$"
              replace: "#\\1"
           notify: "reload postfix"
@@ -111,5 +113,5 @@
      - name: "reload postfix"
        command: postfix reload
      - name: "postmap canonical"
-       command: postmap {{canonicalFile}}
+       command: postmap {{postfix_canonicalFile}}
 ...

@@ -400,18 +400,42 @@ class TestAnsiblePushTests( unittest.TestCase ):
       self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_sv ) )
 
       # On Ansible server, run ping.yml as a test.
+      logger.info( 'Running sanity ping test on the containers.' )
       ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.ping ) )
 
       if ret:
          logger.error( 'Failed ping test. Aborting.' )
          sys.exit( 1 )
 
-      # On Ansible server, run local.yml which plays all the playbooks.
-      ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
+      # Run all the playbooks once. This simulates provisioning the servers from
+      # a blank slate state.
+      logger.info( 'Test iteration 1: simulating running playbooks on blank slate '
+                   'servers, newly provisioned.' )
+      ret1 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
 
-      if ret:
-         logger.error( 'Something went wrong playing the playbooks. Aborting.' )
+      # Run all the playbooks again. This simulates maintaining the servers that are
+      # already provisioned.
+      logger.info( 'Test iteration 2: simulating maintaining servers already '
+                   'provisioned.' )
+      ret2 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
+
+      if ret1 or ret2:
+         if ret1:
+            # Running the playbooks the first time breaks things.
+            logger.error( 'Error with Test iteration 1.' )
+         if ret2:
+            # Trying to maintain with the playbooks breaks things.
+            logger.error( 'Error with Test iteration 2.' )
+         if ret1 and not ret2:
+            # Playing the playbooks the first time broke things, but running the
+            # playboks again fixed the problem itself.
+            logger.error( 'Error with Test iteration 1, but iteration 2 fixed it.' )
+         if not ret1 and ret2:
+            logger.error( 'Test iteration 2 broke test iteration 1.' )
+
          sys.exit( 1 )
+      else:
+         logger.error( 'Both test iterations passed without error.' )
 
 
 if __name__ == '__main__':

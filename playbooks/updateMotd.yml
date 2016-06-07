@@ -2,7 +2,8 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 ---
-- hosts: all
+- name: "updateMotd"
+  hosts: all
   become: yes
   become_user: root
   vars:

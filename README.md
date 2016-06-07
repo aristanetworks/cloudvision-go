@@ -5,6 +5,9 @@ This repository is used to host playbooks, config files (e.g. hosts file like 'a
 <br />
 <br />
 
+## Ansible Version
+Currently, Ansible 2.0 is supported by the test framework.
+
 ## Ansible-push vs. Ansible-pull
 The main design of Ansible is that there is a centralized server from which a set of "playbooks" or configuration modules are pushed to the remote servers. There is also an opposite design, called [Ansible-pull](http://docs.ansible.com/ansible/playbooks_intro.html#ansible-pull), which is essentially the opposite - instead of having a centralized server, the remote servers themselves pull from a git repo that contains the playbooks that need to be run, and run them independently by themselves. We support both models, although we rely more on Ansible-pull model than push. 
 
@@ -25,7 +28,8 @@ Replace the 'PACKAGE' with appropriate package name and 'PLAYBOOK' with the play
 
 ```
    ---
-   - hosts: all
+   - name: "PACKAGE"
+     hosts: all
      become: yes
      become_user: root
      vars:

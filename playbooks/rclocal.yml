@@ -1,0 +1,35 @@
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+---
+- name: "rclocal"
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+     rclocal_aroraConfigRclocal: "/var/lib/AroraConfig/rclocal"
+     rclocal_sysconfdir: "/etc"
+     rclocal_RCLOCAL: "{{rclocal_sysconfdir}}/rc.d/rc.local" 
+
+  tasks:
+     - stat: path="{{rclocal_aroraConfigRclocal}}"
+       register: fixRclocal
+
+     - block:
+        # Configuration for /etc/rc.d/rc.local
+        # Group: System Environment/Base
+     
+
+        - name: "If \"rc.local\" doesn't exist, then create it."
+          
+        
+
+
+
+        - name: "TEST"
+          script: test/test_rclocal.py
+          when: TEST is defined
+
+       when: fixRclocal.stat.exists == True
+...        
+
