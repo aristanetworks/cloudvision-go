@@ -120,6 +120,9 @@ class Config( object ):
    # Test-only entry in 'known_hosts"
    kh_host = '%s,%s %s\n'
 
+   # Copy of Arora.conf from Arora18release 
+   arora_conf = './Arora2010.conf_COPY' if DEBUG else './test/Arora2010.conf_COPY'
+
 class Cmd( object ):
    '''
    Placeholder class for often used commands for this testing environment because
@@ -204,11 +207,11 @@ class TestAnsiblePushTests( unittest.TestCase ):
       '''
       Tearing down testing environment.
       '''
-      #self.clean()
+      self.clean()
       logging.shutdown()
 
 
-   def ansibleServerConfigs( self ): #pylint:disable-msg=R0201
+   def modifyAnsibleServerConfigs( self ): #pylint:disable-msg=R0201
       '''
       Some manual configuration settings specific for server. This should be in line
       with config.yml. This is the workaround of not keeping our a centralized copy
@@ -286,6 +289,21 @@ class TestAnsiblePushTests( unittest.TestCase ):
                logger.info( 'Looks like there is testing in playbook "%s".', play )
 
 
+
+   def thingsThatShouldBeInDockerImage( self ):
+      # XXX: All the stuff here should really be in the Docker image, not here!!
+      # But because changing Dockerfile is such a pain let's collect them here...
+      # XXX: All the stuff here are TEMPORARY. 
+      conts = list( conf.servs.keys() )
+      conts.append( conf.ansible_sv )
+
+      # Copy Arora.conf over to the containers. Need to discard Arora.conf anyway.
+      logger.info( "Copying Arora.conf from Arora18release to containers." )
+      for c in conts:
+         self.callcmd( cmd.copy % ( conf.arora_conf,
+                       '%s:%s' % ( c, '/etc/sysctl.d/Arora.conf' ) ) )
+
+
    def setUp( self ):
       '''
       Set up main ansible server and client servers as docker instances for 
@@ -338,7 +356,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # ========== SET UP ANSIBLE SERVER ==========
       # Create mock 'ansible_hosts' file for the pseudo-servers we just created.
       logger.info( 'Setting Ansible configuration settings on ansible server.' )
-      self.ansibleServerConfigs()
+      self.modifyAnsibleServerConfigs()
 
       logger.info( 'Creating and copying over ansible_hosts file to as.' )
       hosts = conf.ash_template % ( '\n'.join( [ conf.ash_host % ( sv, ip ) for sv, 
@@ -380,6 +398,9 @@ class TestAnsiblePushTests( unittest.TestCase ):
             self.callcmd( cmd.ex % ( sv, 'mkdir -p %s' % conf.sentinels_path ) )
             self.callcmd( cmd.ex % ( sv, 'touch %s%s' % 
                                          ( conf.sentinels_path, st ) ) )
+
+      self.thingsThatShouldBeInDockerImage()
+   
 
 
    def test( self ):

@@ -18,16 +18,39 @@
      - block:
         # Configuration for /etc/rc.d/rc.local
         # Group: System Environment/Base
-     
 
-        - name: "If \"rc.local\" doesn't exist, then create it."
-          
-        
+        - name: "Prepend missing shebang. Create rc.local if it doesn't exist."
+          lineinfile:
+             dest: "{{ rclocal_RCLOCAL }}"
+             line: "#!/bin/sh"
+             create: yes
+             insertbefore: BOF
+             state: present
 
+        - name: "Change execution permissions for rc.local" 
+          file:
+             path: "{{ rclocal_RCLOCAL }}"
+             mode: "a+x"
 
+        - name: "Remove code that invokes sysctl-Arora.conf"
+          lineinfile:
+            dest: "{{ rclocal_RCLOCAL }}"
+            regexp: "/etc/sysctl-Arora.conf"
+            state: absent
+
+        - name: "Remove code that invokes sysctl.d/Arora.conf in case there is a dup"
+          lineinfile:
+            dest: "{{ rclocal_RCLOCAL }}"
+            regexp: "/etc/sysctl.d/Arora.conf"
+            state: absent
+
+        - name: "Append code to read in etc/sysctl.d/Arora.conf"
+          lineinfile:
+            dest: "{{ rclocal_RCLOCAL }}"
+            line: "/sbin/sysctl -e -p /etc/sysctl.d/Arora.conf > /dev/null"
 
         - name: "TEST"
-          script: test/test_rclocal.py
+          script: test/test_rclocal.sh
           when: TEST is defined
 
        when: fixRclocal.stat.exists == True

@@ -1,0 +1,49 @@
+# Enable sysrq ( for debugging )
+kernel.sysrq = 1
+
+# When should I panic and trigger a crash dump?
+kernel.panic_on_oops = 1
+
+# Report all hung task warnings
+kernel.hung_task_warnings = -1
+
+# Don't panic on OOM. Just let the oom killer kill the build, so bs users
+# aren't inconvenienced.
+vm.panic_on_oom = 0
+
+# when in a chrooted workspace, this core-pattern refers to the workspace local path
+kernel.core_pattern=/var/core/core.%p.%t.%e
+
+# Optimize 1G/10G connections
+net.ipv4.tcp_rmem = 32768 1048576 16777216
+net.ipv4.tcp_wmem = 32768 1048576 16777216
+net.core.rmem_max = 8388608
+net.core.wmem_max = 8388608
+net.ipv4.tcp_mem = 8388608 8388608 8388608
+net.core.netdev_max_backlog = 5000
+net.ipv4.tcp_no_metrics_save = 1
+
+# Disable unicast rpf filtering
+net.ipv4.conf.default.rp_filter = 0
+
+# Increase ARP table sz, and sock optmem sz to test mroute scalability
+net.ipv4.neigh.default.gc_thresh2 = 10240
+net.ipv4.neigh.default.gc_thresh3 = 10240
+net.core.optmem_max = 4000000
+
+# Increase IPv6 neighbor and route cache sizes to prevent overflow
+net.ipv6.route.max_size = 256000
+net.ipv6.route.gc_thresh = 128000
+net.ipv6.neigh.default.gc_thresh2 = 128000
+net.ipv6.neigh.default.gc_thresh3 = 128000
+
+# Increase the MAX igmp memberships (per socket); set it to a large number
+# because our tests require it. Increasing this value does not preallocate
+# anything in the kernel, so there should not be any memory overhead.
+net.ipv4.igmp_max_memberships = 65535
+
+# Bump up this limit to make abuilds not hit BUG42769/BUG89834 and friends.
+fs.inotify.max_user_instances = 2048
+
+# Bump up this from 8192 to make abuilds not hit BUG136042
+fs.inotify.max_user_watches = 32768
