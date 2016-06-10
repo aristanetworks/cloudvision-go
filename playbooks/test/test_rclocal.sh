@@ -6,7 +6,7 @@ RCLOCAL='/etc/rc.d/rc.local'
 # Make sure rc.local exists.
 if [ ! -s $RCLOCAL ]
 then
-   echo "/etc/rc.d/rc.local doesn't exist"
+   echo "$RCLOCAL doesn't exist"
    exit 1
 fi
 
@@ -25,7 +25,7 @@ then
    exit 1
 fi
 
-# Check only one invocatio to /etc/sysctl.d/Arora.conf exists
+# Check only one invocation to /etc/sysctl.d/Arora.conf exists
 num=$(grep -cq '\/etc\/sysctl.d\/Arora.conf' $RCLOCAL)
 if [ $num > 1 ]
 then
