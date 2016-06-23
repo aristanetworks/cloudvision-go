@@ -13,14 +13,16 @@ MAINTAINER Ren Lee <ren@arista.com>
 # python - dependency for ansible
 # hostname - we want to be able to query the server's name
 # sshpass - Ansible requires this
-# ansible - we want to run test playbooks against this server
 RUN yum install -y \
    openssh-server \
    python \
    hostname \
-   sshpass \
+   sshpass 
 
-RUN yum install -y https://archive.fedoraproject.org/pub/fedora/linux/updates/23/x86_64/a/ansible-2.0.2.0-1.fc23.noarch.rpm
+# ansible - we want to run test playbooks against this server
+# This is roundabout way to avoid needing to keep up with fedora archive updates
+COPY ansible-2.1.0.0-1.fc23.noarch.rpm /tmp
+RUN yum install -y /tmp/ansible-2.1.0.0-1.fc23.noarch.rpm
 
 EXPOSE 22
 
