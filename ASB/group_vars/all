@@ -1,0 +1,26 @@
+# Automatic Server Bringup (ASB) related global variables
+
+# This is the amount of time we want the machine available for human intervention
+# without having Ansible take over. 20mins in seconds == 1200.
+ASB_MAX_UPTIME: 1200 
+
+ASB_DB: "servers"
+ASB_DEFAULT_DOMAIN: "sjc"
+
+# Server Statuses
+# ---------------
+# donothing: as implies, don't do any automatic management for this server.
+# unknown:   new machine
+# disk_rdy:  disk formatting and partitioning has been done on this machine.
+# os_rdy:    OS has been installed on this machine.
+# cfg_rdy:   miscellaneous configurations that must be done *BEFORE* rebooting
+#            this partiular machine has finished.
+# installed: final configurations have been set and verification checks have
+#            passed -- this machine is good to go.
+ASB_STATUS_DONOTHING: "donothing"
+ASB_STATUS_UNKNOWN: "unknown"
+ASB_STATUS_DISKRDY: "disk_rdy"
+ASB_STATUS_OSRDY: "os_rdy"
+ASB_STATUS_CFGRDY: "cfg_rdy"
+ASB_STATUS_INSTALLED: "installed"
+

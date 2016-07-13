@@ -1,0 +1,65 @@
+---
+- name: "Automatic Server Bringup (ASB)"
+  hosts: all 
+  become: yes 
+  become_user: root
+  pre_tasks:
+   # -------------------------------------------------------------------------------
+   # 1. If we're good to go (no conflicting Ansible processes), then gather more 
+   #    information to see if we should proceed with setting up this machine.
+
+   # Check if explicit donothing file is present.
+   - name: "See if \"donothing\" file exists"
+     stat: path="/root/donothing"
+     register: DONOTHING
+
+   - name: "Make sure donothing file doesn't exist"
+     assert: { that: DONOTHING.stat.exists == False }
+
+   # Get information for this machine.
+   - name: "Try to query DB about this machine"
+     command: >
+         mysql -N -u arastra -e 
+         "SELECT status, role FROM {{ASB_DB}} WHERE 
+          name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
+         -h mysql datacenter
+     register: machineInfo
+
+   - name: "Try to gather information about this machine"
+     set_fact: 
+         STATUS: "{{machineInfo.stdout.split('\t')[0]}}"
+         ROLE_NAME: "{{machineInfo.stdout.split('\t')[1]}}"
+     when: machineInfo is defined
+
+
+   # -------------------------------------------------------------------------------
+   # 2. Decide whether we should automatically set up this machine. 
+
+   - name: "Check minimal required information (status, role) for setup are found"
+     assert: { that: STATUS is defined and ROLE_NAME is defined }
+
+   - name: "Check that status of this machine isn't \"donothing\" or \"installed\""
+     assert: { that: STATUS != ASB_STATUS_DONOTHING and 
+                     STATUS != ASB_STATUS_INSTALLED }
+
+
+   # -------------------------------------------------------------------------------
+   # 3. If this is a new machine, check to see if it has been up for sufficiently
+   #    long time before triggering automatic set up.
+
+   - name: "Find uptime of this machine"
+     shell: cat /proc/uptime | awk -F '[ .]' '{ print $1 }'
+     register: UPTIME
+     when: STATUS == ASB_STATUS_UNKNOWN
+
+   - name: "If this is a fresh new machine, check uptime"
+     assert: { that: UPTIME.stdout|int > ASB_MAX_UPTIME }
+     when: STATUS == ASB_STATUS_UNKNOWN
+
+
+  roles:
+   # -------------------------------------------------------------------------------
+   # 4. Apply appropriate role based on role type of this server.
+   #    *** Add more/different roles here as more types are supported (i.e. user)
+   - { role: build, when: ROLE_NAME == "build", status: STATUS }
+...

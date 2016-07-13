@@ -1,0 +1,27 @@
+---
+- name: "Copy pre-configured Abuildd.conf for build servers"
+  copy:
+      src: "{{role_path}}/files/Abuildd-build.conf"
+      dest: /etc
+
+- name: "Set up motd"
+  copy:
+      src: "{{role_path}}/files/motd.buildonly"
+      dest: /etc
+
+- name: "Disable RAID scanning temporarily until RAID arrays are rebuilt"
+  replace:
+      dest: "/etc/cron.d/Arora"
+      regexp: "34 * * * * root /sbin/mdadm --monitor --scan -1"
+      replace: "#34 * * * * root /sbin/mdadm --monitor --scan -1"
+
+- name: "Update datacenter.servers with status configuration ready"
+  command: >
+      mysql -u arastra -e
+      "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_CFGRDY}}\" WHERE\
+       name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\"" 
+      -h mysql datacenter
+
+- name: "Reboot"
+  command: "reboot"
+...

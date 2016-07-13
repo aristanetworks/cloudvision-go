@@ -1,0 +1,48 @@
+# Main Logic to figure out which stage of set up needs applying.
+#
+# The stages of set up are as follows:
+#           unknown -> disk_rdy -> os_rdy -> cfg_rdy -> installed
+# Where:
+# - unknown:   fresh reboot, needs complete set up
+# - disk_rdy:  Disk format and partitioning is done
+# - os_rdy:    OS install is done
+# - cfg_rdy:   configuration set up is done
+# - installed: machine is ready to go!
+#
+# Another way of viewing this logic can be explained by this table:
+#
+#             | donothing | unknown   | disk_rdy   | os_rdy | cfg_rdy | installed
+# -------------------------------------------------------------------------------
+# setupDisk   |           | V         |            |        |         |
+# setupSW     |           | V         | V          |        |         |
+# setupConfig |           | V         | V          | V      |         |
+# setupVerify |           | V         | V          | V      | V       |
+
+---
+- name: "Configuring this machine as BUILD server"
+  debug: msg="STATUS "{{STATUS}}""
+
+# -------------------------------- DISK SETUP -----------------------------------
+- name: "Setup Disk"
+  include: makeDiskRdy.yml
+  when: >
+        STATUS != ASB_STATUS_DISKRDY and 
+        STATUS != ASB_STATUS_OSRDY and 
+        STATUS != ASB_STATUS_CFGRDY
+
+# --------------------------------- OS SETUP ------------------------------------
+- name: "Setup OS"
+  include: makeOSRdy.yml
+  when: >
+        STATUS != ASB_STATUS_OSRDY and 
+        STATUS != ASB_STATUS_CFGRDY
+
+# ------------------------------- CONFIG SETUP ----------------------------------
+- name: "Setup Miscellaneous Config"
+  include: makeConfigRdy.yml
+  when: STATUS != ASB_STATUS_CFGRDY
+
+# ------------------------------- VERIFY SETUP ----------------------------------
+- name: "Finish final setup and Verify Settings for sanity"
+  include: makeVerifyRdy.yml
+

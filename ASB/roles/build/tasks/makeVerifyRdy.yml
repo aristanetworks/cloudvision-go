@@ -1,0 +1,42 @@
+---
+- name: "Check network configuration is correct - /etc/sysconfig" 
+  shell: ls -l /etc/sysconfig/network-scripts/ifcfg-* | grep -q {{ item }}
+  with_items:
+      - bond0
+      - em1
+      - em2
+      - macvlan-bond0
+
+- name: "Check network configuration is correct - MACADDR" 
+  shell: grep MACADDR /etc/sysconfig/network-scripts/ifcfg-macvlan-bond0
+
+- name: "Check network configuration is correct - ifconfig"
+  shell: ifconfig {{ item }}
+  with_items: 
+      - bond0
+      - em1
+      - em2
+      - macvlan-bond0
+
+- name: "Since this is a build server make sure stest pkg is installed"
+  shell: yum install -y AroraConfig-stest
+
+- name: "Verify AroraConfig-Stest IS installed - yum check"
+  shell: yum list AroraConfig-stest | grep "Installed"
+
+- name: "Verify AroraConfig-Stest IS installed - rpm check"
+  shell: rpm -q AroraConfig-stest
+
+- name: "Add server to arventory"
+  shell: arventory update
+
+- name: "Verify server info is available via arventory"
+  shell: arventory list -l {{ansible_hostname}} | grep -q "{{ansible_hostname}}" 
+
+- name: "Update datacenter.servers with status for this machine as installed"
+  command: >
+      mysql -u arastra -e
+      "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_INSTALLED}}\" WHERE\
+       name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
+      -h mysql datacenter
+...

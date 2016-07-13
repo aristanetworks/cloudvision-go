@@ -1,0 +1,4 @@
+# This cron job version is only used for testing and dev purposes.
+
+*/1 * * * * root flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull --url=https://gitlab.aristanetworks.com/ren/ASB.git --directory=/root/.ansible/pull ASB/ASB.yml --inventory=localhost, 
+
