@@ -18,17 +18,29 @@
       - em2
       - macvlan-bond0
 
-- name: "Since this is a build server make sure stest pkg is installed"
-  shell: yum install -y AroraConfig-stest
+- name: "Make sure vmstat is running"
+  shell: "/sbin/chkconfig --add vmstat"
+   
+- name: "Check that vmstat is running"
+  shell: service vmstat status | grep "active"
 
-- name: "Verify AroraConfig-Stest IS installed - yum check"
-  shell: yum list installed AroraConfig-stest 
+- name: "Install MATE desktop environment"
+  shell: echo "PREFERRED=mate-session" > /etc/sysconfig/desktop
 
-- name: "Verify AroraConfig-Stest IS installed - rpm check"
-  shell: rpm -q AroraConfig-stest
+- name: "Set up MATE desktop environment"
+  shell: yum -y groupinstall "Mate Desktop"
+
+- name: "Make sure no Abuilds are running"
+  shell: Abuildd -s | grep "Abuildd is run never"
+
+- name: "Check stest *isn't* installed - yum check"
+  shell: "! yum list installed AroraConfig-stest"
+
+- name: "Check stest *isn't* installed - rpm check"
+  shell: "! rpm -q AroraConfig-stest"
 
 - name: "Add server to arventory"
-  shell: arventory update
+  shell: arventory update --markAsUserOnly
 
 - name: "Verify server info is available via arventory"
   shell: arventory list -l {{ansible_hostname}} | grep -q "{{ansible_hostname}}" 
@@ -36,13 +48,13 @@
 - name: "Delete cron job calling ASB"
   shell: "rm /etc/cron.d/ASB"
 
+- name: "Send Thomas email"
+  shell: "echo \"{{ASB_MAIL_BODY}}\" | mail -s {{ASB_MAIL_HEADER}} twieland@arista.com"
+
 - name: "Update datacenter.servers with status for this machine as installed"
   command: >
       mysql -u arastra -e
       "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_INSTALLED}}\" WHERE\
        name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
       -h mysql datacenter
-
-- name: "Send Thomas email"
-  shell: "echo \"{{ASB_MAIL_BODY}}\" | mail -s {{ASB_MAIL_HEADER}} twieland@arista.com"
 ...

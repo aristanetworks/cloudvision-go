@@ -3,16 +3,16 @@
 
 - name: "Copy pre-configured Abuildd.conf for build servers"
   copy:
-      src: "{{role_path}}/files/Abuildd-build.conf"
+      src: "{{role_path}}/files/Abuildd-user.conf"
       dest: "{{ASB_ROOT_MNTPT}}/etc/Abuildd.conf"
 
 - name: "Set up motd"
   copy:
-      src: "{{role_path}}/files/motd.buildonly"
+      src: "{{role_path}}/files/motd.useronly"
       dest: "{{ASB_ROOT_MNTPT}}/etc/motd"
 
 - name: "Set up mail"
-  lineinfile:
+  lineinfile: 
       dest: "{{ASB_ROOT_MNTPT}}/etc/postfix/main.cf"
       line: "relayhost = aristanetworks.com"
 

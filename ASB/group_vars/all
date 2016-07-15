@@ -6,6 +6,7 @@ ASB_MAX_UPTIME: 1200
 
 ASB_DB: "servers"
 ASB_DEFAULT_DOMAIN: "sjc"
+ASB_ROOT_MNTPT: "/tmp/root"
 
 # Server Statuses
 # ---------------
@@ -24,3 +25,5 @@ ASB_STATUS_OSRDY: "os_rdy"
 ASB_STATUS_CFGRDY: "cfg_rdy"
 ASB_STATUS_INSTALLED: "installed"
 
+ASB_MAIL_HEADER: "[ASB] {{ansible_hostname}} is ready"
+ASB_MAIL_BODY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticketserver for this server and run AuthenticateArastra."
