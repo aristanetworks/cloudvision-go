@@ -14,7 +14,7 @@ setup(
    name='ardc-config',
    version='1.0',
    description='Arista Datacenter Ansible Management Infrastructure',
-   author='Ren Lee',
+   author='Ren Lee, Max Okumoto',
    author_email='ren@arista.com',
    license='Arista Networks',
    url='http://gerrit/ardc-config',

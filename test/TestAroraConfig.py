@@ -64,34 +64,38 @@ class Config( object ):
    # Number of client servers being simulated.
    num = 5
 
-   # Debug settings, referring to running tests on local MAC env.
+   # Debug settings, referring to running tests on local env.
    DEBUG = False
 
    # Docker image built and available on Arista Docker registry.
-   dockerImg = ( 'ar_fedora' if DEBUG else
-                 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:c4320ed' )
+   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:c4320ed' 
 
    # Ansible server name.
-   ansible_sv = 'as' if DEBUG else 'ardc_config_as'
+   ansible_sv = 'ardc_config_as'
 
    # Template for client server names.
-   client_serv = 'sv%s' if DEBUG else 'ardc_config_sv%s'
+   client_serv = 'ardc_config_sv%s'
 
+   # Package directory
+   pkgdir = "AroraConfig"
+
+   # Misc files directory 
+   misc_files = "AroraConfig_testfiles"
+   
    # Path to RSA public host key.
-   path_to_hostpub = ( 'dockerfiles/ar_fedora/ssh/id_rsa.pub' if DEBUG else 
-                       'test/dockerfiles/ar_fedora/ssh/id_rsa.pub' )
+   path_to_hostpub = 'test/dockerfiles/ar_fedora/ssh/id_rsa.pub'
 
    # Relative path to playbooks directory.
-   playbooks = '../playbooks/' if DEBUG else './playbooks/'
-
-   # Relative path to local.yml
-   local_plbk = '../local.yml' if DEBUG else './local.yml'
-
-   # Relative path to ping.yml
-   ping_plbk = './ping.yml' if DEBUG else './test/ping.yml'
+   playbooks = '%s/playbooks/' % pkgdir
 
    # Main master playbook to be run.
-   local = 'local.yml'
+   master = 'AroraConfig.yml'
+
+   # Relative path to master playbook
+   master_plbk = '%s/%s' % ( pkgdir, master )
+
+   # Relative path to ping.yml
+   ping_plbk = 'test/%s/ping.yml' % misc_files
 
    # Test-only ping playbook
    ping = 'ping.yml'
@@ -121,7 +125,7 @@ class Config( object ):
    kh_host = '%s,%s %s\n'
 
    # Copy of Arora.conf from Arora18release 
-   arora_conf = './Arora2010.conf_COPY' if DEBUG else './test/Arora2010.conf_COPY'
+   arora_conf = 'test/%s/Arora2010.conf_COPY' % misc_files
 
 class Cmd( object ):
    '''
@@ -201,14 +205,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
             logging.warning( 'No runaway containers to remove.' )
          else:
             logging.error( 'Couldn\'t remove containers.' )
-
-
-   def tearDown( self ):
-      '''
-      Tearing down testing environment.
-      '''
-      self.clean()
-      logging.shutdown()
 
 
    def modifyAnsibleServerConfigs( self ): #pylint:disable-msg=R0201
@@ -402,12 +398,21 @@ class TestAnsiblePushTests( unittest.TestCase ):
       self.thingsThatShouldBeInDockerImage()
    
 
+   def tearDown( self ):
+      '''
+      Tearing down testing environment.
+      '''
+      self.clean()
+      logging.shutdown()
+
+
    # TODO remove after bug fix
    #pylint:disable-msg=R0201
    def test( self ):
       '''
-      Runs master_test.yml, which is the master test playbook to run in order to run
-      all other ansible playbooks to test for both test and production playbooks.
+      Runs AroraConfig.yml, which is the master test playbook to run in order to run
+      all other AroraConfig related ansible playbooks to test for both test and 
+      production playbooks.
       '''   
       # TODO remove after bug fix
       print "ALL TESTING CODE REMOVED TO ENABLE ANSIBLE UPDATE 7/6/2016"
@@ -421,8 +426,8 @@ class TestAnsiblePushTests( unittest.TestCase ):
       logger.info( 'Copying playbooks to Ansible server.' )
       self.callcmd( cmd.copy % ( conf.playbooks, '%s:/' % conf.ansible_sv ) )
 
-      # Copy over local.yml ansible server container.
-      self.callcmd( cmd.copy % ( conf.local_plbk, '%s:/' % conf.ansible_sv ) )
+      # Copy over master playbook to ansible server container.
+      self.callcmd( cmd.copy % ( conf.master_plbk, '%s:/' % conf.ansible_sv ) )
    
       # Copy over ping.yml ansible server container.
       self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_sv ) )
@@ -439,13 +444,13 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # a blank slate state.
       logger.info( 'Test iteration 1: simulating running playbooks on blank slate '
                    'servers, newly provisioned.' )
-      ret1 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
+      ret1 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.master ) )
 
       # Run all the playbooks again. This simulates maintaining the servers that are
       # already provisioned.
       logger.info( 'Test iteration 2: simulating maintaining servers already '
                    'provisioned.' )
-      ret2 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.local ) )
+      ret2 = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.master ) )
 
       if ret1 or ret2:
          if ret1:
