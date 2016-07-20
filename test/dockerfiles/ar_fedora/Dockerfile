@@ -8,6 +8,9 @@
 FROM fedora:20
 MAINTAINER Ren Lee <ren@arista.com>
 
+# To get around the Rpmdb checksum issue (https://github.com/docker/docker/issues/10180)
+yum clean all
+
 # The following are installed:
 # openssh - to host ssh connection to server
 # python - dependency for ansible
