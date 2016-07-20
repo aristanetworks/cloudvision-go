@@ -8,8 +8,10 @@
 FROM fedora:20
 MAINTAINER Ren Lee <ren@arista.com>
 
-# To get around the Rpmdb checksum issue (https://github.com/docker/docker/issues/10180)
-RUN yum clean all
+# ansible - we want to run test playbooks against this server
+# This is roundabout way to avoid needing to keep up with fedora archive updates
+COPY ansible-2.1.0.0-1.fc23.noarch.rpm /tmp
+
 
 # The following are installed:
 # openssh - to host ssh connection to server
@@ -20,12 +22,8 @@ RUN yum install -y \
    openssh-server \
    python \
    hostname \
-   sshpass 
-
-# ansible - we want to run test playbooks against this server
-# This is roundabout way to avoid needing to keep up with fedora archive updates
-COPY ansible-2.1.0.0-1.fc23.noarch.rpm /tmp
-RUN yum install -y /tmp/ansible-2.1.0.0-1.fc23.noarch.rpm
+   sshpass \ 
+   /tmp/ansible-2.1.0.0-1.fc23.noarch.rpm
 
 EXPOSE 22
 
