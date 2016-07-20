@@ -68,7 +68,7 @@ class Config( object ):
    DEBUG = False
 
    # Docker image built and available on Arista Docker registry.
-   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:c4320ed' 
+   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:fc1795d' 
 
    # Ansible server name.
    ansible_sv = 'ardc_config_as'
@@ -406,20 +406,13 @@ class TestAnsiblePushTests( unittest.TestCase ):
       logging.shutdown()
 
 
-   # TODO remove after bug fix
-   #pylint:disable-msg=R0201
    def test( self ):
       '''
       Runs AroraConfig.yml, which is the master test playbook to run in order to run
       all other AroraConfig related ansible playbooks to test for both test and 
       production playbooks.
       '''   
-      # TODO remove after bug fix
-      print "ALL TESTING CODE REMOVED TO ENABLE ANSIBLE UPDATE 7/6/2016"
 
-      # TODO remove after bug fix
-      #pylint:disable-msg=W0105
-      """
       # Copy playbooks directory and its playbooks over to ansible server.
       # This could be done by the Dockerfile, but wasn't in case the 
       # directory/name/location of the playbooks changed.
@@ -469,7 +462,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
          sys.exit( 1 )
       else:
          logger.error( 'Both test iterations passed without error.' )
-      """
+
 
 if __name__ == '__main__':
    unittest.main( verbosity=2 )
