@@ -461,7 +461,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
          sys.exit( 1 )
       else:
-         logger.error( 'Both test iterations passed without error.' )
+         logger.info( 'Both test iterations passed without error.' )
 
 
 if __name__ == '__main__':

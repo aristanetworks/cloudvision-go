@@ -8,7 +8,7 @@
   become_user: root
   vars:
      updateMotd_motdPath: '/etc/motd'
-     updateMotd_ansibleCfgMsg: "[ANSIBLE] This machine \"{{ansible_hostname}}\" is managed by Ansible."
+     updateMotd_ansibleCfgMsg: "[ANSIBLE] {{ansible_date_time.date}} {{ansible_date_time.time}} : This machine \"{{ansible_hostname}}\" is managed by Ansible."
      updateMotd_exprToMatch: "^\\[ANSIBLE\\]"
   tasks:
      - name: "Remove duplicate /etc/motd messages"
