@@ -5,8 +5,8 @@
       dest: /root
 
 - name: "Partition and format disks"
-  shell: "python /root/SetupAroraDisk.build+user --yes --bbp --userOnly
-          /dev/sda /dev/sdb /dev/sdc"
+  shell: "python /root/SetupAroraDisk.build+user+btrfs --yes --bbp --userBtrfs2 
+          /dev/sda /dev/sdb"
 
 - name: "Update datacenter.servers with status that disk setup has finished"
   command: >

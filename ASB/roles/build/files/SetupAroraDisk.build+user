@@ -2,6 +2,12 @@
 # Copyright (c) 2012 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+####################################################################################
+#                                                                                  #
+#           NOTE: THIS IS A TEMPORARY COPY IN 2010.Arora/src/AroraConfig           #
+#                                                                                  #
+####################################################################################
+
 import sys, os, re
 import threading
 import PartTools

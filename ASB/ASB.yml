@@ -63,4 +63,5 @@
    #    *** Add more/different roles here as more types are supported (i.e. user)
    - { role: build, when: ROLE_NAME == "build", status: STATUS }
    - { role: user, when: ROLE_NAME == "user", status: STATUS }
+
 ...

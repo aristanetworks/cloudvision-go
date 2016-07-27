@@ -13,6 +13,6 @@
       mysql -u arastra -e
       "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_DISKRDY}}\" WHERE\
        name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
-      -h mysql datacenter
+      -h mysql datacenter 
 ...
 

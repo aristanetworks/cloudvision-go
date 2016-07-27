@@ -2,11 +2,30 @@
 - name: "Install OS"
   shell: InstallAroraLive --yes --buildserver
 
+- name: "Copy pre-configured Abuildd.conf for build servers"
+  copy:
+      src: "{{role_path}}/files/Abuildd-build.conf"
+      dest: "{{ASB_ROOT_MNTPT}}/etc/Abuildd.conf"
+
+- name: "Set up motd"
+  copy:
+      src: "{{role_path}}/files/motd.buildonly"
+      dest: "{{ASB_ROOT_MNTPT}}/etc/motd"
+
+- name: "Set up mail"
+  lineinfile:
+      dest: "{{ASB_ROOT_MNTPT}}/etc/postfix/main.cf"
+      line: "relayhost = aristanetworks.com"
+
 - name: "Update datacenter.servers with status that OS install has finished"
   command: >
       mysql -u arastra -e
       "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_OSRDY}}\" WHERE\
        name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
       -h mysql datacenter
+
+- name: "Reboot"
+  command: "reboot"
 ...
+
 
