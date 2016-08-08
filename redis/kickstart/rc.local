@@ -1,0 +1,4 @@
+#!/bin/bash
+echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled
+echo '511' > /proc/sys/net/core/somaxconn
+exit 0

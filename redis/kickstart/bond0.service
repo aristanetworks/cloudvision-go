@@ -1,0 +1,10 @@
+[Unit]
+Description="bond0 helper service"
+Requires=sys-subsystem-net-devices-eno1.device sys-subsystem-net-devices-eno2.device
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /etc/systemd/network/bond0.helper
+
+[Install]
+WantedBy=multi-user.target

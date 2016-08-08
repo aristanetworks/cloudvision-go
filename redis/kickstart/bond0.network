@@ -1,0 +1,5 @@
+[Match]
+Name=bond0
+
+[Network]
+DHCP=yes

@@ -1,0 +1,8 @@
+modprobe bonding
+
+echo 10000 > /sys/class/net/bond0/bonding/miimon   # 0.1s between MII checks
+echo layer3+4 > /sys/class/net/bond0/bonding/xmit_hash_policy
+echo 802.3ad > /sys/class/net/bond0/bonding/mode
+
+echo +eno1 > /sys/class/net/bond0/bonding/slaves # add eno1 to bond0
+echo +eno2 > /sys/class/net/bond0/bonding/slaves # add eno2 to bond0
