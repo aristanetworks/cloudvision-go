@@ -71,7 +71,6 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 			child.Path())
 	}
 
-	notifs := make([]types.Notification, 2)
 	t := types.NowInMilliseconds()
 	path := parent.Path()
 	if attrDef.IsCollection() {
@@ -81,11 +80,78 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 		// Key is attribute name
 		k = key.New(attrDef.Name)
 	}
+
+	var notifs []types.Notification
 	// First notif removes this entity from its parent's singleton attribute or collection
-	notifs[0] = types.NewNotificationWithEntity(t, path, &[]key.Key{k}, nil, parent)
+	notifs = append(notifs, types.NewNotificationWithEntity(t, path, &[]key.Key{k}, nil, parent))
 	// Second notif zeroes out the child's attributes.
-	// TODO: We should send one of these notifs recursively for every
-	// entity under this entity.
-	notifs[1] = types.NewNotificationWithEntity(t, child.Path(), &[]key.Key{}, nil, child)
+	notifs = append(notifs, types.NewNotificationWithEntity(t, child.Path(),
+		&[]key.Key{}, nil, child))
+
+	var err error
+	notifs, err = recursiveEntityDeleteNotification(notifs, child,
+		child.GetDef().(*schema.TypeDef), t)
+	if err != nil {
+		return notifs, fmt.Errorf("Error recursively deleting entities with"+
+			" notifications under %q: %s",
+			child.Path(), err)
+	}
+
+	return notifs, nil
+}
+
+// recursiveEntityDeleteNotification recursively walks down a deleted entity,
+// looking for and deleting any child instantiating attributes that hold entities.
+// notifs is appended to and returned.
+func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Entity,
+	def *schema.TypeDef, t types.Milliseconds) ([]types.Notification, error) {
+	if !def.TypeFlags.IsEntity {
+		// Should be impossible, as it would imply something wrong with the schema
+		panic(fmt.Sprintf("Found an entity %#v at path %s with isEntity=false in typeDef: %#v",
+			e, e.Path(), def))
+	}
+
+	for _, attr := range def.Attrs {
+		if !attr.IsInstantiating {
+			if attr.IsColl {
+				notifs = append(notifs, types.NewNotificationWithEntity(t,
+					e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
+			}
+			continue
+		}
+		var childEntities []types.Entity
+		child, found := e.GetEntity(attr.Name)
+		if !found {
+			// The attribute is not an entity, so it's a collection.
+			// We have to do more work to get the entity(s) out
+			notifs = append(notifs, types.NewNotificationWithEntity(t,
+				e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
+			children := e.GetCollection(attr.Name)
+			for _, key := range children.Keys() {
+				child, found := children.Get(key)
+				if !found {
+					continue
+				}
+				childEntities = append(childEntities, child.(types.Entity))
+			}
+		} else if child != nil {
+			childEntities = append(childEntities, child)
+		}
+		// For every child entity we found, we recursively call ourselves to look
+		// for more child entities that need to be deleted, and then call
+		// types.NewNotificationWithEntity to send notification regarding those deleted entities
+		for _, childEntity := range childEntities {
+			var err error
+			notifs, err = recursiveEntityDeleteNotification(notifs, childEntity,
+				childEntity.GetDef().(*schema.TypeDef), t)
+			if err != nil {
+				return notifs, fmt.Errorf("Error recursively deleting entities with"+
+					"notifications under %q: %s",
+					childEntity.Path(), err)
+			}
+			notifs = append(notifs, types.NewNotificationWithEntity(t,
+				childEntity.Path(), &[]key.Key{}, nil, childEntity))
+		}
+	}
 	return notifs, nil
 }
