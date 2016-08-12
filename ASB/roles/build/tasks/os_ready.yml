@@ -1,6 +1,8 @@
 ---
+# Usually the command should be:
+# "InstallAroraLive --yes --buildserver"
 - name: "Install OS"
-  shell: InstallAroraLive --yes --buildserver
+  shell: "{{SW_CMD}}"
 
 - name: "Copy pre-configured Abuildd.conf for build servers"
   copy:
@@ -18,14 +20,10 @@
       line: "relayhost = aristanetworks.com"
 
 - name: "Update datacenter.servers with status that OS install has finished"
-  command: >
-      mysql -u arastra -e
-      "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_OSRDY}}\" WHERE\
-       name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
-      -h mysql datacenter
+  command: ASB_DB_UPDATE_OSRDY
 
 - name: "Reboot"
-  command: "reboot"
+  command: reboot
 ...
 
 

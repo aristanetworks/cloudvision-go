@@ -10,20 +10,34 @@ ASB_ROOT_MNTPT: "/tmp/root"
 
 # Server Statuses
 # ---------------
-# donothing: as implies, don't do any automatic management for this server.
-# unknown:   new machine
-# disk_rdy:  disk formatting and partitioning has been done on this machine.
-# os_rdy:    OS has been installed on this machine.
-# cfg_rdy:   miscellaneous configurations that must be done *BEFORE* rebooting
-#            this partiular machine has finished.
-# installed: final configurations have been set and verification checks have
-#            passed -- this machine is good to go.
+# donothing:       as name implies, don't do any automatic management for this server.
+# provision_ready: a new machine that is ready to be automatically provisioned.
+#                  this status assumes that bluecat configuration has completed.
+# disk_rdy:        disk formatting and partitioning has been done on this machine.
+# os_rdy:          OS has been installed on this machine.
+# cfg_rdy:         miscellaneous configurations that must be done *BEFORE* rebooting
+#                  this partiular machine has finished.
+# installed:       final configurations have been set and verification checks have
+#                  passed -- this machine is good to go.
 ASB_STATUS_DONOTHING: "donothing"
-ASB_STATUS_UNKNOWN: "unknown"
-ASB_STATUS_DISKRDY: "disk_rdy"
-ASB_STATUS_OSRDY: "os_rdy"
-ASB_STATUS_CFGRDY: "cfg_rdy"
+ASB_STATUS_PROVRDY: "provision_ready"
+ASB_STATUS_DISKRDY: "disk_ready"
+ASB_STATUS_OSRDY: "os_ready"
+ASB_STATUS_CFGRDY: "config_ready"
 ASB_STATUS_INSTALLED: "installed"
 
+
+# MySQL Query 
+# -----------
+# This is a temporary solution because there are no modules in Ansible 2.1 to support
+# mysql calls.
+ASB_DB_QUERY: "mysql -N -u arastra -e \"SELECT status, role, diskConfCmd, instSWCmd FROM {{ASB_DB}} WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter" 
+ASB_DB_UPDATE_DISKRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_DISKRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_OSRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_OSRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_CFGRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_CFGRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_INSTALLED: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_INSTALLED}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+
+
+# Email Templates
 ASB_MAIL_HEADER: "[ASB] {{ansible_hostname}} is ready"
-ASB_MAIL_BODY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticketserver for this server and run AuthenticateArastra."
+ASB_MAIL_BODY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticket for this server and run AuthenticateArastra."

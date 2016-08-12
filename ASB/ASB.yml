@@ -13,22 +13,20 @@
      stat: path="/root/donothing"
      register: DONOTHING
 
-   - name: "Make sure donothing file doesn't exist"
+   - name: "If donothing file exists, abort"
      assert: { that: DONOTHING.stat.exists == False }
 
    # Get information for this machine.
-   - name: "Try to query DB about this machine"
-     command: >
-         mysql -N -u arastra -e 
-         "SELECT status, role FROM {{ASB_DB}} WHERE 
-          name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
-         -h mysql datacenter
+   - name: "Query datacenter.servers DB about this machine"
+     command: "{{ASB_DB_QUERY}}"
      register: machineInfo
 
    - name: "Try to gather information about this machine"
      set_fact: 
          STATUS: "{{machineInfo.stdout.split('\t')[0]}}"
          ROLE_NAME: "{{machineInfo.stdout.split('\t')[1]}}"
+         DISK_CMD: "{{machineInfo.stdout.split('\t')[2]}}"
+         SW_CMD: "{{machineInfo.stdout.split('\t')[3]}}"
      when: machineInfo is defined
 
 
@@ -50,11 +48,17 @@
    - name: "Find uptime of this machine"
      shell: cat /proc/uptime | awk -F '[ .]' '{ print $1 }'
      register: UPTIME
-     when: STATUS == ASB_STATUS_UNKNOWN
+     when: STATUS == ASB_STATUS_PROVRDY
 
-   - name: "If this is a fresh new machine, check uptime"
+   - name: "If this is a fresh new machine, check uptime if this isn't test mode unless in BYPASS mode"
      assert: { that: UPTIME.stdout|int > ASB_MAX_UPTIME }
-     when: STATUS == ASB_STATUS_UNKNOWN
+     when: STATUS == ASB_STATUS_PROVRDY and TESTMODE is undefined and BYPASS is undefined
+
+   # -------------------------------------------------------------------------------
+   # 4. Run a few tasks that to clean up the environment 
+   #
+   - name: "Run tasks to clean up the environment"
+     include: common.yml
 
 
   roles:
@@ -62,6 +66,7 @@
    # 4. Apply appropriate role based on role type of this server.
    #    *** Add more/different roles here as more types are supported (i.e. user)
    - { role: build, when: ROLE_NAME == "build", status: STATUS }
-   - { role: user, when: ROLE_NAME == "user", status: STATUS }
-
+   - { role: atest, when: ROLE_NAME == "atest", status: STATUS }
+   # WIP
+   # - { role: user, when: ROLE_NAME == "user", status: STATUS }
 ...

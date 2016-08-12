@@ -30,12 +30,14 @@
      state: absent
 
 - name: "Update datacenter.servers with status for this machine as installed"
-  command: >
-      mysql -u arastra -e
-      "UPDATE {{ASB_DB}} SET status=\"{{ASB_STATUS_INSTALLED}}\" WHERE\
-       name=\"{{ansible_hostname}}\" AND domain=\"{{ASB_DEFAULT_DOMAIN}}\""
-      -h mysql datacenter
+  command: ASB_DB_UPDATE_INSTALLED
 
-- name: "Send Thomas email -- TODO this goes to ME at the moment"
+
+- name: "Send Thomas email if this isn't a test run"
+  shell: "echo \"{{ASB_MAIL_BODY}}\" | mail -s \"{{ASB_MAIL_HEADER}}\" twieland@arista.com"
+  when: TESTMODE is undefined
+
+- name: "Send mock email to Ren if this is a test run"
   shell: "echo \"{{ASB_MAIL_BODY}}\" | mail -s \"{{ASB_MAIL_HEADER}}\" ren@arista.com"
+  when: TESTMODE is defined
 ...

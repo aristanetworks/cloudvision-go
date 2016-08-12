@@ -1,0 +1,12 @@
+---
+- name: "Install telegraf"
+  yum:
+     name: telegraf-Linux
+     state: installed
+
+- name: "Add server to arventory"
+  shell: arventory update
+
+- name: "Update datacenter.servers with status configuration ready"
+  command: "{{ASB_DB_UPDATE_CFGRDY}}"
+...
