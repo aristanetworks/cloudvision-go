@@ -9,6 +9,7 @@ import (
 	"arista/schema"
 	"arista/types"
 	"fmt"
+	"time"
 
 	"github.com/aristanetworks/goarista/key"
 )
@@ -20,7 +21,7 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 	k key.Key) []types.Notification {
 	notifs := make([]types.Notification, 2)
 	def := child.GetDef().(*schema.TypeDef)
-	t := types.NowInMilliseconds()
+	t := time.Now()
 	if def.IsDirectory() {
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
@@ -71,7 +72,7 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 			child.Path())
 	}
 
-	t := types.NowInMilliseconds()
+	t := time.Now()
 	path := parent.Path()
 	if attrDef.IsCollection() {
 		// Use path to collection
@@ -104,7 +105,7 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 // looking for and deleting any child instantiating attributes that hold entities.
 // notifs is appended to and returned.
 func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Entity,
-	def *schema.TypeDef, t types.Milliseconds) ([]types.Notification, error) {
+	def *schema.TypeDef, t time.Time) ([]types.Notification, error) {
 	if !def.TypeFlags.IsEntity {
 		// Should be impossible, as it would imply something wrong with the schema
 		panic(fmt.Sprintf("Found an entity %#v at path %s with isEntity=false in typeDef: %#v",
