@@ -1,31 +1,4 @@
-# Main Logic to figure out which stage of set up needs applying.
-# Please view the README for details on each of the states.
-
 ---
-- name: "Configuring this machine as BUILD server"
+- name: "Configured this machine as a BUILD server"
   debug: msg="STATUS "{{STATUS}}""
-
-# -------------------------------- DISK SETUP -----------------------------------
-- name: "Setup Disk"
-  include: disk_ready.yml
-  when: >
-        STATUS != ASB_STATUS_DISKRDY and 
-        STATUS != ASB_STATUS_OSRDY and 
-        STATUS != ASB_STATUS_CFGRDY
-
-# --------------------------------- OS SETUP ------------------------------------
-- name: "Setup OS"
-  include: os_ready.yml
-  when: >
-        STATUS != ASB_STATUS_OSRDY and 
-        STATUS != ASB_STATUS_CFGRDY
-
-# ------------------------------- CONFIG SETUP ----------------------------------
-- name: "Setup Miscellaneous Config"
-  include: config_ready.yml
-  when: STATUS != ASB_STATUS_CFGRDY
-
-# ------------------------------- VERIFY SETUP ----------------------------------
-- name: "Finish final setup and Verify Settings for sanity"
-  include: verify.yml
-
+...

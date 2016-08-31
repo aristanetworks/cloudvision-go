@@ -1,0 +1,9 @@
+---
+allow_duplicates: yes #XXX: this is currently useless because of BUG14438
+dependencies:
+   - { role: STAGES/reimage, type: 'user' }
+   - { role: STAGES/disk,    type: 'user' }
+   - { role: STAGES/os,      type: 'user' }
+   - { role: STAGES/config,  type: 'user' }
+   - { role: STAGES/verify,  type: 'user' }
+...

@@ -1,5 +1,0 @@
-# This cron job version is only used for testing and dev purposes.
-# Timeout after 2 hours if this Ansible has been stuck for more than 2 hours
-
-*/1 * * * * root flock -xn --timeout 7200 /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull --url=https://gitlab.aristanetworks.com/ren/ASB.git --directory=/root/.ansible/pull ASB/ASB.yml --inventory=localhost, --extra-vars "TESTMODE=true,BYPASS=true"
-

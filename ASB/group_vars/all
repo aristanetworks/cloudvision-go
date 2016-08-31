@@ -2,7 +2,7 @@
 
 # This is the amount of time we want the machine available for human intervention
 # without having Ansible take over. 20mins in seconds == 1200.
-ASB_MAX_UPTIME: 1200 
+ASB_MAX_UPTIME: 1200
 
 ASB_DB: "servers"
 ASB_DEFAULT_DOMAIN: "sjc"
@@ -25,19 +25,47 @@ ASB_STATUS_DISKRDY: "disk_ready"
 ASB_STATUS_OSRDY: "os_ready"
 ASB_STATUS_CFGRDY: "config_ready"
 ASB_STATUS_INSTALLED: "installed"
+ASB_STATUS_REIMG: "reimage"
+ASB_STATUS_REIMG_SANITYRDY: "reimage_sanity_ready"
+ASB_STATUS_REIMG_WIPERDY: "reimage_wipe_ready"
+ASB_STATUS_DEAD: "HELP_ME"
 
 
-# MySQL Query 
+# MySQL Query
 # -----------
 # This is a temporary solution because there are no modules in Ansible 2.1 to support
 # mysql calls.
-ASB_DB_QUERY: "mysql -N -u arastra -e \"SELECT status, role, diskConfCmd, instSWCmd FROM {{ASB_DB}} WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter" 
+ASB_DB_QUERY: "mysql -N -u arastra -e \"SELECT status, role, diskConfCmd, instSWCmd FROM {{ASB_DB}} WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_PROVRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_PROVRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
 ASB_DB_UPDATE_DISKRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_DISKRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
 ASB_DB_UPDATE_OSRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_OSRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
 ASB_DB_UPDATE_CFGRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_CFGRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
 ASB_DB_UPDATE_INSTALLED: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_INSTALLED}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_REIMG_SANITYRDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_REIMG_SANITYRDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_REIMG_WIPERDY: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_REIMG_WIPERDY}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_DEAD: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"{{ASB_STATUS_DEAD}}\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ASB_DEFAULT_DOMAIN}}\\\"\" -h mysql datacenter"
+
 
 
 # Email Templates
-ASB_MAIL_HEADER: "[ASB] {{ansible_hostname}} is ready"
-ASB_MAIL_BODY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticket for this server and run AuthenticateArastra."
+ASB_MAIL_RECP: "thomas@arista.com"
+ASB_MAIL_SENDER: "ASB@arista.com"
+
+ASB_MAIL_HDR: "[ASB] {{ansible_hostname}} is ready"
+ASB_MAIL_BDY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticket for this server and run AuthenticateArastra."
+ASB_MAIL_COMPLETE: "echo \"{{ASB_MAIL_BDY}}\" | mail -s \"{{ASB_MAIL_HDR}}\" {{ASB_MAIL_RECP}}"
+
+
+ASB_MAIL_REIMG_CFG_REPT: "/tmp/CURR_CONFIG"
+ASB_MAIL_REIMG_SANITY_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} is being reimaged"
+ASB_MAIL_REIMG_SANITY_BDY_ERR: "ASB attempted at reimaging {{ansible_hostname}} but this machine is currently unhealthy. Please view the attached configuration report and manually fix the machine to a state where it can be reimaged."
+ASB_MAIL_REIMG_SANITY_HDR: "[ASB] {{ansible_hostname}} is being reimaged"
+ASB_MAIL_REIMG_SANITY_BDY: "ASB is ready to reimage {{ansible_hostname}}. Please see the attached report to view current status of the machine."
+
+ASB_MAIL_REIMG_SANITY: "echo \"{{ASB_MAIL_REIMG_SANITY_BDY}}\" | mail -s \"{{ASB_MAIL_REIMG_SANITY_HDR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
+ASB_MAIL_REIMG_SANITY_ERR: "echo \"{{ASB_MAIL_REIMG_SANITY_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_SANITY_HDR_ERR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
+
+
+ASB_MAIL_REIMG_WIPE_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} cannot be reimaged"
+ASB_MAIL_REIMG_WIPE_BDY_ERR: "ASB encountered error while trying to wipe current partitions and disk configurations. Manual intervention is required."
+ASB_MAIL_REIMG_WIPE_ERR: "echo \"{{ASB_MAIL_REIMG_WIPE_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_WIPE_HDR_ERR}}\" {{ASB_MAIL_RECP}}"

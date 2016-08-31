@@ -1,0 +1,7 @@
+---
+#NOTE: Do not change this file unless you have a good reason.
+
+- name: "Applying OS Step"
+  include: "os_{{type}}.yml"
+  when: STATUS == ASB_STATUS_DISKRDY
+...

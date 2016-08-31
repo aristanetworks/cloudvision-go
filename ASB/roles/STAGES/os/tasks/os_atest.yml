@@ -1,0 +1,24 @@
+---
+# Usually the command should be:
+# "InstallAroraLive --yes --autotest
+- name: "Install OS"
+  shell: "{{SW_CMD}}"
+
+- name: "Copy pre-configured Abuildd.conf"
+  copy:
+      src: "{{role_path}}/files/Abuildd-atest.conf"
+      dest: "{{ASB_ROOT_MNTPT}}/etc/Abuildd.conf"
+
+- name: "Set up mail"
+  lineinfile:
+      dest: "{{ASB_ROOT_MNTPT}}/etc/postfix/main.cf"
+      line: "relayhost = aristanetworks.com"
+
+- name: "Update datacenter.servers with status that OS install has finished"
+  command: "{{ASB_DB_UPDATE_OSRDY}}"
+
+- name: "Reboot"
+  command: reboot
+...
+
+
