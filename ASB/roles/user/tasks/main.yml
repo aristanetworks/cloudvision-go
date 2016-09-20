@@ -1,4 +1,0 @@
----
-- name: "Configured this machine as a USER server"
-  debug: msg="STATUS "{{STATUS}}""
-...
