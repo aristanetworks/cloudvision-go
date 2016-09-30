@@ -27,4 +27,3 @@ setup(
    tests_require=tests_requires
 
 )
-

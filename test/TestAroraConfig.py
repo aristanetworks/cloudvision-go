@@ -389,7 +389,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       
       # Create sentinel files on the host servers.
       logger.info( 'Creating sentinel files on host servers.' )
-      for sv in conf.servs.keys():
+      for sv,_ in conf.servs.iteritems():
          for st in sentinels:
             self.callcmd( cmd.ex % ( sv, 'mkdir -p %s' % conf.sentinels_path ) )
             self.callcmd( cmd.ex % ( sv, 'touch %s%s' % 
