@@ -156,3 +156,20 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 	}
 	return notifs, nil
 }
+
+// NotificationsForCollectionCount is a helper method for Providers to use to
+// generate the notifications associated with collection counts.
+func NotificationsForCollectionCount(ts time.Time, c types.Collection,
+	parent types.Entity) types.Notification {
+
+	if GetMode() != StreamingMode || parent.GetDef().IsDirectory() {
+		return nil
+	}
+
+	notif := types.NewNotificationWithEntity(ts, parent.Path()+"/_counts", nil,
+		&map[key.Key]interface{}{
+			key.New(c.GetAttrDef().AttrName()): c.Len(),
+		}, parent)
+
+	return notif
+}
