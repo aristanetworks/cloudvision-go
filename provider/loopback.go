@@ -8,6 +8,7 @@ package provider
 import (
 	"arista/schema"
 	"arista/types"
+	"time"
 
 	"github.com/aristanetworks/goarista/key"
 )
@@ -47,7 +48,7 @@ func (l loopback) InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
 }
 
 func (l loopback) DeleteChild(child types.Entity, attrDef *schema.AttrDef, k key.Key) error {
-	notifs, err := NotificationsForDeleteChild(child, attrDef, k)
+	notifs, err := NotificationsForDeleteChild(child, attrDef, k, time.Now())
 	if err != nil {
 		return err
 	}

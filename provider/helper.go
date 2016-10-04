@@ -64,14 +64,13 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 // NotificationsForDeleteChild is a helper for Providers. It returns
 // the notifs that should be sent when an entity is deleted.
 func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
-	k key.Key) ([]types.Notification, error) {
+	k key.Key, t time.Time) ([]types.Notification, error) {
 	parent := child.Parent()
 	if parent == nil {
 		return nil, fmt.Errorf("Can't generate notifications. Entity %q has nil parent",
 			child.Path())
 	}
 
-	t := time.Now()
 	path := parent.Path()
 	if attrDef.IsCollection() {
 		// Use path to collection
