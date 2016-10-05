@@ -1,0 +1,18 @@
+---
+- name: "Check that vmstat is running"
+  shell: service vmstat status | grep "active"
+
+- name: "Verify server info is available via arventory"
+  shell: arventory list -l {{ansible_hostname}} | grep -q "{{ansible_hostname}}"
+
+- name: "Delete cron job calling ASB"
+  file:
+     path: /etc/cron.d/ASB
+     state: absent
+
+- name: "Update datacenter.servers with status for this machine as installed"
+  command: "{{ASB_DB_UPDATE_INSTALLED}}"
+
+- name: "Send mail that ASB has completed"
+  shell: "{{ASB_MAIL_COMPLETE}}"
+...

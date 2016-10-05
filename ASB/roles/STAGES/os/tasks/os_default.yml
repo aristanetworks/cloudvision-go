@@ -1,0 +1,28 @@
+---
+# Usually the command should be:
+# "InstallAroraLive --yes --buildserver"
+- name: "Install OS"
+  shell: "{{SW_CMD}}"
+
+- name: "Copy pre-configured Abuildd.conf for build servers"
+  copy:
+      src: "{{role_path}}/files/Abuildd-build.conf"
+      dest: "{{ASB_ROOT_MNTPT}}/etc/Abuildd.conf"
+
+- name: "Set up motd"
+  copy:
+      src: "{{role_path}}/files/motd.buildonly"
+      dest: "{{ASB_ROOT_MNTPT}}/etc/motd"
+
+- name: "Set up mail"
+  replace:
+      dest: "{{ASB_ROOT_MNTPT}}/etc/postfix/main.cf"
+      regexp: "#relayhost = uucphost"
+      replace: "relayhost = aristanetworks.com"
+
+- name: "Update datacenter.servers with status that OS install has finished"
+  command: "{{ASB_DB_UPDATE_OSRDY}}"
+
+- name: "Reboot"
+  command: reboot
+...
