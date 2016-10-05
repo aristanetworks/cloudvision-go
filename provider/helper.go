@@ -63,8 +63,6 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 
 // NotificationsForDeleteChild is a helper for Providers. It returns
 // the notifs that should be sent when an entity is deleted.
-// TODO: This should be recursive, sending a delete notification for
-// every entity under the one getting deleted.
 func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 	k key.Key) ([]types.Notification, error) {
 	parent := child.Parent()
