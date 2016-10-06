@@ -54,9 +54,12 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 		if !parent.GetDef().IsDirectory() {
 			path += "/" + attrName
 		}
-		// TODO: In "Agent" mode this notification should be first
 		notifs[1] = types.NewNotificationWithEntity(t, path, nil,
 			&map[key.Key]interface{}{k: child.Ptr()}, parent)
+	}
+	// In "AgentMode" the ordering of the two notifications should be switched
+	if GetMode() == AgentMode {
+		notifs[0], notifs[1] = notifs[1], notifs[0]
 	}
 	return notifs
 }

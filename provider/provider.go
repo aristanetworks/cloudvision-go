@@ -13,6 +13,30 @@ import (
 	"github.com/aristanetworks/goarista/key"
 )
 
+// Mode is a enum that determines what mode the provider is currently in,
+// and that in turn determines the ordering of Notifications sent out
+// during entity creation (typically consists of a Notification about child's
+// initial attributes and a Notification linking the child to its parent).
+type Mode int
+
+const (
+	// AgentMode is used for all Go agents except TerminAttr.
+	// The ordering of Notifications sent out during entity creation is
+	// first Notification links child to its parent,
+	// second Notification informs the child's initial attributes.
+	AgentMode Mode = iota
+	// StreamingMode is used for TerminAttr only.
+	// The ordering of Notifications sent out during entity creation is
+	// first Notification informs the child's initial attributes,
+	// second Notification links child to its parent.
+	StreamingMode
+)
+
+// Default mode for providerMode is AgentMode
+// Setter for providerMode is func SetMode(mode Mode) below.
+// Getter for providerMode is func GetMode() below
+var providerMode = AgentMode
+
 // A Provider "owns" certain entities.  There are providers for entities
 // coming from different sources (from Sysdb, from Smash, from /proc, etc.).
 // Providers typically run in their own Goroutine(s), e.g. to read from the
@@ -77,4 +101,15 @@ func (e *ErrParentNotFound) Error() string {
 func IsParentNotFound(err error) bool {
 	_, ok := err.(*ErrParentNotFound)
 	return ok
+}
+
+// SetMode takes in a Mode enum and sets the global variable providerMode to the
+// input enum
+func SetMode(mode Mode) {
+	providerMode = mode
+}
+
+// GetMode returns the Mode of the global variable providerMode
+func GetMode() Mode {
+	return providerMode
 }
