@@ -120,10 +120,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 			continue
 		}
 		var childEntities []types.Entity
-		child, found := e.GetEntity(attr.Name)
-		if !found {
-			// The attribute is not an entity, so it's a collection.
-			// We have to do more work to get the entity(s) out
+		if attr.IsColl {
 			notifs = append(notifs, types.NewNotificationWithEntity(t,
 				e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
@@ -136,7 +133,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 				}
 				childEntities = append(childEntities, child.(types.Entity))
 			}
-		} else if child != nil {
+		} else if child, ok := e.GetEntity(attr.Name); ok {
 			childEntities = append(childEntities, child)
 		}
 		// For every child entity we found, we recursively call ourselves to look
