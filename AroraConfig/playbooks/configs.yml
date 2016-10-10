@@ -28,6 +28,12 @@
         regexp: "^(|#)pipelining"
         line: "pipelining = True"
 
+    - name: "Enable logging"
+      lineinfile:
+        dest: "{{ configs_ansibleCfgPath }}"
+        regexp: "^(|#)log_path"
+        line: "log_path = /var/log/ansible.log"
+
     - name: "TEST"
       script: test/test_configs.sh
       when: TEST is defined
