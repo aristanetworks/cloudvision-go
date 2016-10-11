@@ -11,6 +11,7 @@ import argparse
 import shlex
 import re
 import csv
+import os
 
 from email import encoders
 from email.mime.base import MIMEBase
@@ -27,15 +28,21 @@ REASSIGN_HDR = "Time for a New Home! (new server assignment)"
 REASSIGN_MSG = '''
 Hi,
 
-There are too many users on your current server than what is preferable for the
-overall load for the server. We have noticed that you have been using your current
-server diligently, so you have been specially selected to transcend to a fresh new
-server for a much better experience!
+Your current server is suffering from btrfs related issues. 
+We have noticed that you have been using your current server diligently, so you have 
+been specially selected to transcend to a fresh new server for a much better 
+experience!
 
 Your current server: %s
 Your new server: %s
 
 Please follow these steps to transfer:   
+   On your new server:
+      1. Login as arastra: a4 ssh %s
+      2. Add a new account for yourself: a4 account add <your username>
+      3. Add yourself to /etc/motd: sudo vi /etc/motd
+      4. Recreate workspaces and transfer over any files you kept
+
    On your current server:
       1. Login to %s using your username
       2. Submit all your pending changes: a4 submit
@@ -44,15 +51,9 @@ Please follow these steps to transfer:
       5. Copy over any other remaining files you wish to keep
       6. Logout
       7. Login to %s as arastra: a4 ssh %s
-      8. Release your account: a4 account release <your username>
-      9. Remove your home directory: sudo rm -rf /home/<your username>
-
-   On your new server:
-      1. Login as arastra: a4 ssh %s
-      2. Add a new account for yourself: a4 account add <your username>
-      3. Add yourself to /etc/motd: sudo vi /etc/motd
-      4. Recreate workspaces and transfer over any files you kept
-   
+      8. Remove your home directory: sudo rm -rf /home/<your username>
+      9. Release your account: a4 account release <your username>
+  
 Thanks,
 Kind hearts of SW-INFRA
 '''
@@ -64,7 +65,7 @@ Hi,
 
 There are too many users on your current server than what is preferable for the 
 overall load for the server. We have noticed that you have not logged onto your 
-current server, for the past month and your account on there is looking abandoned. 
+current server for the past month and your account on there is looking abandoned. 
 Please carefully delete the unused account on your current server, making any 
 backups as needed.
 
@@ -79,8 +80,8 @@ Please follow these steps to delete:
       5. Copy over any other remaining files you wish to keep
       6. Logout
       7. Login to %s as arastra: a4 ssh %s
-      8. Release your account: a4 account release <your username>
-      9. Remove your home directory: sudo rm -rf /home/<your username>  
+      8. Remove your home directory: sudo rm -rf /home/<your username>  
+      9. Release your account: a4 account release <your username>
 
 Thanks,
 Kind hearts of SW-INFRA
@@ -98,6 +99,12 @@ Please import file to a Google Drive Excel sheet.
 Users mentioned in the report have been noticed via email.
 """
 
+INFRA_MAIL_REPORT_ONLY_MSG = """
+Attached is auto-generated reassignment report in csv format.
+Please import file to a Google Drive Excel sheet. 
+
+NOTE: This is report only. No users have been notified of this reassignment.
+"""
 
 
 # ----------------------------------------------------------------------------------
@@ -148,7 +155,7 @@ def sendEmail( receiver, hdr, content, sender=DEFAULT_SENDER, attach="" ):
 
 
 
-def notify( new_assign, del_assign, skipped ):
+def notify( new_assign, del_assign, skipped, assignOnly ):
    '''
    Send emails notifying users to reassign to a different server, or delete their
    old unused accounts.
@@ -176,6 +183,11 @@ def notify( new_assign, del_assign, skipped ):
 
       Represents skipped users because their username does not exist in "a4 users"
       output.
+
+   assignOnly: boolean
+      If True, send assignment report only to SW-INFRA-SUPPORT.
+      If False, send assignment report to SW-INFRA-SUPPORT and also email the 
+         affected users.
    '''
    report = []
 
@@ -188,11 +200,12 @@ def notify( new_assign, del_assign, skipped ):
          user, oldserver, email = entry
          body = REASSIGN_MSG % ( oldserver, 
                                  newserver, 
+                                 newserver,
                                  oldserver,
                                  oldserver,
-                                 oldserver,
-                                 newserver )
-         sendEmail( email, REASSIGN_HDR, body )
+                                 oldserver )
+         if not assignOnly:
+            sendEmail( email, REASSIGN_HDR, body )
          report.append( "%s, %s, %s, %s" % ( user, oldserver, newserver, email ) )
    report.append( "\n" )
 
@@ -205,7 +218,8 @@ def notify( new_assign, del_assign, skipped ):
                             oldserver, 
                             oldserver, 
                             oldserver )
-      sendEmail( email, DELETE_HDR % oldserver, body )
+      if not assignOnly:
+         sendEmail( email, DELETE_HDR % oldserver, body )
       report.append( "%s, %s, %s" % ( user, oldserver, email ) )
    report.append( "\n" )
 
@@ -225,7 +239,11 @@ def notify( new_assign, del_assign, skipped ):
       f.flush()
       f.close()
 
-   sendEmail( DEFAULT_SENDER, REPORT_HDR, INFRA_MAIL_MSG, attach=csvpath )
+   if assignOnly:
+      sendEmail( DEFAULT_SENDER, REPORT_HDR, INFRA_MAIL_REPORT_ONLY_MSG, 
+                 attach=csvpath )
+   else:
+      sendEmail( DEFAULT_SENDER, REPORT_HDR, INFRA_MAIL_MSG, attach=csvpath )
    os.remove( csvpath )
 
 
@@ -291,7 +309,7 @@ def reassign( old, new, maxusers ):
 
       msg = """
 Status of %s:
-   # of accounts in \\home: %d
+   # of accounts in /home: %d
    # of accounts with emails: %d
    # of accounts logged in past 30 days: %d
       - # of accounts reassigned: %d
@@ -310,7 +328,7 @@ Status of %s:
    # Check there are enough servers for users reassigned
    maxnum = maxusers * len( new )
    totalusers = sum( len( l ) for _,l in reassign.iteritems() )
-   if totalusers > maxusers:
+   if totalusers > maxnum:
       sys.exit( "There are more users to reassign than there is room" )
 
    # Reassign
@@ -362,17 +380,22 @@ def main():
               "away TO ( i.e.: 'us999,us998,us998' )" ) )
    parser.add_argument( 'max_users', action="store", type=int,
        help="Max number of users expected one each server" )
+   parser.add_argument( '--assignOnly', action="store_true",
+       help=( "If flag is set, the tool will only generate the CSV containing server"
+              " assignments to email SW-INFRA_SUPPORT and skip emailing the "
+              "affected users." ) )
    args = parser.parse_args()
 
    old = args.from_servers.split( ',' )
    new = args.to_servers.split( ',' )
    maxnum = args.max_users
+   assignOnly = args.assignOnly
 
    # Figure out reassignments
    new_assign, del_assign, skipped = reassign( old, new, maxnum )
 
    # Notify users
-   notify( new_assign, del_assign, skipped )
+   notify( new_assign, del_assign, skipped, assignOnly )
 
 
 if __name__ == "__main__":
