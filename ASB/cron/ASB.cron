@@ -1,1 +1,0 @@
-*/1 * * * * root flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull --url=http://gerrit.sjc.aristanetworks.com/ardc-config --directory=/root/.ansible/pull ASB/ASB.yml --inventory=localhost, --extra-vars="EMAIL=twieland@arista.com"

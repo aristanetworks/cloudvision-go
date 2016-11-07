@@ -1,0 +1,37 @@
+Your current server is suffering from btrfs related issues and is queued to be
+reimaged.
+
+We have noticed that you have been using your current server diligently, so you have 
+been reassigned to a new server.
+
+Please follow these steps to transfer:   
+   On your new server:
+      1. Login to new server as arastra: a4 ssh <new server>
+      2. Add a new account for yourself: a4 account add <your username>
+      3. Add yourself to /etc/motd: sudo vi /etc/motd
+      4. Recreate workspaces and transfer over any files you kept
+
+   On your current server:
+      1. Login to your current server using your username
+      2. Submit all your pending changes that you want to keep
+             Find workspace with opened files: a4 opened
+             Submit the changes you want to keep: a4 submit
+      3. Delete all workspaces
+             For each workspace: sudo a4 deletetree -f -k <dir>
+      4. Delete any swi workspaces
+             For each swi workspace: swi workspace -d <dir>
+      5. Delete all stale P4 clients
+             Check if any clients still exist: a4 clients -u <your username> -e "*`hostname -s`*"
+             For each stale client: a4 client -d <client name>
+      6. Copy over any other remaining files you wish to keep
+      7. Logout
+      8. Login to your current server as arastra: a4 ssh <current server>
+      9. Cleanup your home directory on your current server
+             Remove your home directory: rm -rf /home/<your username>
+             If that fails, just move it out of the way: mv /home/user/<your username> /home/MIGRATED
+      10. Release your account: a4 account release <your username>  
+
+
+Thanks,
+Kind hearts of SW-INFRA
+

@@ -1,0 +1,32 @@
+There is an intern account on server mentioned above. The said server is suffering 
+from btrfs related issues and is queued to be reimaged.
+
+You are being notified because you are either the intern's mentor or manager.
+
+Please carefully delete the unused account on intern's old server, making any backups 
+as needed.
+
+Please use these steps as a guideline to delete intern's account:   
+   On intern's old server:
+      1. Login using intern's username
+      2. Submit all intern's pending changes that you want to keep
+             Find workspace with opened files: a4 opened
+             Submit the changes you want to keep: a4 submit
+      3. Delete all workspaces
+             For each workspace: sudo a4 deletetree -f -k <dir>
+      4. Delete any swi workspaces
+             For each swi workspace: swi workspace -d <dir>
+      5. Delete all stale P4 clients
+             Check if any clients still exist: a4 clients -u <intern's username> -e "*`hostname -s`*"
+             For each stale client: a4 client -d <client name>
+      6. Copy over any other remaining files you wish to keep
+      7. Logout
+      8. Login to intern's old server as arastra: a4 ssh <server>
+      9. Cleanup your home directory on intern's old server
+             Remove your home directory: rm -rf /home/<intern's username>
+             If that fails, just move it out of the way: mv /home/user/<intern's username> /home/MIGRATED
+      10. Release intern's account: a4 account release <intern's username>
+
+
+Thanks,
+Kind hearts of SW-INFRA

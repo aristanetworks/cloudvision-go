@@ -22,89 +22,8 @@ from email.mime.multipart import MIMEMultipart
 # ----------------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------------
-
-# Email template for account reassignment
-REASSIGN_HDR = "Time for a New Home! (new server assignment)"
-REASSIGN_MSG = '''
-Hi,
-
-Your current server is suffering from btrfs related issues. 
-We have noticed that you have been using your current server diligently, so you have 
-been specially selected to transcend to a fresh new server for a much better 
-experience!
-
-Your current server: %s
-Your new server: %s
-
-Please follow these steps to transfer:   
-   On your new server:
-      1. Login as arastra: a4 ssh %s
-      2. Add a new account for yourself: a4 account add <your username>
-      3. Add yourself to /etc/motd: sudo vi /etc/motd
-      4. Recreate workspaces and transfer over any files you kept
-
-   On your current server:
-      1. Login to %s using your username
-      2. Submit all your pending changes: a4 submit
-      3. Delete all workspaces: a4 deletetree -f <dir> (repeat for dirs)
-      4. Delete any swi workspaces: swi workspace -d <dir>
-      5. Copy over any other remaining files you wish to keep
-      6. Logout
-      7. Login to %s as arastra: a4 ssh %s
-      8. Remove your home directory: sudo rm -rf /home/<your username>
-      9. Release your account: a4 account release <your username>
-  
-Thanks,
-Kind hearts of SW-INFRA
-'''
-
-# Email template for account delete
-DELETE_HDR = "Please delete your infrequently used account on %s"
-DELETE_MSG = '''
-Hi,
-
-There are too many users on your current server than what is preferable for the 
-overall load for the server. We have noticed that you have not logged onto your 
-current server for the past month and your account on there is looking abandoned. 
-Please carefully delete the unused account on your current server, making any 
-backups as needed.
-
-Your current server: %s
-
-Please follow these steps to delete:   
-   On your current server:
-      1. Login to %s using your username
-      2. Submit all your pending changes: a4 submit
-      3. Delete all workspaces: a4 deletetree -f <dir> (repeat for dirs)
-      4. Delete any swi workspaces: swi workspace -d <dir>
-      5. Copy over any other remaining files you wish to keep
-      6. Logout
-      7. Login to %s as arastra: a4 ssh %s
-      8. Remove your home directory: sudo rm -rf /home/<your username>  
-      9. Release your account: a4 account release <your username>
-
-Thanks,
-Kind hearts of SW-INFRA
-'''
-
-# Email template for reassignment report
-REPORT_HDR = "Server Reassignment Report"
-
 # Default Email Sender
 DEFAULT_SENDER = "sw-infra-support@arista.com"
-
-INFRA_MAIL_MSG = """
-Attached is auto-generated reassignment report in csv format.
-Please import file to a Google Drive Excel sheet. 
-Users mentioned in the report have been noticed via email.
-"""
-
-INFRA_MAIL_REPORT_ONLY_MSG = """
-Attached is auto-generated reassignment report in csv format.
-Please import file to a Google Drive Excel sheet. 
-
-NOTE: This is report only. No users have been notified of this reassignment.
-"""
 
 
 # ----------------------------------------------------------------------------------
@@ -155,14 +74,15 @@ def sendEmail( receiver, hdr, content, sender=DEFAULT_SENDER, attach="" ):
 
 
 
-def notify( new_assign, del_assign, skipped, assignOnly ):
+
+def notify( reassigns, dels, interns, skipped, assignOnly ):
    '''
    Send emails notifying users to reassign to a different server, or delete their
    old unused accounts.
 
    Parameters
    ----------
-   new_assign: dictionary of the format -
+   reassigns: dictionary of the format -
 
       { newserver : [ ( user, oldserver, email ), ... ] }
 
@@ -170,12 +90,18 @@ def notify( new_assign, del_assign, skipped, assignOnly ):
       oldserver is name of old server to migrate from, and email is the user's listed
       email on a4 users. Represents users to be migrated.
 
-   del_assign: list of the format -
+   dels: list of the format -
 
       [ ( user, oldserver, email ), ... ]
 
       Items are similar to the description for new_assign. Represents users to be
       deleted.
+
+   interns: list of the format - 
+      [ ( user, oldserver, { name, manager, mentor } ), ... ]
+
+      List of intern user names with a dictionary containing their full name,
+      manager username, and mentor username.
 
    skipped: list of the format -
 
@@ -189,46 +115,87 @@ def notify( new_assign, del_assign, skipped, assignOnly ):
       If False, send assignment report to SW-INFRA-SUPPORT and also email the 
          affected users.
    '''
-   report = []
+   DEFAULT_STAT = "1st Email Sent"
+   REPONLY_STAT = "Report Only - no emails sent"
 
-   # Email reassignment to affected users
-   for newassignment in new_assign.items():
-      newserver, users = newassignment
-      report.append( "Accounts Reassigned to %s" % newserver )
-      report.append( "User, Previous Server, New Server, Email" )
+   report = []
+   report.append( "User Migration Report\n\n" )
+
+   # Email Reassignments
+   reassign_hdr = "Time for a New Home! (new server assignment)"
+   reassign_sv = "Your current server: %s\nYour new server: %s"
+   reassign_body = ""    
+   with open( "./templates/account_reassign", 'r' ) as f:
+      reassign_body = f.read()
+
+   for newserver, users in reassigns.iteritems():
+      report.append( "Accounts Notified to be Reassigned to %s" % newserver )
+      report.append( "User,Previous Server,New Server,Email,Status" )
       for entry in users:
          user, oldserver, email = entry
-         body = REASSIGN_MSG % ( oldserver, 
-                                 newserver, 
-                                 newserver,
-                                 oldserver,
-                                 oldserver,
-                                 oldserver )
+         body = "%s\n\n%s" % ( reassign_sv % ( oldserver, newserver ), 
+                               reassign_body )
+         stat = REPONLY_STAT
          if not assignOnly:
-            sendEmail( email, REASSIGN_HDR, body )
-         report.append( "%s, %s, %s, %s" % ( user, oldserver, newserver, email ) )
+            sendEmail( email, reassign_hdr, body )
+            stat = DEFAULT_STAT
+
+         report.append( "%s,%s,%s,%s,%s" %
+                        ( user, oldserver, newserver, email, stat ) )
+      report.append( "\n" )
    report.append( "\n" )
+
 
    # Email deletions to affected users
-   report.append( "Accounts Deleted" )
-   report.append( "User, Previous Server, Email" )
-   for entry in del_assign:
+   delete_hdr = "Please delete your infrequently used account"
+   delete_sv = "Your current server: %s"
+   delete_body = "" 
+   with open( "./templates/account_delete", 'r' ) as f:
+      delete_body = f.read()
+
+   report.append( "Inactive Accounts (no login in 30 days) Notified to be Deleted" )
+   report.append( "User,Previous Server,Email,Status" )
+   for entry in dels:
       user, oldserver, email = entry
-      body = DELETE_MSG % ( oldserver, 
-                            oldserver, 
-                            oldserver, 
-                            oldserver )
+      body = "%s\n\n%s" % ( delete_sv % ( oldserver ), delete_body )
+      stat = REPONLY_STAT       
       if not assignOnly:
-         sendEmail( email, DELETE_HDR % oldserver, body )
-      report.append( "%s, %s, %s" % ( user, oldserver, email ) )
+         sendEmail( email, delete_hdr, body )
+         stat = DEFAULT_STAT
+
+      report.append( "%s,%s,%s,%s" % ( user, oldserver, email, stat ) )
    report.append( "\n" )
 
-   #Add skipped users to report
-   report.append( "Skipped Users due to Missing User Info" )
-   report.append( "User, Previous Server" )
-   for entry in skipped:
-      user, oldserver = entry
-      report.append( "%s, %s" % ( user, oldserver ) )
+
+   # Email Intern Accounts
+   intern_hdr = "Please clean up your intern's account"
+   intern_sv = "Server with Intern Account: %s\n"
+   intern_inf = "Intern Name: %s\nIntern Username: %s\nMentor: %s\nManager: %s"
+   intern_body = "" 
+   with open( "./templates/intern_delete", 'r' ) as f:
+      intern_body = f.read()
+
+   report.append( "Intern Accounts" )
+   report.append( "User,Server,Full Name,Mentor,Manager,Status" )
+   for entry in interns:
+      user, oldserver, info = entry
+      intName = info[ 'name' ]
+      intMentor = info[ 'mentor' ].replace( " ", "" ) 
+      intManag = info[ 'manager' ].replace( " ", "" )
+      email = "%s@arista.com" % ( intMentor if intMentor else intManag )
+      body = "%s%s\n\n%s" % ( intern_sv % oldserver,
+                              intern_inf % ( intName, 
+                                             user,
+                                             intMentor if intMentor else "Unknown",
+                                             intManag if intManag else "Unknown" ), 
+                              intern_body )
+      stat = REPONLY_STAT
+      if not assignOnly:
+         sendEmail( email, intern_hdr, body )
+         stat = DEFAULT_STAT
+      
+      report.append( "%s,%s,%s,%s,%s,%s" % 
+                     ( user, oldserver, intName, intMentor, intManag, stat ) )
    report.append( "\n" )
 
    # Write reassignment report CSV file
@@ -237,21 +204,31 @@ def notify( new_assign, del_assign, skipped, assignOnly ):
    with open( csvpath, 'w' ) as f:
       f.write( report )
       f.flush()
-      f.close()
 
+   report_hdr = "Server Reassignment Report"
    if assignOnly:
-      sendEmail( DEFAULT_SENDER, REPORT_HDR, INFRA_MAIL_REPORT_ONLY_MSG, 
-                 attach=csvpath )
+      #report_body_reponly = "" 
+      with open( "./templates/report_only", 'r' ) as f:
+         report_body_reponly = f.read()
+      sendEmail( DEFAULT_SENDER, report_hdr, report_body_reponly, attach=csvpath )
    else:
-      sendEmail( DEFAULT_SENDER, REPORT_HDR, INFRA_MAIL_MSG, attach=csvpath )
+      #report_body = ""    
+      with open( "./templates/report_and_send", 'r' ) as f:
+         report_body = f.read()
+      sendEmail( DEFAULT_SENDER, report_hdr, report_body, attach=csvpath )
+
    os.remove( csvpath )
 
 
-def reassign( old, new, maxusers ):
+
+def reassign( old, new, all_interns, maxusers ):
    '''
    Given list of servers to move users away from, list of servers to migrate
    users to, and maximum number of users to be put on each new server, figure out
    reassignment for the users, or deletion of the user accounts.
+
+   Also takes into account intern accounts given a dictionary of most up-to-date
+   intern information (ask itthichok@ for most recent info).
 
    Parameters
    ----------
@@ -260,6 +237,10 @@ def reassign( old, new, maxusers ):
 
    new: list of strings
       List of new servers to move users to
+
+   all_interns: dict     
+      Contains intern account, mentor, manager info
+      Depends on information from itthichok@
 
    maxusers: int
       Maximum number of users on each server
@@ -357,12 +338,19 @@ Status of %s:
          user = email.split( '@' )[ 0 ]
          del_assign.append( ( user, oldserver, email ) )
 
+
+   # Figure out if unknown accounts are intern accounts
+   interns = []
    skipped = []
    for oldserver, logins in unknown.iteritems():
       for login in logins:
-         skipped.append( ( login, oldserver ) )
+         if login in all_interns:
+            interns.append( ( login, oldserver, all_interns[ login ] ) )
+         else:
+            skipped.append( ( login, oldserver ) )
 
-   return new_assign, del_assign, skipped
+   return new_assign, del_assign, interns, skipped
+
 
 
 # ----------------------------------------------------------------------------------
@@ -370,18 +358,24 @@ Status of %s:
 # ----------------------------------------------------------------------------------
 
 def main():
+
    parser = argparse.ArgumentParser( description=( "Reassign users from a list of "
-                                     "servers to new list of servers" ) )
+      "servers to new list of servers. ***NOTE*** Expects email templates to be "
+      "under templates/ in current working directory." ) )
    parser.add_argument( 'from_servers', action="store", 
-       help=( "Comma separated list of server name(s) you wish to migrate people " 
-              "away FROM ( i.e: 'us001,us002,us003' )" ) )
+      help=( "Comma separated list of server name(s) you wish to migrate people " 
+             "away FROM ( i.e: 'us001,us002,us003' )" ) )
    parser.add_argument( 'to_servers', action="store",
-       help=( "Comma separated list of server name(s) you wish to migrate people "
-              "away TO ( i.e.: 'us999,us998,us998' )" ) )
+      help=( "Comma separated list of server name(s) you wish to migrate people "
+             "away TO ( i.e.: 'us999,us998,us998' )" ) )
    parser.add_argument( 'max_users', action="store", type=int,
-       help="Max number of users expected one each server" )
+      help="Max number of users expected one each server" )
+   parser.add_argument( 'interns', action="store",
+      help=( "Path containing CSV containing intern information gathered by "
+             "itthichok@ that will be used to cross check accounts with no "
+             "user information" ) )
    parser.add_argument( '--assignOnly', action="store_true",
-       help=( "If flag is set, the tool will only generate the CSV containing server"
+      help=( "If flag is set, the tool will only generate the CSV containing server"
               " assignments to email SW-INFRA_SUPPORT and skip emailing the "
               "affected users." ) )
    args = parser.parse_args()
@@ -389,13 +383,52 @@ def main():
    old = args.from_servers.split( ',' )
    new = args.to_servers.split( ',' )
    maxnum = args.max_users
+   interns_filepath = args.interns
    assignOnly = args.assignOnly
+   
+   print "\nReassigning users from [%s] to [%s]..." % ( args.from_servers, 
+                                                    args.to_servers )
+
+   # Ask user if they checked email templates to be what they want
+   ans = ""
+   while ans != "yes" and ans != "y":
+      ans = raw_input( ( 'Did you double check the email templates under /templates?'
+                         ' They will be sent as is. [Yes/Y/No/N]: ' ) ).lower()
+      if ans == "no" or ans == "n":
+         print >> sys.stderr, "Aborting - please double check the email templates!"
+         sys.exit( 1 )
+      elif ans == "yes" or ans == "y":
+         print "Great, continuing..."
+         break
+      else:
+         print "Please answer [Yes/Y/No/N]. I believe in you."
+
+
+   def _interns( fpath ):
+      # Retrieve intern information from CSV file provided by itthichok@
+      all_interns={}
+      with open( interns_filepath, 'r' ) as f:
+         for line in f:
+            if "firstName" in line:
+               # Skip the first line containing format of this file
+               # XXX: We're going to assume format of the file is in expected
+               # firstName,lastName,userName,mentor,manager
+               continue
+            else:
+               l = line.strip( '\n' ).split( ',' )
+               all_interns[ l[ 2 ] ] = { "name": "%s %s" % ( l[0], l[1] ),
+                                         "mentor": l[3],
+                                         "manager": l[4] }
+      return all_interns
 
    # Figure out reassignments
-   new_assign, del_assign, skipped = reassign( old, new, maxnum )
+   reassigns, dels, interns, skipped = reassign( old, 
+                                                 new, 
+                                                 _interns( interns_filepath ), 
+                                                 maxnum )
 
    # Notify users
-   notify( new_assign, del_assign, skipped, assignOnly )
+   notify( reassigns, dels, interns, skipped, assignOnly )
 
 
 if __name__ == "__main__":
