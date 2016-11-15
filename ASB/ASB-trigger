@@ -30,13 +30,10 @@ SERV_DB = "servers"
 PROP_DB = "server_property"
 
 # Trigger Command
-STAGING = "https://gitlab.aristanetworks.com/ren/ASB.git"
 PROD = "http://gerrit.sjc.aristanetworks.com/ardc-config"
-
-#TODO This pulls from staging server for now while ASB is being changed
 TRIGGER = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull '
             '--url=%s --directory=/root/.ansible/pull ASB/ASB.yml '
-            '--inventory=localhost,' ) % ( STAGING )
+            '--inventory=localhost,' ) % ( PROD )
 
 #TODO connection timeouts
 PDSH_CMD = "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
