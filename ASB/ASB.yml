@@ -1,0 +1,92 @@
+---
+- name: "Automatic Server Bringup (ASB)"
+  hosts: all
+  become: yes
+  become_user: root
+  pre_tasks:
+      # -----------------------------------------------------------------------------
+      # 1. If we're good to go (no conflicting Ansible processes), then gather more
+      #    information to see if we should proceed with setting up this machine.
+
+      # Check if explicit donothing file is present.
+      - name: "See if /root/donothing file exists"
+        stat: path="/root/donothing"
+        register: DONOTHING
+
+      - name: "If /root/donothing file exists, abort"
+        assert: { that: DONOTHING.stat.exists == False }
+
+      # Check if explicit DONOTHING file is present.
+      - name: "See if /root/DONOTHING file exists"
+        stat: path="/root/DONOTHING"
+        register: DONOTHING_CAP
+
+      - name: "If /root/DONOTHING file exists, abort"
+        assert: { that: DONOTHING_CAP.stat.exists == False }
+
+      # Get information for this machine.
+      - name: "Query datacenter.servers DB about this machine"
+        command: "{{ASB_DB_QUERY}}"
+        register: machineInfo
+
+      - name: "Try to gather information about this machine"
+        set_fact:
+            STATUS: "{{machineInfo.stdout.split('\t')[0]}}"
+            ROLE_NAME: "{{machineInfo.stdout.split('\t')[1]}}"
+        when: machineInfo is defined
+
+      # -----------------------------------------------------------------------------
+      # 2. Decide whether we should automatically set up this machine.
+
+      - name: "Check minimal required information (status, role) for setup are found"
+        assert: { that: STATUS is defined and ROLE_NAME is defined }
+
+      - name: "Current status"
+        debug: msg="[{{ansible_hostname}}] status-'{{STATUS}}', role-'{{ROLE_NAME}}'"
+
+      - name: "Skip if status of this machine is \"donothing\\installed\\HELP_ME\""
+        assert: { that: STATUS != ASB_STATUS_INSTALLED and
+                        STATUS != ASB_STATUS_DEAD }
+
+
+      # -----------------------------------------------------------------------------
+      # 3. If this is a new machine, check to see if it has been up for sufficiently
+      #    long time before triggering automatic set up.
+      
+      - name: "If this is a fresh new machine, check uptime unless in BYPASS mode"
+        assert: { that: ansible_uptime_seconds|int > ASB_MAX_UPTIME }
+        when: STATUS == ASB_STATUS_PROVRDY and BYPASS is undefined
+
+
+      # -----------------------------------------------------------------------------
+      # 4. If this machine is good to go, retrieve installation commands
+      
+      - name: "Query for number of physical disks for this host"
+        command: "{{ASB_PROP_QUERY}}"
+        register: numDisks
+
+      - name: "Get number of physical disks this host has"
+        set_fact:
+            DISK_NUM: "{{numDisks.stdout}}" 
+        when: numDisks is defined
+
+      - name: "Query installation commands for this server type"
+        command: "{{ASB_CMDS_QUERY}}"
+        register: cmdInfo
+
+      - name: "Get installation commands"
+        set_fact:
+            DISK_CMD: "{{cmdInfo.stdout.split('\t')[0]}}"
+            SW_CMD: "{{cmdInfo.stdout.split('\t')[1]}}"
+        when: cmdInfo is defined
+
+
+     # ------------------------------------------------------------------------------
+     # 5. Apply appropriate server type based on role type of this server.
+
+  roles:
+      - { role: atest, when: ROLE_NAME == 'atest' }
+      - { role: build, when: ROLE_NAME == 'build' }
+      - { role: user,  when: ROLE_NAME == 'user'  }
+      - { role: stest, when: ROLE_NAME == 'stest' }
+...

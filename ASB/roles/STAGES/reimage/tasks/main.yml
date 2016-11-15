@@ -1,0 +1,18 @@
+---
+#NOTE: Do not change this file unless you have a good reason.
+
+# ------------------------------- SANITY CHECK ----------------------------------
+- name: "Reimage: Sanity check"
+  include: "reimage_sanity_{{type}}.yml"
+  when: STATUS == ASB_STATUS_REIMG
+
+# --------------------------------- DISK WIPE -----------------------------------
+- name: "Reimage: Complete disk wipe"
+  include: "reimage_wipe_{{type}}.yml"
+  when: STATUS == ASB_STATUS_REIMG_SANITYRDY
+
+# ---------------------------------- VERIFY -------------------------------------
+- name: "Reimage: Verify wipe was successful"
+  include: "reimage_verify_{{type}}.yml"
+  when: STATUS == ASB_STATUS_REIMG_WIPERDY
+...

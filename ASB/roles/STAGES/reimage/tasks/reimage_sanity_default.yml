@@ -1,0 +1,39 @@
+---
+- name: "Disable abuild"
+  replace:
+      dest: "/etc/Abuildd.conf"
+      regexp: "enabled"
+      replace: "enabled = never"
+  ignore_errors: yes
+
+- name: "Uninstall stest RPM if installed"
+  shell: "yum remove AroraConfig-stest.x86_64"
+
+- name: "Double check stest RPM is uninstalled"
+  shell: "! yum list installed AroraConfig_stest.86_64"
+
+# ----------------------------------------------------------------------------------
+# XXX: block/rescue don't work in included files for Ansible 2.1    >:(
+- name: "Sanity check that this machine is ready to be reimaged"
+  command: "{{role_path}}/files/reimage.py sanity"
+  register: SANITY
+  ignore_errors: true
+
+- name: "Send SOS email about this machine"
+  shell: "{{ASB_MAIL_REIMG_SANITY_ERR}}"
+  when: SANITY | failed
+
+- name: "There's nothing more that ASB can do..."
+  command: "{{ASB_DB_UPDATE_DEAD}}"
+  when: SANITY | failed
+
+- fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
+  when: SANITY | failed
+# ----------------------------------------------------------------------------------
+
+- name: "Send an email that this machine is being reimaged with report"
+  shell: "{{ASB_MAIL_REIMG_SANITY}}"
+
+- name: "Update server status"
+  command:  "{{ASB_DB_UPDATE_REIMG_SANITYRDY}}"
+...

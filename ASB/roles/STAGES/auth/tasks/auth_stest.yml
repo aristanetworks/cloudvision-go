@@ -1,0 +1,11 @@
+---
+# This is based on the assumption that new p4tickets are issued under this given path
+- name: "Check to see if ticket has been issued for this server yet"
+  stat: path="/home/arastra/tickets-ssh"
+  register: TICKETS_FOLDER
+
+- name: "Update datacenter.servers with status that authentication tickets have been issued"
+  command: "{{ASB_DB_UPDATE_INSTALLED}}"
+  when: TICKETS_FOLDER.stat.exists == True
+  # if the tickets folder doesn't exist then we don't update the status
+

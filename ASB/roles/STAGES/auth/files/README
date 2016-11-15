@@ -1,0 +1,7 @@
+To install, do the following on ticketserver:
+1. issueTicket - this is the cron job. Place under ticketserver:/etc/cron.d
+2. restore_server - this is Thomas' script.
+3. restore_server_wrapper - this is the wrapper for Thomas' script. This must be
+   checked out from ASB repo and placed somewhere. Place symlink for this wrapper
+   under /root/. It's better to place restore_server script in the same directory as
+   restore_server_wrapper script

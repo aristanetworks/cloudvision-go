@@ -1,0 +1,5 @@
+# Cron job that triggers restore_server wrapper script.
+# Runs every  minute. Timeout limit is 30 mins.
+# Calls symlink to the wrapper script.
+
+* * * * * root RunJob --name="/etc/cron.d/issueTicket" --subject="Issue P4 Authentication Ticket to Server" --timeout 1800 --type=cron --owner=sw-infra 'python /root/restore_server_wrapper"

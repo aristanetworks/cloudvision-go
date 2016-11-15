@@ -1,0 +1,26 @@
+#!/bin/sh
+
+servers=$@
+echo "server list = $servers"
+
+for server in $servers
+
+do
+	echo "current server is $server"
+
+	a4 ssh $server rm -rf /home/arastra/tickets-ssh
+
+	userdel -r -f $server
+	rm -rf /home/$server
+	rm -f /var/spool/mail/$server
+
+	ticketServerSetup $server
+	P4USER=arastra a4 ssh $server /usr/bin/AuthenticateArastra
+
+	P4USER=arastra a4 ssh $server a4 login -s
+	#echo "Return value is : $?"
+	echo
+	echo "*** Done with server $server ***"
+	echo
+done
+

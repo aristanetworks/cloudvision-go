@@ -1,0 +1,4 @@
+---
+- name: "Configured this machine as STEST server"
+  debug: msg="STATUS "{{STATUS}}""
+...

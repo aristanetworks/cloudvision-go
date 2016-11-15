@@ -1,0 +1,4 @@
+---
+- name: "Configured this machine as BUILD server"
+  debug: msg="STATUS "{{STATUS}}""
+...

@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# Copyright (c) 2015 Arista Networks, Inc.  All rights reserved. 
+# Arista Networks, Inc. Confidential and Proprietary. 
+
+
+####################################################################################
+#                                   ASB Trigger                                    #
+#                          (Automatic trigger for ASB)                             #
+####################################################################################
+
+
+import MySQLdb
+import subprocess
+import time
+import shlex
+import logging
+
+
+# ----------------------------------------------------------------------------------
+# Constants
+# ----------------------------------------------------------------------------------
+
+# Database information
+DB_INFO = { "user": "arastra",
+            "db": "datacenter",
+            "host": "mysql-b1.cs2.aristanetworks.com" }
+
+# Datatable to read from
+SERV_DB = "servers"
+PROP_DB = "server_property"
+
+# Trigger Command
+STAGING = "https://gitlab.aristanetworks.com/ren/ASB.git"
+PROD = "http://gerrit.sjc.aristanetworks.com/ardc-config"
+
+#TODO This pulls from staging server for now while ASB is being changed
+TRIGGER = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull '
+            '--url=%s --directory=/root/.ansible/pull ASB/ASB.yml '
+            '--inventory=localhost,' ) % ( STAGING )
+
+#TODO connection timeouts
+PDSH_CMD = "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
+
+# ASB Statuses
+ASB_STATUS_DEAD = "HELP_ME"
+ASB_STATUS_FRESH = "fresh"
+ASB_STATUS_INSTALLED = "installed"
+
+# Start with 30 sec run interval. Max is 30 mins. This will change as program runs
+DEFAULT_CHECK_INTERVAL = 30
+MAX_CHECK_INTERVAL = 1800
+wait = DEFAULT_CHECK_INTERVAL
+
+# Enable logging
+logging.basicConfig( filename="/var/log/ASB-trigger.log", 
+                     format='[ASB-Trigger] %(asctime)s: %(message)s',
+                     datefmt='%m/%d/%Y %H:%M:%S',
+                     level=logging.DEBUG )
+
+
+# ----------------------------------------------------------------------------------
+# Trigger
+# ----------------------------------------------------------------------------------
+
+def trigger():   
+   global wait
+
+   db = MySQLdb.connect( user=DB_INFO[ "user" ], 
+                         db=DB_INFO[ "db" ], 
+                         host=DB_INFO[ "host" ] )
+   cs = db.cursor()
+
+   # Select all servers from the table that:
+   #   - isn't "installed" yet
+   #   - isn't "fresh" ( dcp tool needs to run first )
+   #   - isn't marked as a TESTONLY server in misc field
+   cols = "name, domain, status"
+   cond = 'status!="%s" and status!="%s"' % ( ASB_STATUS_FRESH, 
+                                              ASB_STATUS_INSTALLED )
+   stmt = "select %s from %s where %s" % ( cols, SERV_DB, cond )
+   
+   cs.execute( stmt )
+   rows = list( cs.fetchall() )
+
+   cols = "serverName, domain"
+   cond = 'propertyName="misc" and propertyValue="TESTONLY"'
+   stmt2 = "select %s from %s where %s" % ( cols, PROP_DB, cond ) 
+
+   cs.execute( stmt2 )
+   test_rows = list( cs.fetchall() )
+
+   cs.close()
+   db.close()
+
+   # Remove test only servers from list of servers
+   rows = [ ( "%s.%s" % ( n, d ), s ) for n, d, s in rows ]
+   test_rows =  [ "%s.%s" % ( n, d ) for n, d in test_rows ]
+   sv = [ ( s, st ) for ( s, st ) in rows for ts in test_rows if ( s != ts ) ]
+
+   sv_to_trigger = []
+   sv_need_help = []
+   for ( s, stat ) in sv:
+      if stat != ASB_STATUS_DEAD:
+         sv_to_trigger.append( s )
+      else:
+         sv_need_help.append( s )
+
+
+   if sv_to_trigger:
+      hosts = "\n".join( sv_to_trigger )
+      try:
+         logging.info( "Hosts Triggered:\n%s" % hosts )
+         cmd = PDSH_CMD % ( ",".join( sv_to_trigger ), TRIGGER )	
+
+         # XXX this is a security hole
+         subprocess.call( cmd, shell=True )
+      except:
+         logging.error( "Hosts Failed:\n%s" % hosts )
+      
+      # reset server checking interval if there were hosts that needed triggering
+      wait = DEFAULT_CHECK_INTERVAL
+   else:
+      # There are no servers that needs triggering, query less frequently 
+      if wait < MAX_CHECK_INTERVAL:
+         wait *= 2
+         logging.info( "No hosts to trigger - slowing down to run every %d seconds" 
+                       % wait )
+      else:
+         wait = MAX_CHECK_INTERVAL
+         logging.info( "No hosts to trigger - wait time unchanged at %d seconds" 
+                       % wait )
+      
+   if sv_need_help:
+      logging.warning( "Hosts that need help: %s" % ", ".join( sv_need_help ) )
+
+
+# ----------------------------------------------------------------------------------
+# Infernal Loop
+# ----------------------------------------------------------------------------------
+
+def main():
+   global wait
+   try:
+      while( True ):
+         logging.info( "Awake and running" )
+         trigger()
+         logging.info( "Going to sleep for %d seconds..." % wait )
+         time.sleep( wait )
+   except Exception as e:
+      logging.error( "ERROR!: %s" % e )
+      pass
+
+
+if __name__ == "__main__":
+   main()
+
