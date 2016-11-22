@@ -4,6 +4,8 @@
 # without having Ansible take over. 20mins in seconds == 1200.
 ASB_MAX_UPTIME: 1200
 
+ASB_TICKET_STALE: 3600
+
 ASB_DB: "servers"
 ASB_PROP_DB: "server_property"
 ASB_CMDS_DB: "server_cmd"

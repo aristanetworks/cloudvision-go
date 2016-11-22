@@ -2,10 +2,14 @@
 # This is based on the assumption that new p4tickets are issued under this given path
 - name: "Check to see if ticket has been issued for this server yet"
   stat: path="/home/arastra/tickets-ssh"
-  register: TICKETS_FOLDER
+  register: TICKETS
 
+# Check two things here:
+# 1. tickets folder must exist under arastra
+# 2. tickets folder must have been updated within an hour, otherwise it doesn't make
+#    sense since issueTicket cron job runs every minute. This check is very generous
+#    as it is.
 - name: "Update datacenter.servers with status that authentication tickets have been issued"
   command: "{{ASB_DB_UPDATE_INSTALLED}}"
-  when: TICKETS_FOLDER.stat.exists == True
-  # if the tickets folder doesn't exist then we don't update the status
+  when: TICKETS.stat.exists == True and TICKETS.stat.mtime < ASB_TICKET_STALE
 

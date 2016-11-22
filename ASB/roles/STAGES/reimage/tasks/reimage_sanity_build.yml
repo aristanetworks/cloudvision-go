@@ -7,10 +7,9 @@
   ignore_errors: yes
 
 - name: "Uninstall stest RPM if installed"
-  shell: "yum remove AroraConfig-stest.x86_64"
-
-- name: "Double check stest RPM is uninstalled"
-  shell: "! yum list installed AroraConfig_stest.86_64"
+  yum:
+      name: AroraConfig-stest.x86_64
+      state: absent
 
 # ----------------------------------------------------------------------------------
 # XXX: block/rescue don't work in included files for Ansible 2.1    >:(

@@ -38,6 +38,7 @@ TRIGGER = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-p
 #TODO connection timeouts
 PDSH_CMD = "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
 
+# TODO this should be refactored to use definitions in Ansible File
 # ASB Statuses
 ASB_STATUS_DEAD = "HELP_ME"
 ASB_STATUS_FRESH = "fresh"

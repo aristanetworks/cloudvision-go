@@ -1,0 +1,4 @@
+---
+- name: "Configured this machine as DIST server"
+  debug: msg="STATUS "{{STATUS}}""
+...

@@ -1,0 +1,9 @@
+---
+dependencies:
+   - { role: STAGES/reimage, type: 'dist' }
+   - { role: STAGES/disk,    type: 'dist' }
+   - { role: STAGES/os,      type: 'dist' }
+   - { role: STAGES/config,  type: 'dist' }
+   - { role: STAGES/verify,  type: 'dist' }
+   - { role: STAGES/auth,    type: 'dist' }
+...

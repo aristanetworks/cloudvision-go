@@ -4,14 +4,27 @@
      name: telegraf-Linux
      state: installed
 
-#- name: "Make sure vmstat is running"
-#  shell: "/sbin/chkconfig --add vmstat"
+- name: "Make sure vmstat is running"
+  shell: "/sbin/chkconfig --add vmstat"
+  ignore_errors: yes
 
 - name: "Set maximum RAID sync speed"
-  shell: "sysctl -w dev.raid.speed_limit_max=100000"
+  sysctl:
+      name: dev.raid.speed_limit_max
+      value: 100000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: /etc/sysctl.d/atest.conf
 
 - name: "Set minimum RAID sync speed"
-  shell: "sysctl -w dev.raid.speed_limit_min=1000"
+  sysctl:
+      name: dev.raid.speed_limit_min
+      value: 1000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: /etc/sysctl.d/atest.conf
 
 - name: "Add server to arventory"
   shell: arventory update

@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+# Wrapper script for "restore_server"
+# -----------------------------------
+# Collects FQDN placeholders in automation account which signals they are
+# ready to be issued a ticket and issues ticket. Assumes this script is 
+# initiated as root by cron job
+
+
+import MySQLdb
+import subprocess
+import glob
+import os
+import sys
+
+
+#TODO make shared library for this to share with 
+# Database information
+DB_INFO = { "user": "arastra",
+            "db": "datacenter",
+            "host": "mysql-b1.cs2.aristanetworks.com" }
+
+# Datatable to read from
+SERV_DB = "servers"
+
+# ASB Status
+ASB_STATUS_VERRDY = "verify_ready"
+
+# Where allowed servers are listed
+ALL_DIR = "/home/ren/allowed/"
+
+def main():
+   db = MySQLdb.connect( user=DB_INFO[ "user" ],
+                         db=DB_INFO[ "db" ],
+                         host=DB_INFO[ "host" ] )
+   cs = db.cursor()
+   
+   # Select all servers from the table that has status "verify_ready"
+   cols = "name, domain"
+   cond = 'status="%s"' % ( ASB_STATUS_VERRDY )
+   stmt = "select %s from %s where %s" % ( cols, SERV_DB, cond )
+
+   cs.execute( stmt )
+   rows = list( cs.fetchall() )
+
+   if rows:
+      # Full FQDN of servers that need ticket on datacenter.servers
+      needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in rows ] 
+      
+      # Get list of FQDNs in ASB account
+      # TODO: update this path after setting up account 
+      allowed = [ os.path.basename( p ) for p in glob.glob( 
+                  os.path.join( ALL_DIR, "*" ) ]
+
+      authServers = set( needTicket ) & set( allowed )
+      for sv in authServers:
+         ret = subprocess.call( "./restore_server %s" % sv ) 
+         if ret:
+            sys.stderr.write( "Could not issue ticket for %s" % sv )
+         os.remove( os.path.join( ALL_DIR, sv ) )
+
+
+if __name__ == "__main__":
+   main()
