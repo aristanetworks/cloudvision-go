@@ -169,6 +169,9 @@ def wipe():
          d, pn = re.match( r'([a-z]+)([0-9]+)', p ).groups(0)
          _c( "parted -s /dev/%s rm %s" % (d, pn) )
 
+   # Inform Kernel of the partition table changes
+   _c( "partprobe" )
+
 
 def verify():
    '''

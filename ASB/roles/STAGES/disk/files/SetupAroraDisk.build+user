@@ -31,14 +31,10 @@ def removeAllFilesystems( mdstat, device ):
    for line in open( "/proc/mounts" ).readlines():
       if line.startswith( device ):
          A4.Helpers.run( [ "umount", "-l", line.split()[ 1 ] ], verbose=True )
-         A4.Helpers.run( [ "dd", "if=/dev/zero", "of=%s" % device, "bs=4096",
-            "count=1" ], captureStderr=True, verbose=True )
 
    for line in open( "/proc/swaps" ).readlines():
       if line.startswith( device ):
          A4.Helpers.run( [ "swapoff", line.split()[ 0 ] ], verbose=True )
-         #A4.Helpers.run( [ "dd", "if=/dev/zero", "of=%s" % device, "bs=4096",
-         #   "count=1" ], captureStderr=True, verbose=True )
 
    #
    # Find any raid devices that have partitions of this device, and remove
@@ -54,8 +50,6 @@ def removeAllFilesystems( mdstat, device ):
          for line in open( "/proc/swaps" ).readlines():
             if line.startswith( mdDev ):
                A4.Helpers.run( [ 'swapoff', mdDev ], verbose=True )
-               #A4.Helpers.run( [ "dd", "if=/dev/zero", "of=%s" % mdDev, "bs=4096",
-               #   "count=1" ], captureStderr=True, verbose=True )
 
    # Remove this device from the RAID sets
    for ( md, parts ) in mdstat.iteritems():
@@ -74,14 +68,15 @@ def removeAllFilesystems( mdstat, device ):
                   [ 'mdadm', '--zero-superblock', '/dev/%s' % ( partName, ) ],
                   verbose=True )
 
+   # Inform Kernel of the changes
+   A4.Helpers.run( [ 'partprobe' ], verbose=True )
+
 
 def parted( mdstat, device, script ):
    removeAllFilesystems( mdstat, device )
-   print "Zero out the beginning of %s, so nothing gets confused." % device
-   #A4.Helpers.run( [ "dd", "if=/dev/zero", "of=%s" % device, "bs=2M", "count=1" ],
-   #      captureStderr=True, verbose=True )
    PartTools.iparted( device, script )
-   import subprocess; subprocess.call( "partprobe" )
+   # Inform Kernel of the changes
+   A4.Helpers.run( [ 'partprobe' ], verbose=True )
 
 
 class Config( object ):
