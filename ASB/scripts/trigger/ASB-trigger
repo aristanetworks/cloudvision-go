@@ -30,7 +30,7 @@ SERV_DB = "servers"
 PROP_DB = "server_property"
 
 # Trigger Command
-PROD = "http://gerrit.sjc.aristanetworks.com/ardc-config"
+PROD = "http://gerrit/ardc-config"
 TRIGGER = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull '
             '--url=%s --directory=/root/.ansible/pull ASB/ASB.yml '
             '--inventory=localhost,' ) % ( PROD )
@@ -147,6 +147,8 @@ def main():
    except Exception as e:
       logging.error( "ERROR!: %s" % e )
       pass
+
+   logging.shutdown()
 
 
 if __name__ == "__main__":

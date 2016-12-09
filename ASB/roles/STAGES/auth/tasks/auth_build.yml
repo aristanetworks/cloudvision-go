@@ -11,5 +11,5 @@
 #    as it is.
 - name: "Update datacenter.servers with status that authentication tickets have been issued"
   command: "{{ASB_DB_UPDATE_INSTALLED}}"
-  when: TICKETS.stat.exists == True and TICKETS.stat.mtime < ASB_TICKET_STALE
+  when: TICKETS.stat.exists == True and ( ansible_date_time.epoch|float - TICKETS.stat.mtime ) < ASB_TICKET_STALE
 

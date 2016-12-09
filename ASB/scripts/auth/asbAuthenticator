@@ -1,0 +1,4 @@
+# Cron job that triggers restore_server wrapper script.
+# Runs every  minute. Timeout limit is 30 mins.
+
+* * * * * root PATH=$PATH:/usr/sbin RunJob --name="/etc/cron.d/asbAuthenticator" --subject="ASB: Issue P4 Authentication Ticket to Server" --timeout 1800 --type=cron --owner=sw-infra --cmd "flock -xn /tmp/asbAuthenticator.lck python /root/asbAuthenticator.py"

@@ -2,8 +2,8 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-# Wrapper script for "restore_server"
-# -----------------------------------
+# ASB Authenticator: Wrapper script for "restore_server"
+# ----------------------------------------------------------------------
 # Collects FQDN placeholders in automation account which signals they are
 # ready to be issued a ticket and issues ticket. Assumes this script is 
 # initiated as root by cron job
@@ -14,13 +14,19 @@ import subprocess
 import glob
 import os
 import sys
+import logging
 
 
-#TODO make shared library for this to share with 
+# Enable logging
+logging.basicConfig( filename='/var/log/asbAuthenticator.log',
+                     format='[ASB Authenticator] %(asctime)s: %(message)s',
+                     datefmt='%m/%d/%Y %H:%M:%S',
+                     level=logging.DEBUG )
+
 # Database information
 DB_INFO = { "user": "arastra",
             "db": "datacenter",
-            "host": "mysql-b1.cs2.aristanetworks.com" }
+            "host": "mysql" }
 
 # Datatable to read from
 SERV_DB = "servers"
@@ -28,8 +34,8 @@ SERV_DB = "servers"
 # ASB Status
 ASB_STATUS_VERRDY = "verify_ready"
 
-# Where allowed servers are listed
-ALL_DIR = "/home/ren/allowed/"
+# Dir with all the placeholders
+ALL_DIR = "/home/asb/"
 
 def main():
    db = MySQLdb.connect( user=DB_INFO[ "user" ],
@@ -50,15 +56,17 @@ def main():
       needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in rows ] 
       
       # Get list of FQDNs in ASB account
-      # TODO: update this path after setting up account 
       allowed = [ os.path.basename( p ) for p in glob.glob( 
-                  os.path.join( ALL_DIR, "*" ) ]
+                  os.path.join( ALL_DIR, "*" ) ) ]
 
       authServers = set( needTicket ) & set( allowed )
       for sv in authServers:
-         ret = subprocess.call( "./restore_server %s" % sv ) 
+         ret = subprocess.call( [ "sh", "/root/restore_server", "%s" % sv ] )
          if ret:
-            sys.stderr.write( "Could not issue ticket for %s" % sv )
+            logging.error( "Could not issue ticket for %s" % sv )
+         else:
+            logging.info( "Issued ticket for %s; removing from whitelist" % sv )
+
          os.remove( os.path.join( ALL_DIR, sv ) )
 
 
