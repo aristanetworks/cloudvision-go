@@ -1,23 +1,4 @@
 ---
-# ----------------------------------------------------------------------------------
-# XXX: block/rescue don't work in included files for Ansible 2.1    >:(
-- name: "Verify that wiping this machine was successful."
-  command: "{{role_path}}/files/reimage.py verify"
-  register: SANITY
-  ignore_errors: true
-
-- name: "Send SOS email about this machine"
-  shell: "{{ASB_MAIL_REIMG_WIPE_ERR}}"
-  when: SANITY | failed
-
-- name: "There's nothing more that ASB can do..."
-  command: "{{ASB_DB_UPDATE_DEAD}}"
-  when: SANITY | failed
-
-- fail: msg="Automatic reimaging was unsuccessful."
-  when: SANITY | failed
-# ----------------------------------------------------------------------------------
-
-- name: "Update server status"
-  command: "{{ASB_DB_UPDATE_PROVRDY}}"
+- name: "Starting reimage verify step."
+  include: "reimage_verify_default.yml"
 ...

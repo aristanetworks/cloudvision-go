@@ -1,25 +1,71 @@
 ---
+- name: "Gather info about the disks."
+  include: "gather_disk_info.yml"
+
+- block:
+   - fail: msg="No disk drives detected, something is very wrong"
+     when: disks is not defined
+
+   - name: "Check if MD arrays exist."
+     debug: msg="No MD arrays detected."
+     when: mddevs is not defined
+
+   - name: "Check if partitions on the disk drives exist."
+     debug: msg="No partitions on the disk drives detected."
+     when: partitions is not defined
+
+   - name: "Disable page swaps."
+     command: "swapoff -a"
+     ignore_errors: true
+
+   - name: "Unmount all MD arrays."
+     shell: "umount /dev/{{ item }}"
+     with_items: "{{ mddevs }}"
+     ignore_errors: true
+     when: mddevs is defined
+
+   - name: "Stop all MD arrays."
+     shell: "mdadm --stop /dev/{{ item }}"
+     with_items: "{{ mddevs }}"
+     ignore_errors: true
+     when: mddevs is defined
+
+   - name: "Zero out the superblock for every partition on each disk."
+     command: "mdadm --zero-superblock --force /dev/{{ item }}"
+     with_items: "{{ partitions }}"
+     ignore_errors: true
+     when: partitions is defined
+
+   - name: "Zero out any potential superblocks sitting at the header of each disk."
+     command: "mdadm --zero-superblock --force /dev/{{ item }}"
+     with_items: "{{ disks }}"
+     ignore_errors: true
+
+   - name: "Remove each partition from the table."
+     command: "parted -s /dev/{{ item | regex_replace( '^([a-z]+)([0-9]+)$', '\\1' ) }} rm {{ item | regex_replace( '^([a-z]+)([0-9]+)$', '\\2' ) }}"
+     with_items: "{{ partitions }}"
+     ignore_errors: true
+     when: partitions is defined
+
+  rescue:
+   - name: "Send SOS email about this machine"
+     shell: "{{ASB_MAIL_REIMG_WIPE_ERR}}"
+
+   - name: "There's nothing more than ASB can do..."
+     command: "{{ASB_DB_UPDATE_DEAD}}"
+
+   - fail: msg="Automatic wipe of this machine was unsuccessful."
 # ----------------------------------------------------------------------------------
-# XXX: block/rescue don't work in included files for Ansible 2.1    >:(
-- name: "Wipe the disks and remove all partitions/RAID arrays"
-  command: "{{role_path}}/files/reimage.py wipe"
-  register: SANITY
+
+- name: "Inform Kernel of the partition table changes."
+  command: "partprobe"
   ignore_errors: true
-
-- name: "Send SOS email about this machine"
-  shell: "{{ASB_MAIL_REIMG_WIPE_ERR}}"
-  when: SANITY | failed
-
-- name: "There's nothing more than ASB can do..."
-  command: "{{ASB_DB_UPDATE_DEAD}}"
-  when: SANITY | failed
-
-- fail: msg="Automatic wipe of this machine was unsuccessful."
-  when: SANITY | failed
-# ----------------------------------------------------------------------------------
+  when: disks is defined
 
 - name: "Turn off firewall to enable booting from PXE server successful"
-  command: "service iptables stop"
+  service:
+     name: iptables
+     state: stopped
 
 - name: "Verify pxe server is reachable"
   command: "ping -c 5 pxe"

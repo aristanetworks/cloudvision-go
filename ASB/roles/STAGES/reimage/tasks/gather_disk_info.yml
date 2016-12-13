@@ -1,0 +1,30 @@
+---
+# Gather the relevant disk info for use by reimage tasks.
+- name: "Get the list of available disks on this machine."
+  shell: "parted -s -l | grep /dev/ | grep -v md | awk '{ print $2 }' | sed 's/':'//' | cut -d/ -f3"
+  register: diskInfo
+
+- name: "Store the list of available disks for later use."
+  set_fact:
+     disks: "{{ diskInfo.stdout_lines }}"
+  when: diskInfo is defined
+
+- name: "Get the list of md devices that are part of the RAID arrays."
+  shell: "cat /proc/mdstat | awk '/^[md]/ {print $1}'"
+  register: mdInfo
+
+- name: "Store the list of md devices for later use."
+  set_fact:
+     mddevs: "{{ mdInfo.stdout_lines }}"
+  when: mdInfo is defined
+
+- name: "Get the list of partitions on the disks."
+  shell: "cat /proc/partitions | grep -e 'sd[abc][0-9]' | awk '{ print $4 }'"
+  register: partitionInfo
+
+- name: "Store the list of disk partitions for later use."
+  set_fact:
+     partitions: "{{ partitionInfo.stdout_lines }}"
+  when: partitionInfo is defined
+
+...
