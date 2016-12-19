@@ -1,4 +1,0 @@
----
-- name: "Starting reimage verify step."
-  include: "reimage_verify_default.yml"
-...

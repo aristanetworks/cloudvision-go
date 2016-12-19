@@ -1,6 +1,6 @@
 ---
 dependencies:
-   - { role: STAGES/reimage, type: 'atest' }
+   - { role: STAGES/reimage, type: 'default' }
    - { role: STAGES/disk,    type: 'atest' }
    - { role: STAGES/os,      type: 'atest' }
    - { role: STAGES/config,  type: 'atest' }

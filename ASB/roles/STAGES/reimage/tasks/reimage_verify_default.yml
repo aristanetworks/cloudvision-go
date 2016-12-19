@@ -1,46 +1,24 @@
 ---
-- name: "Gather info about the disks."
-  include: "gather_disk_info.yml"
-
+# ----------------------------------------------------------------------------------
 - block:
-   - name: "Get the RAID array info from /proc/mdstat."
-     command: cat /proc/mdstat
-     register: mdstat
+   - name: "Check /proc/mdstat for leftover RAID array."
+     shell: "! (grep -qe 'md[1-9][0-9]*' /proc/mdstat)"
+     register: SANITY_RAID
      ignore_errors: true
 
-   # Need to quote the conditional since YAML dislikes colon followed by space
    - fail: msg="RAID arrays were not properly removed."
-     when: "mdstat.stdout != 'Personalities : \nunused devices: <none>'"
+     when: SANITY_RAID | failed
 
    - name: "Check that no MD devices still exist."
      shell: "! (ls -l /dev/md* | grep -e '/dev/md[1-9][0-9]*')"
      register: SANITY_MD
      ignore_errors: true
 
-   - name: "List the MD devices (exclude md0) that still exist."
-     debug: msg="{{ item | regex_replace('^.* (/dev/md[0-9]+)', '\\1') }} still exists."
-     with_items: "{{ SANITY_MD.stdout_lines }}"
-
-   - name: "Check if md0 still exists"
-     shell: "(ls -l /dev/md*) | grep -e '/dev/md0'"
-     register: md0Exists
-     ignore_errors: true
-
-   - name: "It's okay if only md0 still exists."
-     debug: msg="md0 still exists but this is okay. Ignoring."
-     when: SANITY_MD | success and md0Exists | success
-
    - fail: msg="Not all MD devices were removed."
      when: SANITY_MD | failed
 
-   - name: "Get info about disks' partitions (if any still exist)."
-     shell: "parted -s /dev/{{ item }} print | tail -n2"
-     register: driveInfo
-     with_items: "{{ disks }}"
-
    - fail: msg="Not all drives were properly wiped."
-     when: "md0Exists | failed and 'Number  Start  End  Size  File system  Name  Flags' not in item.stdout"
-     with_items: "{{ driveInfo.results }}"
+     when: partitions | length > 0
 
   rescue:
    - name: "Send SOS email about this machine"

@@ -12,22 +12,57 @@
       state: absent
 
 # ----------------------------------------------------------------------------------
-# XXX: block/rescue don't work in included files for Ansible 2.1    >:(
-- name: "Sanity check that this machine is ready to be reimaged"
-  command: "{{role_path}}/files/reimage.py sanity"
-  register: SANITY
-  ignore_errors: true
+- block:
+   - fail: msg="No disk drives detected, something is very wrong"
+     when: disks is not defined
 
-- name: "Send SOS email about this machine"
-  shell: "{{ASB_MAIL_REIMG_SANITY_ERR}}"
-  when: SANITY | failed
+   - name: "Get SMART overall-health self-assessment results for each disk."
+     shell: "smartctl --health /dev/{{ item }} | grep -q PASSED"
+     register: smartHealth
+     with_items: "{{ disks }}"
+     ignore_errors: true
 
-- name: "There's nothing more that ASB can do..."
-  command: "{{ASB_DB_UPDATE_DEAD}}"
-  when: SANITY | failed
+   - fail: msg="SMART helath check failed for a disk"
+     when: item | failed
+     with_items: "{{ smartHealth.results }}"
 
-- fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
-  when: SANITY | failed
+   - name: "Get SMART attribute Raw_Read_Error_Rate for each disk"
+     shell: "smartctl -a /dev/{{ item }} | awk '/Raw_Read_Error_Rate/ {print $10}'"
+     register: smartRRER
+     with_items: "{{ disks }}"
+     ignore_errors: true
+
+   - fail: msg="Sanity check failed for SMART attribute Raw_Read_Error_Rate"
+     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_RRER
+     with_items: "{{ smartRRER.results }}"
+
+   - name: "Get SMART attribute Reallocated_Event_Count for each disk"
+     shell: "smartctl -a /dev/{{ item }} | awk '/Reallocated_Event_Count/ {print $10}'"
+     register: smartREC
+     with_items: "{{ disks }}"
+     ignore_errors: true
+
+   - fail: msg="Sanity check failed for SMART attribute Reallocated_Event_Count"
+     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_REC
+     with_items: "{{ smartREC.results }}"
+
+   - name: "Get SMART attribute Offline_Uncorrectable for each disk"
+     shell: "smartctl -a /dev/{{ item }} | awk '/Offline_Uncorrectable/ {print $10}'"
+     register: smartOU
+     with_items: "{{ disks }}"
+     ignore_errors: true
+
+   - fail: msg="Sanity check failed for SMART attribute Offline_Uncorrectable"
+     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_OU
+     with_items: "{{ smartOU.results }}"
+  rescue:
+   - name: "Send SOS email about this machine"
+     shell: "{{ASB_MAIL_REIMG_SANITY_ERR}}"
+
+   - name: "There's nothing more that ASB can do..."
+     command: "{{ASB_DB_UPDATE_DEAD}}"
+
+   - fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
 # ----------------------------------------------------------------------------------
 
 - name: "Send an email that this machine is being reimaged with report"

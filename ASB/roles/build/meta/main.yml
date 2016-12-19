@@ -1,6 +1,6 @@
 ---
 dependencies:
-   - { role: STAGES/reimage, type: 'build' }
+   - { role: STAGES/reimage, type: 'default' }
    - { role: STAGES/disk,    type: 'build' }
    - { role: STAGES/os,      type: 'build' }
    - { role: STAGES/config,  type: 'build' }

@@ -1,4 +1,0 @@
----
-- name: "Starting reimage wipe step."
-  include: "reimage_wipe_default.yml"
-...

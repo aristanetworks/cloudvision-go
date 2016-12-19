@@ -27,6 +27,13 @@ ASB_STATUS_REIMG_SANITYRDY: "reimage_sanity_ready"
 ASB_STATUS_REIMG_WIPERDY: "reimage_wipe_ready"
 
 
+# Reimage
+# -------
+# Constants used in the reimage steps.
+THRESHOLD_SMART_RRER: 100 # Threshold for SMART attribute Raw_Read_Error_Rate
+THRESHOLD_SMART_REC: 100 # Threshold for SMART attribute Reallocated_Event_Count
+THRESHOLD_SMART_OU: 100 # Threshold for SMART attribute Offline_Uncorrectable
+
 # MySQL Query
 # -----------
 # This is a temporary solution because there are no modules in Ansible 2.1 to support

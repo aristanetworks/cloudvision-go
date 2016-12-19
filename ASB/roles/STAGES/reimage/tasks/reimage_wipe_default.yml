@@ -1,7 +1,5 @@
 ---
-- name: "Gather info about the disks."
-  include: "gather_disk_info.yml"
-
+# ----------------------------------------------------------------------------------
 - block:
    - fail: msg="No disk drives detected, something is very wrong"
      when: disks is not defined

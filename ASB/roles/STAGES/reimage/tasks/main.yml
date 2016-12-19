@@ -1,6 +1,9 @@
 ---
 #NOTE: Do not change this file unless you have a good reason.
 
+- name: "Gather info about the disks."
+  include: "gather_disk_info.yml"
+
 # ------------------------------- SANITY CHECK ----------------------------------
 - name: "Reimage: Sanity check"
   include: "reimage_sanity_{{type}}.yml"
