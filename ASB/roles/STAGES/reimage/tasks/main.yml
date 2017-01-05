@@ -6,16 +6,16 @@
 
 # ------------------------------- SANITY CHECK ----------------------------------
 - name: "Reimage: Sanity check"
-  include: "reimage_sanity_{{type}}.yml"
+  include: "reimage_sanity_default.yml"
   when: STATUS == ASB_STATUS_REIMG
 
 # --------------------------------- DISK WIPE -----------------------------------
 - name: "Reimage: Complete disk wipe"
-  include: "reimage_wipe_{{type}}.yml"
+  include: "reimage_wipe_default.yml"
   when: STATUS == ASB_STATUS_REIMG_SANITYRDY
 
 # ---------------------------------- VERIFY -------------------------------------
 - name: "Reimage: Verify wipe was successful"
-  include: "reimage_verify_{{type}}.yml"
+  include: "reimage_verify_default.yml"
   when: STATUS == ASB_STATUS_REIMG_WIPERDY
 ...

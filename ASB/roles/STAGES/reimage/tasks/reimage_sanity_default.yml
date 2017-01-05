@@ -65,8 +65,10 @@
    - fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
 # ----------------------------------------------------------------------------------
 
-- name: "Send an email that this machine is being reimaged with report"
-  shell: "{{ASB_MAIL_REIMG_SANITY}}"
+## Require rewrite as status report is no longer generated, or, if not needed,
+## the task should be deleted
+#- name: "Send an email that this machine is being reimaged with report"
+#  shell: "{{ASB_MAIL_REIMG_SANITY}}"
 
 - name: "Update server status"
   command:  "{{ASB_DB_UPDATE_REIMG_SANITYRDY}}"
