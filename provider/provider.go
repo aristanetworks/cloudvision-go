@@ -79,6 +79,13 @@ type Provider interface {
 	DeleteChild(child types.Entity, attrDef *schema.AttrDef, k key.Key) error
 }
 
+// EntityExistor can be optionally implemented by Providers. It
+// provides a way to check if an entity is supposed to exist. This is
+// used in testing to look for leaks of entities.
+type EntityExistor interface {
+	EntityExists(e types.Entity) bool
+}
+
 // ErrParentNotFound comes from InstantiateChild when the child's
 // parent is unknown.
 type ErrParentNotFound struct {
