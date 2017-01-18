@@ -31,8 +31,8 @@ DB_INFO = { "user": "arastra",
 # Datatable to read from
 SERV_DB = "servers"
 
-# ASB Status
-ASB_STATUS_VERRDY = "verify_ready"
+# ASB Status to look for
+ASB_STATUS_AUTH = "auth"
 
 # Dir with all the placeholders
 ALL_DIR = "/home/asb/"
@@ -45,7 +45,7 @@ def main():
    
    # Select all servers from the table that has status "verify_ready"
    cols = "name, domain"
-   cond = 'status="%s"' % ( ASB_STATUS_VERRDY )
+   cond = 'status="%s"' % ( ASB_STATUS_AUTH )
    stmt = "select %s from %s where %s" % ( cols, SERV_DB, cond )
 
    cs.execute( stmt )

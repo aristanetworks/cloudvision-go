@@ -1,7 +1,0 @@
----
-# NOTE: Do not change this file unless you have a good reason.
-
-- name: "Applying Authentication Step"
-  include: "auth_{{type}}.yml"
-  when: STATUS == ASB_STATUS_VERRDY
-...

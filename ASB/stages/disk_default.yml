@@ -1,0 +1,13 @@
+---
+- name: "Copy disk setup script to /root"
+  copy:
+      src: "{{STAGES_PATH}}/disk_conf/SetupAroraDisk.build+user"
+      dest: /root
+
+- name: "Partition and format disks"
+  shell: "python /root/{{DISK_CMD}}"
+
+- name: "Update datacenter.servers with status that disk setup has finished"
+  command: "{{ASB_DB_UPDATE_OS}}"
+...
+

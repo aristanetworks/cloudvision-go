@@ -1,0 +1,34 @@
+---
+- name: "Check network configuration is correct - /etc/sysconfig"
+  shell: ls -l /etc/sysconfig/network-scripts/ifcfg-* | grep -q {{ item }}
+  with_items:
+      - bond0
+      - macvlan-bond0
+
+- name: "Check network configuration is correct - MACADDR"
+  shell: grep MACADDR /etc/sysconfig/network-scripts/ifcfg-macvlan-bond0
+
+- name: "Check network configuration is correct - ifconfig"
+  shell: ifconfig {{ item }}
+  with_items:
+      - bond0
+      - macvlan-bond0
+
+- name: "Make sure no Abuilds are running"
+  shell: "Abuildd -s | grep \"Abuildd is run never\""
+
+- name: "Check stest isn't installed - yum check"
+  shell: "! yum list installed AroraConfig-stest"
+
+- name: "Check stest isn't installed - rpm check"
+  shell: "! rpm -q AroraConfig-stest"
+
+- name: "Check that vmstat is running"
+  shell: service vmstat status | grep "active"
+
+- name: "Verify server info is available via arventory"
+  shell: arventory list -l {{ansible_hostname}} | grep -q "{{ansible_hostname}}"
+
+- name: "Update datacenter.servers with status for this machine as installed"
+  command: "{{ASB_DB_UPDATE_AUTH}}"
+...

@@ -38,9 +38,8 @@ TRIGGER = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-p
 #TODO connection timeouts
 PDSH_CMD = "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
 
-# TODO this should be refactored to use definitions in Ansible File
 # ASB Statuses
-ASB_STATUS_DEAD = "HELP_ME"
+ASB_STATUS_HELP = "HELP_ME"
 ASB_STATUS_FRESH = "fresh"
 ASB_STATUS_INSTALLED = "installed"
 
@@ -93,16 +92,19 @@ def trigger():
    # Remove test only servers from list of servers
    rows = [ ( "%s.%s" % ( n, d ), s ) for n, d, s in rows ]
    test_rows =  [ "%s.%s" % ( n, d ) for n, d in test_rows ]
-   sv = [ ( s, st ) for ( s, st ) in rows for ts in test_rows if ( s != ts ) ]
+   sv = []
+   if test_rows:
+      sv = [ ( s, st ) for ( s, st ) in rows for ts in test_rows if ( s != ts ) ]
+   else:
+      sv = rows
 
    sv_to_trigger = []
    sv_need_help = []
    for ( s, stat ) in sv:
-      if stat != ASB_STATUS_DEAD:
+      if stat != ASB_STATUS_HELP:
          sv_to_trigger.append( s )
       else:
          sv_need_help.append( s )
-
 
    if sv_to_trigger:
       hosts = "\n".join( sv_to_trigger )
@@ -147,8 +149,6 @@ def main():
    except Exception as e:
       logging.error( "ERROR!: %s" % e )
       pass
-
-   logging.shutdown()
 
 
 if __name__ == "__main__":

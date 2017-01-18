@@ -1,0 +1,11 @@
+MAILTO=dist-dev@arista.com
+P4USER=arastra
+P4TICKETS=/var/Arora/arastra-p4ticket
+# Clean up files on Dist.
+# Dist-on-swift by default sets files to be deleted after one week, although
+# this can be modified.
+# We delete files locally so that we are 80% full.
+51 * * * * root RunJob -t cron -o dist-dev --subject DistCleanup -c "DistCleanup --size=$((`diskspace --usable /dist/Abuild -u MB` * 80 / 100))"
+#23 7 * * * apache flock --nonblock /dist/httpd-cache /usr/sbin/htcacheclean -t -p/dist/httpd-cache -l512000M -n
+23 * * * * apache flock --nonblock /dist/httpd-cache /usr/sbin/htcacheclean -t -p/dist/httpd-cache -l256000M -n
+15 * * * * root find /dist/Abuild -maxdepth 3 -mindepth 3 -mmin +360 | xargs rm -rf

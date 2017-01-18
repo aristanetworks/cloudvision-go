@@ -17,7 +17,7 @@ do
 	ticketServerSetup $server
 	P4USER=arastra a4 ssh $server /usr/bin/AuthenticateArastra
 
-	P4USER=arastra a4 ssh $server a4 login -s
+	P4USER=arastra timeout 30 a4 ssh $server a4 login -s
 	#echo "Return value is : $?"
 	echo
 	echo "*** Done with server $server ***"

@@ -1,0 +1,46 @@
+---
+- name: "Install telegraf"
+  yum:
+     name: telegraf-Linux
+     state: installed
+
+- name: "Make sure vmstat is running"
+  shell: "/sbin/chkconfig --add vmstat"
+  ignore_errors: yes
+
+- name: "Set maximum RAID sync speed"
+  sysctl:
+      name: dev.raid.speed_limit_max
+      value: 100000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
+
+- name: "Set minimum RAID sync speed"
+  sysctl:
+      name: dev.raid.speed_limit_min
+      value: 1000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
+
+- name: "Add server to arventory"
+  shell: arventory update --markAsUserOnly
+
+- name: "Setup serial console"
+  shell: "/usr/sbin/SetupAroraSerial"
+
+- name: "Install MATE desktop environment"
+  shell: echo "PREFERRED=mate-session" > /etc/sysconfig/desktop
+
+- name: "Set up MATE desktop environment"
+  shell: yum -y groupinstall "Mate Desktop"
+
+- name: "Update datacenter.servers with status configuration ready"
+  command: "{{ASB_DB_UPDATE_VERIFY}}"
+
+- name: "Reboot"
+  command: "reboot"
+...

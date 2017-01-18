@@ -1,0 +1,9 @@
+dist_conf:
+   reimage_sanity: default
+   reimage_wipe: default
+   reimage_verify: default
+   disk: default
+   os: default
+   config: dist
+   verify: dist
+   auth: default

@@ -1,0 +1,9 @@
+---
+# If "a4 login -s" hangs for more than 30 seconds, abort
+- name: "Run a4 login to check ticket issue was successful"
+  shell: "P4USER=arastra timeout 30 a4 login"
+
+- name: "Update datacenter.servers with status that authentication tickets have been issued"
+  command: "{{ASB_DB_UPDATE_INSTALLED}}"
+...
+

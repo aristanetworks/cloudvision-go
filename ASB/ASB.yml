@@ -46,16 +46,17 @@
 
       - name: "Skip if status of this machine is \"donothing\\installed\\HELP_ME\""
         assert: { that: STATUS != ASB_STATUS_INSTALLED and
-                        STATUS != ASB_STATUS_DEAD }
+                        STATUS != ASB_STATUS_HELP }
 
 
       # -----------------------------------------------------------------------------
       # 3. If this is a new machine, check to see if it has been up for sufficiently
       #    long time before triggering automatic set up.
+      #    XXX: THIS FEATURE IS DISABLED FOR NOW UNTIL FURTHER NOTICE.
       
-      - name: "If this is a fresh new machine, check uptime unless in BYPASS mode"
-        assert: { that: ansible_uptime_seconds|int > ASB_MAX_UPTIME }
-        when: STATUS == ASB_STATUS_PROVRDY and BYPASS is undefined
+      #- name: "If this is a fresh new machine, check uptime unless in BYPASS mode"
+      #      assert: { that: ansible_uptime_seconds|int > ASB_MAX_UPTIME }
+      #      when: STATUS == ASB_STATUS_DISK and BYPASS is undefined
 
 
       # -----------------------------------------------------------------------------

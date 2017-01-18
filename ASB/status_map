@@ -1,0 +1,19 @@
+The following is a map of the old statuses to new status, provided only for
+informative purposes. Please note that the old status scheme infer an action 
+that has been done whereas the new status scheme represents an action that is
+to be triggered.
+
+old                  | new
+------------------------------------------------------------------------------
+reimage              | reimage_sanity (trigger sanity check)
+reimage_sanity_ready | reimage_wipe   (trigger wipe)
+reimage_wipe_ready   | reimage_verify (trigger verify)
+reimage_verify_ready | (deleted)
+fresh                | fresh (dcp will change this state to "disk")
+provision_ready      | disk           (trigger disk setup)
+disk_ready           | os             (trigger os setup)
+os_ready             | config         (trigger config step)
+config_ready         | verify         (trigger verify setp)
+verify_ready         | auth           (trigger auth step)
+installed            | (same resulting stage from end of auth as before)
+HELP_ME              | (same as before)

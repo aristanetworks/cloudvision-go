@@ -1,4 +1,4 @@
 ---
-- name: "Configured this machine as STEST server"
-  debug: msg="STATUS "{{STATUS}}""
+- name: "Configuring as STEST server - running installation stage requested"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{stest_conf[STATUS]}}.yml"
 ...

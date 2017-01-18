@@ -1,4 +1,4 @@
 ---
-- name: "Configured this machine as USER server"
-  debug: msg="STATUS "{{STATUS}}""
+- name: "Configuring as USER server - running installation stage requested"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{user_conf[STATUS]}}.yml"
 ...

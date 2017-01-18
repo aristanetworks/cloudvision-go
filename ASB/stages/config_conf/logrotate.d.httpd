@@ -1,0 +1,11 @@
+/var/log/httpd/*log {
+    maxsize 5G
+    missingok
+    notifempty
+    sharedscripts
+    delaycompress
+    postrotate
+        #/bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+	/sbin/apachectl graceful > /dev/null 2>/dev/null || true
+    endscript
+}
