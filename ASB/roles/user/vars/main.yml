@@ -1,6 +1,6 @@
 user_conf:
    reimage_sanity: default
-   reimage_wipe: default
+   reimage_wipe: user
    reimage_verify: default
    disk: default
    os: default

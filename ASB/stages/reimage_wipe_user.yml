@@ -1,0 +1,36 @@
+---
+- name: "Clean up any leftover netnsd sessions that are still running."
+  shell: netns -l | xargs -n1 netns -k
+  ignore_errors: true
+
+# Clean up the "flip" and "flop" workspaces in /home/arastra/trees, including
+# their Perforce clients.
+# Else the leftover clients can cause MUT clone problem even after reimaging,
+# due to leftover clients causing /etc/cron.d/manageProjectReplicasCron to fail.
+- name: "Check for leftover workspaces in /home/arastra/trees"
+  find:
+     path: "/home/arastra/trees"
+     file_type: "directory"
+  register: workspaces
+
+- name: "Login into Perforce to be able to use a4 commands."
+  shell: "timeout 30 a4 login"
+  ignore_errors: true
+
+- name: "Clean up any leftover workspaces in /home/arastra/trees"
+  shell: "a4 deletetree {{ item.path }}"
+  with_items: "{{ workspaces.files }}"
+  ignore_errors: true
+
+- name: "Check for leftover Perforce clients that are missed by the previous step."
+  shell: "a4 clients | grep {{ansible_hostname}}.home_arastra_trees | awk '{print $2}'"
+  register: clients
+  ignore_errors: true
+
+- name: "Clean up any leftover Perforce clients."
+  shell: "a4 client -d {{ item }}"
+  with_items: "{{ clients.stdout_lines }}"
+  ignore_errors: true
+
+- include: reimage_wipe_default.yml
+...
