@@ -5,5 +5,8 @@
 
 - name: "Update datacenter.servers with status that authentication tickets have been issued"
   command: "{{ASB_DB_UPDATE_INSTALLED}}"
+
+- name: "Clean up the record of retry count on mysql."
+  shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
 ...
 

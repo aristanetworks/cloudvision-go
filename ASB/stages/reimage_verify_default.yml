@@ -24,13 +24,10 @@
      when: partitions | length > 0
 
   rescue:
-   - name: "Send SOS email about this machine"
-     shell: "{{ASB_MAIL_REIMG_WIPE_ERR}}"
+   - name: "Some error occurred, retrying ASB from beginning."
+     include: "{{STAGES_PATH}}/reimage_conf/retry.yml"
 
-   - name: "There's nothing more that ASB can do..."
-     command: "{{ASB_DB_UPDATE_HELP}}"
-
-   - fail: msg="Automatic reimaging was unsuccessful."
+   - fail: msg="Automatic reimaging was unsuccessful - retrying"
 # ----------------------------------------------------------------------------------
 
 - name: "Update server status"
