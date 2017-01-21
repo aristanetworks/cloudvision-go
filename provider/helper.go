@@ -126,15 +126,10 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 			notifs = append(notifs, types.NewNotificationWithEntity(t,
 				e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
-			for _, key := range children.Keys() {
-				child, found := children.Get(key)
-				if !found {
-					// The key-value pair may have been deleted by other goroutines
-					// Skip this key-value pair
-					continue
-				}
+			children.ForEach(func(k key.Key, child interface{}) error {
 				childEntities = append(childEntities, child.(types.Entity))
-			}
+				return nil
+			})
 		} else if child, ok := e.GetEntity(attr.Name); ok {
 			childEntities = append(childEntities, child)
 		}
