@@ -8,5 +8,9 @@
 
 - name: "Clean up the record of retry count on mysql."
   shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
+
+- name: "Trigger long SMART selftests for each disk."
+  shell: "smartctl -t long /dev/{{ item }}"
+  with_items: "{{ ansible_devices.keys() }}"
 ...
 
