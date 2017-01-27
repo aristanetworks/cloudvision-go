@@ -6,7 +6,6 @@
 package provider
 
 import (
-	"arista/schema"
 	"arista/types"
 	"fmt"
 	"time"
@@ -17,10 +16,10 @@ import (
 // NotificationsForInstantiateChild this is a helper method for
 // Providers to use to generate the notifications associated with
 // instantiating a child
-func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDef,
+func NotificationsForInstantiateChild(child types.Entity, attrDef *types.AttrDef,
 	k key.Key) []types.Notification {
 	notifs := make([]types.Notification, 2)
-	def := child.GetDef().(*schema.TypeDef)
+	def := child.GetDef()
 	t := time.Now()
 	if def.IsDirectory() {
 		// If we just created a directory, just send one notification
@@ -66,7 +65,7 @@ func NotificationsForInstantiateChild(child types.Entity, attrDef *schema.AttrDe
 
 // NotificationsForDeleteChild is a helper for Providers. It returns
 // the notifs that should be sent when an entity is deleted.
-func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
+func NotificationsForDeleteChild(child types.Entity, attrDef *types.AttrDef,
 	k key.Key, t time.Time) ([]types.Notification, error) {
 	parent := child.Parent()
 	if parent == nil {
@@ -91,8 +90,7 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 		&[]key.Key{}, nil, child))
 
 	var err error
-	notifs, err = recursiveEntityDeleteNotification(notifs, child,
-		child.GetDef().(*schema.TypeDef), t)
+	notifs, err = recursiveEntityDeleteNotification(notifs, child, child.GetDef(), t)
 	if err != nil {
 		return notifs, fmt.Errorf("Error recursively deleting entities with"+
 			" notifications under %q: %s",
@@ -106,7 +104,7 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *schema.AttrDef,
 // looking for and deleting any child instantiating attributes that hold entities.
 // notifs is appended to and returned.
 func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Entity,
-	def *schema.TypeDef, t time.Time) ([]types.Notification, error) {
+	def *types.TypeDef, t time.Time) ([]types.Notification, error) {
 	if !def.TypeFlags.IsEntity {
 		// Should be impossible, as it would imply something wrong with the schema
 		panic(fmt.Sprintf("Found an entity %#v at path %s with isEntity=false in typeDef: %#v",
@@ -139,7 +137,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 		for _, childEntity := range childEntities {
 			var err error
 			notifs, err = recursiveEntityDeleteNotification(notifs, childEntity,
-				childEntity.GetDef().(*schema.TypeDef), t)
+				childEntity.GetDef(), t)
 			if err != nil {
 				return notifs, fmt.Errorf("Error recursively deleting entities with"+
 					"notifications under %q: %s",

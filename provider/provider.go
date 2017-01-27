@@ -68,7 +68,7 @@ type Provider interface {
 	// parent's collection that this entity is being instantiated
 	// in. If the entity is not part of a collection k should be nil.
 	// Can return ErrParentNotFound.
-	InstantiateChild(child types.Entity, attrDef *schema.AttrDef,
+	InstantiateChild(child types.Entity, attrDef *types.AttrDef,
 		k key.Key, ctorArgs map[string]interface{}) error
 
 	// DeleteChild asks the provider to drop the child entity.
@@ -76,7 +76,7 @@ type Provider interface {
 	// If the attribute is a collection, k should be set to the key in
 	// that collection corresponding to this child. If the attribute
 	// is a singleton k should be nil.
-	DeleteChild(child types.Entity, attrDef *schema.AttrDef, k key.Key) error
+	DeleteChild(child types.Entity, attrDef *types.AttrDef, k key.Key) error
 }
 
 // EntityExistor can be optionally implemented by Providers. It
