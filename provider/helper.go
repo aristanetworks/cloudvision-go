@@ -74,7 +74,7 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *types.AttrDef,
 	}
 
 	path := parent.Path()
-	if attrDef.IsCollection() {
+	if attrDef.IsColl {
 		// Use path to collection
 		path += "/" + attrDef.Name
 	} else {
@@ -161,7 +161,7 @@ func NotificationsForCollectionCount(ts time.Time, c types.Collection,
 
 	notif := types.NewNotificationWithEntity(ts, parent.Path()+"/_counts", nil,
 		&map[key.Key]interface{}{
-			key.New(c.GetAttrDef().AttrName()): c.Len(),
+			key.New(c.GetAttrDef().Name): c.Len(),
 		}, parent)
 
 	return notif
