@@ -4,6 +4,11 @@
   set_fact:
      disks: "{{ ansible_devices.keys() }}"
 
+- name: "Get the model for each disk."
+  set_fact:
+     disk_models: "{{ disk_models | default( {} ) | combine( {item: ansible_devices[ item ][ 'model' ] } ) }}"
+  with_items: "{{ disks }}"
+
 - name: "Read /proc/mdstat for list of md devices."
   shell: "cat /proc/mdstat | awk '/^[md]/ {print $1}'"
   register: mdInfo
@@ -17,5 +22,4 @@
   set_fact:
      partitions: "{{ partitions | default( [] ) + item.value.partitions.keys() }}"
   with_dict: "{{ ansible_devices }}"
-
 ...

@@ -1,0 +1,29 @@
+---
+# Ex. WDC WD4000FYYZ-0
+- name: "Determine if the model of disk /dev/{{disk}} is Western Digital."
+  set_fact:
+     model: "WD"
+  when: disk_models[ disk ] | match( "WDC?.*" )
+
+# Ex. HGST HUS724040ALA640
+- name: "Determine if the model of disk /dev/{{disk}} is HGST."
+  set_fact:
+     model: "HGST"
+  when: disk_models[ disk ] | match( "HGST .*" )
+
+# Ex. ST8000NM0055-1RM112
+- name: "Determine if the model of disk /dev/{{disk}} is Seagate."
+  set_fact:
+     model: "ST"
+  when: disk_models[ disk ] | match( "ST.*" )
+
+- debug: msg="Unknown model '{{disk_models[ disk ]}}' for /dev/{{disk}}, skipping SMART disk check."
+  when: model is not defined
+
+- name: "Perform SMART disk check on disk /dev/{{disk}}."
+  include: "{{STAGES_PATH}}/reimage_conf/smart_check_{{model}}.yml"
+  when: model is defined
+
+- debug: msg="SMART disk check passed for disk /dev/{{disk}}!"
+  when: model is defined
+...

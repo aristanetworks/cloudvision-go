@@ -19,45 +19,10 @@
    - fail: msg="No disk drives detected, something is very wrong"
      when: disks is not defined
 
-   - name: "Get SMART overall-health self-assessment results for each disk."
-     shell: "smartctl --health /dev/{{ item }} | grep -q PASSED"
-     register: smartHealth
+   - name: "Sanity check on each disk."
+     include: "{{STAGES_PATH}}/reimage_conf/smart_check.yml disk={{ item }}"
      with_items: "{{ disks }}"
-     ignore_errors: true
-
-   - fail: msg="SMART helath check failed for a disk"
-     when: item | failed
-     with_items: "{{ smartHealth.results }}"
-
-   - name: "Get SMART attribute Raw_Read_Error_Rate for each disk"
-     shell: "smartctl -a /dev/{{ item }} | awk '/Raw_Read_Error_Rate/ {print $10}'"
-     register: smartRRER
-     with_items: "{{ disks }}"
-     ignore_errors: true
-
-   - fail: msg="Sanity check failed for SMART attribute Raw_Read_Error_Rate"
-     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_RRER
-     with_items: "{{ smartRRER.results }}"
-
-   - name: "Get SMART attribute Reallocated_Event_Count for each disk"
-     shell: "smartctl -a /dev/{{ item }} | awk '/Reallocated_Event_Count/ {print $10}'"
-     register: smartREC
-     with_items: "{{ disks }}"
-     ignore_errors: true
-
-   - fail: msg="Sanity check failed for SMART attribute Reallocated_Event_Count"
-     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_REC
-     with_items: "{{ smartREC.results }}"
-
-   - name: "Get SMART attribute Offline_Uncorrectable for each disk"
-     shell: "smartctl -a /dev/{{ item }} | awk '/Offline_Uncorrectable/ {print $10}'"
-     register: smartOU
-     with_items: "{{ disks }}"
-     ignore_errors: true
-
-   - fail: msg="Sanity check failed for SMART attribute Offline_Uncorrectable"
-     when: item.stdout | default("") != "" and item.stdout | int > THRESHOLD_SMART_OU
-     with_items: "{{ smartOU.results }}"
+        
   rescue:
    - name: "Send SOS email about this machine"
      shell: "{{ASB_MAIL_REIMG_SANITY_ERR}}"

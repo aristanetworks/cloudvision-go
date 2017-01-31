@@ -1,0 +1,59 @@
+---
+- name: "Get SMART overall-health self-assessment results for disk /dev/{{ disk }}."
+  shell: "smartctl --health /dev/{{ disk }} | grep -q PASSED"
+  register: smartHealth
+  ignore_errors: true
+
+- fail: msg="SMART helath check failed for disk /dev/{{ disk }}."
+  when: smartHealth | failed
+
+- name: "Get raw value of SMART attribute Reallocated_Sector_Ct for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Reallocated_Sector_Ct/ {print $10}'"
+  register: smartRSC
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Reallocated_Sector_Ct"
+  when: smartRSC is defined and smartRSC.stdout != "" and smartRSC.stdout | int > THRESHOLD_SMART_RSC
+
+- name: "Get WHEN_FAILED status of SMART attribute Reallocated_Sector_Ct for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Reallocated_Sector_Ct/ {print $9}'"
+  register: smartRSC
+  ignore_errors: true
+
+- fail: msg="SMART reports immenient failure of disk /dev/{{disk}} due to attribute Reallocated_Sector_Ct."
+  when: smartRSC is defined and smartRSC.stdout != "" and smartRSC.stdout == "FAILING_NOW"
+
+- name: "Get WHEN_FAILED status of SMART attribute Spin_Retry_Count for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Spin_Retry_Count/ {print $9}'"
+  register: smartSRC
+  ignore_errors: true
+
+- fail: msg="SMART reports immenient failure of disk /dev/{{disk}} due to attribute Spin_Retry_Count."
+  when: smartSRC is defined and smartSRC.stdout != "" and smartSRC.stdout == "FAILING_NOW"
+
+- name: "Get raw value of SMART attribute Offline_Uncorrectable for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Offline_Uncorrectable/ {print $10}'"
+  register: smartOU
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Offline_Uncorrectable"
+  when: smartOU is defined and smartOU.stdout != "" and smartOU.stdout | int > THRESHOLD_SMART_OU
+
+- name: "Get raw value of SMART attribute Current_Pending_Sector for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Current_Pending_Sector/ {print $10}'"
+  register: smartCPS
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Current_Pending_Sector"
+  when: smartCPS is defined and smartCPS.stdout != "" and smartCPS.stdout | int > THRESHOLD_SMART_CPS
+
+- name: "Get raw value of SMART attribute UDMA_CRC_Error_Count for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/UDMA_CRC_Error_Count/ {print $10}'"
+  register: smartUDMA
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute UDMA_CRC_Error_Count"
+  when: smartUDMA is defined and smartUDMA.stdout != "" and smartUDMA.stdout | int > THRESHOLD_SMART_UDMA
+
+...
+

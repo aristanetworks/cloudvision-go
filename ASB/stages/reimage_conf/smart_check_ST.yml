@@ -1,0 +1,30 @@
+---
+# For Seagate disk
+# Ex. ST8000NM0055-1RM112
+- name: "Running SMART overall-health self-assessment on disk /dev/{{ disk }}."
+  debug: msg="model - Seagate"
+
+- include: "{{STAGES_PATH}}/reimage_conf/smart_check_default.yml"
+
+- name: "Get raw value of SMART attribute Raw_Read_Error_Rate for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Raw_Read_Error_Rate/ {print $10}'"
+  register: smartRRER
+  ignore_errors: true
+
+# Raw_Read_Error_Rate (and some other attributes) for Seagate disk is encoded as
+# 48-bit number where the upper 16-bit represents the actual error count and the
+# lower 32-bit represents the number of operations.
+# To get the real error rate, we have to right shift the raw value by 32-bit,
+# aka divide by 2^32=4294967296.
+- fail: msg="Sanity check failed for SMART attribute Raw_Read_Error_Rate"
+  when: smartRRER is defined and smartRRER.stdout != "" and ( smartRRER.stdout | int / 4294967296 ) > THRESHOLD_SMART_RRER
+
+- name: "Get raw value of SMART attribute Reported_Uncorrect for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Reported_Uncorrect/ {print $10}'"
+  register: smartRU
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Reported_Uncorrect"
+  when: smartRU is defined and smartRU.stdout != "" and smartRU.stdout | int > THRESHOLD_SMART_RU
+...
+

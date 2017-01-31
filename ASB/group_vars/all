@@ -31,9 +31,34 @@ ASB_STATUS_HELP: "HELP_ME"
 # Reimage
 # -------
 # Constants used in the reimage steps.
-THRESHOLD_SMART_RRER: 100 # Threshold for SMART attribute Raw_Read_Error_Rate
-THRESHOLD_SMART_REC: 100 # Threshold for SMART attribute Reallocated_Event_Count
-THRESHOLD_SMART_OU: 100 # Threshold for SMART attribute Offline_Uncorrectable
+## SMART attributes that are critical, ie. predict disk failure.
+THRESHOLD_SMART_RSC: 100  # Reallocated_Sector_Ct: count of bad sectors that had
+                          # been found and remapped. Our disks have some 1000's
+                          # spare sectors for these remapping. However, after using
+                          # a few hundreds of spare sectors, the machine most likely
+                          # won't be in usable condition as the disk will usually
+                          # drop out of the RAID array when encountering another bad
+                          # sector, and require a reboot to fix. (from twieland)
+THRESHOLD_SMART_OU: 100   # Offline_Uncorrectable: count of uncorrectable errors
+                          # when reading/writing a sector.
+THRESHOLD_SMART_CPS: 30   # Current_Pending_Sector: count of unstable sectors that
+                          # are waiting to be remapped due to uncorrectable read
+                          # errors. The threshold is lower than that for RSC and OU
+                          # because a non-zero CPS meant the disk is not operating
+                          # at 100% due to less sectors for use than usual.
+THRESHOLD_SMART_RU: 0     # Reported_Uncorrect: count of reads that cannot be
+                          # corrected using hardware ECC.
+                          # A non-zero value may indicate hardware problem.
+## SMART attributes that are non-critical but may indicate disk problems.
+THRESHOLD_SMART_RRER: 100 # Raw_Read_Error_Rate: hardware read error.
+                          # The threshold is more a rule-of-thumb that any disk with
+                          # RRER over it probably has some hardware problems.
+                          # (from tnewsome and twieland)
+THRESHOLD_SMART_UDMA: 100 # UDMA_CRC_Error_Count: errors in data transfer via the
+                          # interface cable.
+                          # High value may indicate connection problem in SATA cable.
+THRESHOLD_SMART_MZER: 100 # Multi_Zone_Error_Rate: error when writing a sector.
+                          # High value indicate disk is in bad mechanical condition.
 # Constants used by MySQL queries when a retry is triggered.
 # They are used in queries related to datacenter.server_property table.
 ASB_REIMG_RETRY_PROP_NAME: "retryCount"

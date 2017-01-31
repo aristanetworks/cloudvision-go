@@ -1,0 +1,24 @@
+---
+# For Western Digital disk
+# Ex. WDC WD4000FYYZ-0
+- name: "Running SMART overall-health self-assessment on disk /dev/{{ disk }}."
+  debug: msg="model - Western Digital"
+
+- include: "{{STAGES_PATH}}/reimage_conf/smart_check_default.yml"
+
+- name: "Get raw value of SMART attribute Raw_Read_Error_Rate for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Raw_Read_Error_Rate/ {print $10}'"
+  register: smartRRER
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Raw_Read_Error_Rate"
+  when: smartRRER is defined and smartRRER.stdout != "" and smartRRER.stdout | int > THRESHOLD_SMART_RRER
+
+- name: "Get raw value of SMART attribute Multi_Zone_Error_Rate for /dev/{{ disk }}."
+  shell: "smartctl -A /dev/{{ disk }} | awk '/Multi_Zone_Error_Rate/ {print $10}'"
+  register: smartMZER
+  ignore_errors: true
+
+- fail: msg="Sanity check failed for SMART attribute Multi_Zone_Error_Rate"
+  when: smartMZER is defined and smartMZER.stdout != "" and smartMZER.stdout | int > THRESHOLD_SMART_MZER
+...
