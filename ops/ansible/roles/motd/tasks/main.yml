@@ -1,0 +1,13 @@
+- name: Create target directory
+  become: True
+  file: path=/etc/motd.d state=directory mode=0755 owner=root group=root
+
+- name: Setup ansible motd info
+  become: True
+  copy: src=ansible.conf dest=/etc/motd.d/ansible.conf
+  register: result
+
+- name: Regenerate motd
+  become: True
+  service: name=motdgen state=restarted
+  when: result.changed
