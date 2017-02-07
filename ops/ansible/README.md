@@ -3,7 +3,8 @@
 # Install ansible
 
 ```sh
-brew install ansible
+brew install ansible@2.0
+brew link --force ansible@2.0
 ```
 
 # Initialize the remote coreos machines:
@@ -29,4 +30,20 @@ ansible all -m ping
 
 ```sh
 ansible r12s1 -m ping
+```
+
+### Generate cloud-config.yml file for the ops.git/coreos repo/folder
+
+The following command will generate all the cloud-config-IPADDRESS.yml files for each machine in the coreos group cluster.
+The generated files will be placed in ~/git/ops/coreos, because the default values for the ops repo path is `~/git/ops`.
+
+```sh
+ansible-playbook playbook.yml -l localhost
+```
+
+You can override the ops repo path by using the OPS_REPO env var.
+For instance, if your ops repo is `~/projects/common/ops`, the command will be:
+
+```sh
+OPS_REPO=~/projects/common/ops ansible-playbook playbook.yml -l localhost
 ```

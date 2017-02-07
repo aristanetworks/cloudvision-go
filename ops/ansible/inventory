@@ -1,37 +1,44 @@
 [coreos]
-r12s1
-r12s2
-r12s3
-r12s4
-r12s5
-r12s6
-r12s7
-r12s8
-r12s9
-r12s10
-r12s11
-r12s12
-r12s13
-r12s14
-r12s15
-r12s16
-r12s17
-r12s18
-r12s19
-r12s20
-r12s21
-r12s22
-r12s23
-r12s24
-r12s25
-r12s26
-r12s27
-r12s28
-r12s29
-r12s30
-r12s31
-r12s32
+bs200 ansible_host=172.20.22.4 K8S_WORKER=True
+r12s1 ansible_host=172.24.32.1
+r12s2  ansible_host=172.24.32.2
+r12s3  ansible_host=172.24.32.3
+r12s4  ansible_host=172.24.32.4
+r12s5  ansible_host=172.24.32.5
+r12s6  ansible_host=172.24.32.6
+r12s7  ansible_host=172.24.32.7
+r12s8  ansible_host=172.24.32.8
+r12s9  ansible_host=172.24.32.9
+r12s10  ansible_host=172.24.32.10
+r12s11  ansible_host=172.24.32.11
+r12s12  ansible_host=172.24.32.12
+r12s13  ansible_host=172.24.32.13
+r12s14  ansible_host=172.24.32.14
+r12s15  ansible_host=172.24.32.15
+r12s16  ansible_host=172.24.32.16
+r12s17  ansible_host=172.24.32.17 K8S_WORKER=True
+r12s18  ansible_host=172.24.32.18 ETCD2=True
+r12s19  ansible_host=172.24.32.19
+r12s20  ansible_host=172.24.32.20 K8S_WORKER=True
+r12s21  ansible_host=172.24.32.21 K8S_WORKER=True
+r12s22  ansible_host=172.24.32.22 K8S_WORKER=True
+r12s23  ansible_host=172.24.32.23 K8S_WORKER=True
+r12s24  ansible_host=172.24.32.24 K8S_MASTER=True
+r12s25  ansible_host=172.24.32.25 K8S_WORKER=True
+r12s26  ansible_host=172.24.32.26 ETCD2=True
+r12s27  ansible_host=172.24.32.27 ETCD2=True
+r12s28  ansible_host=172.24.32.28 K8S_WORKER=True
+r12s29  ansible_host=172.24.32.29 K8S_WORKER=True
+r12s30  ansible_host=172.24.32.30 K8S_WORKER=True
+r12s31  ansible_host=172.24.32.31 K8S_WORKER=True
+r12s32  ansible_host=172.24.32.32
 
-[all:vars]
+[coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
+K8S_MASTER=False
+K8S_WORKER=False
+ETCD2=False
+
+[local]
+localhost ansible_connection=local ansible_become=false

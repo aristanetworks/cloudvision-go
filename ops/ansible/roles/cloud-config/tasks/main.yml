@@ -1,0 +1,52 @@
+# we need to wait for the following bug fix to use a newer version:
+# https://github.com/ansible/ansible/issues/20508
+- assert:
+    that: ansible_version.major == 2 and ansible_version.minor < 2
+
+- name: Init some generated vars from config
+  set_fact:
+    etcd2_servers: []
+    etcd2_endpoints: []
+    etcd2_endpoint_cluster: []
+    k8s_masters: []
+
+- name: Generates list of etcd2 endpoints
+  set_fact:
+    etcd2_servers: "{{ etcd2_servers }} + [ '{{ item }}' ]"
+    etcd2_endpoints: "{{ etcd2_endpoints }} + [ 'http://{{ hostvars[item]['ansible_host'] }}:2379' ]"
+  with_items: "{{ groups.coreos }}"
+  when: hostvars[item]['ETCD2']
+
+- name: Generate name for each etcd2 endpoint and assign to each corresponding host
+  set_fact:
+    etcd2_name: "etcd{{item.0}}"
+  delegate_to: "{{item.1}}"
+  delegate_facts: True
+  with_indexed_items: "{{ etcd2_servers }}"
+
+- name: Generate etcd2_endpoint_cluster list
+  set_fact:
+    etcd2_endpoint_cluster: "{{ etcd2_endpoint_cluster }} + [ '{{ hostvars[item][\"etcd2_name\"] }}=http://{{hostvars[item][\"ansible_host\"]}}:2380' ]"
+  with_items: "{{ etcd2_servers }}"
+
+- name: Generates list of k8s masters
+  set_fact:
+    k8s_masters: "{{ k8s_masters }} + [ '{{ hostvars[item]['ansible_host'] }}' ]"
+  with_items: "{{ groups.coreos }}"
+  when: hostvars[item]['K8S_MASTER']
+
+# Validate config
+- name: Validate number of etcd2 servers
+  assert:
+    that: etcd2_servers|length >= 1
+    msg: "There must be at least one etcd2 server"
+- name: Validate number of k8s masters
+  assert:
+    that: k8s_masters|length == 1
+    msg: "Only one kubernetes master is supported"
+
+- name: Generate cloud-config files for servers
+  template:
+    src: cloud-config.yml.j2
+    dest: "{{ lookup('env','OPS_REPO') | default('~/git/ops', true) }}/coreos/cloud-config-{{ hostvars[item]['ansible_host'] }}.yml"
+  with_items: "{{ groups.coreos }}"
