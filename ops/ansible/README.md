@@ -47,3 +47,12 @@ For instance, if your ops repo is `~/projects/common/ops`, the command will be:
 ```sh
 OPS_REPO=~/projects/common/ops ansible-playbook playbook.yml -l localhost
 ```
+
+# Add a new ssh key / Update an existing ssh
+
+The ssh keys are now in the file `group_vars/coreos/ssh_keys`.
+After adding/updating/removing an ssh key from this file, the cloud-config files need to be generated again (see previous section), and the ssh keys can be deployed again to the entire cluster by using the following command:
+
+```sh
+ansible-playbook playbook.yml
+```

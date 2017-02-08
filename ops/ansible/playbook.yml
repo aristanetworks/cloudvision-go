@@ -1,6 +1,7 @@
 - hosts: coreos
   roles:
     - motd
+    - coreos-config
 
 - hosts: local
   roles:

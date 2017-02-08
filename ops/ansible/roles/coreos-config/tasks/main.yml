@@ -1,0 +1,10 @@
+- name: Install ssh keys
+  copy:
+    content: "{{ ssh_keys | join('\n') }}"
+    dest: "/home/core/.ssh/authorized_keys.d/coreos-cloudinit"
+    mode: 0600
+  register: result
+
+- name: Update ssh keys
+  command: update-ssh-keys -l
+  when: result.changed
