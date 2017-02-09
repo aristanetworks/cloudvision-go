@@ -54,7 +54,7 @@ servers marked for test use. Average use should not require this flag.""" ) )
          logging.info( "Completed." )
       except: 
          logging.error( ( "Not all hosts successfully triggered. Please view host "
-                          "logs in /var/log/ASBTrigger-hosts." )
+                          "logs in /var/log/ASBTrigger-hosts." ) )
    else:
       logging.info( "No appropriate hosts to trigger." ) 
 
