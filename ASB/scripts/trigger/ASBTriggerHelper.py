@@ -28,7 +28,7 @@ ASB_STATUS_HELP = "HELP_ME"
 def _connect():
    db = MySQLdb.connect( user="arastra", 
                          db="datacenter", 
-                         host="mysql-b1.cs2.aristanetworks.com" )
+                         host="mysql" )
    cs = db.cursor()
    return db, cs
 
