@@ -44,23 +44,21 @@
       - name: "Current status"
         debug: msg="[{{ansible_hostname}}] status-'{{STATUS}}', role-'{{ROLE_NAME}}'"
 
-      - name: "Skip if status of this machine is \"donothing\\installed\\HELP_ME\""
-        assert: { that: STATUS != ASB_STATUS_INSTALLED and
+
+      # We want to skip the running ASB on following servers with following statuses:
+      # "fresh": indicates DCP tool needs to run
+      # "installed": server already installed, nothing more to do
+      # "reimage_standby": server is on standby, ready to be reimaged. Need manual trigger for this.
+      # "HELP_ME": server needs human attention to be fixed.
+      - name: "Skip if status of this machine is \"fresh\\installed\\reimage_standby\\HELP_ME\""
+        assert: { that: STATUS != ASB_STATUS_FRESH and
+                        STATUS != ASB_STATUS_INSTALLED and
+                        STATUS != ASB_STATUS_REIMG_STANDBY and
                         STATUS != ASB_STATUS_HELP }
 
 
       # -----------------------------------------------------------------------------
-      # 3. If this is a new machine, check to see if it has been up for sufficiently
-      #    long time before triggering automatic set up.
-      #    XXX: THIS FEATURE IS DISABLED FOR NOW UNTIL FURTHER NOTICE.
-      
-      #- name: "If this is a fresh new machine, check uptime unless in BYPASS mode"
-      #      assert: { that: ansible_uptime_seconds|int > ASB_MAX_UPTIME }
-      #      when: STATUS == ASB_STATUS_DISK and BYPASS is undefined
-
-
-      # -----------------------------------------------------------------------------
-      # 4. If this machine is good to go, retrieve installation commands
+      # 3. If this machine is good to go, retrieve installation commands
       
       - name: "Query for number of physical disks for this host"
         command: "{{ASB_PROP_QUERY}}"
@@ -83,7 +81,7 @@
 
 
      # ------------------------------------------------------------------------------
-     # 5. Apply appropriate server type based on role type of this server.
+     # 4. Apply appropriate server type based on role type of this server.
 
   roles:
       - { role: atest, when: ROLE_NAME == 'atest' }

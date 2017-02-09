@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+# Copyright (c) 2015 Arista Networks, Inc.  All rights reserved. 
+# Arista Networks, Inc. Confidential and Proprietary. 
+
+
+####################################################################################
+#                                   ASB Trigger                                    #
+#                          (Automatic trigger for ASB)                             #
+####################################################################################
+
+import logging
+import argparse
+
+from ASBTriggerHelper import *
+
+# Enable logging
+logging.basicConfig( filename="/var/log/ASBTrigger.log", 
+                     format='[ASBTrigger] %(asctime)s: %(message)s',
+                     datefmt='%m/%d/%Y %H:%M:%S',
+                     level=logging.DEBUG )
+
+# ----------------------------------------------------------------------------------
+# Trigger
+# ----------------------------------------------------------------------------------
+
+def main():   
+   ps = argparse.ArgumentParser( description=( """ ASB Trigger - Tool to run a \
+single step of ASB installation. Must work in conjunction with ASB Trigger cron \
+job that allows continuous operation of Trigger to automate installation via \
+ASB.""" ), formatter_class=argparse.RawTextHelpFormatter ) 
+
+   ps.add_argument( "--testmode", action="store_true", help=( """ Install only \
+servers marked for test use. Average use should not require this flag.""" ) )
+
+   args = ps.parse_args()
+
+   # Select all servers from the table that needs ASB triggered:
+   #   - isn't "fresh" ( dcp tool needs to run first )
+   #   - isn't in "installed" (finished already)
+   #   - isn't in "reimage_standby" (these are waiting for manual trigger)
+   #   - isn't in "HELP_ME" (these need to be fixed and shouldn't be triggered)
+   ignored_states = [ ASB_STATUS_FRESH, 
+                      ASB_STATUS_INSTALLED,
+                      ASB_STATUS_REIMG_STANDBY,
+                      ASB_STATUS_HELP ]
+   cond = " and ".join( [ 'status!="%s"' % st for st in ignored_states ] )
+   logging.info( "Awake and running. Looking for servers to trigger." )
+   sv = fetch_servers( cond, testmode=args.testmode )
+
+   if sv:
+      try:
+         logging.info( "Hosts Triggered (%d): %s" % ( len( sv ), ", ".join( sv ) ) )
+         trigger( sv )
+         logging.info( "Completed." )
+      except: 
+         logging.error( ( "Not all hosts successfully triggered. Please view host "
+                          "logs in /var/log/ASBTrigger-hosts." )
+   else:
+      logging.info( "No appropriate hosts to trigger." ) 
+
+
+if __name__ == "__main__":
+   main()
+

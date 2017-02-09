@@ -17,6 +17,7 @@ STAGES_PATH: "{{playbook_dir}}/stages/"
 # ASB Statuses
 # ------------
 ASB_STATUS_FRESH: "fresh"
+ASB_STATUS_REIMG_STANDBY: "reimage_standby"
 ASB_STATUS_REIMG_SANITY: "reimage_sanity"
 ASB_STATUS_REIMG_WIPE: "reimage_wipe"
 ASB_STATUS_REIMG_VERIFY: "reimage_verify"

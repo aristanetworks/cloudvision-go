@@ -1,0 +1,4 @@
+# Cron job that triggers ASBTrigger every minute. Timeout is 30 mins.
+# Make sure the symlink to ASBTrigger in /home/ren exists, otherwise this will never get called.
+
+* * * * * root flock -xn /tmp/ASBTrigger.lck /home/ren/ASBTrigger
