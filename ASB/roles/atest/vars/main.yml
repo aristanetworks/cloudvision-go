@@ -1,5 +1,5 @@
 atest_conf:
-   reimage_sanity: default
+   reimage_healthcheck: default
    reimage_wipe: default
    reimage_verify: default
    disk: default

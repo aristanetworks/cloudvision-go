@@ -30,8 +30,8 @@
 - fail: msg="Machine exhausts all retry attempts, aborting."
   when: RETRY_COUNT | int <= 0
 
-- name: "Reset datacenter.servers status to reimage_sanity for retry."
-  command: "{{ASB_DB_UPDATE_REIMG_SANITY}}"
+- name: "Reset datacenter.servers status to reimage_healthcheck for retry."
+  command: "{{ASB_DB_UPDATE_REIMG_HEALTH}}"
 
 - name: "Decrement the number of retries remaining."
   shell: "{{ ASB_DB_REIMG_RETRY_DECREMENT }}"

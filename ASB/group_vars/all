@@ -1,8 +1,4 @@
 # Automatic Server Bringup (ASB) related global variables
-#
-# This is the amount of time we want the machine available for human intervention
-# without having Ansible take over. 20mins in seconds == 1200.
-ASB_MAX_UPTIME: 1200
 
 ASB_TICKET_STALE: 3600
 
@@ -17,7 +13,7 @@ STAGES_PATH: "{{playbook_dir}}/stages/"
 # ASB Statuses
 # ------------
 ASB_STATUS_FRESH: "fresh"
-ASB_STATUS_REIMG_SANITY: "reimage_sanity"
+ASB_STATUS_REIMG_HEALTH: "reimage_healthcheck"
 ASB_STATUS_REIMG_WIPE: "reimage_wipe"
 ASB_STATUS_REIMG_VERIFY: "reimage_verify"
 ASB_STATUS_DISK: "disk"
@@ -77,7 +73,7 @@ ASB_DB_REIMG_RETRY_DECREMENT: "mysql -N -u arastra -e \"UPDATE {{ASB_PROP_DB}} S
 ASB_DB_REIMG_RETRY_DELETE: "mysql -N -u arastra -e \"DELETE FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' and domain='{{ansible_domain}}' and propertyName='{{ASB_REIMG_RETRY_PROP_NAME}}'\" -h mysql datacenter"
 
 ASB_DB_UPDATE_TEMPLATE: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"%s\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
-ASB_DB_UPDATE_REIMG_SANITY: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_SANITY ) }}"
+ASB_DB_UPDATE_REIMG_HEALTH: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_HEALTH ) }}"
 ASB_DB_UPDATE_REIMG_WIPE: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_WIPE ) }}"
 ASB_DB_UPDATE_REIMG_VERIFY: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_VERIFY ) }}"
 ASB_DB_UPDATE_DISK: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_DISK ) }}"
@@ -98,13 +94,13 @@ ASB_MAIL_COMPLETE: "echo \"{{ASB_MAIL_BDY}}\" | mail -s \"{{ASB_MAIL_HDR}}\" {{A
 
 
 ASB_MAIL_REIMG_CFG_REPT: "/tmp/CURR_CONFIG"
-ASB_MAIL_REIMG_SANITY_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} is being reimaged"
-ASB_MAIL_REIMG_SANITY_BDY_ERR: "ASB attempted at reimaging {{ansible_hostname}} but this machine is currently unhealthy. Please view the attached configuration report and manually fix the machine to a state where it can be reimaged."
-ASB_MAIL_REIMG_SANITY_HDR: "[ASB] {{ansible_hostname}} is being reimaged"
-ASB_MAIL_REIMG_SANITY_BDY: "ASB is ready to reimage {{ansible_hostname}}. Please see the attached report to view current status of the machine."
+ASB_MAIL_REIMG_HEALTH_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} is being reimaged"
+ASB_MAIL_REIMG_HEALTH_BDY_ERR: "ASB attempted at reimaging {{ansible_hostname}} but this machine is currently unhealthy. Please view the attached configuration report and manually fix the machine to a state where it can be reimaged."
+ASB_MAIL_REIMG_HEALTH_HDR: "[ASB] {{ansible_hostname}} is being reimaged"
+ASB_MAIL_REIMG_HEALTH_BDY: "ASB is ready to reimage {{ansible_hostname}}. Please see the attached report to view current status of the machine."
 
-ASB_MAIL_REIMG_SANITY: "echo \"{{ASB_MAIL_REIMG_SANITY_BDY}}\" | mail -s \"{{ASB_MAIL_REIMG_SANITY_HDR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
-ASB_MAIL_REIMG_SANITY_ERR: "echo \"{{ASB_MAIL_REIMG_SANITY_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_SANITY_HDR_ERR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
+ASB_MAIL_REIMG_HEALTH: "echo \"{{ASB_MAIL_REIMG_HEALTH_BDY}}\" | mail -s \"{{ASB_MAIL_REIMG_HEALTH_HDR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
+ASB_MAIL_REIMG_HEALTH_ERR: "echo \"{{ASB_MAIL_REIMG_HEALTH_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_HEALTH_HDR_ERR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
 
 
 ASB_MAIL_REIMG_WIPE_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} cannot be reimaged"

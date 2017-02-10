@@ -1,5 +1,5 @@
 user_conf:
-   reimage_sanity: default
+   reimage_healthcheck: default
    reimage_wipe: user
    reimage_verify: default
    disk: default
