@@ -37,11 +37,9 @@ servers marked for test use. Average use should not require this flag.""" ) )
    # Select all servers from the table that needs ASB triggered:
    #   - isn't "fresh" ( dcp tool needs to run first )
    #   - isn't in "installed" (finished already)
-   #   - isn't in "reimage_standby" (these are waiting for manual trigger)
    #   - isn't in "HELP_ME" (these need to be fixed and shouldn't be triggered)
    ignored_states = [ ASB_STATUS_FRESH, 
                       ASB_STATUS_INSTALLED,
-                      ASB_STATUS_REIMG_STANDBY,
                       ASB_STATUS_HELP ]
    cond = " and ".join( [ 'status!="%s"' % st for st in ignored_states ] )
    logging.info( "Awake and running. Looking for servers to trigger." )

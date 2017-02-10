@@ -48,12 +48,10 @@
       # We want to skip the running ASB on following servers with following statuses:
       # "fresh": indicates DCP tool needs to run
       # "installed": server already installed, nothing more to do
-      # "reimage_standby": server is on standby, ready to be reimaged. Need manual trigger for this.
       # "HELP_ME": server needs human attention to be fixed.
-      - name: "Skip if status of this machine is \"fresh\\installed\\reimage_standby\\HELP_ME\""
+      - name: "Skip if status of this machine is \"fresh\\installed\\HELP_ME\""
         assert: { that: STATUS != ASB_STATUS_FRESH and
                         STATUS != ASB_STATUS_INSTALLED and
-                        STATUS != ASB_STATUS_REIMG_STANDBY and
                         STATUS != ASB_STATUS_HELP }
 
 

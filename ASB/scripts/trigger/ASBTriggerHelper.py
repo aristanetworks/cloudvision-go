@@ -12,7 +12,6 @@ import shlex
 # ASB Statuses
 # XXX: This is a duplicate of group_vars/all
 ASB_STATUS_FRESH = "fresh"
-ASB_STATUS_REIMG_STANDBY = "reimage_standby"
 ASB_STATUS_REIMG_SANITY = "reimage_sanity"
 ASB_STATUS_REIMG_WIPE = "reimage_wipe"
 ASB_STATUS_REIMG_VERIFY = "reimage_verify"
