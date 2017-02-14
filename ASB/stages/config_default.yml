@@ -28,6 +28,7 @@
 
 - name: "Add server to arventory"
   shell: arventory update
+  ignore_errors: yes
 
 - name: "Setup serial console"
   shell: "/usr/sbin/SetupAroraSerial"

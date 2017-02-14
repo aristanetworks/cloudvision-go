@@ -286,6 +286,7 @@
 
 - name: "Add server to arventory"
   shell: arventory update
+  ignore_errors: yes
 
 - name: "Update datacenter.servers with status configuration ready"
   command: "{{ASB_DB_UPDATE_VERIFY}}"
