@@ -82,20 +82,19 @@ func NotificationsForDeleteChild(child types.Entity, attrDef *types.AttrDef,
 		k = key.New(attrDef.Name)
 	}
 
-	var notifs []types.Notification
-	// First notif removes this entity from its parent's singleton attribute or collection
-	notifs = append(notifs, types.NewNotificationWithEntity(t, path, &[]key.Key{k}, nil, parent))
-	// Second notif zeroes out the child's attributes.
-	notifs = append(notifs, types.NewNotificationWithEntity(t, child.Path(),
-		&[]key.Key{}, nil, child))
-
-	var err error
-	notifs, err = recursiveEntityDeleteNotification(notifs, child, child.GetDef(), t)
+	notifs, err := recursiveEntityDeleteNotification(nil, child, child.GetDef(), t)
 	if err != nil {
 		return notifs, fmt.Errorf("Error recursively deleting entities with"+
 			" notifications under %q: %s",
 			child.Path(), err)
 	}
+
+	// Zero out the child's attributes.
+	notifs = append(notifs, types.NewNotificationWithEntity(t, child.Path(),
+		&[]key.Key{}, nil, child))
+
+	// Finally remove this entity from its parent's attribute or collection
+	notifs = append(notifs, types.NewNotificationWithEntity(t, path, &[]key.Key{k}, nil, parent))
 
 	return notifs, nil
 }
@@ -111,17 +110,20 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 			e, e.Path(), def))
 	}
 
+	var childEntities []types.Entity
+	// afterRecurseNotifs are notifs that should be added after the
+	// recursive call
+	var afterRecurseNotifs []types.Notification
 	for _, attr := range def.Attrs {
 		if !attr.IsInstantiating {
 			if attr.IsColl {
-				notifs = append(notifs, types.NewNotificationWithEntity(t,
+				afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(t,
 					e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
 			}
 			continue
 		}
-		var childEntities []types.Entity
 		if attr.IsColl {
-			notifs = append(notifs, types.NewNotificationWithEntity(t,
+			afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(t,
 				e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
 			children.ForEach(func(k key.Key, child interface{}) error {
@@ -131,23 +133,23 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 		} else if child, ok := e.GetEntity(attr.Name); ok {
 			childEntities = append(childEntities, child)
 		}
-		// For every child entity we found, we recursively call ourselves to look
-		// for more child entities that need to be deleted, and then call
-		// types.NewNotificationWithEntity to send notification regarding those deleted entities
-		for _, childEntity := range childEntities {
-			var err error
-			notifs, err = recursiveEntityDeleteNotification(notifs, childEntity,
-				childEntity.GetDef(), t)
-			if err != nil {
-				return notifs, fmt.Errorf("Error recursively deleting entities with"+
-					"notifications under %q: %s",
-					childEntity.Path(), err)
-			}
-			notifs = append(notifs, types.NewNotificationWithEntity(t,
-				childEntity.Path(), &[]key.Key{}, nil, childEntity))
-		}
 	}
-	return notifs, nil
+	// For every child entity we found, we recursively call ourselves to look
+	// for more child entities that need to be deleted, and then call
+	// types.NewNotificationWithEntity to send notification regarding those deleted entities
+	for _, childEntity := range childEntities {
+		var err error
+		notifs, err = recursiveEntityDeleteNotification(notifs, childEntity,
+			childEntity.GetDef(), t)
+		if err != nil {
+			return notifs, fmt.Errorf("Error recursively deleting entities with"+
+				"notifications under %q: %s",
+				childEntity.Path(), err)
+		}
+		notifs = append(notifs, types.NewNotificationWithEntity(t,
+			childEntity.Path(), &[]key.Key{}, nil, childEntity))
+	}
+	return append(notifs, afterRecurseNotifs...), nil
 }
 
 // NotificationsForCollectionCount is a helper method for Providers to use to
