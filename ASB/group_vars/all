@@ -86,23 +86,3 @@ ASB_DB_UPDATE_HELP: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS
 
 ASB_DB_RESET_DISABLEMONITORING: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET disableMonitoring=0 WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 
-# Email Templates
-ASB_MAIL_RECP: "twieland@arista.com,ren@arista.com" #TODO: this will permanently be sw-infra-support
-ASB_MAIL_HDR: "[ASB] {{ansible_hostname}} is ready"
-ASB_MAIL_BDY: "ASB has finished automatically bringing up {{ansible_hostname}}.\n\nPlease issue a ticket for this server and run AuthenticateArastra."
-ASB_MAIL_COMPLETE: "echo \"{{ASB_MAIL_BDY}}\" | mail -s \"{{ASB_MAIL_HDR}}\" {{ASB_MAIL_RECP}}"
-
-
-ASB_MAIL_REIMG_CFG_REPT: "/tmp/CURR_CONFIG"
-ASB_MAIL_REIMG_HEALTH_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} is being reimaged"
-ASB_MAIL_REIMG_HEALTH_BDY_ERR: "ASB attempted at reimaging {{ansible_hostname}} but this machine is currently unhealthy. Please view the attached configuration report and manually fix the machine to a state where it can be reimaged."
-ASB_MAIL_REIMG_HEALTH_HDR: "[ASB] {{ansible_hostname}} is being reimaged"
-ASB_MAIL_REIMG_HEALTH_BDY: "ASB is ready to reimage {{ansible_hostname}}. Please see the attached report to view current status of the machine."
-
-ASB_MAIL_REIMG_HEALTH: "echo \"{{ASB_MAIL_REIMG_HEALTH_BDY}}\" | mail -s \"{{ASB_MAIL_REIMG_HEALTH_HDR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
-ASB_MAIL_REIMG_HEALTH_ERR: "echo \"{{ASB_MAIL_REIMG_HEALTH_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_HEALTH_HDR_ERR}}\" -a {{ASB_MAIL_REIMG_CFG_REPT}} {{ASB_MAIL_RECP}}"
-
-
-ASB_MAIL_REIMG_WIPE_HDR_ERR: "[ASB] ERROR: {{ansible_hostname}} cannot be reimaged"
-ASB_MAIL_REIMG_WIPE_BDY_ERR: "ASB encountered error while trying to wipe current partitions and disk configurations. Manual intervention is required."
-ASB_MAIL_REIMG_WIPE_ERR: "echo \"{{ASB_MAIL_REIMG_WIPE_BDY_ERR}}\" | mail -s \"{{ASB_MAIL_REIMG_WIPE_HDR_ERR}}\" {{ASB_MAIL_RECP}}"

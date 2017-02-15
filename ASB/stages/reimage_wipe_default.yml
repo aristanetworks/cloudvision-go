@@ -49,10 +49,7 @@
      when: partitions is defined
 
   rescue:
-   - name: "Send SOS email about this machine"
-     shell: "{{ASB_MAIL_REIMG_WIPE_ERR}}"
-
-   - name: "There's nothing more than ASB can do..."
+   - name: "There's nothing more than ASB can do. Setting server status to 'HELP_ME'"
      command: "{{ASB_DB_UPDATE_HELP}}"
 
    - fail: msg="Automatic wipe of this machine was unsuccessful."

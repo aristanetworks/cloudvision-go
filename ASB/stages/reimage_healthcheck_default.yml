@@ -24,20 +24,12 @@
      with_items: "{{ disks }}"
         
   rescue:
-   - name: "Send SOS email about this machine"
-     shell: "{{ASB_MAIL_REIMG_HEALTH_ERR}}"
-
-   - name: "There's nothing more that ASB can do..."
+   - name: "There's nothing more that ASB can do. Setting status to 'HELP_ME"
      command: "{{ASB_DB_UPDATE_HELP}}"
 
    - fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
 # ----------------------------------------------------------------------------------
-
-## Require rewrite as status report is no longer generated, or, if not needed,
-## the task should be deleted
-#- name: "Send an email that this machine is being reimaged with report"
-#  shell: "{{ASB_MAIL_REIMG_HEALTH}}"
-
+#
 - name: "Update server status"
   command:  "{{ASB_DB_UPDATE_REIMG_WIPE}}"
 ...
