@@ -34,15 +34,21 @@ SERV_DB = "servers"
 # ASB Status to look for
 ASB_STATUS_AUTH = "auth"
 
-# Dir with all the placeholders
-ALL_DIR = "/home/asb/"
+# Dir with all the placeholders (whitelist files)
+WHITELIST_DIR = "/home/asb/"
+
+# Dir with all the user home directories
+HOME_DIR = "/home"
+
+# FQDN of all servers to be authenticated should contain this
+CONTAINS_DOMAIN = "aristanetworks.com"
 
 def main():
    db = MySQLdb.connect( user=DB_INFO[ "user" ],
                          db=DB_INFO[ "db" ],
                          host=DB_INFO[ "host" ] )
    cs = db.cursor()
-   
+
    # Select all servers from the table that has status "verify_ready"
    cols = "name, domain"
    cond = 'status="%s"' % ( ASB_STATUS_AUTH )
@@ -53,21 +59,34 @@ def main():
 
    if rows:
       # Full FQDN of servers that need ticket on datacenter.servers
-      needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in rows ] 
-      
-      # Get list of FQDNs in ASB account
-      allowed = [ os.path.basename( p ) for p in glob.glob( 
-                  os.path.join( ALL_DIR, "*" ) ) ]
+      needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in rows ]
 
-      authServers = set( needTicket ) & set( allowed )
+      # Get list of whitelisted FQDNs in ASB account
+      whitelist = [ os.path.basename( p ) for p in glob.glob(
+                    os.path.join( WHITELIST_DIR, "*" ) ) ]
+
+      # Get list of servers already authenticated, ie. servers that has user account
+      preAuthServers = os.listdir( HOME_DIR )
+      preAuthServers = [ sv for sv in preAuthServers if CONTAINS_DOMAIN in sv ]
+
+      # Only authenicate servers that are either:
+      #    (1) whitelisted, ie. have a whitelisted file in ASB account, or
+      #    (2) already authenticated, ie. have an user account on ticketserver.
+      allowed = set( whitelist ).union( preAuthServers )
+      authServers = set( needTicket ) & allowed
+
       for sv in authServers:
          ret = subprocess.call( [ "sh", "/root/restore_server", "%s" % sv ] )
          if ret:
             logging.error( "Could not issue ticket for %s" % sv )
          else:
-            logging.info( "Issued ticket for %s; removing from whitelist" % sv )
-
-         os.remove( os.path.join( ALL_DIR, sv ) )
+            if sv in whitelist:
+               logging.info( "Issued ticket for %s" % sv )
+               # Remove the whitelist file after authentication
+               logging.info( "Removed whitelist file for %s" % sv )
+               os.remove( os.path.join( WHITELIST_DIR, sv ) )
+            elif sv in preAuthServers:
+               logging.info( "Re-issued ticket for %s" % sv )
 
 
 if __name__ == "__main__":
