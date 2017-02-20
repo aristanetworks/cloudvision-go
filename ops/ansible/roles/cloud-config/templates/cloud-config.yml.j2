@@ -181,8 +181,7 @@ coreos:
 write_files:
   - path: /etc/sysctl.d/inotify.conf
     content: |
-      fs.inotify.max_user_instances=32768
-      fs.inotify.max_user_watches=32768
+      {% macro inotify() %}{% include "common/files/inotify.conf" %}{% endmacro %}{{ inotify() | indent(6, True) }}
   # We disable IPV6 because of this bug:
   # https://github.com/coreos/bugs/issues/1478
   # https://github.com/systemd/systemd/issues/2228
@@ -190,9 +189,7 @@ write_files:
     permissions: 0644
     owner: root
     content: |
-      net.ipv6.conf.all.disable_ipv6 = 1
-      net.ipv6.conf.default.disable_ipv6 = 1
-      net.ipv6.conf.lo.disable_ipv6 = 1
+      {% macro disableipv6() %}{% include "common/files/10-disable-ipv6.conf" %}{% endmacro %}{{ disableipv6() | indent(6, True) }}
   {% if hostvars[item]['K8S_MASTER'] %}
   - path: "/etc/kubernetes/ssl/apiserver.pem"
     permissions: "600"

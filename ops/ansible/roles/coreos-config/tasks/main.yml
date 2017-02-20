@@ -8,3 +8,16 @@
 - name: Update ssh keys
   command: update-ssh-keys -l
   when: result.changed
+
+
+- name: inotify config
+  become: True
+  copy:
+    src: roles/common/files/inotify.conf
+    dest: /etc/sysctl.d/inotify.conf
+  register: result
+
+- name: iconfig config reload
+  become: True
+  command: sysctl --system
+  when: result.changed
