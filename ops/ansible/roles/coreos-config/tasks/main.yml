@@ -21,3 +21,13 @@
   become: True
   command: sysctl --system
   when: result.changed
+
+- name: Install docker insecure registry
+  # Note that docker daemon needs to be restarted in order for this change to
+  # take effect, but as restarting docker daemon will stop all the
+  # running docker containers, it's not done by ansible but left as a manual
+  # process
+  become: True
+  copy:
+    src: roles/common/files/docker.50-insecure-registry.conf
+    dest: /etc/systemd/system/docker.service.d/50-insecure-registry.conf

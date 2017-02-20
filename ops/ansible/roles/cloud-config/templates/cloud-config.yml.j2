@@ -18,22 +18,18 @@ coreos:
       drop-ins:
         - name: 40-ExecStartPre-symlink.conf
           content: |
-            [Service]
-            ExecStartPre=/usr/bin/ln -sf /etc/flannel/options.env /run/flannel/options.env
+            {% macro flanneld_service() %}{% include "common/files/flanneld.service.40-ExecStartPre-symlink.conf" %}{% endmacro %}{{ flanneld_service() | indent(12, True) }}
     {% endif %}
     - name: docker.service
       drop-ins:
     {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
         - name: 40-flannel.conf
           content: |
-            [Unit]
-            Requires=flanneld.service
-            After=flanneld.service
+          {% macro docker_flannel() %}{% include "common/files/docker.service.40-flannel.conf" %}{% endmacro %}{{ docker_flannel() | indent(12, True) }}
     {% endif %}
         - name: 50-insecure-registry.conf
           content: |
-            [Service]
-            Environment='DOCKER_OPTS=--insecure-registry=registry.docker.sjc.aristanetworks.com:5000'
+            {% macro docker_ir() %}{% include "common/files/docker.50-insecure-registry.conf" %}{% endmacro %}{{ docker_ir() | indent(12, True) }}
     {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
     - name: install-kubernetes.service
       command: start
