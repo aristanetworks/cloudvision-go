@@ -67,27 +67,27 @@ coreos:
             After=install-kubernetes.service
       content: |
         [Service]
-          ExecStart=/opt/bin/kubelet \
-            --api_servers={% if hostvars[item]['K8S_MASTER'] %}http://127.0.0.1:8080{%else%}https://{{ k8s_masters | join(",") }}{% endif %} \
-            {% if hostvars[item]['K8S_MASTER'] %}
-            --register-schedulable=false \
-            {%else%}
-            --register-node=true \
-            {% endif %}
-            --allow-privileged=true \
-            --config=/etc/kubernetes/manifests \
-            --hostname-override={{ hostvars[item]['ansible_host'] }} \
-            --cluster_dns=10.3.0.10 \
-            --cluster_domain=cluster.local \
-            --cadvisor-port=4194{% if not hostvars[item]['K8S_MASTER'] %} \
-            --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-            --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-            --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
+        ExecStart=/opt/bin/kubelet \
+          --api_servers={% if hostvars[item]['K8S_MASTER'] %}http://127.0.0.1:8080{%else%}https://{{ k8s_masters | join(",") }}{% endif %} \
+          {% if hostvars[item]['K8S_MASTER'] %}
+          --register-schedulable=false \
+          {%else%}
+          --register-node=true \
+          {% endif %}
+          --allow-privileged=true \
+          --config=/etc/kubernetes/manifests \
+          --hostname-override={{ hostvars[item]['ansible_host'] }} \
+          --cluster_dns=10.3.0.10 \
+          --cluster_domain=cluster.local \
+          --cadvisor-port=4194{% if not hostvars[item]['K8S_MASTER'] %} \
+          --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+          --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+          --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
 
-          Restart=always
-          RestartSec=10
-          [Install]
-          WantedBy=multi-user.target
+        Restart=always
+        RestartSec=10
+        [Install]
+        WantedBy=multi-user.target
     {% endif %}
     - name: data2.mount
       command: start
