@@ -191,133 +191,30 @@ write_files:
     permissions: "600"
     owner: "root"
     content: |
-      -----BEGIN CERTIFICATE-----
-      MIIC/zCCAeegAwIBAgIJAPvKNeVVG1fiMA0GCSqGSIb3DQEBBQUAMBIxEDAOBgNV
-      BAMMB2t1YmUtY2EwHhcNMTYxMjA0MTgwMTExWhcNNDQwNDIxMTgwMTExWjAZMRcw
-      FQYDVQQDDA5rdWJlLWFwaXNlcnZlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
-      AQoCggEBAL4awq+tl9GIGs4WyE6/RT2D+alpX3E8gIrVHRGlWWjMEQu293MXpufB
-      4eAKCV3hD2UTJu7NsLaPj9rgDoUy8JuMVwTEoowd83nM51qE8om0Mu0zwFe1XE7Z
-      T5ET6I55Lvogmsj433x3WZSipixtYvFJmaMxcOcUM/hMbpWOsJbRbXwQ/3SqggsO
-      Zbpy+GlR4YpTEI5vWmr5/mr8deie9+dlARVZPjzQUN3heamya3h5Ti/G5GSq+zFi
-      4zMkxKRuVvNlIl0+eQUCIgn2/6iQ14RCEHXNK5RVWSIlSobKxnnS+FTiPcBSdrJt
-      JcywMhdUEhDnF1WWAnFcfe96K0M9CtUCAwEAAaNRME8wCQYDVR0TBAIwADALBgNV
-      HQ8EBAMCBeAwNQYDVR0RBC4wLIIKa3ViZXJuZXRlc4ISa3ViZXJuZXRlcy5kZWZh
-      dWx0hwQKAwABhwSsGCAYMA0GCSqGSIb3DQEBBQUAA4IBAQBdM5Q9MHA1Jpbwdaof
-      1MPne7LeBOGmXW7FS3FfW6nsLCRT+BxEcR0Epo6eg9VKLYGdkirL62ukl0QeURmj
-      xuiM+qSfPqwMzgdog2gCsAdfNT0p2CZtSA0Qdb8hfPW0qH4PVjqFAQ9iThemf5sW
-      veGe9Vrr6mNyqNKvVGRThBJPDTDehcw2ybXZtd4NWXww/OR46ung9PAnf0pzBeh8
-      iaNm1ruNrUrG9+GkX7NVQw6RHWnYIsKWunE40bHTycy2GGsvzh9rTphKlmpmLx+t
-      v5KCdpS3Pdmd6D1xg26gMlY1iIqf1cQIuRjE+ODGcLidQ8qeDMReTYTJAclVOGSi
-      WA68
-      -----END CERTIFICATE-----
+      {% macro apiservercert() %}{% include "k8s_vars/certs/apiserver.pem" %}{% endmacro %}{{ apiservercert() | indent(6, True) }}
   - path: "/etc/kubernetes/ssl/apiserver-key.pem"
     permissions: "600"
     owner: "root"
     content: |
-      -----BEGIN RSA PRIVATE KEY-----
-      MIIEpQIBAAKCAQEAvhrCr62X0YgazhbITr9FPYP5qWlfcTyAitUdEaVZaMwRC7b3
-      cxem58Hh4AoJXeEPZRMm7s2wto+P2uAOhTLwm4xXBMSijB3zecznWoTyibQy7TPA
-      V7VcTtlPkRPojnku+iCayPjffHdZlKKmLG1i8UmZozFw5xQz+ExulY6wltFtfBD/
-      dKqCCw5lunL4aVHhilMQjm9aavn+avx16J7352UBFVk+PNBQ3eF5qbJreHlOL8bk
-      ZKr7MWLjMyTEpG5W82UiXT55BQIiCfb/qJDXhEIQdc0rlFVZIiVKhsrGedL4VOI9
-      wFJ2sm0lzLAyF1QSEOcXVZYCcVx973orQz0K1QIDAQABAoIBAQCSx4S0Mds7m9Pe
-      dba5HnNumLymckaP3r/88akdG8bZ5F3w5pdOVN+4p3koC3fJ9WB2kQAJd+VOP7A5
-      ta9gZsFhyEzT0KMUfnej/nJO8MF3UxvTC5ch4VThSGZnxLBVePmthIkeTRH5Pwl6
-      es7FFLxFQqeOWjkrIe0ydIkZjm+IMdupKYI/pIQJRGlLMcoMWVHEJnDmxz/yTh70
-      a/Lg5G4z75mHIKQjR6B53DuSN+d3oKBENICEQvRjbNmIRBnpWmenCVuZItd9OX5g
-      I59DufLN5n3jtevA4k9D5y/vHEIZ+6n3a8Wh3oK7JtcgdxnGwsb3LGiusU7vJ3BZ
-      4q8dWO1BAoGBAO4O+14nxmJGs0KPreSA7JnLlnO27Lt7zrunKyEOmpQWShOwoL3U
-      btErb8MCabEwulNbBTtWSwaLvHHznVmZIgGRKApvo1aAMZzPhq63N5Ti3/zFMMwD
-      6SsEeZyLaP6DiugrDas9Og/iaDvfByBOHCuVjtMC1YJjn7jJY1w2em/FAoGBAMxu
-      ki9q0UFD1xmOfbd4fVS/9xD22zA57aN5Pul2Bpms0lnVXiSlAuiNI6NOCaBAy1HY
-      TJEeBUBQwC8JuKc8bnFLBaBaCtvaCq2FgcngN5lLiYy9dQKtrfbJnCN8M/6PQJdJ
-      8T4SLGrz5Bk1wf1ko45hoIXf6I5B7RPnTexwQk/RAoGBAITUpz2qQ++iM3P4Z7cQ
-      mPRXvONkNkOGmZvrcw1G8MmghkTmUUqathrQedP+DKtp3Q2VxB2P0N0eK1AJ9sp/
-      v5HQRN9N233wmb49rZDfeowA66pG/StZI0l1fcXzo+ofy+ov27iouTUTx8VgdMF5
-      1A4drUvgUPIoVH7vIBnb7AVhAoGBAL2KSxmRpSAo4Rc96Muh+DoKnezpo8HsA6vM
-      r4rPtkDnXkSSMm4xXCf3LDKuGPiu+pQQwrTNq7q84+L41W6g9hkuoLHSqjy6xamq
-      nfJpY8NKqOaHhiSMmT22IYE5GBAOC6n5kaWmPe6P4E2LbSgeFhLd63IUbs7uyvvo
-      OnRchO7xAoGAOtP09UHYFCdvmRwfv5oVczHGPAvEDjpQOvLLqzF9lDmowW6hv0TH
-      fr9zkCgfp2BjmAUcM7q2kWb9B5r/SZ3bzMx32RNo55IE/Yn8+2UnvYO5jlCkwzPP
-      CgC3ASF7105nGK3Ut2xSW3BB3RT5cJWP8aqFpp+aEwr5CTNGcNCLnfU=
-      -----END RSA PRIVATE KEY-----
+      {% macro apiserverkeycert() %}{% include "k8s_vars/certs/apiserver-key.pem" %}{% endmacro %}{{ apiserverkeycert() | indent(6, True) }}
   {% elif hostvars[item]['K8S_WORKER'] %}
   - path: "/etc/kubernetes/ssl/worker.pem"
     permissions: "600"
     owner: "root"
     content: |
-      -----BEGIN CERTIFICATE-----
-      MIICpDCCAYwCCQD7yjXlVRtX4DANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdr
-      dWJlLWNhMB4XDTE1MTIwNDE0MDQwMloXDTQzMDQyMTE0MDQwMlowFjEUMBIGA1UE
-      AwwLa3ViZS13b3JrZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCe
-      ATu796HSLkxj0v0g51l4Jsgu2KDDNOtCP4pNNVOPhz2EW43cfR4dofb5rBfhI2LN
-      Qu/iXaR5dUmAouFul6HTa55F4czbnSjibuWcczmZgvueYHxJlqKWEcj9Fj1l8lNv
-      Z/C8lmcqyIBGGRWRka6Cr0+WJV0cyFI5BERrxaDyEU+K3WytAp4C3YX1wZTLt1FP
-      bhCclizjzYqYAOURFiP/izxUtSNRSwH/d0OJuoPIZE/+ddSbHs4kWLirw/0a9TOA
-      kqeyBkFG+0jV+5HWYFG2kSS7ErYfFyhpPR9LV7H/XMsjqgIzMXYutcdkTE2jJEBx
-      Q5g47z4/iohO4rUOhvDbAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAMjmOS4hZbaJ
-      HHDEcf9sAos1i//dd0lsaUa2+cXVCAJ91JcjM2y2SLyoh0qdmxCMWl7Ji7yFThGC
-      ax4Pzb1kNwyMKdexSWiEre3JMzSWyfTnHfBkP8xcIlFhyscoExA2ZSi2No61bGD+
-      SLCDaHWvHCQXt3S0H5F+XnE6zW5c/uBqHTYUhEtZbbRGE4anUQIpoyYgwSKXsxoG
-      YO7IULbEZs5Nrz+X3bNWBmgq/9IAWxqVPNf8DqsxHBdYBROqgsQtACkre7So60Nq
-      EQWV8LO6IJqspdoOrhhSDv6OV6fpromfWqFcSe1j+RZgqH405n4g+6V3NvODQilg
-      LgKqZtebGKk=
-      -----END CERTIFICATE-----
+      {% macro workercert() %}{% include "k8s_vars/certs/worker.pem" %}{% endmacro %}{{ workercert() | indent(6, True) }}
   - path: "/etc/kubernetes/ssl/worker-key.pem"
     permissions: "600"
     owner: "root"
     content: |
-      -----BEGIN RSA PRIVATE KEY-----
-      MIIEowIBAAKCAQEAngE7u/eh0i5MY9L9IOdZeCbILtigwzTrQj+KTTVTj4c9hFuN
-      3H0eHaH2+awX4SNizULv4l2keXVJgKLhbpeh02ueReHM250o4m7lnHM5mYL7nmB8
-      SZailhHI/RY9ZfJTb2fwvJZnKsiARhkVkZGugq9PliVdHMhSOQREa8Wg8hFPit1s
-      rQKeAt2F9cGUy7dRT24QnJYs482KmADlERYj/4s8VLUjUUsB/3dDibqDyGRP/nXU
-      mx7OJFi4q8P9GvUzgJKnsgZBRvtI1fuR1mBRtpEkuxK2HxcoaT0fS1ex/1zLI6oC
-      MzF2LrXHZExNoyRAcUOYOO8+P4qITuK1Dobw2wIDAQABAoIBAG6vgn78zFmGoXDU
-      nwprxttKn7Vhf8z/x0aTaHkJwE2tecS8tjYdV/l+OptQmTHYLiCIoa871jpXlXQN
-      pkpo4q5Ol4Nw2KeIAtoMwcDFXzZQ8Z9TC/4pDiB+uQPCjqRaC2ThtV0HJ6Jq7qEs
-      dVWSbmOSF/igmAfPtPnIKX4t5b9skzFBvTICjiW1VT9C4YiI4/U90kSJnGoJ8as5
-      nvQwsWeFYAd1bFOlsKLhWHEms6JBg21cnPST4m4nSjfavF1QTWTK7O8Chp9+eniy
-      QZV8xeRnG9YnZj21PBVfznu5xPTOdYAztoV2wK1bdYzs5kLDawtLZRnhO7MA34wy
-      SoDaFwECgYEAzE6uXAYvcO1kjTv3F+Se4YW8EeHa6FXUUvaYB8PhPT5eCasnQnzP
-      jXFKdVzsQgJWDky69U4VYq9EyTc3AX2Wu+dLzSB0qraL2bczjBBaWO/DjbX2k3lY
-      ceVNRgxYo3qYQtK/daDwAWsGv7J2Sopycq2mVEQpBzVJQkxeHUtFxkECgYEAxft2
-      TZmiGBriYJsN/PHsA7Xsb4KaV02wniWLpbhFL5mU6peAc75sSWG+mkItnZABZlul
-      PwwrrIIa8rSSC3Y4i6qsKZJRpKY+MnIHY1qAoLNeynsG5jULD/yMlUxJ1Cq0kme6
-      GYShtd7iH+dxPq9RlUvZChGfkEpMlwZmWuu5CBsCgYBpODxj+GuGZTxb4H4pN/z7
-      eLybGQ58iXeIIqe5mA/wUqZrpFHb1BuwZKBMQUcL19gqFSpUG5q38DwkxOL3SY7P
-      xxcq1YRARzNPNSK/B8z/8LttyEDtQpliTw20/bbIuuKfx5oDIpd4o34eS/LQAO1g
-      Uj5PN6tJow/PrTTrMVEGAQKBgQDDhrkrolMno0V3SyrhaLtCXuUGq+Fp31xSk5n7
-      LKWHgRJFLSK7LJEdV9850anjNllrkY79WTO4xzV+BT9G+paVuRUWaV8gUN6US3Fo
-      efUWwI8ZQa9qo3AtdaoRuKohU5vKC48LrKVYTKrd/2EkG1ljLOlIvGbtxbMmZDeq
-      C6tNiQKBgCXG/dQVpPlpikfRQ8Gu7T8Zhy3bjhbQGEEn4meod/rH3hG7R9Q2II0m
-      9N/j18XcDOGiVDDLFXJHO7GnOH8RvzwR40Wd4XW/BKn20IJbCeaW9Xb5e0u7nyIW
-      VPS9q59fjf/RAd6FRiAf547iicyqk5BkVw4xuFRsFdqf/8VrdTjV
-      -----END RSA PRIVATE KEY-----
+      {% macro workerkeycert() %}{% include "k8s_vars/certs/worker-key.pem" %}{% endmacro %}{{ workerkeycert() | indent(6, True) }}
   {% endif %}
   {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
   - path: "/etc/kubernetes/ssl/ca.pem"
     permissions: "600"
     owner: "root"
     content: |
-      -----BEGIN CERTIFICATE-----
-      MIIC9zCCAd+gAwIBAgIJAKc9xqPUhWlHMA0GCSqGSIb3DQEBCwUAMBIxEDAOBgNV
-      BAMMB2t1YmUtY2EwHhcNMTUxMjA0MTQwMjAwWhcNNDMwNDIxMTQwMjAwWjASMRAw
-      DgYDVQQDDAdrdWJlLWNhMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
-      3B5lNlA1jZAqTZzKjegFa2NKGWoPqUoe/liKl87lZLFu6iWARGlffeOVPyYss0Oq
-      BNI+9v8NJEiM91YuTLcfl8HrTvS0o2Vs054SigXMYO+qsxhNvwnOGmqPj1uoAJdW
-      JLB4fEwtOH88VwsPxewGAey6F4PownoDMxBkEFRcoszHU5GuX5G6npfBmGcf2Pso
-      KJteTinA260V6SkvSDHDiSyQpyF9441/eOP9Uc94/BGJmfk50nWIhOOHdDySJW5R
-      eKZYNO0WV519hVYZ863GuplPQ5TVhcnvNDApbSxwRo3id8IvYzPUKYyHzPeMoA5R
-      /ZkCYf7ASYUiGvVgNXeWzQIDAQABo1AwTjAdBgNVHQ4EFgQUYhsEwz8ChViPSTtc
-      6RWjEWcNG1owHwYDVR0jBBgwFoAUYhsEwz8ChViPSTtc6RWjEWcNG1owDAYDVR0T
-      BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEARPrjzIPoSEvSkzuyr7L/9BNpbaoU
-      UvS/0d5/N5pBIHtLWQ6SoWAt8RQ9FRw+hysFdoQtCezsrf1I1Q22eStj8Oa+gzzC
-      8Yc9nsBpuzvQZjlQqe+LOWlypl7kPGxiA7egDWJWLdPbTW/hz8QO6sNxh4XVFgHN
-      HkdfHT4r4FPyGjw8eJaPyaKJ9MEZrbv6tapq2Qb7ggs1VrH2TKfLWfRl7hFjXzxh
-      OXx7Y4k+VuBlmzxGqGkV5FBPOTOkCNOWT7kGx4ZwC/xp5/PGEVNLF8Sp8/uDlIrW
-      3SuObT9QNkXdHhfmO/a9BN1jH0AqiJ7p6gHq/SyiSfEsYln+rv3tvz8BSQ==
-      -----END CERTIFICATE-----
+      {% macro cacert() %}{% include "k8s_vars/certs/ca.pem" %}{% endmacro %}{{ cacert() | indent(6, True) }}
   # flannel config
   - path: "/etc/flannel/options.env"
     permissions: "022"
