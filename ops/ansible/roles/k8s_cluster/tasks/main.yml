@@ -50,17 +50,33 @@
     dest: /etc/systemd/system/docker.service.d/40-flannel.conf
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
+- name: Get current k8s binary info
+  stat:
+    path: /opt/bin/kubelet
+  register: k8sbinary_file
+  when: "K8S_MASTER == True or K8S_WORKER == True"
+
+- name: Check if k8s binary is correct
+  become: True
+  set_fact:
+    force_new_download: "{{ k8sbinary_file.stat.md5 != '33af080e876b1f3d481b0ff1ceec3ab8' }}"
+  when: "K8S_MASTER == True or K8S_WORKER == True"
+
+- name: Stop kubelet service
+  become: True
+  command: systemctl stop kubelet.service
+  when: "(K8S_MASTER == True or K8S_WORKER == True) and force_new_download"
+
 - name: Install k8s binary
   become: True
   get_url:
     url: http://dist/storage/Kubernetes/kubernetes-{{ K8S_VERSION }}-server-linux-amd64/server/bin/kubelet
     dest: /opt/bin/kubelet
-    checksum: sha256:be44ccebb75ffa0db269d788b993b15d5f6f885d00fd7593d0602686cf59fa87
+    checksum: sha256:4fe14949e8a7da288d31a1e768daa5e75928dc2eded423a6bb4cb33efc35d055
     owner: root
     group: root
     mode: 0755
-  when: "K8S_MASTER == True or K8S_WORKER == True"
-  register: kbinary
+  when: "(K8S_MASTER == True or K8S_WORKER == True) and force_new_download"
 
 - name: Install k8s worker certificates
   become: True
@@ -168,8 +184,8 @@
 
 - name: Restart k8s service if needed
   become: True
-  command: systemctl restart kubelet
-  when: "(K8S_MASTER == True or K8S_WORKER == True) and (kservice.changed or kbinary.changed)"
+  command: systemctl restart kubelet.service
+  when: "(K8S_MASTER == True or K8S_WORKER == True) and (kservice.changed or force_new_download)"
 
 - name: Do not install k8s services on non k8s nodes
   # TODO: We should probably do "systemd reset-failed" or something along
