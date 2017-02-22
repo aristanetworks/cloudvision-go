@@ -2,6 +2,7 @@
   roles:
     - motd
     - coreos-config
+    - k8s_cluster
 
 - hosts: local
   roles:
