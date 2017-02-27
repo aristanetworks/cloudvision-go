@@ -37,6 +37,7 @@ r12s32  ansible_host=172.24.32.32
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
 K8S_VERSION=1.5.3
+K8S_KUBELET_MD5=33af080e876b1f3d481b0ff1ceec3ab8
 K8S_MASTER=False
 K8S_WORKER=False
 ETCD2=False

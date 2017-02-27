@@ -60,7 +60,7 @@
 - name: Check if k8s binary is correct
   become: True
   set_fact:
-    force_new_download: "{{ k8sbinary_file.stat.md5 != '33af080e876b1f3d481b0ff1ceec3ab8' }}"
+    force_new_download: "{{ k8sbinary_file.stat.md5 != K8S_KUBELET_MD5 }}"
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Stop kubelet service
@@ -73,7 +73,7 @@
   get_url:
     url: http://dist/storage/Kubernetes/kubernetes-{{ K8S_VERSION }}-server-linux-amd64/server/bin/kubelet
     dest: /opt/bin/kubelet
-    checksum: sha256:4fe14949e8a7da288d31a1e768daa5e75928dc2eded423a6bb4cb33efc35d055
+    checksum: "md5:{{ K8S_KUBELET_MD5 }}"
     owner: root
     group: root
     mode: 0755
