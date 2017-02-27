@@ -51,6 +51,7 @@
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Get current k8s binary info
+  become: True
   stat:
     path: /opt/bin/kubelet
   register: k8sbinary_file
