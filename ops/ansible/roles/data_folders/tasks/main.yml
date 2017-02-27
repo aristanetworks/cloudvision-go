@@ -1,0 +1,22 @@
+
+---
+
+- name: Create kafka data directory
+  become: True
+  file:
+    path: "/data3/kafka-data"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: K8S_WORKER
+
+- name: Create elastic search data directory
+  become: True
+  file:
+    path: "/data4/es-data"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: K8S_WORKER

@@ -163,6 +163,16 @@ coreos:
     reboot-strategy: off
 
 write_files:
+  {% if hostvars[item]['K8S_WORKER'] %}
+  - path: /data3/kafka-data/.keep
+    permissions: 0644
+    owner: root
+    content: ""
+  - path: /data4/es-data/.keep
+    permissions: 0644
+    owner: root
+    content: ""
+  {% endif %}
   - path: /etc/sysctl.d/inotify.conf
     content: |
       {% macro inotify() %}{% include "common/files/inotify.conf" %}{% endmacro %}{{ inotify() | indent(6, True) }}
