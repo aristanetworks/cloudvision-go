@@ -36,27 +36,15 @@ coreos:
       content: |
         [Unit]
         Description=Install Kubernetes binaries
-        ConditionFileIsExecutable=!/opt/bin/hyperkube
+        ConditionFileIsExecutable=!/opt/bin/kubelet
         Requires=network-online.target
         After=network-online.target
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/mkdir -p /opt/bin
-        ExecStart=/usr/bin/curl http://dist/storage/Kubernetes/kubernetes-{{ hostvars[item]['K8S_VERSION'] }}-server-linux-amd64.tar.gz -o /tmp/kubernetes.tar.gz -f
-        ExecStart=/usr/bin/tar xvf /tmp/kubernetes.tar.gz -C /tmp
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-apiserver /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-apiserver.docker_tag /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-apiserver.tar /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-controller-manager /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-controller-manager.docker_tag /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-controller-manager.tar /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-proxy /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-scheduler /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-scheduler.docker_tag /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kube-scheduler.tar /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kubectl /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/kubelet /opt/bin
-        ExecStart=/usr/bin/mv /tmp/kubernetes/server/bin/hyperkube /opt/bin
+        ExecStart=/usr/bin/curl http://dist/storage/Kubernetes/kubernetes-{{ hostvars[item]['K8S_VERSION'] }}-server-linux-amd64/server/bin/kubelet -o /opt/bin/kubelet -f
+        ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
+        ExecStartPost=echo "{{ hostvars[item]['K8S_KUBELET_MD5'] }}  /opt/bin/kubelet" | md5sum --strict --check -
     - name: kubelet.service
       command: start
       drop-ins:
