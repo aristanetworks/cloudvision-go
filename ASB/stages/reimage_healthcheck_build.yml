@@ -2,6 +2,16 @@
 - name: "Gather info about disks on this machine"
   include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
 
+- name: "Disable abuild"
+  shell: "Abuildd --deactivate"
+
+# This checks if last line of Abuildd status is a project name or the given line.
+# If the given line can't be found in last line of output, it means that the
+# last line in the output is a project name and so the grep would fail, causing
+# the entire task to fail and force this task to do an early exit.
+- name: "Check if any builds are running and early exit if there are any"
+  shell: "Abuildd -s | tail -n 1 | grep \"Abuilds currently running:\""
+
 - name: "Uninstall stest RPM if installed"
   yum:
       name: AroraConfig-stest.x86_64
@@ -15,7 +25,7 @@
    - name: "Health check each disk."
      include: "{{STAGES_PATH}}/reimage_conf/smart_check.yml disk={{ item }}"
      with_items: "{{ disks }}"
-        
+
   rescue:
    - name: "There's nothing more that ASB can do. Setting status to 'HELP_ME"
      command: "{{ASB_DB_UPDATE_HELP}}"

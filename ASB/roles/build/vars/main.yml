@@ -1,9 +1,9 @@
 build_conf:
-   reimage_healthcheck: default
+   reimage_healthcheck: build
    reimage_wipe: default
    reimage_verify: default
    disk: default
    os: default
-   config: default
+   config: build
    verify: build
    auth: default

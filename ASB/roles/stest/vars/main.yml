@@ -1,5 +1,5 @@
 stest_conf:
-   reimage_healthcheck: default
+   reimage_healthcheck: stest
    reimage_wipe: default
    reimage_verify: default
    disk: default
