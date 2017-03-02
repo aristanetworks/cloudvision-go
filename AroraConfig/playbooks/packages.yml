@@ -1,0 +1,21 @@
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+---
+- name: "packages"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+    # ---------- ADD PACKAGES TO BE INSTALLED HERE ----------
+    # --- NOTE: add corresponding test to package install ---
+
+    - name: "Install Telegraf"
+      yum:
+         name: telegraf-Linux
+         state: installed
+
+    - name: "TEST"
+      script: test/test_packages.sh
+      when: TEST is defined
+...
