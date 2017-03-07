@@ -84,5 +84,6 @@ ASB_DB_UPDATE_AUTH: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS
 ASB_DB_UPDATE_INSTALLED: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_INSTALLED ) }}"
 ASB_DB_UPDATE_HELP: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_HELP ) }}"
 
+ASB_DB_SET_DISABLEMONITORING: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET disableMonitoring=1 WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 ASB_DB_RESET_DISABLEMONITORING: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET disableMonitoring=0 WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 

@@ -3,7 +3,6 @@
   shell: ls -l /etc/sysconfig/network-scripts/ifcfg-* | grep -q {{ item }}
   with_items:
       - bond0
-      - macvlan-bond0
 
 - name: "Check network configuration is correct - MACADDR"
   shell: grep MACADDR /etc/sysconfig/network-scripts/ifcfg-macvlan-bond0
@@ -12,7 +11,6 @@
   shell: ifconfig {{ item }}
   with_items:
       - bond0
-      - macvlan-bond0
 
 - name: "Check that vmstat is running"
   shell: service vmstat status | grep "active"

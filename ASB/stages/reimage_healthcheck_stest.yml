@@ -1,4 +1,7 @@
 ---
+- name: "Disable monitoring while this machine is getting reimaged"
+  command: "{{ASB_DB_SET_DISABLEMONITORING}}"
+
 - name: "Gather info about disks on this machine"
   include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
 
@@ -36,4 +39,3 @@
 - name: "Update server status"
   command:  "{{ASB_DB_UPDATE_REIMG_WIPE}}"
 ...
-
