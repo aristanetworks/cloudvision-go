@@ -5,5 +5,5 @@ stest_conf:
    disk: default
    os: default
    config: stest
-   verify: stest
    auth: default
+   cleanup: default

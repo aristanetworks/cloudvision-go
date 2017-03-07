@@ -1,40 +1,9 @@
 ---
-- name: "Install telegraf"
-  yum:
-     name: telegraf-Linux
-     state: installed
-
-- name: "Make sure vmstat is running"
-  shell: "/sbin/chkconfig --add vmstat"
-  ignore_errors: yes
-
-- name: "Set maximum RAID sync speed"
-  sysctl:
-      name: dev.raid.speed_limit_max
-      value: 100000
-      state: present
-      sysctl_set: yes
-      reload: yes
-      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
-
-- name: "Set minimum RAID sync speed"
-  sysctl:
-      name: dev.raid.speed_limit_min
-      value: 1000
-      state: present
-      sysctl_set: yes
-      reload: yes
-      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
+- name: "Run common configuration steps"
+  include: "{{STAGES_PATH}}/config_conf/config_common.yml"
 
 - name: "Add stest server build tags"
   shell: "Abuildd --addtags=\"fedora18 medium largemem bs2xx\""
-
-- name: "Add server to arventory"
-  shell: arventory update
-  ignore_errors: yes
-
-- name: "Setup serial console"
-  shell: "/usr/sbin/SetupAroraSerial"
 
 - name: "Install Stest package"
   yum:
@@ -42,7 +11,7 @@
       state: installed
 
 - name: "Update datacenter.servers with status configuration ready"
-  command: "{{ASB_DB_UPDATE_VERIFY}}"
+  command: "{{ASB_DB_UPDATE_AUTH}}"
 
 - name: "Reboot"
   command: "reboot"

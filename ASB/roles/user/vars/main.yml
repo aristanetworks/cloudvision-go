@@ -5,5 +5,5 @@ user_conf:
    disk: default
    os: default
    config: user
-   verify: user
    auth: default
+   cleanup: default

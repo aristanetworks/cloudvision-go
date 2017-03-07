@@ -1,0 +1,50 @@
+---
+- name: "Check network configuration is correct - /etc/sysconfig"
+  shell: ls -l /etc/sysconfig/network-scripts/ifcfg-* | grep -q {{ item }}
+  with_items:
+      - bond0
+      - macvlan-bond0
+
+- name: "Check network configuration is correct - MACADDR"
+  shell: grep MACADDR /etc/sysconfig/network-scripts/ifcfg-macvlan-bond0
+
+- name: "Check network configuration is correct - ifconfig"
+  shell: ifconfig {{ item }}
+  with_items:
+      - bond0
+      - macvlan-bond0
+
+- name: "Install telegraf"
+  yum:
+     name: telegraf-Linux
+     state: installed
+
+- name: "Set maximum RAID sync speed"
+  sysctl:
+      name: dev.raid.speed_limit_max
+      value: 100000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
+
+- name: "Set minimum RAID sync speed"
+  sysctl:
+      name: dev.raid.speed_limit_min
+      value: 1000
+      state: present
+      sysctl_set: yes
+      reload: yes
+      sysctl_file: "/etc/sysctl.d/{{ROLE_NAME}}.conf"
+
+- name: "Add server to arventory"
+  shell: arventory update
+  ignore_errors: yes
+
+- name: "Verify server info is available via arventory"
+  shell: arventory list -l {{ansible_hostname}} | grep -q "{{ansible_hostname}}"
+
+- name: "Setup serial console"
+  shell: "/usr/sbin/SetupAroraSerial"
+...
+

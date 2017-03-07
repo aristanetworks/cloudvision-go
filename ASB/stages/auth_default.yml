@@ -1,16 +1,12 @@
 ---
+# NOTE: Not much done in this stage but that's because we're actually using this stage to 
+# allow ASB Authenticator to finish asynchronously.
+
 # If "a4 login -s" hangs for more than 30 seconds, abort
 - name: "Run a4 login to check ticket issue was successful"
   shell: "P4USER=arastra timeout 30 a4 login"
 
-- name: "Update datacenter.servers with status that authentication tickets have been issued"
-  command: "{{ASB_DB_UPDATE_INSTALLED}}"
-
-- name: "Clean up the record of retry count on mysql."
-  shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
-
-- name: "Trigger long SMART selftests for each disk."
-  shell: "smartctl -t long /dev/{{ item }}"
-  with_items: "{{ ansible_devices.keys() }}"
+- name: "Update datacenter.servers with status - authentication steps finished, moving onto cleanup"
+  command: "{{ASB_DB_UPDATE_CLEANUP}}"
 ...
 

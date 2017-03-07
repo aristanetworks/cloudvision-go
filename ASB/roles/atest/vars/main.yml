@@ -5,5 +5,5 @@ atest_conf:
    disk: default
    os: default
    config: default
-   verify: atest
    auth: default
+   cleanup: default
