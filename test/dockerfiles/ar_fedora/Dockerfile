@@ -5,7 +5,7 @@
 # Ansible server.
 
 # We need Fedora 18, but Docker library only has images for Fedora 20 and above.
-FROM fedora:23
+FROM fedora:20
 MAINTAINER Ren Lee <ren@arista.com>
 
 # The following are installed:
@@ -15,7 +15,6 @@ MAINTAINER Ren Lee <ren@arista.com>
 # hostname - we want to be able to query the server's name
 # sshpass - Ansible requires this
 RUN yum install -y \
-   sudo \
    openssh-server \
    python \
    hostname \
