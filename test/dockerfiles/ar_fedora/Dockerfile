@@ -5,13 +5,8 @@
 # Ansible server.
 
 # We need Fedora 18, but Docker library only has images for Fedora 20 and above.
-FROM fedora:20
+FROM fedora:23
 MAINTAINER Ren Lee <ren@arista.com>
-
-# ansible - we want to run test playbooks against this server
-# This is roundabout way to avoid needing to keep up with fedora archive updates
-COPY ansible-2.1.0.0-1.fc23.noarch.rpm /tmp
-
 
 # The following are installed:
 # openssh - to host ssh connection to server
@@ -22,8 +17,11 @@ RUN yum install -y \
    openssh-server \
    python \
    hostname \
-   sshpass \ 
-   /tmp/ansible-2.1.0.0-1.fc23.noarch.rpm
+   sshpass
+
+RUN yum install -y http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-1.0.0-1.x86_64.rpm
+RUN yum install -y http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-Linux-1.6-3.noarch.rpm
+RUN yum install -y ftp://195.220.108.108/linux/fedora/linux/updates/23/x86_64/a/ansible-2.2.0.0-3.fc23.noarch.rpm
 
 EXPOSE 22
 

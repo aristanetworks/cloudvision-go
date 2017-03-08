@@ -12,4 +12,5 @@
 - include: playbooks/postfix.yml
 - include: playbooks/rclocal.yml
 - include: playbooks/updateMotd.yml
+- include: playbooks/packages.yml
 ...
