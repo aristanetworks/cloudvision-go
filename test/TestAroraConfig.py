@@ -68,7 +68,7 @@ class Config( object ):
    DEBUG = False
 
    # Docker image built and available on Arista Docker registry.
-   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:1ed2b0d' 
+   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/ardc-config:d69212b' 
 
    # Ansible server name.
    ansible_sv = 'ardc_config_as'

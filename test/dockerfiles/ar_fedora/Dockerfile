@@ -9,11 +9,13 @@ FROM fedora:23
 MAINTAINER Ren Lee <ren@arista.com>
 
 # The following are installed:
+# sudo - apparently this is missing from base image
 # openssh - to host ssh connection to server
 # python - dependency for ansible
 # hostname - we want to be able to query the server's name
 # sshpass - Ansible requires this
 RUN yum install -y \
+   sudo \
    openssh-server \
    python \
    hostname \
