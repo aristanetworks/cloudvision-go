@@ -12,6 +12,6 @@ test:
 clean:
 		./setup.py clean -a
 
-jenkins: pylint build
+jenkins: pylint build test
 
-.PHONY: all pylint build clean jenkins
+.PHONY: all pylint build clean jenkins test
