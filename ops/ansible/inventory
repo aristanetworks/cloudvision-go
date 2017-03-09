@@ -18,7 +18,7 @@ r12s15  ansible_host=172.24.32.15
 r12s16  ansible_host=172.24.32.16
 r12s17  ansible_host=172.24.32.17 K8S_WORKER=True
 r12s18  ansible_host=172.24.32.18 ETCD2=True
-r12s19  ansible_host=172.24.32.19
+# r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
 r12s20  ansible_host=172.24.32.20 K8S_WORKER=True
 r12s21  ansible_host=172.24.32.21 K8S_WORKER=True
 r12s22  ansible_host=172.24.32.22 K8S_WORKER=True
@@ -31,7 +31,7 @@ r12s28  ansible_host=172.24.32.28 K8S_WORKER=True
 r12s29  ansible_host=172.24.32.29 K8S_WORKER=True
 r12s30  ansible_host=172.24.32.30 K8S_WORKER=True
 r12s31  ansible_host=172.24.32.31 K8S_WORKER=True
-r12s32  ansible_host=172.24.32.32
+# r12s32  ansible_host=172.24.32.32 # Used by docker registry, managed manually
 
 [coreos:vars]
 ansible_user=core
