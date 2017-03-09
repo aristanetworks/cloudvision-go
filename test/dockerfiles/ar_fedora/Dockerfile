@@ -18,11 +18,10 @@ RUN yum install -y \
    openssh-server \
    python \
    hostname \
-   sshpass
-
-RUN yum install -y http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-1.0.0-1.x86_64.rpm
-RUN yum install -y http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-Linux-1.6-3.noarch.rpm
-RUN yum install -y ftp://195.220.108.108/linux/fedora/linux/updates/23/x86_64/a/ansible-2.2.0.0-3.fc23.noarch.rpm
+   sshpass \
+   http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-1.0.0-1.x86_64.rpm \
+   http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-Linux-1.6-3.noarch.rpm \
+   ftp://195.220.108.108/linux/fedora/linux/updates/23/x86_64/a/ansible-2.2.0.0-3.fc23.noarch.rpm
 
 EXPOSE 22
 
