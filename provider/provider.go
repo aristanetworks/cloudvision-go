@@ -6,9 +6,10 @@
 package provider
 
 import (
+	"fmt"
+
 	"arista/schema"
 	"arista/types"
-	"fmt"
 
 	"github.com/aristanetworks/goarista/key"
 )

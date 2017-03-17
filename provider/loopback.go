@@ -6,9 +6,10 @@
 package provider
 
 import (
+	"time"
+
 	"arista/schema"
 	"arista/types"
-	"time"
 
 	"github.com/aristanetworks/goarista/key"
 )
