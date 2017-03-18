@@ -86,7 +86,7 @@
   file:
     path: "/data4/es-data"
     state: directory
-    owner: root
-    group: root
+    owner: 1000
+    group: 1000
     mode: 0755
   when: K8S_WORKER
