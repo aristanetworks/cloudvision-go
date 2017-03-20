@@ -47,7 +47,10 @@ servers marked for test use. Average use should not require this flag.""" ) )
 
    if sv:
       try:
-         logging.info( "Hosts Triggered (%d): %s" % ( len( sv ), ", ".join( sv ) ) )
+         hosts = []
+         for server in sv:
+            hosts.append( "%s (status=%s)" % ( server, fetch_status( server ) ) )
+         logging.info( "Hosts Triggered (%d): %s" % ( len( sv ), ", ".join( hosts ) ) )
          trigger( sv )
          logging.info( "Completed." )
       except: 

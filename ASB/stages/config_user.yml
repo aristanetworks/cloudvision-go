@@ -3,7 +3,7 @@
   include: "{{STAGES_PATH}}/config_conf/config_common.yml"
 
 - name: "Install MATE desktop environment"
-  lineinfile: 
+  lineinfile:
       path: /etc/sysconfig/desktop
       line: "PREFERRED=mate-session"
       create: yes

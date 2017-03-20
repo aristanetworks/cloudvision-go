@@ -62,6 +62,20 @@ def fetch_servers( condition, testmode=False ):
 
    return servers
 
+def fetch_status( fqdn ):
+   splits = fqdn.split( ".", 1 )
+   name = splits[ 0 ]
+   domain = splits[ 1 ]
+
+   db, cs = _connect()
+      
+   # Get status of server by given name and domain
+   stmt = "select status from servers where name='%s' and domain='%s'" % ( name, 
+                                                                           domain ) 
+   cs.execute( stmt )
+   row = cs.fetchone()
+   return row[ 0 ]
+
 
 def trigger( servers ):
    # Trigger Command
