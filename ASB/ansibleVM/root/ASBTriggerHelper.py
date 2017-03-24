@@ -36,7 +36,10 @@ def _disconnect( cursor, dbcon ):
    dbcon.close()
 
 
-def fetch_servers( condition, testmode=False ):
+def fetch_servers( condition ):
+   """
+   Get the list of servers that meet CONDITION and are not reserved.
+   """
    db, cs = _connect()
 
    # Select from datacenter.servers given condition
@@ -44,22 +47,21 @@ def fetch_servers( condition, testmode=False ):
    cs.execute( stmt )
    rows = list( cs.fetchall() )
 
-   # Select all servers from datacenter.servers that is marked for test use
-   testcond = 'propertyName="misc" and propertyValue="TESTONLY"'
-   stmt2 = "select serverName, domain from server_property where %s" % ( testcond ) 
+   # Select all servers from datacenter.servers that is marked as reserved
+   ## Note that LIKE is case insensitive
+   cond = 'propertyName="reserved" AND propertyValue LIKE "true"'
+   stmt2 = "SELECT serverName, domain FROM server_property WHERE %s" % ( cond )
    cs.execute( stmt2 )
-   test_rows = list( cs.fetchall() )
+   reserved_row = list( cs.fetchall() )
 
    _disconnect( cs, db )
 
    # Combine name with domain and create tuple to create full FQDN
    rows = [ "%s.%s" % ( n, d ) for n, d in rows ]
-   test_rows =  [ "%s.%s" % ( n, d ) for n, d in test_rows ]
+   reserved_row =  [ "%s.%s" % ( n, d ) for n, d in reserved_row ]
 
-   servers = list( set( rows ) - set( test_rows ) )
-   if testmode:
-      servers = list( set( rows ) & set( test_rows ) )
-
+   # Ignore reserved servers
+   servers = list( set( rows ) - set( reserved_row ) )
    return servers
 
 def fetch_status( fqdn ):
@@ -70,8 +72,8 @@ def fetch_status( fqdn ):
    db, cs = _connect()
       
    # Get status of server by given name and domain
-   stmt = "select status from servers where name='%s' and domain='%s'" % ( name, 
-                                                                           domain ) 
+   stmt = "SELECT status FROM servers WHERE name='%s' AND domain='%s'" % ( name,
+                                                                           domain )
    cs.execute( stmt )
    row = cs.fetchone()
    return row[ 0 ]
@@ -89,7 +91,7 @@ def trigger( servers ):
                 " | dshbak -d /var/log/ASBTrigger-hosts/" )
 
    if servers:
-      cmd = pdsh_cmd % ( ",".join( servers ), trigger_cmd )	
+      cmd = pdsh_cmd % ( ",".join( servers ), trigger_cmd )
 
       # XXX this is a security hole
       subprocess.call( cmd, shell=True )

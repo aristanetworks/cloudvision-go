@@ -29,9 +29,6 @@ single step of ASB installation. Must work in conjunction with ASB Trigger cron 
 job that allows continuous operation of Trigger to automate installation via \
 ASB.""" ), formatter_class=argparse.RawTextHelpFormatter ) 
 
-   ps.add_argument( "--testmode", action="store_true", help=( """ Install only \
-servers marked for test use. Average use should not require this flag.""" ) )
-
    args = ps.parse_args()
 
    # Select all servers from the table that needs ASB triggered:
@@ -43,7 +40,7 @@ servers marked for test use. Average use should not require this flag.""" ) )
                       ASB_STATUS_HELP ]
    cond = " and ".join( [ 'status!="%s"' % st for st in ignored_states ] )
    logging.info( "Awake and running. Looking for servers to trigger." )
-   sv = fetch_servers( cond, testmode=args.testmode )
+   sv = fetch_servers( cond )
 
    if sv:
       try:
