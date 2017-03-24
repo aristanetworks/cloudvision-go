@@ -54,6 +54,13 @@
                         STATUS != ASB_STATUS_INSTALLED and
                         STATUS != ASB_STATUS_HELP }
 
+      - name: "Query for server property for this host"
+        command: "{{ASB_PROP2_QUERY}}"
+        register: reserved
+
+      - name: "Skip if this machine is marked as reserved."
+        assert: { that: reserved is not defined or
+                        ( reserved is defined and reserved.stdout | lower != "true" ) }
 
       # -----------------------------------------------------------------------------
       # 3. If this machine is good to go, retrieve installation commands
