@@ -6,28 +6,18 @@
   pre_tasks:
       # -----------------------------------------------------------------------------
       # 1. If we're good to go (no conflicting Ansible processes), then gather more
-      #    information to see if we should proceed with setting up this machine.
+      #    information to see how to proceed with setting up this machine.
 
-      # Check if explicit donothing file is present.
-      - name: "See if /root/donothing file exists"
-        stat: path="/root/donothing"
-        register: DONOTHING
-
-      - name: "If /root/donothing file exists, abort"
-        assert: { that: DONOTHING.stat.exists == False }
-
-      # Check if explicit DONOTHING file is present.
-      - name: "See if /root/DONOTHING file exists"
-        stat: path="/root/DONOTHING"
-        register: DONOTHING_CAP
-
-      - name: "If /root/DONOTHING file exists, abort"
-        assert: { that: DONOTHING_CAP.stat.exists == False }
+      - name: "Starting ASB on this machine"
+        debug: msg="{{ ansible_hostname }}.{{ ansible_domain }}"
 
       # Get information for this machine.
       - name: "Query datacenter.servers DB about this machine"
         command: "{{ASB_DB_QUERY}}"
         register: machineInfo
+
+      - name: "Check if this machine is recorded in the DB"
+        assert: { that: machineInfo is defined and machineInfo.stdout != "" }
 
       - name: "Try to gather information about this machine"
         set_fact:
@@ -43,24 +33,6 @@
 
       - name: "Current status"
         debug: msg="[{{ansible_hostname}}] status-'{{STATUS}}', role-'{{ROLE_NAME}}'"
-
-
-      # We want to skip the running ASB on following servers with following statuses:
-      # "fresh": indicates DCP tool needs to run
-      # "installed": server already installed, nothing more to do
-      # "HELP_ME": server needs human attention to be fixed.
-      - name: "Skip if status of this machine is \"fresh\\installed\\HELP_ME\""
-        assert: { that: STATUS != ASB_STATUS_FRESH and
-                        STATUS != ASB_STATUS_INSTALLED and
-                        STATUS != ASB_STATUS_HELP }
-
-      - name: "Query for server property for this host"
-        command: "{{ASB_PROP2_QUERY}}"
-        register: reserved
-
-      - name: "Skip if this machine is marked as reserved."
-        assert: { that: reserved is not defined or
-                        ( reserved is defined and reserved.stdout | lower != "true" ) }
 
       # -----------------------------------------------------------------------------
       # 3. If this machine is good to go, retrieve installation commands
