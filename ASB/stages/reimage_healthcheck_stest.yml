@@ -5,7 +5,16 @@
 - name: "Gather info about disks on this machine"
   include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
 
-# TODO Must add here check for stestd and running stests
+- name: "Disable Stests"
+  shell: "python {{STAGES_PATH}}/common_conf/changeCfg /etc/Arora.cfg Stest enabled False"
+
+# According to ssingla@ stests should not run more than 8 hours
+- name: "Check if there are stests that are still running that have started in the last 24 hours."
+  shell: "{{ASB_STESTS_QUERY}}"
+  register: RUNNING_STESTS
+
+- name: "Make sure that there are no stests running on this machine"
+  assert: { that: RUNNING_STESTS.stdout_lines | length == 0 }
 
 - name: "Uninstall stest RPM if installed"
   yum:
@@ -31,3 +40,4 @@
 - name: "Update server status"
   command:  "{{ASB_DB_UPDATE_REIMG_WIPE}}"
 ...
+

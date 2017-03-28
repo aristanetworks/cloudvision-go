@@ -87,3 +87,4 @@ ASB_DB_UPDATE_HELP: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS
 ASB_DB_SET_DISABLEMONITORING: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET disableMonitoring=1 WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 ASB_DB_RESET_DISABLEMONITORING: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET disableMonitoring=0 WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 
+ASB_STESTS_QUERY: "mysql -u arastra -e \"select project from job where type=\\\"stest\\\" and host=\\\"{{ansible_fqdn}}\\\" and endTime is NULL and startTime >= DATE_SUB(NOW(),INTERVAL 1 DAY);\" -h mysql Arjob"

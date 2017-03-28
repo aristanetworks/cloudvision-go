@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+import ConfigParser
+import sys
+
+def main():
+  # Takes in cfg file, section, field, and value to set
+  # Edits a single field in a config file by reading in config file and
+  # writing it back to the same file
+  # NOTE: Assumes you're running a root
+  cf = ConfigParser.RawConfigParser()
+  cf.read( sys.argv[ 1 ] )
+  cf.set( sys.argv[ 2 ], sys.argv[ 3 ], sys.argv[ 4 ] )
+  with open( sys.argv[ 1 ], 'w' ) as f:
+     cf.write( f )
+
+if __name__ == "__main__":
+   main()
