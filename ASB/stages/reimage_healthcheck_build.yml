@@ -8,12 +8,8 @@
 - name: "Disable abuild"
   shell: "Abuildd --deactivate"
 
-# This checks if last line of Abuildd status is a project name or the given line.
-# If the given line can't be found in last line of output, it means that the
-# last line in the output is a project name and so the grep would fail, causing
-# the entire task to fail and force this task to do an early exit.
 - name: "Check if any builds are running and early exit if there are any"
-  shell: "Abuildd -s | tail -n 1 | grep \"Abuilds currently running:\""
+  shell: "Abuildd --deactivated | grep True"
 
 - name: "Uninstall stest RPM if installed"
   yum:

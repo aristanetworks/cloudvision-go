@@ -5,11 +5,6 @@
 - name: "Gather info about disks on this machine"
   include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
 
-- name: "Uninstall stest RPM if installed"
-  yum:
-      name: AroraConfig-stest.x86_64
-      state: absent
-
 # ----------------------------------------------------------------------------------
 - block:
    - fail: msg="No disk drives detected, something is very wrong"
