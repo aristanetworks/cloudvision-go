@@ -48,6 +48,13 @@
      ignore_errors: true
      when: partitions is defined
 
+   # Remove the old boot loader code and partition table to avoid getting stuck on
+   # GRUB during reboot.
+   - name: "Zero the beginning of each disk to remove old boot loader code."
+     command: "dd if=/dev/zero of=/dev/{{ item }} bs=2M count=1"
+     with_items: "{{ disks }}"
+     ignore_errors: true
+
   rescue:
    - name: "There's nothing more than ASB can do. Setting server status to 'HELP_ME'"
      command: "{{ASB_DB_UPDATE_HELP}}"
