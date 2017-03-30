@@ -74,6 +74,11 @@ def removeAllFilesystems( mdstat, device ):
 
 def parted( mdstat, device, script ):
    removeAllFilesystems( mdstat, device )
+   msg = "Zero out the beginning of %s to remove old boot loader code and " + \
+         "partition table, to avoid getting stuck on GRUB during reboot."
+   print msg % device
+   A4.Helpers.run( [ "dd", "if=/dev/zero", "of=%s" % device, "bs=2M", "count=1" ],
+         captureStderr=True, verbose=True )
    PartTools.iparted( device, script )
    # Inform Kernel of the changes
    A4.Helpers.run( [ 'partprobe' ], verbose=True )
