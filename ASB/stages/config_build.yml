@@ -2,6 +2,12 @@
 - name: "Run common configuration steps"
   include: "{{STAGES_PATH}}/config_conf/config_common.yml"
 
+- name: "Delete unnecessary server build tags"
+  shell: "Abuildd --deltags=\"fedora14 bs2xx\""
+
+- name: "Add build server build tags"
+  shell: "Abuildd --addtags=\"fedora18 largemem bs3xx\""
+
 - name: "Enable abuilds"
   shell: "Abuildd --activate"
 
