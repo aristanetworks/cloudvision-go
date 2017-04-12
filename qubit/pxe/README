@@ -1,0 +1,9 @@
+The existing PXE and server provisioning setup is a combination of
+manual and automated steps. It is explained in the docs.
+Eventually all of it will be automated.
+
+pxelinux.cfg = This folder contains the different PXE config files.
+               The files are named per server role.
+kickstart = this folder contains the CentOS Anaconda installer kickstart files.
+            The files are name per server role.
+nfs = content thats accessed from NFS share by the kickstart scripts
