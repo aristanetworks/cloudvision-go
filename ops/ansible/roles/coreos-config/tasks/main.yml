@@ -31,3 +31,19 @@
   copy:
     src: roles/common/files/docker.50-insecure-registry.conf
     dest: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+
+# Arista is using two domains in the search.
+# systemd-networkd is using only the first one from the dhcp server
+# so we hardcode both in this config file to override the default config
+# Bug: https://github.com/systemd/systemd/issues/2710
+- name: Fix search line in resolv.conf
+  become: True
+  copy:
+    src: roles/common/files/20-dhcp.network
+    dest: /etc/systemd/network/20-dhcp.network
+  register: result
+
+- name: Restart network to take dhcp search config into account
+  become: True
+  command: systemctl restart systemd-networkd
+  when: result.changed
