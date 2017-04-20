@@ -84,7 +84,7 @@ def trigger( servers ):
    prod = "http://gerrit/ardc-config"
    trigger_cmd = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull '
                '--url=%s --directory=/root/.ansible/pull ASB/ASB.yml '
-               '--inventory=localhost,' ) % ( prod )
+               '--inventory=localhost, --purge' ) % ( prod )
 
    # PDSH Command
    pdsh_cmd = ( "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
