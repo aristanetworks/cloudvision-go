@@ -1,4 +1,28 @@
 ---
+- name: "Check if there's a MD array resync pending."
+  shell: "grep 'resync=\\(PENDING\\|DELAYED\\)' /proc/mdstat"
+  register: RESYNC_PENDING
+  ignore_errors: true
+
+- name: "Gather info about disks on this machine"
+  include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
+  when: RESYNC_PENDING | succeeded
+
+- name: "Force the MD array to resync, if it's pending."
+  shell: "mdadm --readwrite /dev/{{ item }}"
+  with_items: "{{ mddevs }}"
+  when: RESYNC_PENDING | succeeded
+  ignore_errors: true
+
+# Wait for resync to finish before installing OS.
+# Never wait for user servers as they have huge MD arrays that take long time.
+# If a MD array resync is in progress, /proc/mdstat would contain something like:
+# md4 : active raid5 sdc4[3] sdb4[1] sda4[0]
+#       97590272 blocks super 1.2 level 5, 512k chunk, algorithm 2 [3/2] [UU_]
+#       [===============>.....]  recovery = 76.7% (37445228/48795136) finish=1.4min speed=129689K/sec
+- name: "Stop if a MD array resync is in progress, for non-user server."
+  shell: '! grep "\\[.*>.*\\].*\\(recovery\\|resync\\)" /proc/mdstat'
+
 - block:
    - name: "Install OS"
      shell: "{{SW_CMD}}"

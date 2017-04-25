@@ -17,7 +17,10 @@ disable-msg=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0
 #disable=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011,Design,Similarities
 
 # for pylint 1.4.1, Mac OS 10.10.2
-disable=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011,Design,Similarities,bad-whitespace,missing-docstring,invalid-name,bad-continuation,too-many-arguments,too-many-statements,too-many-branches,too-many-locals,too-many-instance-attributes,too-many-public-methods,fixme,too-many-lines,too-few-public-methods,anomalous-backslash-in-string,trailing-whitespace,global-statement,star-args,deprecated-lambda,too-many-return-statements,cyclic-import,eval-used,unpacking-non-sequence,cell-var-from-loop,multiple-imports,wrong-import-order,wrong-import-position,ungrouped-imports,unidiomatic-typecheck,redefined-variable-type,no-staticmethod-decorator,no-classmethod-decorator,singleton-comparison,simplifiable-if-statement,consider-using-enumerate,duplicate-except,logging-not-lazy,misplaced-bare-raise,relative-import,superfluous-parens,unsupported-membership-test,useless-else-on-loop,too-many-nested-blocks,too-many-boolean-expressions,misplaced-comparison-constant,no-self-use
+disable=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011,Design,Similarities,bad-whitespace,missing-docstring,invalid-name,bad-continuation,too-many-arguments,too-many-statements,too-many-branches,too-many-locals,too-many-instance-attributes,too-many-public-methods,fixme,too-many-lines,too-few-public-methods,anomalous-backslash-in-string,trailing-whitespace,global-statement,star-args,deprecated-lambda,too-many-return-statements,cyclic-import,eval-used,unpacking-non-sequence,cell-var-from-loop,multiple-imports,wrong-import-order,wrong-import-position,ungrouped-imports,unidiomatic-typecheck,redefined-variable-type,no-staticmethod-decorator,no-classmethod-decorator,singleton-comparison,simplifiable-if-statement,consider-using-enumerate,duplicate-except,logging-not-lazy,misplaced-bare-raise,relative-import,superfluous-parens,unsupported-membership-test,useless-else-on-loop,too-many-nested-blocks,too-many-boolean-expressions,misplaced-comparison-constant,no-self-use,len-as-condition
+
+# for pylint 1.7.1
+#disable=len-as-condition
 
 # C0103 = invalid name
 # C0111 = missing docstring

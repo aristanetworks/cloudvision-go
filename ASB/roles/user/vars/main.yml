@@ -2,8 +2,8 @@ user_conf:
    reimage_healthcheck: default
    reimage_wipe: user
    reimage_verify: default
-   disk: default
-   os: default
+   disk: user
+   os: user
    config: user
    auth: default
    cleanup: default
