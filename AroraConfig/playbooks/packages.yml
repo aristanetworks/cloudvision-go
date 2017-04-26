@@ -7,13 +7,18 @@
   become: yes
   become_user: root
   tasks:
-    # ---------- ADD PACKAGES TO BE INSTALLED HERE ----------
-    # --- NOTE: add corresponding test to package install ---
+   # ---------- ADD PACKAGES TO BE INSTALLED HERE ----------
 
-    - name: "Install Telegraf"
-      yum: name=telegraf-Linux state=installed
+   - name: "Install Telegraf"
+     yum: name=telegraf-Linux state=installed
 
-    - name: "TEST"
-      script: test/test_packages.sh
-      when: TEST is defined
+
+   # ---------- ADD PACKAGES TO BE BLACKLISTED HERE ----------
+   - name: "Ensure prelink is removed"
+     yum: name="prelink" state=absent
+
+
+   - name: "TEST"
+     script: test/test_packages.sh
+     when: TEST is defined
 ...
