@@ -15,6 +15,22 @@
 - name: "Make sure no Abuilds enabled"
   shell: "Abuildd -s | grep \"Abuildd is run never\""
 
+# ----------------------------------------------------------------------------------
+# QFS Related Changes
+# ----------------------------------------------------------------------------------
+
+- name: "Mount /share as a bind mount - takes effect upon reboot"
+  lineinfile:
+     path: /etc/fstab
+     line: "/share /share none bind 0 0"
+
+- name: "Mark /share as shared mount - takes effect upon reboot"
+  lineinfile:
+     path: /etc/rc.d/rc.local
+     line: "mount --make-shared /share"
+
+# ----------------------------------------------------------------------------------
+
 - name: "Update datacenter.servers with status configuration ready"
   command: "{{ASB_DB_UPDATE_AUTH}}"
 
