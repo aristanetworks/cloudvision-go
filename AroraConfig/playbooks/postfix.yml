@@ -36,6 +36,15 @@
           shell: rpm --rebuilddb && yum -y install postfix
           when: TEST is defined
 
+        # https://forums.opensuse.org/showthread.php/436441-Postfix-error-message
+        - name: "Remove IPv6 settings for postfix because our docker containers don't support IPv6 routing yet -- TEST ENV ONLY"
+          lineinfile:
+             dest: "{{postfix_mainCf}}"
+             regexp: "inet_protocols = all"
+             line: "inet_protocols = ipv4"
+          notify: "reload postfix"
+          when: TEST is defined
+
         - name: "Start postfix, in case it is reinstalled."
           command: postfix start
           # We ignore errors from this step if postfix is already running. If postfix
