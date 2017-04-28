@@ -7,6 +7,22 @@
 
 - name: "Add build server build tags"
   shell: "Abuildd --addtags=\"fedora18 largemem bs3xx\""
+  
+# ------------------------
+# Arjobd related changes
+# ------------------------
+
+- name: "Install Arjobd package containing the service file"
+  yum:
+     name: Arsched-Arjobd
+     state: present
+
+- name: "Start Arjobd service"
+  service:
+     name: Arjobd
+     state: started
+
+# ------------------------
 
 - name: "Enable abuilds"
   shell: "Abuildd --activate"
