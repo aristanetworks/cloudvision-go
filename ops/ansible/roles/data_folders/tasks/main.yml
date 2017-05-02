@@ -97,12 +97,28 @@
   become: True
   file:
     path: "/data2/cvpbs/{{ item }}"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
   with_items:
     - workspace
     - rpmbuild
   when: K8S_WORKER
+  ignore_errors: True
+
+- name: Create hadoop data directory
+  become: True
+  file:
+    path: "{{ item }}/dfs"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  when: HADOOP
+  with_items:
+    - /data1
+    - /data2
+    - /data3
+    - /data4
+    - /data5
+    - /data6
+    - /data7
+    - /data8
   ignore_errors: True

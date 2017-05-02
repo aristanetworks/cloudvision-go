@@ -1,21 +1,21 @@
 [coreos]
 bs200 ansible_host=172.20.22.4 K8S_WORKER=True
-r12s1 ansible_host=172.24.32.1
-r12s2  ansible_host=172.24.32.2
-r12s3  ansible_host=172.24.32.3
-r12s4  ansible_host=172.24.32.4
-r12s5  ansible_host=172.24.32.5
-r12s6  ansible_host=172.24.32.6
-r12s7  ansible_host=172.24.32.7
-r12s8  ansible_host=172.24.32.8
-r12s9  ansible_host=172.24.32.9
-r12s10  ansible_host=172.24.32.10
-r12s11  ansible_host=172.24.32.11
-r12s12  ansible_host=172.24.32.12
-r12s13  ansible_host=172.24.32.13
-r12s14  ansible_host=172.24.32.14
-r12s15  ansible_host=172.24.32.15
-r12s16  ansible_host=172.24.32.16
+r12s1 ansible_host=172.24.32.1 HADOOP=True
+r12s2  ansible_host=172.24.32.2 HADOOP=True
+r12s3  ansible_host=172.24.32.3 HADOOP=True
+r12s4  ansible_host=172.24.32.4 HADOOP=True
+r12s5  ansible_host=172.24.32.5 HADOOP=True
+r12s6  ansible_host=172.24.32.6 HADOOP=True
+r12s7  ansible_host=172.24.32.7 HADOOP=True
+r12s8  ansible_host=172.24.32.8 HADOOP=True
+r12s9  ansible_host=172.24.32.9 HADOOP=True
+r12s10  ansible_host=172.24.32.10 HADOOP=True
+r12s11  ansible_host=172.24.32.11 HADOOP=True
+r12s12  ansible_host=172.24.32.12 HADOOP=True
+r12s13  ansible_host=172.24.32.13 HADOOP=True
+r12s14  ansible_host=172.24.32.14 HADOOP=True
+r12s15  ansible_host=172.24.32.15 HADOOP=True
+r12s16  ansible_host=172.24.32.16 HADOOP=True
 r12s17  ansible_host=172.24.32.17 K8S_WORKER=True
 r12s18  ansible_host=172.24.32.18 ETCD2=True
 # r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
@@ -41,6 +41,7 @@ K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
 K8S_MASTER=False
 K8S_WORKER=False
 ETCD2=False
+HADOOP=False
 
 [local]
 localhost ansible_connection=local ansible_become=false
