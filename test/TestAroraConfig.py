@@ -254,7 +254,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # another, but guarantees the order of the lines and the fact that these lines
       # do exist in the file.
       playbooks = glob.glob( os.path.join( conf.playbooks, '*.yml' ) )
-      if len( playbooks ) == 0:
+      if not playbooks:
          logger.error( 'No playbooks found to sanity check.' )
          sys.exit( 1 )
 
@@ -267,18 +267,18 @@ class TestAnsiblePushTests( unittest.TestCase ):
             expectedLns.append( 'when: TEST is defined' ) 
 
             for line in pl:
-               if len( expectedLns ) == 0:
+               if not expectedLns:
                   break
 
                line = line.lstrip()
-               if len( line ) == 0:
+               if not line:
                   continue
                elif line[0] == '#':
                   continue
                elif expectedLns[ 0 ] in line:
                   expectedLns.pop( 0 )
             
-            if len( expectedLns ):
+            if expectedLns:
                logger.error( 'No testing found for playbook "%s".', play )
                sys.exit( 1 )
             else:
@@ -345,7 +345,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
       # Let's make sure that we don't have zero client servers ready to test on. It
       # would be pointless to run the test if we don't have any client servers. 
-      assert len( conf.servs )
+      assert conf.servs
       logger.info( 'Initialized %d/%d test hosts.', len( conf.servs ), conf.num )
 
 
