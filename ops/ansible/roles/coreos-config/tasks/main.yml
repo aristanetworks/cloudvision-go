@@ -29,8 +29,8 @@
   # process
   become: True
   copy:
-    src: roles/common/files/docker.50-insecure-registry.conf
-    dest: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+    src: roles/common/files/docker.50-options.conf
+    dest: /etc/systemd/system/docker.service.d/50-options.conf
 
 # Arista is using two domains in the search.
 # systemd-networkd is using only the first one from the dhcp server

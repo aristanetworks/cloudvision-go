@@ -7,76 +7,49 @@
 
 coreos:
   units:
-    # We disable IPV6 because of this bug:
-    # https://github.com/coreos/bugs/issues/1478
-    # https://github.com/systemd/systemd/issues/2228
-    # so we restart the network service to take this change into account
-    - name: systemd-sysctl.service
-      command: restart
-    {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
-    - name: flanneld.service
-      drop-ins:
-        - name: 40-ExecStartPre-symlink.conf
-          content: |
-            {% macro flanneld_service() %}{% include "common/files/flanneld.service.40-ExecStartPre-symlink.conf" %}{% endmacro %}{{ flanneld_service() | indent(12, True) }}
-    {% endif %}
     - name: docker.service
       drop-ins:
-    {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
-        - name: 40-flannel.conf
+        - name: 50-options.conf
           content: |
-          {% macro docker_flannel() %}{% include "common/files/docker.service.40-flannel.conf" %}{% endmacro %}{{ docker_flannel() | indent(12, True) }}
-    {% endif %}
-        - name: 50-insecure-registry.conf
-          content: |
-            {% macro docker_ir() %}{% include "common/files/docker.50-insecure-registry.conf" %}{% endmacro %}{{ docker_ir() | indent(12, True) }}
-    {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
-    - name: install-kubernetes.service
+            {% macro docker_ir() %}{% include "common/files/docker.50-options.conf" %}{% endmacro %}{{ docker_ir() | indent(12, True) }}
+    - name: ansible-metadata.service
       command: start
       content: |
         [Unit]
-        Description=Install Kubernetes binaries
-        ConditionFileIsExecutable=!/opt/bin/kubelet
-        Requires=network-online.target
-        After=network-online.target
+        Description=Metadata agent to create short hostname env var file
+        Requires=network-online.target systemd-resolved.service
+        After=network-online.target systemd-resolved.service
         [Service]
         Type=oneshot
-        ExecStart=/usr/bin/mkdir -p /opt/bin
-        ExecStart=/usr/bin/curl http://dist/storage/Kubernetes/kubernetes-{{ hostvars[item]['K8S_VERSION'] }}-server-linux-amd64/server/bin/kubelet -o /opt/bin/kubelet -f
-        ExecStart=/usr/bin/chmod +x /opt/bin/kubelet
-        ExecStartPost=echo "{{ hostvars[item]['K8S_KUBELET_MD5'] }}  /opt/bin/kubelet" | md5sum --strict --check -
-    - name: kubelet.service
+        Environment=OUTPUT=/run/coreos/shorthostname
+        ExecStart=/usr/bin/bash -c 'echo "SHORTHOSTNAME=$(hostname -s)" > ${OUTPUT}'
+    - name: ansible-install.service
       command: start
-      drop-ins:
-        - name: 40-install-kubernetes.conf
-          content: |
-            [Unit]
-            Requires=install-kubernetes.service
-            After=install-kubernetes.service
       content: |
+        [Unit]
+        Description=Run ansible to provision the machine
+        Requires=network-online.target ansible-metadata.service
+        After=network-online.target ansible-metadata.service
+        Wants=data2.mount data3.mount data4.mount data5.mount data6.mount data7.mount data8.mount
+        After=data2.mount data3.mount data4.mount data5.mount data6.mount data7.mount data8.mount
         [Service]
-        ExecStart=/opt/bin/kubelet \
-          --api_servers={% if hostvars[item]['K8S_MASTER'] %}http://127.0.0.1:8080{%else%}https://{{ k8s_masters | join(",") }}{% endif %} \
-          {% if hostvars[item]['K8S_MASTER'] %}
-          --register-schedulable=false \
-          {%else%}
-          --register-node=true \
-          {% endif %}
-          --allow-privileged=true \
-          --config=/etc/kubernetes/manifests \
-          --hostname-override={{ hostvars[item]['ansible_host'] }} \
-          --cluster_dns=10.3.0.10 \
-          --cluster_domain=cluster.local \
-          --cadvisor-port=4194{% if not hostvars[item]['K8S_MASTER'] %} \
-          --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-          --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-          --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
-
-        Restart=always
-        RestartSec=10
-        [Install]
-        WantedBy=multi-user.target
-    {% endif %}
+        Type=oneshot
+        EnvironmentFile=/run/coreos/shorthostname
+        Environment=UUIDFILE=/tmp/rkt-uuid-ansible-install
+        ExecStartPre=/usr/bin/rkt --insecure-options=image,http fetch docker://registry.docker.sjc.aristanetworks.com:5000/k8s/install
+        ExecStartPre=/usr/bin/mkdir -p /tmp/ansibleinstall
+        ExecStartPre=/usr/bin/chmod 777 /tmp/ansibleinstall
+        ExecStart=/usr/bin/rkt run docker://registry.docker.sjc.aristanetworks.com:5000/k8s/install \
+                    --name=ansible-install \
+                    --uuid-file-save=${UUIDFILE} \
+                    --volume ansibleinstall,kind=host,source=/tmp/ansibleinstall \
+                    --mount volume=ansibleinstall,target=/ansibleinstall \
+                    --net=host \
+                    --dns=host \
+                    --hostname=${SHORTHOSTNAME} \
+                    --exec bash \
+                    -- -c "git clone --depth 1 http://gerrit/ardc-config && cd ardc-config/ops/ansible && ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -v playbook.yml -l $(hostname -s) > /ansibleinstall/ansible-playbook-$(date '+%F-%H-%M-%S').logs 2>&1"
+        ExecStartPost=-/usr/bin/rkt rm --uuid-file=${UUIDFILE}
     - name: data2.mount
       command: start
       content: |
@@ -140,13 +113,6 @@ coreos:
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: user-config-ovfenv.path
-      content: |
-        [Unit]
-        Description=Watch for a cloud-config at /media/ovfenv/ovf-env.xml
-        # See https://github.com/coreos/bugs/issues/1120
-        [Path]
-        PathExists=/media/ovfenv/ovf-env.xml
   {% if hostvars[item]['ETCD2'] %}
     - name: etcd2.service
       command: start
@@ -161,291 +127,6 @@ coreos:
   {% endif %}
   update:
     reboot-strategy: off
-
-write_files:
-  {% if hostvars[item]['K8S_WORKER'] %}
-  - path: /data3/kafka-data/.keep
-    permissions: 0644
-    owner: root
-    content: ""
-  - path: /data4/es-data/.keep
-    permissions: 0644
-    owner: root
-    content: ""
-  {% endif %}
-  - path: /etc/sysctl.d/inotify.conf
-    content: |
-      {% macro inotify() %}{% include "common/files/inotify.conf" %}{% endmacro %}{{ inotify() | indent(6, True) }}
-  # We disable IPV6 because of this bug:
-  # https://github.com/coreos/bugs/issues/1478
-  # https://github.com/systemd/systemd/issues/2228
-  - path: /etc/sysctl.d/10-disable-ipv6.conf
-    permissions: 0644
-    owner: root
-    content: |
-      {% macro disableipv6() %}{% include "common/files/10-disable-ipv6.conf" %}{% endmacro %}{{ disableipv6() | indent(6, True) }}
-  # Arista is using two domains in the search.
-  # systemd-networkd is using only the first one from the dhcp server
-  # so we hardcode both in this config file to override the default config
-  # Bug: https://github.com/systemd/systemd/issues/2710
-  - path: /etc/systemd/network/zy-dhcp.network
-    permissions: 0644
-    owner: root
-    content: |
-      {% macro fixsearchresolv() %}{% include "common/files/zy-dhcp.network" %}{% endmacro %}{{ fixsearchresolv() | indent(6, True) }}
-  {% if hostvars[item]['K8S_MASTER'] %}
-  - path: "/etc/kubernetes/ssl/apiserver.pem"
-    permissions: "600"
-    owner: "root"
-    content: |
-      {% macro apiservercert() %}{% include "k8s_vars/certs/apiserver.pem" %}{% endmacro %}{{ apiservercert() | indent(6, True) }}
-  - path: "/etc/kubernetes/ssl/apiserver-key.pem"
-    permissions: "600"
-    owner: "root"
-    content: |
-      {% macro apiserverkeycert() %}{% include "k8s_vars/certs/apiserver-key.pem" %}{% endmacro %}{{ apiserverkeycert() | indent(6, True) }}
-  {% elif hostvars[item]['K8S_WORKER'] %}
-  - path: "/etc/kubernetes/ssl/worker.pem"
-    permissions: "600"
-    owner: "root"
-    content: |
-      {% macro workercert() %}{% include "k8s_vars/certs/worker.pem" %}{% endmacro %}{{ workercert() | indent(6, True) }}
-  - path: "/etc/kubernetes/ssl/worker-key.pem"
-    permissions: "600"
-    owner: "root"
-    content: |
-      {% macro workerkeycert() %}{% include "k8s_vars/certs/worker-key.pem" %}{% endmacro %}{{ workerkeycert() | indent(6, True) }}
-  {% endif %}
-  {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
-  - path: "/etc/kubernetes/ssl/ca.pem"
-    permissions: "600"
-    owner: "root"
-    content: |
-      {% macro cacert() %}{% include "k8s_vars/certs/ca.pem" %}{% endmacro %}{{ cacert() | indent(6, True) }}
-  # flannel config
-  - path: "/etc/flannel/options.env"
-    permissions: "022"
-    owner: "root"
-    content: |
-      FLANNELD_IFACE={{ hostvars[item]['ansible_host'] }}
-      FLANNELD_ETCD_ENDPOINTS={{ etcd2_endpoints | join(",") }}
-  {% endif %}
-  {% if hostvars[item]['K8S_MASTER'] %}
-  # kube-apiserver pid config
-  - path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
-    permissions: "022"
-    owner: "root"
-    content: |
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: kube-apiserver
-        namespace: kube-system
-      spec:
-        hostNetwork: true
-        containers:
-        - name: kube-apiserver
-          image: gcr.io/google_containers/hyperkube:v{{ hostvars[item]['K8S_VERSION'] }}
-          command:
-          - /hyperkube
-          - apiserver
-          - --bind-address=0.0.0.0
-          - --etcd_servers={{ etcd2_endpoints | join(",")}}
-          - --allow-privileged=true
-          - --service-cluster-ip-range=10.3.0.0/16
-          - --secure_port=443
-          - --advertise-address={{ hostvars[item]['ansible_host'] }}
-          - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota
-          - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
-          - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
-          - --client-ca-file=/etc/kubernetes/ssl/ca.pem
-          - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
-          - --runtime-config=batch/v2alpha1
-          ports:
-          - containerPort: 443
-            hostPort: 443
-            name: https
-          - containerPort: 8080
-            hostPort: 8080
-            name: local
-          volumeMounts:
-          - mountPath: /etc/kubernetes/ssl
-            name: ssl-certs-kubernetes
-            readOnly: true
-          - mountPath: /etc/ssl/certs
-            name: ssl-certs-host
-            readOnly: true
-        volumes:
-        - hostPath:
-            path: /etc/kubernetes/ssl
-          name: ssl-certs-kubernetes
-        - hostPath:
-            path: /usr/share/ca-certificates
-          name: ssl-certs-host
-  # kube-controller-manager Pod config
-  - path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
-    permissions: "022"
-    owner: "root"
-    content: |
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: kube-controller-manager
-        namespace: kube-system
-      spec:
-        hostNetwork: true
-        containers:
-        - name: kube-controller-manager
-          image: gcr.io/google_containers/hyperkube:v{{ hostvars[item]['K8S_VERSION'] }}
-          command:
-          - /hyperkube
-          - controller-manager
-          - --master=http://127.0.0.1:8080
-          - --leader-elect=true
-          - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
-          - --root-ca-file=/etc/kubernetes/ssl/ca.pem
-          livenessProbe:
-            httpGet:
-              host: 127.0.0.1
-              path: /healthz
-              port: 10252
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-          volumeMounts:
-          - mountPath: /etc/kubernetes/ssl
-            name: ssl-certs-kubernetes
-            readOnly: true
-          - mountPath: /etc/ssl/certs
-            name: ssl-certs-host
-            readOnly: true
-        volumes:
-        - hostPath:
-            path: /etc/kubernetes/ssl
-          name: ssl-certs-kubernetes
-        - hostPath:
-            path: /usr/share/ca-certificates
-          name: ssl-certs-host
-  # kube-scheduler Pod config
-  - path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
-    permissions: "022"
-    owner: "root"
-    content: |
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: kube-scheduler
-        namespace: kube-system
-      spec:
-        hostNetwork: true
-        containers:
-        - name: kube-scheduler
-          image: gcr.io/google_containers/hyperkube:v{{ hostvars[item]['K8S_VERSION'] }}
-          command:
-          - /hyperkube
-          - scheduler
-          - --master=http://127.0.0.1:8080
-          livenessProbe:
-            httpGet:
-              host: 127.0.0.1
-              path: /healthz
-              port: 10251
-            initialDelaySeconds: 15
-            timeoutSeconds: 1
-  {% endif %}
-  {% if hostvars[item]['K8S_MASTER'] or hostvars[item]['K8S_WORKER'] %}
-  # kube-proxy pod config
-  - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
-    permissions: "022"
-    owner: "root"
-    content: |{% if hostvars[item]['K8S_MASTER'] %}
-
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: kube-proxy
-        namespace: kube-system
-      spec:
-        hostNetwork: true
-        containers:
-        - name: kube-proxy
-          image: gcr.io/google_containers/hyperkube:v{{ hostvars[item]['K8S_VERSION'] }}
-          command:
-          - /hyperkube
-          - proxy
-          - --master=http://127.0.0.1:8080
-          securityContext:
-            privileged: true
-          volumeMounts:
-          - mountPath: /etc/ssl/certs
-            name: ssl-certs-host
-            readOnly: true
-        volumes:
-        - hostPath:
-            path: /usr/share/ca-certificates
-          name: ssl-certs-host{% else %}
-
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        name: kube-proxy
-        namespace: kube-system
-      spec:
-        hostNetwork: true
-        containers:
-        - name: kube-proxy
-          image: gcr.io/google_containers/hyperkube:v{{ hostvars[item]['K8S_VERSION'] }}
-          command:
-          - /hyperkube
-          - proxy
-          - --master=https://{{ k8s_masters | join(",") }}
-          - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - mountPath: /etc/ssl/certs
-              name: "ssl-certs"
-            - mountPath: /etc/kubernetes/worker-kubeconfig.yaml
-              name: "kubeconfig"
-              readOnly: true
-            - mountPath: /etc/kubernetes/ssl
-              name: "etc-kube-ssl"
-              readOnly: true
-        volumes:
-          - name: "ssl-certs"
-            hostPath:
-              path: "/usr/share/ca-certificates"
-          - name: "kubeconfig"
-            hostPath:
-              path: "/etc/kubernetes/worker-kubeconfig.yaml"
-          - name: "etc-kube-ssl"
-            hostPath:
-              path: "/etc/kubernetes/ssl"{% endif %}
-  {% endif %}
-  {% if hostvars[item]['K8S_WORKER'] %}
-
-  # kubeconfig worker config
-  - path: "/etc/kubernetes/worker-kubeconfig.yaml"
-    permissions: "022"
-    owner: "root"
-    content: |
-      apiVersion: v1
-      kind: Config
-      clusters:
-      - name: local
-        cluster:
-          certificate-authority: /etc/kubernetes/ssl/ca.pem
-      users:
-      - name: kubelet
-        user:
-          client-certificate: /etc/kubernetes/ssl/worker.pem
-          client-key: /etc/kubernetes/ssl/worker-key.pem
-      contexts:
-      - context:
-          cluster: local
-          user: kubelet
-        name: kubelet-context
-      current-context: kubelet-context
-  {% endif %}
 
 ssh_authorized_keys:
   {% for key in hostvars[item]['ssh_keys'] %}
