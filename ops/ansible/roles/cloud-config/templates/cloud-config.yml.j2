@@ -188,11 +188,11 @@ write_files:
   # systemd-networkd is using only the first one from the dhcp server
   # so we hardcode both in this config file to override the default config
   # Bug: https://github.com/systemd/systemd/issues/2710
-  - path: /etc/systemd/network/20-dhcp.network
+  - path: /etc/systemd/network/zzz-dhcp.network
     permissions: 0644
     owner: root
     content: |
-      {% macro fixsearchresolv() %}{% include "common/files/20-dhcp.network" %}{% endmacro %}{{ fixsearchresolv() | indent(6, True) }}
+      {% macro fixsearchresolv() %}{% include "common/files/zzz-dhcp.network" %}{% endmacro %}{{ fixsearchresolv() | indent(6, True) }}
   {% if hostvars[item]['K8S_MASTER'] %}
   - path: "/etc/kubernetes/ssl/apiserver.pem"
     permissions: "600"
