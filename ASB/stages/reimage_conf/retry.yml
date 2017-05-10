@@ -1,6 +1,6 @@
 ---
 - name: "Query for the number of retries remaining for this host."
-  shell: "{{ ASB_DB_REIMG_RETRY_CHECK }}"
+  shell: "{{ ASB_DB_REIMG_RETRY_CHECK_COUNT }}"
   register: retryCount
 
 - name: "If unable to get retry count, create it as a server property on mysql."
@@ -8,8 +8,12 @@
   when: retryCount.stdout | default( "" ) == ""
 
 - name: "Query again for the number of retries remaining for this host."
-  shell: "{{ ASB_DB_REIMG_RETRY_CHECK }}"
+  shell: "{{ ASB_DB_REIMG_RETRY_CHECK_COUNT }}"
   register: retryCount
+
+- name: "Query for the retry stage for this host."
+  shell: "{{ ASB_DB_REIMG_RETRY_CHECK_STAGE }}"
+  register: retryStage
 
 # Need to use "stdout_lines[0]" beacuse there can be duplicate server property
 # with the same server name, domain, and property name.
@@ -19,19 +23,24 @@
       RETRY_COUNT: "{{ retryCount.stdout_lines[0] | int }}"
   when: retryCount is defined
 
+- name: "Get the stage this host should start the retry on, default to reimage healthcheck."
+  set_fact:
+      RETRY_STAGE: "{{ retryStage.stdout_lines[0] | default( ASB_STATUS_REIMG_HEALTH ) }}"
+  when: retryStage is defined
+
 - name: "No more retry remaining, set status to HELP_ME and let a human take a look."
   command: "{{ASB_DB_UPDATE_HELP}}"
   when: RETRY_COUNT | int <= 0
 
-- name: "Clean up the record of retry count on mysql."
+- name: "Clean up the record of retry properties on MySQL."
   shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
   when: RETRY_COUNT | int <= 0
 
 - fail: msg="Machine exhausts all retry attempts, aborting."
   when: RETRY_COUNT | int <= 0
 
-- name: "Reset datacenter.servers status to reimage_healthcheck for retry."
-  command: "{{ASB_DB_UPDATE_REIMG_HEALTH}}"
+- name: "Reset host status to the retry stage."
+  command: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', RETRY_STAGE ) }}"
 
 - name: "Decrement the number of retries remaining."
   shell: "{{ ASB_DB_REIMG_RETRY_DECREMENT }}"

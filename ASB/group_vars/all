@@ -57,7 +57,8 @@ THRESHOLD_SMART_MZER: 100 # Multi_Zone_Error_Rate: error when writing a sector.
                           # High value indicate disk is in bad mechanical condition.
 # Constants used by MySQL queries when a retry is triggered.
 # They are used in queries related to datacenter.server_property table.
-ASB_REIMG_RETRY_PROP_NAME: "retryCount"
+ASB_REIMG_RETRY_COUNT: "retryCount"
+ASB_REIMG_RETRY_STAGE: "retryStage"
 ASB_REIMG_RETRY_INITIAL_COUNT: 3
 
 
@@ -67,10 +68,11 @@ ASB_DB_QUERY: "mysql -N -u arastra -e \"SELECT status, role FROM {{ASB_DB}} WHER
 ASB_PROP_QUERY: "mysql -N -u arastra -e \"SELECT propertyValue from {{ASB_PROP_DB}} where serverName=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\" AND propertyName=\\\"numDisks\\\"\" -h mysql datacenter"
 ASB_CMDS_QUERY: "mysql -N -u arastra -e \"SELECT diskConfCmd, instSWCmd FROM {{ASB_CMDS_DB}} WHERE role=\\\"{{ROLE_NAME}}\\\" and numDisks={{DISK_NUM}}\" -h mysql datacenter"
 
-ASB_DB_REIMG_RETRY_CHECK: "mysql -N -u arastra -e \"SELECT propertyValue FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' AND domain='{{ansible_domain}}' AND propertyName='{{ASB_REIMG_RETRY_PROP_NAME}}'\" -h mysql datacenter"
-ASB_DB_REIMG_RETRY_CREATE: "mysql -N -u arastra -e \"INSERT INTO {{ASB_PROP_DB}} ( serverName, domain, propertyName, propertyValue ) VALUES( '{{ansible_hostname}}', '{{ansible_domain}}', '{{ASB_REIMG_RETRY_PROP_NAME}}', {{ASB_REIMG_RETRY_INITIAL_COUNT}} )\" -h mysql datacenter"
-ASB_DB_REIMG_RETRY_DECREMENT: "mysql -N -u arastra -e \"UPDATE {{ASB_PROP_DB}} SET propertyValue = propertyValue - 1 WHERE serverName='{{ansible_hostname}}' AND domain='{{ansible_domain}}' AND propertyName='{{ASB_REIMG_RETRY_PROP_NAME}}'\" -h mysql datacenter"
-ASB_DB_REIMG_RETRY_DELETE: "mysql -N -u arastra -e \"DELETE FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' and domain='{{ansible_domain}}' and propertyName='{{ASB_REIMG_RETRY_PROP_NAME}}'\" -h mysql datacenter"
+ASB_DB_REIMG_RETRY_CHECK_COUNT: "mysql -N -u arastra -e \"SELECT propertyValue FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' AND domain='{{ansible_domain}}' AND propertyName='{{ASB_REIMG_RETRY_COUNT}}'\" -h mysql datacenter"
+ASB_DB_REIMG_RETRY_CHECK_STAGE: "mysql -N -u arastra -e \"SELECT propertyValue FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' AND domain='{{ansible_domain}}' AND propertyName='{{ASB_REIMG_RETRY_STAGE}}'\" -h mysql datacenter"
+ASB_DB_REIMG_RETRY_CREATE: "mysql -N -u arastra -e \"INSERT INTO {{ASB_PROP_DB}} ( serverName, domain, propertyName, propertyValue ) VALUES( '{{ansible_hostname}}', '{{ansible_domain}}', '{{ASB_REIMG_RETRY_COUNT}}', {{ASB_REIMG_RETRY_INITIAL_COUNT}} )\" -h mysql datacenter"
+ASB_DB_REIMG_RETRY_DECREMENT: "mysql -N -u arastra -e \"UPDATE {{ASB_PROP_DB}} SET propertyValue = propertyValue - 1 WHERE serverName='{{ansible_hostname}}' AND domain='{{ansible_domain}}' AND propertyName='{{ASB_REIMG_RETRY_COUNT}}'\" -h mysql datacenter"
+ASB_DB_REIMG_RETRY_DELETE: "mysql -N -u arastra -e \"DELETE FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' and domain='{{ansible_domain}}' and ( propertyName='{{ASB_REIMG_RETRY_COUNT}}' or propertyName='{{ASB_REIMG_RETRY_STAGE}}' )\" -h mysql datacenter"
 
 ASB_DB_UPDATE_TEMPLATE: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"%s\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
 ASB_DB_UPDATE_REIMG_HEALTH: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_HEALTH ) }}"
