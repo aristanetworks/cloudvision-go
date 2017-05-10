@@ -39,8 +39,8 @@
 - name: Fix search line in resolv.conf
   become: True
   copy:
-    src: roles/common/files/zzz-dhcp.network
-    dest: /etc/systemd/network/zzz-dhcp.network
+    src: roles/common/files/zy-dhcp.network
+    dest: /etc/systemd/network/zy-dhcp.network
   register: result
 
 - name: Restart network to take dhcp search config into account
