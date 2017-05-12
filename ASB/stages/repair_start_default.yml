@@ -1,0 +1,12 @@
+---
+- name: "Get disks on this machine"
+  set_fact:
+     disks: "{{ ansible_devices.keys() }}"
+
+- name: "Spawn badblocks on each disk in parallel"
+  shell: "badblocks -wf -t 0 /dev/{{ item }} &"
+  with_items: "{{ disks }}"
+
+- name: "Update datacenter.servers - machine is running badblocks now"
+  command: "{{ ASB_DB_UPDATE_REPAIR_RUNNING }}"
+...

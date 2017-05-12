@@ -1,0 +1,7 @@
+---
+- name: "Send post-repair SMART data to Ansible VM"
+  include: "{{STAGES_PATH}}/repair_conf/repair_collectinfo.yml"
+
+- name: "Update datacenter.servers - machine should go install now"
+  command: "{{ASB_DB_UPDATE_DISK}}"
+...

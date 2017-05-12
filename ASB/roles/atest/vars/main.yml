@@ -1,4 +1,8 @@
 atest_conf:
+   repair_prepare: default
+   repair_start: default
+   repair_running: default
+   repair_verify: default
    reimage_healthcheck: default
    reimage_wipe: default
    reimage_verify: default

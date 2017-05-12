@@ -1,0 +1,15 @@
+---
+- name: "Collect SMART data on each disk"
+  set_fact:
+      disks: "{{ansible_devices.keys()}}"
+
+- name: "Collect SMART post-repair records for each disk"
+  shell: "smartctl -a /dev/{{item}} >> /root/SMART_{{STATUS}}_{{ansible_hostname}}_{{item}}"
+  with_items: "{{disks}}"
+
+- name: "Send each SMART data to Ansible VM"
+  shell: " export HISTCONTROL=ignorespace && sshpass -p arastra scp -o StrictHostKeyChecking=no /root/SMART_{{STATUS}}* root@ansible:/var/log/ASBTrigger-hosts/repair-hosts/"
+
+- name: "Clean up SMART files"
+  shell: "rm /root/SMART_{{STATUS}}*"
+...

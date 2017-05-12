@@ -13,6 +13,10 @@ STAGES_PATH: "{{playbook_dir}}/stages/"
 # ASB Statuses
 # ------------
 ASB_STATUS_FRESH: "fresh"
+ASB_STATUS_REPAIR_PREPARE: "repair_prepare"
+ASB_STATUS_REPAIR_START: "repair_start"
+ASB_STATUS_REPAIR_RUNNING: "repair_running"
+ASB_STATUS_REPAIR_VERIFY: "repair_verify"
 ASB_STATUS_REIMG_HEALTH: "reimage_healthcheck"
 ASB_STATUS_REIMG_WIPE: "reimage_wipe"
 ASB_STATUS_REIMG_VERIFY: "reimage_verify"
@@ -75,6 +79,10 @@ ASB_DB_REIMG_RETRY_DECREMENT: "mysql -N -u arastra -e \"UPDATE {{ASB_PROP_DB}} S
 ASB_DB_REIMG_RETRY_DELETE: "mysql -N -u arastra -e \"DELETE FROM {{ASB_PROP_DB}} WHERE serverName='{{ansible_hostname}}' and domain='{{ansible_domain}}' and ( propertyName='{{ASB_REIMG_RETRY_COUNT}}' or propertyName='{{ASB_REIMG_RETRY_STAGE}}' )\" -h mysql datacenter"
 
 ASB_DB_UPDATE_TEMPLATE: "mysql -u arastra -e \"UPDATE {{ASB_DB}} SET status=\\\"%s\\\" WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
+ASB_DB_UPDATE_REPAIR_PREPARE: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REPAIR_PREPARE ) }}"
+ASB_DB_UPDATE_REPAIR_START: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REPAIR_START ) }}"
+ASB_DB_UPDATE_REPAIR_RUNNING: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REPAIR_RUNNING ) }}"
+ASB_DB_UPDATE_REPAIR_VERIFY: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REPAIR_VERIFY ) }}"
 ASB_DB_UPDATE_REIMG_HEALTH: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_HEALTH ) }}"
 ASB_DB_UPDATE_REIMG_WIPE: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_WIPE ) }}"
 ASB_DB_UPDATE_REIMG_VERIFY: "{{ ASB_DB_UPDATE_TEMPLATE | regex_replace( '%s', ASB_STATUS_REIMG_VERIFY ) }}"

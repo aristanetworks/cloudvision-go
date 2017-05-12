@@ -1,0 +1,10 @@
+---
+# If badblocks is running grep would return 0. If so, then keep it running.
+- name: "Check if badblocks is running - if running, exit"
+  shell: "ps -e | grep badblocks"
+  register: badblocksjobs
+  failed_when: badblocksjobs.rc == 0
+
+- name: "Update datacenter.servers - badblocks finished running"
+  command: "{{ ASB_DB_UPDATE_REPAIR_VERIFY }}"
+...

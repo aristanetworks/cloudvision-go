@@ -7,3 +7,7 @@ user_conf:
    config: user
    auth: default
    cleanup: default
+   repair_prepare: default
+   repair_start: default
+   repair_running: default
+   repair_verify: default
