@@ -36,6 +36,8 @@
 # systemd-networkd is using only the first one from the dhcp server
 # so we hardcode both in this config file to override the default config
 # Bug: https://github.com/systemd/systemd/issues/2710
+# FIXME: This might be fixed by https://github.com/systemd/systemd/pull/5932
+# Validate and remove file if it works with this fix
 - name: Fix search line in resolv.conf
   become: True
   copy:
