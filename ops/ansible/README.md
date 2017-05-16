@@ -7,12 +7,10 @@ brew install ansible@2.0
 brew link --force ansible@2.0
 ```
 
-# Initialize the remote coreos machines:
-
-**This has to be done only once per machine. Usually you shouldn't need to do this.**
+# Install the remote coreos machines:
 
 ```sh
-ansible-playbook bootstrap.yml
+ansible-playbook playbook.yml -l r12sXX
 ```
 
 # Run ansible commands

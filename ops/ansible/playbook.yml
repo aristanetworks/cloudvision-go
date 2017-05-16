@@ -1,3 +1,6 @@
+---
+- include: bootstrap.yml
+
 - hosts: coreos
   roles:
     - motd
