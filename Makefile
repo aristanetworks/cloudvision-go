@@ -12,6 +12,9 @@ test:
 clean:
 		./setup.py clean -a
 
-jenkins: pylint build test
+opsjenkins:
+	$(MAKE) -C ops/ansible
+
+jenkins: pylint build test opsjenkins
 
 .PHONY: all pylint build clean jenkins test
