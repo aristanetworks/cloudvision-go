@@ -63,13 +63,15 @@
 - name: Check if k8s binary is correct
   become: True
   set_fact:
-    force_new_download: "{{ k8sbinary_file.stat.md5 != K8S_KUBELET_MD5 }}"
+    force_new_download: "{{ k8sbinary_file.stat.exists == False or k8sbinary_file.stat.md5 != K8S_KUBELET_MD5 }}"
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Stop kubelet service
   become: True
   command: systemctl stop kubelet.service
   when: "(K8S_MASTER == True or K8S_WORKER == True) and force_new_download"
+  # The service might not be installed yet, so we don't mind having errors
+  ignore_errors: True
 
 - name: Install k8s binary
   become: True
