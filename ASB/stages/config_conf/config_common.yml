@@ -2,7 +2,7 @@
 - name: "Set up motd"
   copy:
       src: "{{STAGES_PATH}}/config_conf/motd.{{ROLE_NAME}}only"
-      dest: "{{ASB_ROOT_MNTPT}}/etc/motd"
+      dest: "/etc/motd"
 
 - name: "Check network configuration is correct - /etc/sysconfig"
   shell: ls -l /etc/sysconfig/network-scripts/ifcfg-* | grep -q {{ item }}
