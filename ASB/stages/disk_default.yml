@@ -24,6 +24,6 @@
   ignore_errors: true
 
 - name: "Update datacenter.servers with status that disk setup has finished"
-  command: "{{ASB_DB_UPDATE_OS}}"
+  command: "{{ASB_DB_UPDATE_RESYNC_RUNNING}}"
 ...
 

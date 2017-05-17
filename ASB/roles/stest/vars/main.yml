@@ -8,6 +8,7 @@ stest_conf:
    reimage_verify: default
    disk: default
    os: default
+   resync_running: default
    config: stest
    auth: default
    cleanup: default

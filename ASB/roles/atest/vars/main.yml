@@ -8,6 +8,7 @@ atest_conf:
    reimage_verify: default
    disk: default
    os: default
+   resync_running: default
    config: default
    auth: default
    cleanup: default
