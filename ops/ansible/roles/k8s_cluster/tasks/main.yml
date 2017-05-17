@@ -22,6 +22,8 @@
     - /etc/kubernetes/ssl
     - /etc/kubernetes/manifests
     - /etc/flannel
+    - /etc/systemd/system/flanneld.service.d
+    - /etc/systemd/system/docker.service.d
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Install flannel config
