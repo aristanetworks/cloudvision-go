@@ -80,6 +80,7 @@
     group: root
     mode: 0755
   when: K8S_WORKER
+  ignore_errors: True
 
 - name: Create elastic search data directory
   become: True
@@ -90,6 +91,7 @@
     group: 1000
     mode: 0755
   when: K8S_WORKER
+  ignore_errors: True
 
 - name: Create cvpbs jenkins slave workspace directory
   become: True
@@ -103,3 +105,4 @@
     - workspace
     - rpmbuild
   when: K8S_WORKER
+  ignore_errors: True
