@@ -90,3 +90,16 @@
     group: 1000
     mode: 0755
   when: K8S_WORKER
+
+- name: Create cvpbs jenkins slave workspace directory
+  become: True
+  file:
+    path: "/data2/cvpbs/{{ item }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  with_items:
+    - workspace
+    - rpmbuild
+  when: K8S_WORKER
