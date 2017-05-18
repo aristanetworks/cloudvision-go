@@ -157,7 +157,6 @@
   become: True
   copy:
     # TODO: Make this a template
-    # TODO: Should we enable this unit as well? Not sure how it's working right now :-(
     content: |
       [Service]
       ExecStart=/opt/bin/kubelet \
@@ -188,6 +187,11 @@
     mode: 0644
   when: "K8S_MASTER == True or K8S_WORKER == True"
   register: kservice
+
+- name: Enable kubelet.service unit
+  become: True
+  command: systemctl enable kubelet.service
+  when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Reload services
   become: True
