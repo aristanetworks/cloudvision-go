@@ -173,7 +173,7 @@
         --register-node=true \
       {% endif %}
         --allow-privileged=true \
-        --config=/etc/kubernetes/manifests \
+        --pod-manifest-path=/etc/kubernetes/manifests \
         --hostname-override={{ ansible_host }} \
         --cluster_dns=10.3.0.10 \
         --cluster_domain=cluster.local \
