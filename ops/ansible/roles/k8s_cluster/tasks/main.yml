@@ -53,6 +53,12 @@
     dest: /etc/systemd/system/docker.service.d/40-flannel.conf
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
+- name: Reload systemd config
+  become: True
+  command: systemctl daemon-reload
+  when: "K8S_MASTER == True or K8S_WORKER == True"
+  # TODO: We should restart when we really changed something
+
 - name: Restart docker daemon
   become: True
   command: systemctl restart docker.service
