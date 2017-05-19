@@ -180,7 +180,8 @@
         --cadvisor-port=4194{% if not K8S_MASTER %} \
         --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
         --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-        --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
+        --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
+        --volume-stats-agg-period=0
 
       Restart=always
       RestartSec=10
