@@ -5,6 +5,33 @@
 # WARNING: the ansible playbook in the ardc-config repo is now generating those
 # files automatically. See the README.md in ardc-config.git/ops/ansible for more information
 
+# Install process:
+# This is a minimal cloud-config file used to install the CoreOS machines.
+# The idea is to have the cloud-config file do almost nothing and have the real
+# install done by ansible automatically at boot time.
+# This way, any new config will be handled by ansible and there is no need to update
+# the cloud-config file.
+# The install process has the following steps:
+# 1/ CoreOS will be started using PXE Boot
+# 2/ The bootstrap.sh script will be downloaded and executed
+# 3/ This bootstrap.sh script will download the cloud-config file for the host,
+#    install it, download the latest coreos version and reboot to install this latest version
+# 4/ After boot, the latest version of CoreOS will run the cloud-config file which will
+#    clone the ardc-config repo and run ansible to provision the host.
+#
+# Notes:
+# * rkt is used instead of docker because when flanneld is installed by ansible, dockerd must
+#   be restarted in order to take changes into account and the network change won't be applied
+#   if dockerd detects that some docker containers are running.
+# * ConditionPathExists/touch combinaison is used to handle first boot install instead of using
+#   ConditionFirstBoot because the install needs to be validated only when it succeeded and not
+#   only on first boot where it can fail in which case the service can be restarted manually
+#   to run the install again.
+# * systemd-resolved.service is needed by ansible-metadata.service because this service needs to
+#   get the hostname applied by DHCP. Otherwise, having network-online.target can give "localhost"
+#   as dhcp config is not applied yet which will make ansible run the install against
+#   the wrong host.
+
 coreos:
   units:
     - name: docker.service
