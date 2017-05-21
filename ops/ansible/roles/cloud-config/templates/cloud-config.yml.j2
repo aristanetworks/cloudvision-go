@@ -28,6 +28,7 @@ coreos:
       content: |
         [Unit]
         Description=Run ansible to provision the machine
+        ConditionPathExists=!/home/core/.ansible-installed
         Requires=network-online.target ansible-metadata.service
         After=network-online.target ansible-metadata.service
         Wants=data2.mount data3.mount data4.mount data5.mount data6.mount data7.mount data8.mount
@@ -50,6 +51,7 @@ coreos:
                     --exec bash \
                     -- -c "git clone --depth 1 http://gerrit/ardc-config && cd ardc-config/ops/ansible && ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -v playbook.yml -l $(hostname -s) > /ansibleinstall/ansible-playbook-$(date '+%F-%H-%M-%S').logs 2>&1"
         ExecStartPost=-/usr/bin/rkt rm --uuid-file=${UUIDFILE}
+        ExecStartPost=/usr/bin/touch /home/core/.ansible-installed
     - name: data2.mount
       command: start
       content: |
