@@ -65,6 +65,7 @@
       - { role: user,      when: ROLE_NAME == 'user'  }
       - { role: stest,     when: ROLE_NAME == 'stest' }
       - { role: atestveos, when: ROLE_NAME == 'atestveos' }
+      - { role: scylla,    when: ROLE_NAME == 'scylla' }
       # --- WIP ---
       #- { role: dist,     when: ROLE_NAME == 'dist' }
 ...

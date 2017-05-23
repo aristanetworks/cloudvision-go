@@ -1,0 +1,15 @@
+serial 0 38400
+prompt 1
+# Delay 30s before booting automatically
+# timeout is in 1/10s units
+timeout 300
+say .
+say . Milkyway servers - Arora Live
+default mw-f18-arora-live
+label mw-f18-arora-live
+  kernel http://172.22.22.37/tftpboot/f18/latest/images/arora-live.x86_64/boot/vmlinuz
+  append initrd=http://172.22.22.37/tftpboot/f18/latest/images/Arora-live-18.x86_64.squashfs root=/dev/ram0 ramdisk_size=1048576 rootfstype=squashfs readonlyroot rd_NO_PLYMOUTH console=tty0 console=ttyS1,115200n8
+label scylla-pxe-kexec
+    # ksdevice=link -> use first device with active link
+    kernel http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/vmlinuz
+    append initrd=http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/initrd.img ramdisk_size=100000 console=tty0 console=ttyS1,115200n8 inst.repo=nfs:nfs101:/persist2/root/centos7/CentOS-7-x86_64-DVD-1511.iso lang=en_US keymap=us ip=dhcp ksdevice=link ks=http://pxe.aristanetworks.com/tftpboot/milkyway/storage.ks

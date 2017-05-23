@@ -93,7 +93,7 @@ yum install -y pciutils
 # yum-utils contains debuginfo-install used to setup debuginfo for Scylla
 yum install -y yum-utils
 # for Scylla debugging
-yum install perf
+yum install -y perf
 
 # Configure bonding
 mkdir /tmp/root
@@ -109,7 +109,21 @@ systemctl enable systemd-networkd
 systemctl enable systemd-resolved
 systemctl disable firewalld
 
-# --- Some of the following tasks can be moved to ansible/ASB ---
+# ASB support
+yum install -y git mysql ansible smartmontools
+
+mkdir -p ~arastra/.ssh
+cp /tmp/root/arastra-ssh/* ~arastra/.ssh/
+chown arastra:arastra -R ~arastra/.ssh
+chmod 700 ~arastra/.ssh
+chmod 600 ~arastra/.ssh/*
+
+usermod -a -G root,wheel arastra
+
+cat <<EOF >> /etc/sudoers
+Defaults !env_reset, !requiretty
+%wheel ALL=(ALL) NOPASSWD: ALL
+EOF
 
 # setup ToolsV2 repo
 cat <<EOF > /etc/yum.repos.d/ToolsV2.repo

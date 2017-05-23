@@ -1,0 +1,29 @@
+---
+# These tasks are run after the PXE KS install has completed.
+# So basic dependencies for ASB (eg: arastra account setup,
+# ansible setup etc) are working fine.
+#
+# The checks here should be kept in sync with the KS.
+# The checks are mostly spot checks to catch unexpected changes to KS.
+
+- name: "Check that serial console has been setup"
+  shell: "grep -q console=ttyS1,115200n8 /proc/cmdline"
+  register: console
+  ignore_errors: true
+
+- name: "Check that NTP has been setup"
+  shell: "grep -q ntp.aristanetworks.com /etc/ntp.conf"
+  register: ntp
+  ignore_errors: true
+
+- name: "Check that FSTRIM has been setup"
+  stat:
+    path: /etc/cron.daily/fstrim
+  register: st
+  ignore_errors: true
+
+- name: "PXE install status"
+  set_fact:
+    PXE_KS_INSTALL_STATUS: "{{ console|succeeded and ntp|succeeded and st.stat.exists | bool }}"
+
+...
