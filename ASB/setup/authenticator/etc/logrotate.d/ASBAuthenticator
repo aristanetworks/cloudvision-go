@@ -1,0 +1,9 @@
+# Logrotate rules for ASBAuthenticator.log
+
+/var/log/ASBAuthenticator.log {
+   weekly
+   compress
+   dateext
+   missingok
+   notifempty
+}

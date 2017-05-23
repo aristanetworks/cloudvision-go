@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+# ASB Authenticator: Wrapper script for "restore_server"
+# ----------------------------------------------------------------------
+# Collects FQDN placeholders in automation account which signals they are
+# ready to be issued a ticket and issues ticket. Assumes this script is
+# initiated as root by cron job
+
+
+import MySQLdb
+import subprocess
+import glob
+import os
+import sys
+import logging
+
+
+# Enable logging
+logging.basicConfig( filename='/var/log/ASBAuthenticator.log',
+                     format='[ASB Authenticator] %(asctime)s: %(message)s',
+                     datefmt='%m/%d/%Y %H:%M:%S',
+                     level=logging.DEBUG )
+
+# Dir with all the placeholders (whitelist files)
+WHITELIST_DIR = "/home/asb/"
+
+# Dir with all the user home directories
+HOME_DIR = "/home"
+
+# FQDN of all servers to be authenticated should contain this
+CONTAINS_DOMAIN = "aristanetworks.com"
+
+# ----------------------------------------------------------------------------------
+# Utility Functions
+# ----------------------------------------------------------------------------------
+def _connect():
+   try:
+      db = MySQLdb.connect( user="arastra",
+                            db="datacenter",
+                            host="mysql" )
+      cs = db.cursor()
+      return db, cs
+   except MySQLdb.MySQLError:
+      # If there were errors trying to connect to DB, early exit.
+      logging.error( "Could not connect to datacenter DB. Aborting." )
+      sys.exit( 1 )
+
+def _disconnect( cursor, dbcon ):
+   cursor.close()
+   dbcon.close()
+
+def fetch_servers_with_status( status ):
+   try:
+      db, cs = _connect()
+
+      stmt = "select name,domain from servers where status=\"%s\"" % ( status )
+      cs.execute( stmt )
+      rows = list( cs.fetchall() )
+
+      _disconnect( cs, db )
+      return rows
+   except MySQLdb.MySQLError:
+      # If there were errors while trying to get records, early exit.
+      logging.error( "Could not fetch server records from servers table." )
+      sys.exit( 1 )
+
+# ----------------------------------------------------------------------------------
+# Main
+# ----------------------------------------------------------------------------------
+def main():
+   # Fetch all hosts that need P4 ticket issued
+   hosts = fetch_servers_with_status( "auth" )
+
+   if hosts:
+      # Full FQDN of servers that need ticket on datacenter.servers
+      needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in hosts ]
+
+      # Get list of whitelisted FQDNs in ASB account
+      whitelist = [ os.path.basename( p ) for p in glob.glob(
+                    os.path.join( WHITELIST_DIR, "*" ) ) ]
+
+      # Get list of servers already authenticated, ie. servers that has user account
+      preAuthServers = os.listdir( HOME_DIR )
+      preAuthServers = [ sv for sv in preAuthServers if CONTAINS_DOMAIN in sv ]
+
+      # Only authenicate servers that are either:
+      #    (1) whitelisted, ie. have a whitelisted file in ASB account, or
+      #    (2) already authenticated, ie. have an user account on ticketserver.
+      allowed = set( whitelist ).union( preAuthServers )
+      authServers = set( needTicket ) & allowed
+
+      for sv in authServers:
+         ret = subprocess.call( "timeout 60 /root/restore_server %s" % sv,
+                                shell=True ) 
+         if ret:
+            logging.error( ( "Could not issue ticket for %s - restore_server script "
+                             "failed with error code %d" )  % ( sv, ret ) )
+         else:
+            if sv in whitelist:
+               logging.info( "Newly issued ticket for %s" % sv )
+               try:
+                  # Remove the whitelist file after authentication
+                  os.remove( os.path.join( WHITELIST_DIR, sv ) )
+                  logging.info( "Removed whitelist file for %s" % sv )
+               except OSError:
+                  logging.error( "Could not remove whitelist file for %s" % sv )
+            elif sv in preAuthServers:
+               logging.info( "Re-issued ticket for %s" % sv )
+
+
+if __name__ == "__main__":
+   main()

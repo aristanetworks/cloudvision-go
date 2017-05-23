@@ -1,4 +1,0 @@
-Everything here should be placed on ticketserver.
-
-1. Place asbAuthenticator cron job on ticketserver:/etc/cron.d/
-2. Place asbAuthentactor.py and restore_server on ticketserver:/root/
