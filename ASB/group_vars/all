@@ -1,12 +1,8 @@
 # Automatic Server Bringup (ASB) related global variables
-
-ASB_TICKET_STALE: 3600
-
 ASB_DB: "servers"
 ASB_PROP_DB: "server_property"
 ASB_CMDS_DB: "server_cmd"
 ASB_ROOT_MNTPT: "/tmp/root"
-
 STAGES_PATH: "{{playbook_dir}}/stages/"
 
 

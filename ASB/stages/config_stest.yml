@@ -14,7 +14,7 @@
       state: installed
 
 - name: "Enable Stests"
-  shell: "python {{STAGES_PATH}}/common_conf/changeCfg /etc/Arora.cfg Stest enabled True"
+  shell: "{{STAGES_PATH}}/common_conf/changeCfg /etc/Arora.cfg Stest enabled True"
 
 - name: "Update datacenter.servers with status configuration ready"
   command: "{{ASB_DB_UPDATE_AUTH}}"

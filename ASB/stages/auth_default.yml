@@ -1,12 +1,12 @@
 ---
-# NOTE: Not much done in this stage but that's because we're actually using this stage to 
-# allow ASB Authenticator to finish asynchronously.
+# Not much done in this stage because we're actually using this stage to allow ASB
+# Authenticator to finish asynchronously.
 
-# If "a4 login -s" hangs for more than 30 seconds, abort
+# If "a4 login" hangs for more than 30 seconds, abort since that means Authenticator hasn't
+# got around to issuing the ticket yet.
 - name: "Run a4 login to check ticket issue was successful"
   shell: "P4USER=arastra timeout 30 a4 login"
 
 - name: "Update datacenter.servers with status - authentication steps finished, moving onto cleanup"
   command: "{{ASB_DB_UPDATE_CLEANUP}}"
 ...
-

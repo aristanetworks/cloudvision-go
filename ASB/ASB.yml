@@ -11,12 +11,11 @@
       - name: "Starting ASB on this machine"
         debug: msg="{{ ansible_hostname }}.{{ ansible_domain }}"
 
-      # Get information for this machine.
-      - name: "Query datacenter.servers DB about this machine"
+      - name: "Fetch server record from datacenter.servers DB"
         command: "{{ASB_DB_QUERY}}"
         register: machineInfo
 
-      - name: "Check if this machine is recorded in the DB"
+      - name: "If there is no server record for this machine, don't proceed"
         assert: { that: machineInfo is defined and machineInfo.stdout != "" }
 
       - name: "Try to gather information about this machine"
