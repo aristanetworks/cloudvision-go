@@ -1,0 +1,15 @@
+---
+# Stop all the services on Scylla node
+
+# Failures in flush would happen if
+# Scylla service isn't running so ignore errors
+# to make the stop idempotent
+- name: "Flushing Scylla server's in-memory state"
+  shell: nodetool flush
+  ignore_errors: true
+
+# never stop telegraf and collected
+- name: "Stopping services"
+  service: name={{ item }} state=stopped
+  with_items:
+          - scylla-server

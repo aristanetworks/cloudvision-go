@@ -1,0 +1,13 @@
+---
+- name: "Create Scylla cluster"
+  hosts: scylla_nodes
+  become: yes
+  become_user: root
+  gather_facts: no
+  serial: 50
+  roles:
+    - { role: setup_scyllaroot } 
+    - { role: install }
+    - { role: configure }
+    - { role: service_starter }
+...

@@ -1,0 +1,3 @@
+# Global variables for scylla ansible scripts
+
+SCYLLA_RESOURCE_PATH: "{{ playbook_dir }}/resources/"

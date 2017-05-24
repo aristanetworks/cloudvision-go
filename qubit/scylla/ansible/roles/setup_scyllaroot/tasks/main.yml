@@ -1,0 +1,9 @@
+---
+# Use the default /var/lib/scylla as the scylla root directory
+# This directory should reside on RAID0 partition
+# This keeps many of the tools happy
+
+- name: "Setup /var/lib/scylla as symlink to /persist"
+  file: src=/persist path=/var/lib/scylla state=link force=yes
+
+...

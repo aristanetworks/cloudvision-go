@@ -1,0 +1,51 @@
+---
+# NOTE: To use perftune.py we need pyudev dependency.
+#       perftune.py uses python3
+#       perftune.py is being used to workaround the bug in
+#       posix_net_conf.sh.
+#       From 1.8 release this workaround won't be needed
+#
+#
+# NOTE: Do not run scylla_io_setup until the perftune has run
+#       since perftune sets up disk interrupts. Running scylla_setup
+#       causes cpuset to be incorrect in current release so fix cpuset.conf
+
+- name: "(workaround) Calc CPU mask based on CPU_SPEC"
+  shell: hwloc-calc "{{ CPU_SPEC }}" | /usr/lib/scylla/hex2list.py
+  register: CPU_MASK_REG
+
+- name: "(workaround) Use scylla_setup (without IO setup) to configure Scylla"
+  shell: scylla_setup --no-node-exporter --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0 --no-io-setup
+
+- name: "(workaround) Fix the cpuset.conf"
+  shell: /usr/lib/scylla/scylla_cpuset_setup --cpuset "{{ CPU_MASK_REG.stdout }}"
+
+# python3-pip is not available in RHEL's EPEL repo so
+# install pip3 using easy_install
+#
+- name: "(workaround) Install python34-setuptools"
+  yum: name=python34-setuptools state=present
+
+- name: "(workaround) Install pip"
+  shell: easy_install-3.4 pip
+
+- name: "(workaround) pyudev"
+  shell: pip3 install pyudev
+
+# don't put the script in /usr/lib/scylla to keep
+# that dirs contents same as those installed by RPMs
+#
+- name: "(workaround) Install perftune.py"
+  copy:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/perftune.py"
+    dest: /root/perftune.py
+    owner: root
+    group: root
+    mode: "u+x,g+x"
+
+- name: "(workaround) Run perftune.py"
+  shell: /root/perftune.py --nic bond0 --tune disks --tune net --dir /var/lib/scylla --cpu-mask {{ CPU_MASK_REG.stdout }}
+
+- name: "(workaround) Run scylla_io_setup (This task takes 2-4 mins)"
+  shell: scylla_io_setup
+

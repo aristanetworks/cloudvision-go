@@ -1,0 +1,40 @@
+---
+# Configures Scylla
+
+- name: "Configure /etc/scylla/scylla.yaml"
+  template:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/scylla.yaml.j2"
+    dest: /etc/scylla/scylla.yaml
+    mode: 0644
+
+- name: "Configure /etc/scylla/cassandra-rackdc.properties"
+  template:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/cassandra-rackdc.properties.j2"
+    dest: /etc/scylla/cassandra-rackdc.properties
+    mode: 0644
+
+- name: "Put coredumps on the RAID device"
+  shell: scylla_coredump_setup --dump-to-raiddir
+
+- name: "(workaround) Fix cpuset and use perftune"
+  include: workaround_perftune.yml
+  when: "BUG_CPUSET_SCYLLA_SETUP == 1"
+
+- name: "(no workaround) Use scyall_setup (This task takes 2-4 mins)"
+  shell: scylla_setup --no-node-exporter --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0
+  when: "BUG_CPUSET_SCYLLA_SETUP == 0"
+
+# Needed to make /etc/rc.local run at boot
+- name: "Make rc.local executable"
+  file: path=/etc/rc.d/rc.local state=file mode=a+x
+
+- name: "Install tunables to be run at boot up"
+  copy:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/rc.local"
+    dest: /etc/rc.local
+    mode: "u=rwx,g=rx,o=rx"
+
+- name: "Run the tunables"
+  shell: /etc/rc.local
+
+...
