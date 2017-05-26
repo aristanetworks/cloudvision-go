@@ -1,0 +1,18 @@
+---
+
+# Run sanity test
+#
+# CLUSTER_CONTACT_NODE = cqlsh to this node when running CQL scripts
+# inventory = hosts on which the ansible playbook runs
+#
+# For example:
+#  runner run_sanity_test.yml mw105, "CLUSTER_CONTACT_NODE=mw140"
+#
+- name: "Run sanity test"
+  hosts: all
+  become: yes
+  become_user: root
+  gather_facts: no
+  roles:
+    - { role: sanity_tester }
+...
