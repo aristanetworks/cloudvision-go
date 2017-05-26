@@ -1,5 +1,5 @@
 ---
-- name: "Create Scylla cluster"
+- name: "Install Scylla on node(s)"
   hosts: scylla_nodes
   become: yes
   become_user: root

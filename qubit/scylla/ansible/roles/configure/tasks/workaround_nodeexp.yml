@@ -1,0 +1,16 @@
+---
+
+# Node exporter setup by current versions of Scylla fail to parse
+# /proc/mdadm correctly causing following errors to clutter the logs
+#
+# May 24 09:00:12 mw120.sjc.aristanetworks.com node_exporter[982]: time="2017-05-24T09:00:12-07:00" level=error msg="ERROR: mdadm collector failed after 0.000988s: error parsing mdstatus: error parsing mdstat: too few matches found in statusline:       4626604032 blocks super 1.2 512k chunks" source="node_exporter.go:91"
+#
+# Use 0.14.0 to avoid this issue
+
+- name: "(workaround) Use 0.14.0 node-exporter"
+  copy:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/node_exporter_install"
+    dest: /usr/lib/scylla/node_exporter_install
+    mode: "a+x"
+
+...

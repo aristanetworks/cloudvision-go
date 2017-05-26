@@ -5,5 +5,6 @@
   service: name={{ item }} state=started
   with_items:
           - collectd
+          - node-exporter
           - scylla-server
           - telegraf

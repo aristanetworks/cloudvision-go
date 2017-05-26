@@ -5,6 +5,8 @@ JDK_CHECKSUM=75b2cb2249710d822a60f83e28860053
 JDK_VER_DIR=1.8.0_131
 # refer to Scylla issue: XXX
 BUG_CPUSET_SCYLLA_SETUP=1
+# refer to Scylla issue: XXX
+BUG_NODE_EXP=1
 # format supported by hwloc-calc
 CPU_SPEC=socket:0-.core:0-
 

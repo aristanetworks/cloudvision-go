@@ -16,13 +16,19 @@
 - name: "Put coredumps on the RAID device"
   shell: scylla_coredump_setup --dump-to-raiddir
 
+# Fix up the node-exporter-install prior to scylla_setup
+- name: "(workaround) Fix node-exporter"
+  include: workaround_nodeexp.yml
+  when: "BUG_NODE_EXP | int == 1"
+
 - name: "(workaround) Fix cpuset and use perftune"
   include: workaround_perftune.yml
-  when: "BUG_CPUSET_SCYLLA_SETUP == 1"
+  when: "BUG_CPUSET_SCYLLA_SETUP | int == 1"
 
+# enable this once BUG_CPUSET_SCYLLA_SETUP and BUG_NODE_EXP are fixed
 - name: "(no workaround) Use scyall_setup (This task takes 2-4 mins)"
-  shell: scylla_setup --no-node-exporter --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0
-  when: "BUG_CPUSET_SCYLLA_SETUP == 0"
+  shell: scylla_setup --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0
+  when: "BUG_CPUSET_SCYLLA_SETUP == 0 and BUG_NODE_EXP == 0"
 
 # Needed to make /etc/rc.local run at boot
 - name: "Make rc.local executable"

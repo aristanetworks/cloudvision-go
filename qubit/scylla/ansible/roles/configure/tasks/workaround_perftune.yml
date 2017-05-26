@@ -15,7 +15,7 @@
   register: CPU_MASK_REG
 
 - name: "(workaround) Use scylla_setup (without IO setup) to configure Scylla"
-  shell: scylla_setup --no-node-exporter --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0 --no-io-setup
+  shell: scylla_setup --no-ntp-setup --no-selinux-setup --no-raid-setup --no-enable-service --no-bootparam-setup --setup-nic --nic bond0 --no-io-setup
 
 - name: "(workaround) Fix the cpuset.conf"
   shell: /usr/lib/scylla/scylla_cpuset_setup --cpuset "{{ CPU_MASK_REG.stdout }}"
