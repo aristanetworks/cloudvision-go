@@ -1,10 +1,10 @@
 ---
-- name: "Start services in cluster"
+- name: "Stop services"
   hosts: scylla_nodes
   become: yes
   become_user: root
   gather_facts: no
   serial: 50
   roles:
-          - { role: service_starter }
+    - { role: server_stopper }
 ...
