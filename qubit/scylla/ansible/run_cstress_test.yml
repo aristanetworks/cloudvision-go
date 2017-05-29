@@ -1,0 +1,11 @@
+---
+# Run cassandra-stress test
+#
+- name: "Run cstress test"
+  hosts: all
+  gather_facts: no
+  become: yes
+  become_user: root
+  roles:
+    - { role: cstress_tester }
+...

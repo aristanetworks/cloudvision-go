@@ -1,0 +1,9 @@
+REMOTE_TEST_DIR: "{{ REMOTE_TEST_BASE_DIR }}/{{ TEST_TAG }}"
+LOCAL_TEST_DIR: "{{ LOCAL_TEST_BASE_DIR }}/{{ TEST_TAG }}"
+
+WRITE_TEST_LOG: "{{ REMOTE_TEST_DIR }}/write-{{ TEST_SIZE }}.log"
+LOGFILE: "{{ REMOTE_TEST_DIR }}/{{ TEST_MODE }}-{{ TEST_SIZE }}.log"
+
+WRITE_CMD: "cassandra-stress write duration={{ TEST_DURATION }} cl={{ TEST_CL }} -schema compaction\\(strategy=LeveledCompactionStrategy\\) replication\\(strategy=NetworkTopologyStrategy,DC1=3\\) -mode native cql3 -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINTS }} -pop seq=1..{{ TEST_ITERATIONS }}"
+
+READ_CMD: "cassandra-stress read duration={{ TEST_DURATION }} cl={{ TEST_CL }} -mode native cql3 -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINTS }} -pop dist=gaussian\\(1..{{ ITERATIONS }},{{ ( ITERATIONS|int / 2)|int }}, {{ ( ITERATIONS|int / 2)|int }}\\)"

@@ -1,0 +1,49 @@
+---
+# Run a cstress test
+#
+- name: "Create directory for cstress test logs"
+  file: path={{ REMOTE_TEST_DIR }} state=directory
+
+- name: "Setup CMD for write"
+  set_fact: CMD="{{ WRITE_CMD }}"
+  when: " TEST_MODE == 'write' "
+
+# attempting to read partitions that haven't been written fails the test
+- name: "Find maximum partitions written"
+  shell: "grep 'Total partitions' {{ WRITE_TEST_LOG }} | awk '{print($4)}'"
+  register: partitions_written
+  when: " TEST_MODE == 'read' "
+
+- name: "Set partition count to be read"
+  set_fact: "TOTAL_READ_PARTITIONS={{ partitions_written.stdout }}"
+  when: " TEST_MODE == 'read' "
+
+- name: "Use min of TEST_ITERATIONS or TOTAL_READ_PARTITIONS for ITERATIONS"
+  set_fact: "ITERATIONS={{ ((TOTAL_READ_PARTITIONS|int) > (TEST_ITERATIONS|int)) | ternary(TEST_ITERATIONS, TOTAL_READ_PARTITIONS) }}"
+  when: " TEST_MODE == 'read' "
+
+- name: "Setup CMD for reads"
+  set_fact: CMD="{{ READ_CMD }}"
+  when: " TEST_MODE == 'read' "
+
+- name: "Log test command"
+  shell: "echo \"CMD: {{ CMD }}\" > {{ LOGFILE }}"
+
+- name: "Log test start time"
+  shell: "echo \"CMD_START: `date +%F_%T`\" >> {{ LOGFILE }}"
+
+- name: "Execute the command"
+  shell: "{{ CMD }} >> {{ LOGFILE }}"
+
+- name: "Log test stop time"
+  shell: "echo \"CMD_STOP: `date +%F_%T`\" >> {{ LOGFILE }}"
+
+- name: "Find test logs"
+  shell: "find {{ REMOTE_TEST_DIR }} -type f -name *.log"
+  register: logfiles
+
+- name: "Fetch test logs"
+  fetch: src={{ item }} dest="{{ LOCAL_TEST_DIR}}" flat=yes
+  with_items: "{{ logfiles.stdout_lines }}"
+  when: logfiles | succeeded
+...
