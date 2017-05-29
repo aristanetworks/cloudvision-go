@@ -1,0 +1,37 @@
+---
+# Install cassandra-stress from Scylla Tools package
+
+- name: "Set up directory for Java"
+  file: state=directory path=/usr/java
+
+- name: "Download JDK"
+  get_url:
+    url: http://dist/storage/JDK/jdk-{{JDK_VERSION}}-linux-x64.tar.gz
+    dest: /tmp/jdk-{{JDK_VERSION}}-linux-x64.tar.gz
+    checksum: md5:{{JDK_CHECKSUM}}
+
+- name: "Extract JDK"
+  unarchive:
+   remote_src: yes
+   src: /tmp/jdk-{{JDK_VERSION}}-linux-x64.tar.gz
+   dest: /usr/java
+   owner: root
+   group: root
+
+# Sometimes cancelled ansible playbooks can leave yum with
+# pending transactions which cause yum module based install
+# to fail.
+- name: "Ensure that there are no pending yum transactions"
+  shell: yum-complete-transaction --cleanup-only
+
+- name: "Uninstall ABRT package due to conflicts with Scylla"
+  yum: name=abrt state=absent
+
+- name: "Install Scylla tools {{SCYLLA_VERSION}}"
+  yum: name=scylla-tools-{{SCYLLA_VERSION}} state=present
+
+- name: "Select Oracle JDK"
+  alternatives: link=/usr/bin/java name=java path=/usr/java/jdk{{JDK_VER_DIR}}/bin/java
+
+...
+

@@ -1,0 +1,11 @@
+---
+- name: "Install Scylla tools on node(s)"
+  hosts: test_nodes
+  become: yes
+  become_user: root
+  gather_facts: no
+  serial: 50
+  roles:
+    - { role: tools_installer } 
+    - { role: tools_configurator } 
+...

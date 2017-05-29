@@ -1,0 +1,8 @@
+---
+
+# Configures Scylla tools
+
+- name: "Configure cstress JVM options"
+  lineinfile: "dest=/usr/bin/cassandra-stress insertbefore='-server' line='JVM_OPTS=\"-d64 -Xmx32G -Xms32G -XX:+UseG1GC -XX:+UseStringDeduplication\"'"
+
+...
