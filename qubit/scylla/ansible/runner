@@ -4,8 +4,8 @@
 
 USAGE="Usage: $0 <playbook path> <inventory> [extra-vars]"
 
-PLAYBOOK=${1?"missing playbook. ${USAGE}"}
-INVENTORY=${2?"missing inventory. ${USAGE}"}
+PLAYBOOK=${1?"plabook path missing. ${USAGE}"}
+INVENTORY=${2?"inventory missing. ${USAGE}"}
 EXTRA_VARS=${3-""}
 
 OPTIONS="-c paramiko"
