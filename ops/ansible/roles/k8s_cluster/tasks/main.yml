@@ -184,11 +184,11 @@
         --hostname-override={{ ansible_host }} \
         --cluster_dns=10.3.0.10 \
         --cluster_domain=cluster.local \
+        --volume-stats-agg-period=0 \
         --cadvisor-port=4194{% if not K8S_MASTER %} \
         --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
         --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
-        --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
-        --volume-stats-agg-period=0
+        --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
 
       Restart=always
       RestartSec=10
