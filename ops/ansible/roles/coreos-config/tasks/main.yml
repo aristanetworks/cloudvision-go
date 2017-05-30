@@ -17,10 +17,17 @@
     dest: /etc/sysctl.d/inotify.conf
   register: result
 
-- name: iconfig config reload
+- name: disable ipv6
+  become: True
+  copy:
+    src: roles/common/files/10-disable-ipv6.conf
+    dest: /etc/sysctl.d/10-disable-ipv6.conf
+  register: result2
+
+- name: sysctl config reload
   become: True
   command: sysctl --system
-  when: result.changed
+  when: result.changed or result2.changed
 
 - name: Install docker insecure registry
   # Note that docker daemon needs to be restarted in order for this change to
