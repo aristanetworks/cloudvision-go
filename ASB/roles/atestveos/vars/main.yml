@@ -1,5 +1,4 @@
 atestveos_conf:
-   repair_prepare: default
    repair_start: default
    repair_running: default
    repair_verify: default

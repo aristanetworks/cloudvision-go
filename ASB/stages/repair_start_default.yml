@@ -1,7 +1,6 @@
 ---
-- name: "Get disks on this machine"
-  set_fact:
-     disks: "{{ ansible_devices.keys() }}"
+- name: "Send pre-repair SMART data to Ansible VM"
+  include: "{{STAGES_PATH}}/repair_conf/repair_collectinfo.yml"
 
 - name: "Spawn badblocks on each disk in parallel"
   shell: "badblocks -wf -t 0 /dev/{{ item }} &"
@@ -10,3 +9,4 @@
 - name: "Update datacenter.servers - machine is running badblocks now"
   command: "{{ ASB_DB_UPDATE_REPAIR_RUNNING }}"
 ...
+
