@@ -70,6 +70,8 @@ def fetch_servers_with_status( status ):
 # Main
 # ----------------------------------------------------------------------------------
 def main():
+   logging.info( "Waking up - scanning for servers." )
+
    # Fetch all hosts that need P4 ticket issued
    hosts = fetch_servers_with_status( "auth" )
 
@@ -108,6 +110,8 @@ def main():
                   logging.error( "Could not remove whitelist file for %s" % sv )
             elif sv in preAuthServers:
                logging.info( "Re-issued ticket for %s" % sv )
+
+   logging.info( "Going back to sleep." )
 
 
 if __name__ == "__main__":
