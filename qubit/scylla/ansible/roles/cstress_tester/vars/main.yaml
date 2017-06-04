@@ -1,8 +1,9 @@
 REMOTE_TEST_DIR: "{{ REMOTE_TEST_BASE_DIR }}/{{ TEST_TAG }}"
 LOCAL_TEST_DIR: "{{ LOCAL_TEST_BASE_DIR }}/{{ TEST_TAG }}"
 
-WRITE_TEST_LOG: "{{ REMOTE_TEST_DIR }}/write-{{ TEST_SIZE }}.log"
-LOGFILE: "{{ REMOTE_TEST_DIR }}/{{ TEST_MODE }}-{{ TEST_SIZE }}.log"
+LOGFILE_PREFIX: "{{ REMOTE_TEST_DIR }}/{{ inventory_hostname }}"
+LOGFILE: "{{ LOGFILE_PREFIX }}.{{ TEST_MODE }}.{{ TEST_SIZE }}.log"
+WRITE_TEST_LOG: "{{ LOGFILE_PREFIX }}.write.{{ TEST_SIZE }}.log"
 
 WRITE_CMD: "cassandra-stress write duration={{ TEST_DURATION }} cl={{ TEST_CL }} -schema compaction\\(strategy=LeveledCompactionStrategy\\) replication\\(strategy=NetworkTopologyStrategy,DC1=3\\) -mode native cql3 -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINTS }} -pop seq=1..{{ TEST_ITERATIONS }}"
 

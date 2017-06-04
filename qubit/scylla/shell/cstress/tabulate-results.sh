@@ -20,8 +20,9 @@ CMD="CMD:"
 TABLEDATA="Tag~TotalTime~Parts~Op/s~Lat(med)~Lat(95)~Lat(99)~Lat(99.9)~Lat(max)~Timeouts~Command\n"
 
 function extractMetrics {
-	LOGFILE=$1
-	TYPE=$2
+	NODE=$1
+	LOGFILE=$2
+	TYPE=$3
 
         CMD_VALUE=$(awk '/^'"${CMD}"'/ { print($0) }' ${LOGFILE} | cut -d':' -f2- | tr -d '\r' )
         # this ensures that there aren't any whitespaces in the CMD string, again for easy spreadhseeting
@@ -35,18 +36,32 @@ function extractMetrics {
         TIME_VALUE=$(awk '/^'"${OPTIME}"'/ {print($5) }' ${LOGFILE} | tr -d '\r' )
         PARTS_VALUE=$(awk '/^'"${PARTS}"'/ {print($4) }' ${LOGFILE} )
         EXCEPTIONS=$(grep -i -e exception ${LOGFILE} | wc -l)
-        echo "${TYPE}$SIZE~$TIME_VALUE~$PARTS_VALUE~$OPRATE_VALUE~$L_MED_VALUE~$L_95P_VALUE~$L_99P_VALUE~$L_99_9P_VALUE~$L_MAX_VALUE~$EXCEPTIONS~$CMD_VALUE\n"
+        echo "${NODE}~${TYPE}$SIZE~$TIME_VALUE~$PARTS_VALUE~$OPRATE_VALUE~$L_MED_VALUE~$L_95P_VALUE~$L_99P_VALUE~$L_99_9P_VALUE~$L_MAX_VALUE~$EXCEPTIONS~$CMD_VALUE\n"
 }
 
 function reportMetrics {
 	TYPE=$1
-	for SIZE in 512 1024 32768 1048576
+
+	# find nodes
+	NODES=""
+	TYPE_FILES=`ls ${BASEDIR}/*.${TYPE}.*.log`
+	for f in ${TYPE_FILES}
 	do
-        	LOGFILE="${BASEDIR}/${TYPE}-${SIZE}.log"
+		FULL=`basename $f`
+		NODE=${FULL%%.${TYPE}*}
+		NODES=`echo ${NODES} ${NODE}`
+	done
 
-		[[ ! -f ${LOGFILE} ]] && continue
+	for node in ${NODES}
+	do
+		for SIZE in 512 1024 32768 1048576
+	  	do
+        		LOGFILE="${BASEDIR}/${node}.${TYPE}.${SIZE}.log"
 
-		TABLEDATA="${TABLEDATA}`extractMetrics $LOGFILE ${TYPE}`"
+			[[ ! -f ${LOGFILE} ]] && continue
+
+			TABLEDATA="${TABLEDATA}`extractMetrics ${node} ${LOGFILE} ${TYPE}`"
+		done
 	done
 }
 

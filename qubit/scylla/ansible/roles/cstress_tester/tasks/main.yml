@@ -39,11 +39,11 @@
   shell: "echo \"CMD_STOP: `date +%F_%T`\" >> {{ LOGFILE }}"
 
 - name: "Find test logs"
-  shell: "find {{ REMOTE_TEST_DIR }} -type f -name *.log"
+  shell: "find {{ REMOTE_TEST_DIR }} -type f -name \"*.log\";"
   register: logfiles
 
 - name: "Fetch test logs"
-  fetch: src={{ item }} dest="{{ LOCAL_TEST_DIR}}" flat=yes
+  fetch: src={{ item }} dest="{{ LOCAL_TEST_DIR}}/" flat=yes
   with_items: "{{ logfiles.stdout_lines }}"
   when: logfiles | succeeded
 ...
