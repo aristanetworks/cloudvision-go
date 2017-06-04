@@ -1,4 +1,22 @@
 ---
+
+- name: "(workaround) Start a seed node first"
+  hosts: seed_to_start_first
+  become: yes
+  become_user: root
+  gather_facts: no
+  roles:
+    - { role: server_starter, when: BUG_DELAY_SEED_STARTUP == 1 }
+
+- name: "(workaround) Pause for 5 mins"
+  hosts: seed_to_start_first
+  become: yes
+  become_user: root
+  gather_facts: no
+  tasks:
+    - pause: minutes=5
+      when: BUG_DELAY_SEED_STARTUP == 1
+
 - name: "Start services"
   hosts: scylla_nodes
   become: yes
