@@ -1,0 +1,46 @@
+---
+
+- name: disable etcd2 for non etcd nodes
+  become: True
+  shell: systemctl disable etcd2 && systemctl stop etcd2
+  when: not ETCD2
+
+- name: create folder for etcd2 drop-in file
+  become: True
+  file:
+    path: /etc/systemd/system/etcd2.service.d
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  when: ETCD2
+
+
+- name: install etcd2 config
+  become: True
+  copy:
+    content: |
+      [Service]
+      Environment="ETCD_ADVERTISE_CLIENT_URLS=http://{{ ansible_host }}:2379"
+      Environment="ETCD_CORS=*"
+      Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ ansible_host }}:2380"
+      Environment="ETCD_INITIAL_CLUSTER={{ etcd2_endpoint_cluster | join(",") }}"
+      Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+      Environment="ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+      Environment="ETCD_NAME={{ etcd2_name }}"
+    dest: /etc/systemd/system/etcd2.service.d/20-etcd2.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: ETCD2
+  register: etcdconfig
+
+- name: Reload systemd config
+  become: True
+  shell: systemctl daemon-reload &&  systemctl restart etcd2
+  when: ETCD2 and etcdconfig.changed
+
+- name: enable etcd2 for etcd nodes
+  become: True
+  shell: systemctl enable etcd2 && systemctl start etcd2
+  when: ETCD2

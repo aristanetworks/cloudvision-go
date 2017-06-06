@@ -142,18 +142,6 @@ coreos:
         Type=ext4
         Options=nofail
         TimeoutSec=10
-  {% if hostvars[item]['ETCD2'] %}
-    - name: etcd2.service
-      command: start
-  etcd2:
-    name: {{ hostvars[item]['etcd2_name'] }}
-    initial-cluster: {{ etcd2_endpoint_cluster | join(",") }}
-    advertise-client-urls: http://{{ hostvars[item]['ansible_host'] }}:2379
-    initial-advertise-peer-urls: http://{{ hostvars[item]['ansible_host'] }}:2380
-    listen-client-urls: http://0.0.0.0:2379
-    listen-peer-urls: http://0.0.0.0:2380
-    cors: "*"
-  {% endif %}
   update:
     reboot-strategy: off
 

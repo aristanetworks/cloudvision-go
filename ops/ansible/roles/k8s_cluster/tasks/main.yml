@@ -9,6 +9,8 @@
 
 ---
 
+- include: etcd.yml
+
 - name: Create directories
   become: True
   file:
