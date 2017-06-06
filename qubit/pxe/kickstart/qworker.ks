@@ -36,9 +36,6 @@ part / --asprimary --fstype="xfs" --ondisk=sda --size=1 --grow
 # Partition clearing information
 clearpart --all --initlabel --drives=sda
 
-group --name=arastra --gid=10000
-user --name=arastra --plaintext --password=arastra --uid=10000 --gid=10000 --gecos="Arista Networks anonymous account"
-
 %packages --nobase
 @core --nodefaults
 -selinux-policy
@@ -100,13 +97,14 @@ systemctl disable firewalld
 # ASB support
 yum install -y git mysql ansible smartmontools
 
-mkdir -p ~arastra/.ssh
-cp /tmp/root/arastra-ssh/* ~arastra/.ssh/
-chown arastra:arastra -R ~arastra/.ssh
-chmod 700 ~arastra/.ssh
-chmod 600 ~arastra/.ssh/*
-
-usermod -a -G root,wheel arastra
+# Ansible Generic Account Setup
+group --name=ansible --gid=20000
+user --name=ansible --uid=20000 --gid=20000 --gecos="Ansible Account" --groups=wheel,root
+mkdir -p ~ansible/.ssh
+cp /tmp/root/ansible-ssh/* ~ansible/.ssh/
+chown ansible:ansible -R ~ansible/.ssh
+chmod 700 ~ansible/.ssh
+chmod 600 ~ansible/.ssh/*
 
 cat <<EOF >> /etc/sudoers
 Defaults !env_reset, !requiretty
