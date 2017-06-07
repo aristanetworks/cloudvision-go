@@ -4,11 +4,11 @@
 
 set -e
 
-USAGE="Usage: $0 <test tag> <test nodes> <contact nodes> [duration]"
+USAGE="Usage: $0 <test tag> <test nodes> <contact node> [duration]"
 
 TEST_TAG="${1?${USAGE}}"
 TEST_NODES="${2?${USAGE}}"
-CONTACT_NODES="${3?${USAGE}}"
+CONTACT_NODE="${3?${USAGE}}"
 TEST_DURATION=${4-"15m"}
 TS_CMD="\`date +%F_%T\`"
 TEST_BASE_DIR="cstress-runs"
@@ -36,7 +36,17 @@ do
   NAME=`echo $TEST_PARAMS | awk '{print($1)}'`
 
   CMD1="echo \"${TS_CMD} TestBegin ${NAME}\" >> $MAIN_LOGFILE"
-  CMD2="${ANSIBLE_ROOT}/runner ${ANSIBLE_ROOT}/run_cstress_test.yml ${TEST_NODES}, \"${TEST_PARAMS} LOCAL_TEST_BASE_DIR=${LOCAL_TEST_BASE_DIR} REMOTE_TEST_BASE_DIR=${REMOTE_TEST_BASE_DIR} TEST_DURATION=${TEST_DURATION} TEST_TAG=${TEST_TAG} CONTACT_POINTS=${CONTACT_NODES}\""
+
+  # build argument list
+  # RCA = "run cstress args" = run_cstress_test.yml extra vars
+  RCA="${TEST_PARAMS}"
+  RCA="${RCA} LOCAL_TEST_BASE_DIR=${LOCAL_TEST_BASE_DIR}"
+  RCA="${RCA} REMOTE_TEST_BASE_DIR=${REMOTE_TEST_BASE_DIR}"
+  RCA="${RCA} TEST_DURATION=${TEST_DURATION}"
+  RCA="${RCA} TEST_TAG=${TEST_TAG}"
+  RCA="${RCA} CONTACT_POINT=${CONTACT_NODE}"
+
+  CMD2="${ANSIBLE_ROOT}/runner ${ANSIBLE_ROOT}/run_cstress_test.yml ${TEST_NODES}, \"${RCA}\""
   CMD3="[[ \$? != 0 ]] && ( echo \"${TS_CMD} TesSuite FAIL\" >> ${MAIN_LOGFILE} ) && exit 1"
   CMD4="echo \"${TS_CMD} TestEnd ${NAME}\" >> $MAIN_LOGFILE"
 

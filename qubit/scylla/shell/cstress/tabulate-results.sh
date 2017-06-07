@@ -17,7 +17,7 @@ PARTS="Total partitions"
 CMD="CMD:"
 
 # header for the output report
-TABLEDATA="Tag~TotalTime~Parts~Op/s~Lat(med)~Lat(95)~Lat(99)~Lat(99.9)~Lat(max)~Timeouts~Command\n"
+TABLEDATA="TestHost~Tag~TotalTime~Parts~Op/s~Lat(med)~Lat(95)~Lat(99)~Lat(99.9)~Lat(max)~Timeouts~Command\n"
 
 function extractMetrics {
 	NODE=$1
@@ -36,6 +36,18 @@ function extractMetrics {
         TIME_VALUE=$(awk '/^'"${OPTIME}"'/ {print($5) }' ${LOGFILE} | tr -d '\r' )
         PARTS_VALUE=$(awk '/^'"${PARTS}"'/ {print($4) }' ${LOGFILE} )
         EXCEPTIONS=$(grep -i -e exception ${LOGFILE} | wc -l)
+
+	# set defaults, if unset
+	OPRATE_VALUE=${OPRATE_VALUE:-0}
+	L_MED_VALUE=${L_MED_VALUE:-0}
+	L_95P_VALUE=${L_95P_VALUE:-0}
+	L_99P_VALUE=${L_99P_VALUE:-0}
+	L_99_9P_VALUE=${L_99_9P_VALUE:-0}
+	L_MAX_VALUE=${L_MAX_VALUE:-0}
+	TIME_VALUE=${TIME_VALUE:-0}
+	PARTS_VALUE=${PARTS_VALUE:-0}
+	EXCEPTIONS=${EXCEPTIONS:-0}
+
         echo "${NODE}~${TYPE}$SIZE~$TIME_VALUE~$PARTS_VALUE~$OPRATE_VALUE~$L_MED_VALUE~$L_95P_VALUE~$L_99P_VALUE~$L_99_9P_VALUE~$L_MAX_VALUE~$EXCEPTIONS~$CMD_VALUE\n"
 }
 
@@ -49,7 +61,9 @@ function reportMetrics {
 	do
 		FULL=`basename $f`
 		NODE=${FULL%%.${TYPE}*}
-		NODES=`echo ${NODES} ${NODE}`
+		if [[ ! ${NODES} =~ ${NODE} ]]; then
+			NODES=`echo ${NODES} ${NODE}`
+		fi
 	done
 
 	for node in ${NODES}
