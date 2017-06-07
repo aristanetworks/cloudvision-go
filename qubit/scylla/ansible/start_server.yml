@@ -1,28 +1,47 @@
 ---
 
-- name: "(workaround) Start a seed node first"
+# BUG_SERIAL_STARTUP requires that the servers in a cluster
+# should be started as per following procedure:
+#
+# 1. Start the first seed node
+# 2. Wait for 5 minutes
+# 3. Start other seed nodes one-by-one
+# 4. Start other nodes one-by-one
+#
+# see more details in Scylla issue: 140
+#
+- assert:
+    - that: "{{ BUG_SERIAL_STARTUP == 1 }}"
+    - msg: "Change the startup procedure for parallel startup"
+
+- name: "Start a seed node first"
   hosts: seed_to_start_first
   become: yes
   become_user: root
-  gather_facts: no
-  roles:
-    - { role: server_starter, when: BUG_DELAY_SEED_STARTUP == 1 }
-
-- name: "(workaround) Pause for 5 mins"
-  hosts: seed_to_start_first
-  become: yes
-  become_user: root
-  gather_facts: no
-  tasks:
-    - pause: minutes=5
-      when: BUG_DELAY_SEED_STARTUP == 1
-
-- name: "Start services"
-  hosts: scylla_nodes
-  become: yes
-  become_user: root
-  gather_facts: no
-  serial: 50
   roles:
     - { role: server_starter }
+
+- name: "Pause for 5 mins"
+  hosts: seed_to_start_first
+  become: yes
+  become_user: root
+  tasks:
+    - pause: minutes=5
+
+- name: "Start seed nodes"
+  hosts: scylla_seed_nodes
+  become: yes
+  become_user: root
+  serial: 1
+  roles:
+    - { role: server_starter }
+
+- name: "Start non-seed nodes"
+  hosts: scylla_nodes:!scylla_seed_nodes
+  become: yes
+  become_user: root
+  serial: 1
+  roles:
+    - { role: server_starter }
+
 ...

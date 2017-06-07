@@ -3,14 +3,27 @@ SCYLLA_VERSION=1.6.2
 JDK_VERSION=8u131
 JDK_CHECKSUM=75b2cb2249710d822a60f83e28860053
 JDK_VER_DIR=1.8.0_131
-# refer to Scylla issue: XXX
+# refer to Scylla issue: 143
 BUG_CPUSET_SCYLLA_SETUP=1
-# refer to Scylla issue: XXX
+# refer to Scylla issue: 144
 BUG_NODE_EXP=1
+# refer to Scylla issue: 140
+BUG_SERIAL_STARTUP=1
 
 [scylla_nodes:vars]
 CLUSTER_NAME="prod"
 CLUSTER_SEED_IPS="172.30.0.5,172.30.16.10,172.30.32.10"
+
+# seed_to_start_first and scylla_seed_nodes groups are needed
+# due to BUG_SERIAL_STARTUP. See start_server.yml for more
+# details
+[seed_to_start_first]
+ce101
+
+[scylla_seed_nodes]
+ce101
+ce114
+ce118
 
 [scylla_nodes]
 ce101 RACK=R132 DC=DC1 LISTEN_IP=172.30.0.5 CPU_SPEC=socket:0-.core:0-5

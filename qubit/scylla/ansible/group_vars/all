@@ -1,5 +1,15 @@
 # Global variables for scylla ansible scripts
 
+# These delays (seconds) are used by the server_starter role
+# to check if nodetool reports a node to be in
+# UN state. These are default values when a new
+# cluster is created. When adding a node to an existing
+# cluster, admin will need to override these suitably.
+NODETOOL_UN_DELAY: 10
+NODETOOL_UN_RETRIES: 12
+
+PORT_UP_DELAY: 180
+
 SCYLLA_RESOURCE_PATH: "{{ playbook_dir }}/resources/"
 
 SCYLLA_ROOT_USER: "root"
