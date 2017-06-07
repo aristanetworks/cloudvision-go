@@ -5,17 +5,17 @@
   synchronize: src="{{ SANITY_TEST_PATH }}" dest="{{ SANITY_INSTALL_PATH | dirname }}"
 
 - name: "Insert sanity test data"
-  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -f {{ SANITY_INSTALL_PATH }}/create_sanity_testdata.cql"
+  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -f {{ SANITY_INSTALL_PATH }}/create_sanity_testdata.cql"
 
 - name: "Select sanity test data"
-  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -f {{ SANITY_INSTALL_PATH}}/select_sanity_testdata.cql"
+  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -f {{ SANITY_INSTALL_PATH}}/select_sanity_testdata.cql"
   register: select_data
 
 - name: "Check sanity test data"
   assert: that="select_data.stdout_lines[-1] == \"(3 rows)\""
 
 - name: "Cleanup sanity test data"
-  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -f {{ SANITY_INSTALL_PATH }}/delete_sanity_testdata.cql"
+  shell: "cqlsh {{ CLUSTER_CONTACT_NODE }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -f {{ SANITY_INSTALL_PATH }}/delete_sanity_testdata.cql"
 
 - name: "Delete sanity test scripts"
   file: state=absent path="{{ SANITY_INSTALL_PATH }}"
