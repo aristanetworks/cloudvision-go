@@ -1,0 +1,3 @@
+# Global variables for qworker ansible scripts
+
+QWORKER_RESOURCE_PATH: "{{ playbook_dir }}/resources/"

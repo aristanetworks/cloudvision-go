@@ -1,0 +1,29 @@
+---
+- name: "Disable monitoring while this machine is getting reimaged"
+  command: "{{ASB_DB_SET_DISABLEMONITORING}}"
+
+- name: "Gather info about disks on this machine"
+  include: "{{STAGES_PATH}}/reimage_conf/gather_disk_info.yml"
+
+# ----------------------------------------------------------------------------------
+- block:
+   - fail: msg="No disk drives detected, something is very wrong"
+     when: disks is not defined
+
+   - name: "Health check each disk."
+     include: "{{STAGES_PATH}}/reimage_conf/smart_check.yml disk={{ item }}"
+     with_items: "{{ disks }}"
+
+  rescue:
+   - name: "There's nothing more that ASB can do. Setting status to 'HELP_ME"
+     command: "{{ASB_DB_UPDATE_HELP}}"
+
+   - fail: msg="Machine is too unhealthy to be reimaged - aborting without making changes"
+# ----------------------------------------------------------------------------------
+#
+# FIXME: Once the PXE based kickstart install is broken into granular ASB
+#        stages, do ASB_DB_UPDATE_REIMG_WIPE. Until then, use DISK to do
+#        PXE kickstart based install when healthchecks pass
+- name: "Update server status"
+  command:  "{{ASB_DB_UPDATE_DISK}}"
+...

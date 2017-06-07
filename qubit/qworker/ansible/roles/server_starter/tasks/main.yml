@@ -1,0 +1,9 @@
+---
+# Start up all the services on qworker node
+
+- name: "Starting services"
+  service: name={{ item }} state=started
+  with_items:
+          - quantumfs
+          - quark
+          - telegraf

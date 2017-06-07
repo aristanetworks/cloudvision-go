@@ -1,0 +1,9 @@
+---
+# Stop all the services on qworker node
+
+# never stop telegraf and collected
+- name: "Stopping services"
+  service: name={{ item }} state=stopped
+  with_items:
+          - quark
+          - quantumfs

@@ -1,0 +1,12 @@
+---
+- name: "Install qworker services on node(s)"
+  hosts: qworker_nodes
+  become: yes
+  become_user: root
+  gather_facts: no
+  serial: 50
+  roles:
+    - { role: server_installer }
+    - { role: server_configurator }
+    - { role: server_starter }
+...

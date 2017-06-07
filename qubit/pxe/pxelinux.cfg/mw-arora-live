@@ -13,3 +13,7 @@ label scylla-pxe-kexec
     # ksdevice=link -> use first device with active link
     kernel http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/vmlinuz
     append initrd=http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/initrd.img ramdisk_size=100000 console=tty0 console=ttyS1,115200n8 inst.repo=nfs:nfs101:/persist2/root/centos7/CentOS-7-x86_64-DVD-1511.iso lang=en_US keymap=us ip=dhcp ksdevice=link ks=http://pxe.aristanetworks.com/tftpboot/milkyway/storage.ks
+label qworker-pxe-kexec
+    # ksdevice=link -> use first device with active link
+    kernel http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/vmlinuz
+    append initrd=http://pxe.aristanetworks.com/tftpboot/max/dist/images/pxeboot/initrd.img ramdisk_size=100000 console=tty0 console=ttyS1,115200n8 inst.repo=nfs:nfs101:/persist2/root/centos7/CentOS-7-x86_64-DVD-1511.iso lang=en_US keymap=us ip=dhcp ksdevice=link ks=http://pxe.aristanetworks.com/tftpboot/milkyway/qworker.ks

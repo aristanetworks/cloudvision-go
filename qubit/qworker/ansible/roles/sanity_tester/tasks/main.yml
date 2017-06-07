@@ -1,0 +1,6 @@
+---
+# Run sanity test on to a cluster by writing and reading back data
+
+- debug: "Setup test scripts"
+  msg : "Place holder for SPIN/QFS Sanity tests"
+

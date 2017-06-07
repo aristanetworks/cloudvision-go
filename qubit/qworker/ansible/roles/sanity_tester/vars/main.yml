@@ -1,0 +1,3 @@
+
+SANITY_TEST_PATH: "{{ QWORKER_RESOURCE_PATH }}/sanity_test"
+SANITY_INSTALL_PATH: "/tmp/{{ SANITY_TEST_PATH | basename }}"

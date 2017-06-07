@@ -1,0 +1,16 @@
+---
+
+# Run sanity test, a place holder for now.
+#
+# For example:
+#  runner run_sanity_test.yml -i <inventory file>
+#
+#
+- name: "Run sanity test"
+  hosts: all
+  become: yes
+  become_user: root
+  gather_facts: no
+  roles:
+    - { role: sanity_tester }
+...

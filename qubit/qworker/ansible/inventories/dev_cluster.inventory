@@ -1,0 +1,7 @@
+[all:vars]
+
+[qworker_nodes:vars]
+QUANTUMFS_VERSION=""
+QUARK_VERSION=""
+
+[qworker_nodes]

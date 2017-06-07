@@ -1,0 +1,22 @@
+---
+# Configures qworker
+
+# Needed to make /etc/rc.local run at boot
+- name: "Make rc.local executable"
+  file: path=/etc/rc.d/rc.local state=file mode=a+x
+
+- name: "Install tunables to be run at boot up"
+  copy:
+    src: "{{ QWORKER_RESOURCE_PATH }}/rc.local"
+    dest: /etc/rc.local
+    mode: "u=rwx,g=rx,o=rx"
+
+- name: "Run the tunables"
+  shell: /etc/rc.local
+
+- name: "Update /etc/motd file"
+  copy:
+    src: "{{ QWORKER_RESOURCE_PATH }}/motd"
+    dest: /etc/motd
+
+...

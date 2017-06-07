@@ -1,0 +1,19 @@
+---
+# Installs necessary software from ToolsV2
+
+# Install Quark
+- name: "Install Quark"
+  yum: name={{item}} state=present
+  with_items:
+    - quark-{{QUARK_VERSION}}
+
+# Install QuantumFS
+- name: "Install QuantumFS"
+  yum: name={{item}} state=present
+  with_items:
+    - quantumfs-{{QUANTUMFS_VERSION}}
+
+- name: "Install Telegraf"
+yum: name=telegraf-qubit-worker state=present
+
+...

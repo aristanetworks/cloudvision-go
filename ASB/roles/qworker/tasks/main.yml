@@ -1,0 +1,4 @@
+---
+- name: "Configuring as qworker node - running installation stage requested"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{qworker_conf[STATUS]}}.yml"
+...
