@@ -5,6 +5,8 @@ LOGFILE_PREFIX: "{{ REMOTE_TEST_DIR }}/{{ inventory_hostname }}"
 LOGFILE: "{{ LOGFILE_PREFIX }}.{{ TEST_MODE }}.{{ TEST_SIZE }}.log"
 WRITE_TEST_LOG: "{{ LOGFILE_PREFIX }}.write.{{ TEST_SIZE }}.log"
 
-WRITE_CMD: "cassandra-stress write duration={{ TEST_DURATION }} cl={{ TEST_CL }} -schema compaction\\(strategy=LeveledCompactionStrategy\\) replication\\(strategy=NetworkTopologyStrategy,DC1=3\\) -mode native cql3 -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINTS }} -pop seq=1..{{ TEST_ITERATIONS }}"
+PERFTEST_KEYSPACE: perftest
 
-READ_CMD: "cassandra-stress read duration={{ TEST_DURATION }} cl={{ TEST_CL }} -mode native cql3 -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINTS }} -pop dist=gaussian\\(1..{{ ITERATIONS }},{{ ( ITERATIONS|int / 2)|int }}, {{ ( ITERATIONS|int / 2)|int }}\\)"
+WRITE_CMD: "cassandra-stress write duration={{ TEST_DURATION }} cl={{ TEST_CL }} -schema keyspace={{ PERFTEST_KEYSPACE }} compaction\\(strategy=LeveledCompactionStrategy\\) replication\\(strategy=NetworkTopologyStrategy,DC1=3\\) -mode native cql3 user={{ SCYLLA_ROOT_USER }} password={{ SCYLLA_ROOT_PASSWORD }} -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINT }} -pop seq={{ begin_iteration}}..{{ end_iteration }}"
+
+READ_CMD: "cassandra-stress read duration={{ TEST_DURATION }} cl={{ TEST_CL }} -schema keyspace={{ PERFTEST_KEYSPACE }} -mode native cql3 user={{ SCYLLA_ROOT_USER }} password={{ SCYLLA_ROOT_PASSWORD }} -rate threads={{ TEST_THREADS }} {{ TEST_LIMIT|default('') }} -col n=FIXED\\(1\\) size=FIXED\\({{ TEST_SIZE }}\\) -node {{ CONTACT_POINT }} -pop dist=gaussian\\({{begin_iteration}}..{{ end_iteration }},{{ ( end_iteration|int / 2)|int }}, {{ ( end_iteration|int / 2)|int }}\\)"

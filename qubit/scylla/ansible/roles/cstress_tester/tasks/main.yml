@@ -4,10 +4,6 @@
 - name: "Create directory for cstress test logs"
   file: path={{ REMOTE_TEST_DIR }} state=directory
 
-- name: "Setup CMD for write"
-  set_fact: CMD="{{ WRITE_CMD }}"
-  when: " TEST_MODE == 'write' "
-
 # attempting to read partitions that haven't been written fails the test
 - name: "Find maximum partitions written"
   shell: "grep 'Total partitions' {{ WRITE_TEST_LOG }} | awk '{print($4)}'"
@@ -18,9 +14,33 @@
   set_fact: "TOTAL_READ_PARTITIONS={{ partitions_written.stdout }}"
   when: " TEST_MODE == 'read' "
 
-- name: "Use min of TEST_ITERATIONS or TOTAL_READ_PARTITIONS for ITERATIONS"
-  set_fact: "ITERATIONS={{ ((TOTAL_READ_PARTITIONS|int) > (TEST_ITERATIONS|int)) | ternary(TEST_ITERATIONS, TOTAL_READ_PARTITIONS) }}"
+# cannot set TEST_ITERATIONS with min value, need to use a different variable
+# ansible gotcha?
+- name: "Use min of TEST_ITERATIONS or TOTAL_READ_PARTITIONS as TEST_ITERATIONS for read"
+  set_fact: ITERATIONS="{{ [ TOTAL_READ_PARTITIONS|int, TEST_ITERATIONS|int ] | min }}"
   when: " TEST_MODE == 'read' "
+
+- name: "Use TEST_ITERATIONS as ITERATIONS for write"
+  set_fact: ITERATIONS={{ TEST_ITERATIONS }}
+  when: " TEST_MODE == 'write' "
+
+# setup the iteration range based on load server index
+- set_fact: index="{{play_hosts.index( inventory_hostname ) }}"
+- set_fact: begin_iteration="{{ 1 + (ITERATIONS|int) * (index|int) }}"
+- set_fact: end_iteration="{{ (ITERATIONS|int) * (1 + (index|int)) }}"
+
+- name: "Drop keyspace before write"
+  shell: "cqlsh {{ CONTACT_POINT }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -e \"DROP KEYSPACE IF EXISTS {{ PERFTEST_KEYSPACE }}\""
+  when: " TEST_MODE == 'write' "
+
+# TBD: need to discuss if this is really needed
+- name: "Pause for 1min after drop keyspace"
+  pause: minutes=1
+  when: " TEST_MODE == 'write' "
+
+- name: "Setup CMD for write"
+  set_fact: CMD="{{ WRITE_CMD }}"
+  when: " TEST_MODE == 'write' "
 
 - name: "Setup CMD for reads"
   set_fact: CMD="{{ READ_CMD }}"
