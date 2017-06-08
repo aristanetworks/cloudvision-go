@@ -39,4 +39,19 @@
 
 - name: "Select Oracle JDK"
   alternatives: link=/usr/bin/java name=java path=/usr/java/jdk{{JDK_VER_DIR}}/bin/java
+
+# install Scylla repair script and its dependencies
+- name: "Install python2 pip"
+  shell: easy_install-2.7 pip
+
+- name: "Install Tinydb"
+  shell: pip2 install tinydb
+
+- name: "Install the repair script"
+  copy:
+    src: "{{ SCYLLA_RESOURCE_PATH }}/scylla_repair_arista.py"
+    dest: /usr/lib/scylla/scylla_repair_arista.py
+    owner: root
+    group: root
+    mode: "u=rwx,g=r,o=r"
 ...
