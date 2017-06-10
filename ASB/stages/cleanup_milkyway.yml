@@ -1,6 +1,6 @@
 ---
 - name: "Perform PXE installation checks"
-  include: "{{STAGES_PATH}}/cleanup_conf/scylla_pxeks_checks.yml"
+  include: "{{STAGES_PATH}}/cleanup_conf/milkyway_pxeks_checks.yml"
 
 # When PXE KS install check fails, it's not a transient error
 # or an error that can be corrected by retrying.

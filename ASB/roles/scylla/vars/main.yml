@@ -13,6 +13,6 @@
 # CLEANUP: checks install state and advances to HELP_ME or INSTALLED stage
 #
 scylla_conf:
-   reimage_healthcheck: scylla
+   reimage_healthcheck: milkyway
    disk: scylla
-   cleanup: scylla
+   cleanup: milkyway

@@ -13,6 +13,6 @@
 # CLEANUP: checks install state and advances to HELP_ME or INSTALLED stage
 #
 qworker_conf:
-   reimage_healthcheck: qworker
+   reimage_healthcheck: milkyway
    disk: qworker
-   cleanup: qworker
+   cleanup: milkyway
