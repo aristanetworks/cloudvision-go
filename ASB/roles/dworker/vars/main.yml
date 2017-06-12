@@ -1,0 +1,18 @@
+# Dworker support in ASB is being done in stages.
+# Currently Dworker role is setup mostly in PXE kickstart
+# and so minimal ASB stages are used. Gradually, the
+# PXE kickstart based procedure will be broken down into
+# ASB pipeline stages.
+#
+# Current stages in Dworker ASB pipeline:
+#
+# REIMAGE-HEALTHCHECK: advances to DISK if healthchecks pass
+#   we don't follow rest of the reimage pipeline since kickstart based
+#   install wipes and re initializes the partitions.
+# DISK: performs the PXE kickstart based install, advances to CLEANUP stage
+# CLEANUP: checks install state and advances to HELP_ME or INSTALLED stage
+#
+dworker_conf:
+   reimage_healthcheck: milkyway
+   disk: qworker
+   cleanup: milkyway

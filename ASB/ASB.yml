@@ -67,6 +67,7 @@
       - { role: atestveos, when: ROLE_NAME == 'atestveos' }
       - { role: scylla,    when: ROLE_NAME == 'scylla' }
       - { role: qworker,   when: ROLE_NAME == 'qworker' }
+      - { role: dworker,   when: ROLE_NAME == 'dworker' }
       # --- WIP ---
       #- { role: dist,     when: ROLE_NAME == 'dist' }
 ...

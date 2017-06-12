@@ -1,0 +1,4 @@
+---
+- name: "Configuring as dworker node - running installation stage requested"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{dworker_conf[STATUS]}}.yml"
+...
