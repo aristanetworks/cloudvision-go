@@ -114,10 +114,10 @@ yum install -y git mysql ansible smartmontools
 group --name=ansible --gid=20000
 user --name=ansible --uid=20000 --gid=20000 --gecos="Ansible Account" --groups=wheel,root
 mkdir -p ~ansible/.ssh
-cp /tmp/root/ansible-ssh/* ~ansible/.ssh/
+cp /tmp/root/ansible-ssh/authorized_keys ~ansible/.ssh/
 chown ansible:ansible -R ~ansible/.ssh
 chmod 700 ~ansible/.ssh
-chmod 600 ~ansible/.ssh/*
+chmod 644 ~ansible/.ssh/authorized_keys
 
 cat <<EOF >> /etc/sudoers
 Defaults !env_reset, !requiretty
