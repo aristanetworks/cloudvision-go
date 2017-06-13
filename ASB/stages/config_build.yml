@@ -27,6 +27,11 @@
 - name: "Enable abuilds"
   shell: "Abuildd --activate"
 
+- name: "Enable QUBIT uploader"
+  yum:
+    name: qubit-abuild-upload
+    state: started
+
 - name: "Update datacenter.servers with status configuration ready"
   command: "{{ASB_DB_UPDATE_AUTH}}"
 
