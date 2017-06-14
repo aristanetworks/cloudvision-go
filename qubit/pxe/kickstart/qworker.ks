@@ -174,8 +174,7 @@ cat ${FILE}
 #yum install -y AroraKernel
 
 # since all milkyway servers use SSDs
-# enable TRIM support on raid0
-cp /tmp/root/raid0.conf /etc/modprobe.d/
+# enable TRIM  job
 cp /tmp/root/fstrim /etc/cron.daily/fstrim
 chmod a+x /etc/cron.daily/fstrim
 
