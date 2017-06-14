@@ -20,3 +20,12 @@ blockdev --setra 65536 /dev/md2
 cpupower --cpu all frequency-set -g performance
 # scheduler is setup by Scylla's perftune.py
 echo 0 > /sys/block/md2/queue/rotational
+
+# fstrim workaround 
+# we setup this tunable at boot time 
+# only during the fstrim run, nomerges=0, all other times its 2
+DEVS=`lsblk -S -n | awk '{print($1)}'`
+for dev in ${DEVS}
+do
+	echo 2 > /sys/block/${dev}/queue/nomerges
+done

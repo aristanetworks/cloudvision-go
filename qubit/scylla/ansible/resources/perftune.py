@@ -761,8 +761,16 @@ class DiskPerfTuner(PerfTunerBase):
         if not self.__tune_io_scheduler(dev_node):
             print("Not setting I/O Scheduler for {} - feature not present".format(device))
 
-        if not self.__tune_nomerges(dev_node):
-            print("Not setting 'nomerges' for {} - feature not present".format(device))
+        # refer to Scylla #140 for details about the problem
+        # nomerges=2 causes with md raid0 and fstrim
+        #
+        # we disable it here and set it in rc.local
+        # when fstrim runs, it temporarily sets the nomerges to 0 and then reverts it back
+        # by disabling it here we allow the start/stop of scylla services (the time
+        # when perftune.py) will be run, to be independent of the fstrim state
+        #
+        #if not self.__tune_nomerges(dev_node):
+        #    print("Not setting 'nomerges' for {} - feature not present".format(device))
 
     def __tune_disks(self, disks):
         for disk in disks:

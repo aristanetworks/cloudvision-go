@@ -1,0 +1,32 @@
+#!/usr/bin/sh
+
+# fstrim workaround with mdraid0 and nomerges=2
+# refer to Scylla# 140 for more details
+
+# nomerges=2 (good for Scylla) is setup by rc.local
+# during fstrim, we use nomerges=0 and then revert
+# the setting to nomerges=2
+
+function enableMerges() {
+
+  DEVS=`lsblk -S -n | awk '{print($1)}'`
+  for dev in ${DEVS}
+  do
+    echo 0 > /sys/block/${dev}/queue/nomerges
+  done
+}
+
+function disableMerges() {
+  DEVS=`lsblk -S -n | awk '{print($1)}'`
+  for dev in ${DEVS}
+  do
+    echo 2 > /sys/block/${dev}/queue/nomerges
+  done
+
+}
+
+trap disableMerges EXIT INT TERM
+
+# main
+enableMerges
+fstrim -v -a
