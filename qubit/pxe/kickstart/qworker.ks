@@ -97,6 +97,15 @@ systemctl disable firewalld
 # ASB support
 yum install -y git mysql ansible smartmontools
 
+# Arastra Default Account Setup
+group --name=arastra --gid=10000
+user --name=arastra --plaintext --password=arastra --uid=10000 --gid=10000 --gecos="Arista Networks anonymous account" --groups=wheel,root
+mkdir -p ~arastra/.ssh
+cp /tmp/root/arastra-ssh/* ~arastra/.ssh/
+chown arastra:arastra -R ~arastra/.ssh
+chmod 700 ~arastra/.ssh
+chmod 600 ~arastra/.ssh/*
+
 # Ansible Generic Account Setup
 group --name=ansible --gid=20000
 user --name=ansible --uid=20000 --gid=20000 --gecos="Ansible Account" --groups=wheel,root
