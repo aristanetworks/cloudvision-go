@@ -79,6 +79,7 @@ yum install -y epel-release vim-minimal
 yum install -y cpufrequtils sysstat hwloc-gui.x86 ipmitool pdsh
 yum install -y dstat htop strace tcpdump gdb xfsprogs tar lsof
 yum install -y pciutils
+yum install -y yum-utils
 
 # Configure bonding
 mkdir /tmp/root
