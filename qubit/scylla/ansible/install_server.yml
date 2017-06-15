@@ -3,7 +3,6 @@
   hosts: scylla_nodes
   become: yes
   become_user: root
-  gather_facts: no
   serial: 50
   roles:
     - { role: server_setup_scyllaroot } 

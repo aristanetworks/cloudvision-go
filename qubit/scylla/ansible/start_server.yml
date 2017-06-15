@@ -11,8 +11,8 @@
 # see more details in Scylla issue: 140
 #
 - assert:
-    - that: "{{ BUG_SERIAL_STARTUP == 1 }}"
-    - msg: "Change the startup procedure for parallel startup"
+    that: "{{ BUG_SERIAL_STARTUP == 1 }}"
+    msg: "Change the startup procedure for parallel startup"
 
 - name: "Start a seed node first"
   hosts: seed_to_start_first

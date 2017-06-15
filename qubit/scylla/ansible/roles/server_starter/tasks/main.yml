@@ -10,8 +10,8 @@
     - telegraf
 
 - assert:
-    - that: "{{ BUG_SERIAL_STARTUP == 1 }}"
-    - msg: "Change the startup procedure for parallel startup"
+    that: "{{ BUG_SERIAL_STARTUP == 1 }}"
+    msg: "Change the startup procedure for parallel startup"
 
 - name: "Wait for port 9042"
   wait_for: host="{{ ansible_hostname }}" port=9042 timeout="{{ PORT_UP_DELAY }}"
