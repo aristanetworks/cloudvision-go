@@ -27,9 +27,14 @@
 - name: "Enable abuilds"
   shell: "Abuildd --activate"
 
-- name: "Enable QUBIT uploader"
+- name: "Install QUBIT uploader"
   yum:
     name: qubit-abuild-upload
+    state: present
+
+- name: "Start QUBIT uploader"
+  service:
+    name: abuild-qupload
     state: started
 
 - name: "Update datacenter.servers with status configuration ready"
