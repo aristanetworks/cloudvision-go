@@ -29,14 +29,15 @@
 - set_fact: begin_iteration="{{ 1 + (ITERATIONS|int) * (index|int) }}"
 - set_fact: end_iteration="{{ (ITERATIONS|int) * (1 + (index|int)) }}"
 
+# enable tracing and debug to catch information useful for postmortem
+# drop keyspace seems to take lot of time causing cqlsh timeouts
+# we use large timeout value in /etc/cqlshrc
 - name: "Drop keyspace before write"
-  shell: "cqlsh {{ CONTACT_POINT }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -e \"DROP KEYSPACE IF EXISTS {{ PERFTEST_KEYSPACE }}\""
+  shell: "cqlsh --cqlshrc=/etc/cqlshrc --debug {{ CONTACT_POINT }} -u {{ SCYLLA_ROOT_USER }} -p {{ SCYLLA_ROOT_PASSWORD }} -e \"TRACING ON; DROP KEYSPACE IF EXISTS {{ PERFTEST_KEYSPACE }}\" > {{ LOGFILE }}.drop"
   when: " TEST_MODE == 'write' "
 
-# TBD: need to discuss if this is really needed
-- name: "Pause for 1min after drop keyspace"
-  pause: minutes=1
-  when: " TEST_MODE == 'write' "
+# cqlsh returns only after the keyspace operation has caused the schema
+# change to be reflected on all nodes. There is no need to wait.
 
 - name: "Setup CMD for write"
   set_fact: CMD="{{ WRITE_CMD }}"
@@ -45,6 +46,16 @@
 - name: "Setup CMD for reads"
   set_fact: CMD="{{ READ_CMD }}"
   when: " TEST_MODE == 'read' "
+
+# refer to Scylla github issue # 420
+# use 1 thread and 1 request to create the table
+# use a temporary .create suffixed logfile only for
+# debugging issues with create command. We cannot use
+# the same logfile has the actual write/read command
+# since stats are pulled from it
+- name: "Create the table"
+  shell: "{{ CREATE_CMD }} > {{ LOGFILE }}.create"
+  when: " TEST_MODE == 'write' "
 
 - name: "Log test command"
   shell: "echo \"CMD: {{ CMD }}\" > {{ LOGFILE }}"

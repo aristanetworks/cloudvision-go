@@ -30,6 +30,9 @@
 - name: "Install Scylla tools {{SCYLLA_VERSION}}"
   yum: name=scylla-tools-{{SCYLLA_VERSION}} state=present
 
+- name: "Install cqlshrc"
+  copy: src="{{SCYLLA_RESOURCE_PATH}}/cqlshrc" dest=/etc/cqlshrc
+
 - name: "Select Oracle JDK"
   alternatives: link=/usr/bin/java name=java path=/usr/java/jdk{{JDK_VER_DIR}}/bin/java
 
