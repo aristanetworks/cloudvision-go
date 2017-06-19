@@ -15,6 +15,16 @@
 - name: "Make sure no Abuilds enabled"
   shell: "Abuildd -s | grep \"Abuildd is run never\""
 
+- name: "Install docker"
+  yum:
+      name: docker
+      state: installed
+
+- name: "Add docker to rc.local"
+  lineinfile:
+     dest: /etc/rc.d/rc.local
+     line: "systemctl start docker"
+
 # ----------------------------------------------------------------------------------
 # QFS Related Changes
 # ----------------------------------------------------------------------------------
