@@ -146,6 +146,6 @@ coreos:
     reboot-strategy: off
 
 ssh_authorized_keys:
-  {% for key in hostvars[item]['ssh_keys'] %}
+  {% for key in hostvars[groups['coreos'][0]]['ssh_keys'] %}
   - {{ key }}
   {% endfor %}

@@ -2,5 +2,4 @@
 - name: Generate cloud-config files for servers
   template:
     src: cloud-config.yml.j2
-    dest: "{{ lookup('env','OPS_REPO') | default('~/git/ops', true) }}/coreos/cloud-config-{{ hostvars[item]['ansible_host'] }}.yml"
-  with_items: "{{ groups.coreos }}"
+    dest: "{{ lookup('env','OPS_REPO') | default('~/git/ops', true) }}/coreos/cloud-config.yml"
