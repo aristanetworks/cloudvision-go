@@ -44,8 +44,8 @@ coreos:
       content: |
         [Unit]
         Description=Metadata agent to create short hostname env var file
-        Requires=network-online.target systemd-resolved.service
-        After=network-online.target systemd-resolved.service
+        Requires=network-online.target systemd-resolved.service systemd-hostnamed.service
+        After=network-online.target systemd-resolved.service systemd-hostnamed.service
         [Service]
         Type=oneshot
         Environment=OUTPUT=/run/coreos/shorthostname
