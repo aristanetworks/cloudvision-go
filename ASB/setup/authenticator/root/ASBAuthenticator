@@ -78,6 +78,7 @@ def main():
    if hosts:
       # Full FQDN of servers that need ticket on datacenter.servers
       needTicket = [ ( "%s.%s" % ( name, domain ) ) for name, domain in hosts ]
+      logging.info( "Servers in auth state: %s" % ( ', '.join( needTicket ) ) )
 
       # Get list of whitelisted FQDNs in ASB account
       whitelist = [ os.path.basename( p ) for p in glob.glob(
@@ -94,6 +95,7 @@ def main():
       authServers = set( needTicket ) & allowed
 
       for sv in authServers:
+         logging.info( "Attempting to issue ticket to %s" % sv 
          ret = subprocess.call( "timeout 60 /root/restore_server %s" % sv,
                                 shell=True ) 
          if ret:
