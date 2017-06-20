@@ -31,12 +31,12 @@
 
 - name: "Mount /share as a bind mount - takes effect upon reboot"
   lineinfile:
-     path: /etc/fstab
+     dest: /etc/fstab
      line: "/share /share none bind 0 0"
 
 - name: "Mark /share as shared mount - takes effect upon reboot"
   lineinfile:
-     path: /etc/rc.d/rc.local
+     dest: /etc/rc.d/rc.local
      line: "mount --make-shared /share"
 
 # ----------------------------------------------------------------------------------
