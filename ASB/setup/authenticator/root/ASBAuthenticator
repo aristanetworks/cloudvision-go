@@ -18,7 +18,8 @@ import logging
 
 
 # Enable logging
-logging.basicConfig( filename='/var/log/ASBAuthenticator.log',
+LOGFILE = '/var/log/ASBAuthenticator.log'
+logging.basicConfig( filename=LOGFILE,
                      format='[ASB Authenticator] %(asctime)s: %(message)s',
                      datefmt='%m/%d/%Y %H:%M:%S',
                      level=logging.DEBUG )
@@ -95,9 +96,9 @@ def main():
       authServers = set( needTicket ) & allowed
 
       for sv in authServers:
-         logging.info( "Attempting to issue ticket to %s" % sv 
-         ret = subprocess.call( "timeout 60 /root/restore_server %s" % sv,
-                                shell=True ) 
+         logging.info( "Attempting to issue ticket to %s" % sv )
+         ret = subprocess.call( "timeout 60 /root/restore_server %s --log-file %s"\
+                                % ( sv, LOGFILE ), shell=True )
          if ret:
             logging.error( ( "Could not issue ticket for %s - restore_server script "
                              "failed with error code %d" )  % ( sv, ret ) )

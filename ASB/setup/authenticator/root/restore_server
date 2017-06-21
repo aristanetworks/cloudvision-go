@@ -1,26 +1,88 @@
-#!/bin/sh
+#!/usr/bin/env python
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
 
-servers=$@
-echo "server list = $servers"
+# Script to resotre server ticket
+# Either invoked manually or by ASBAuthenticator running routinely on ticketserver.
 
-for server in $servers
+import sys
+import subprocess
+import argparse
+import logging
 
-do
-	echo "current server is $server"
+# Enable logging
+logger = logging.getLogger()
+logger.setLevel( logging.DEBUG )
 
-	a4 ssh $server rm -rf /home/arastra/tickets-ssh
+def main( args=None ):
+   # Create parser
+   ps = argparse.ArgumentParser( description=( "Restore ticket to server to "\
+         "allow Perforce access." ),
+                                 formatter_class=argparse.RawTextHelpFormatter )
+   ps.add_argument( "server",
+                    help="The FQDN of the server to restore tickets to." )
+   ps.add_argument( "--log-file", dest="logfile",
+                    help="The log file to record output to. Default no logging is "\
+                         "done." )
 
-	userdel -r -f $server
-	rm -rf /home/$server
-	rm -f /var/spool/mail/$server
+   # Parse command line arguments
+   args = ps.parse_args() if not args else ps.parse_args( args )
 
-	ticketServerSetup $server
-	P4USER=arastra a4 ssh $server /usr/bin/AuthenticateArastra
+   # Configure logging
+   logFormatter = logging.Formatter(
+                        fmt="[restore_server]    %(asctime)s: %(message)s",
+                        datefmt="%m/%d/%Y %H:%M:%S" )
+   consoleHandler = logging.StreamHandler()
+   logger.addHandler( consoleHandler )
+   if args.logfile:
+      # Also log to file if user specifies a log file
+      fileHandler = logging.FileHandler( args.logfile )
+      fileHandler.setFormatter( logFormatter )
+      logger.addHandler( fileHandler )
 
-	P4USER=arastra timeout 30 a4 ssh $server a4 login -s
-	#echo "Return value is : $?"
-	echo
-	echo "*** Done with server $server ***"
-	echo
-done
+   # Verify the server is a FQDN
+   server = args.server
+   if len( server.split( "." ) ) <= 1:
+      logging.error( "Server must be a FQDN, got '%s' instead." % server )
+      logging.error( "Aborting." )
+      return 1
 
+   # Restore ticket to server
+   logging.info( "Restoring ticket to server %s" % server )
+   commands = [
+               # Clean up any old ticket issued to the host
+               "a4 ssh %s rm -rf /home/arastra/tickets-ssh" % server,
+               # Delete the host's user account on ticketserver
+               "userdel -r -f %s" % server,
+               # Remove the host's home directory on ticketserver
+               "rm -rf /home/%s" % server,
+               # Remove the host's mail spool on ticketserver
+               "rm -f /var/spool/mail/%s" % server,
+               # Setup ticket for host (both on ticketserver and on the host)
+               "ticketServerSetup %s" % server,
+               # Run AuthenticateArastra on the host to finish setup
+               "P4USER=arastra a4 ssh %s /usr/bin/AuthenticateArastra" % server,
+               # Verify access to Perforce on host
+               "P4USER=arastra timeout 30 a4 ssh %s a4 login -s" % server,
+              ]
+
+   for cmd in commands:
+      p = subprocess.Popen( cmd, shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+      output, err = p.communicate()
+      ret = p.returncode
+      if output:
+         logger.info( output.strip() ) # strip to get rid of trailing newline
+      if "userdel" in cmd and ret == 6:
+         # Ignore error code 6 for userdel as it simply means user doesn't exist
+         continue
+      if ret:
+         logger.error( "Error running command '%s':\n%s" % ( cmd, err ) )
+         logger.error( "*** Failed to restore ticket to server %s ***" % server )
+         return ret
+
+   logger.info( "*** Done with server %s ***" % server )
+   return 0
+
+if __name__ == "__main__":
+   sys.exit( main() )
