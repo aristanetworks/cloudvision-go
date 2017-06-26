@@ -52,10 +52,22 @@
     dest: /etc/systemd/network/zy-dhcp.network
   register: result
 
-- name: Remove old dhcp.network file
+- name: Remove old 20-dhcp.network file
   become: True
   file:
     path: /etc/systemd/network/20-dhcp.network
+    state: absent
+
+- name: Remove old zzz-dhcp.network file
+  become: True
+  file:
+    path: /etc/systemd/network/zzz-dhcp.network
+    state: absent
+
+- name: Remove old 99-dhcp.network file
+  become: True
+  file:
+    path: /etc/systemd/network/99-dhcp.network
     state: absent
 
 - name: Restart network to take dhcp search config into account
