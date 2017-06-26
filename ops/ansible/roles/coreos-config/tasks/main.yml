@@ -50,27 +50,32 @@
   copy:
     src: roles/common/files/zy-dhcp.network
     dest: /etc/systemd/network/zy-dhcp.network
-  register: result
+  register: result_zy_dhcp_network
 
 - name: Remove old 20-dhcp.network file
   become: True
   file:
     path: /etc/systemd/network/20-dhcp.network
     state: absent
+  register: result_20_dhcp_network
 
 - name: Remove old zzz-dhcp.network file
   become: True
   file:
     path: /etc/systemd/network/zzz-dhcp.network
     state: absent
+  register: result_zzz_dhcp_network
 
 - name: Remove old 99-dhcp.network file
   become: True
   file:
     path: /etc/systemd/network/99-dhcp.network
     state: absent
+  register: result_99_dhcp_network
 
 - name: Restart network to take dhcp search config into account
   become: True
   command: systemctl restart systemd-networkd
-  when: result.changed
+  when: >
+      result_zy_dhcp_network.changed or result_20_dhcp_network.changed or
+      result_zzz_dhcp_network.changed or result_99_dhcp_network.changed
