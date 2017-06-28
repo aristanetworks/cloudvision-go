@@ -1,4 +1,5 @@
 [Network]
 DHCP=ipv4
 LinkLocalAddressing=no
+IPv6AcceptRA=no
 Domains=sjc.aristanetworks.com aristanetworks.com
