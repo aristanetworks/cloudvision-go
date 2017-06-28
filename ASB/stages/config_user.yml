@@ -2,6 +2,12 @@
 - name: "Run common configuration steps"
   include: "{{STAGES_PATH}}/config_conf/config_common.yml"
 
+- name: "Mark server as a user server on arventory"
+  shell: "arventory update --markAsUserOnly"
+
+- name: "Verify server is listed as user server via arventory"
+  shell: "arventory freeUs | grep -q {{ ansible_hostname }}"
+
 - name: "Install MATE desktop environment"
   lineinfile:
       dest: /etc/sysconfig/desktop
