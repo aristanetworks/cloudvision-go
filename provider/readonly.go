@@ -7,6 +7,7 @@ package provider
 
 import (
 	"fmt"
+	"time"
 
 	"arista/types"
 
@@ -22,12 +23,13 @@ func (ro ReadOnly) Write(notif types.Notification) error {
 }
 
 // InstantiateChild always fails.
-func (ro ReadOnly) InstantiateChild(child types.Entity, attrDef *types.AttrDef,
+func (ro ReadOnly) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) error {
 	return fmt.Errorf("cannot instantiate %s: parent entity is read-only", child.Path())
 }
 
 // DeleteChild always fails.
-func (ro ReadOnly) DeleteChild(child types.Entity, attrDef *types.AttrDef, k key.Key) error {
+func (ro ReadOnly) DeleteChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
+	k key.Key) error {
 	return fmt.Errorf("cannot delete %s: parent entity is read-only", child.Path())
 }

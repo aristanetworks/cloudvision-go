@@ -39,17 +39,18 @@ func (l loopback) Write(notif types.Notification) error {
 	return nil
 }
 
-func (l loopback) InstantiateChild(child types.Entity, attrDef *types.AttrDef,
+func (l loopback) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) error {
-	notifs := NotificationsForInstantiateChild(child, attrDef, k)
+	notifs := NotificationsForInstantiateChild(ts, child, attrDef, k)
 	for _, n := range notifs {
 		l <- n
 	}
 	return nil
 }
 
-func (l loopback) DeleteChild(child types.Entity, attrDef *types.AttrDef, k key.Key) error {
-	notifs, err := NotificationsForDeleteChild(child, attrDef, k, time.Now())
+func (l loopback) DeleteChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
+	k key.Key) error {
+	notifs, err := NotificationsForDeleteChild(ts, child, attrDef, k)
 	if err != nil {
 		return err
 	}
