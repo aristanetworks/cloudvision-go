@@ -88,7 +88,7 @@ def trigger( servers ):
 
    # PDSH Command
    pdsh_cmd = ( "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
-                " | dshbak -d /var/log/ASBTrigger-hosts/" )
+                " | dshbak -d /var/log/ASBTrigger/hosts/" )
 
    if servers:
       cmd = pdsh_cmd % ( ",".join( servers ), trigger_cmd )

@@ -9,7 +9,7 @@
   ignore_errors: yes
 
 - name: "Send each SMART data to Ansible VM"
-  shell: " export HISTCONTROL=ignorespace && sshpass -p arastra scp -o StrictHostKeyChecking=no /root/SMART_{{STATUS}}* root@ansible:/var/log/ASBTrigger-hosts/repair-hosts/"
+  shell: " export HISTCONTROL=ignorespace && sshpass -p arastra scp -o StrictHostKeyChecking=no /root/SMART_{{STATUS}}* root@ansible:/var/log/ASBTrigger/repair-hosts/"
   ignore_errors: yes
 
 - name: "Clean up SMART files"

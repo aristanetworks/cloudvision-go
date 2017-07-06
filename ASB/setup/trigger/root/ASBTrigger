@@ -14,7 +14,7 @@ import argparse
 from ASBTriggerHelper import *
 
 # Enable logging
-logging.basicConfig( filename="/var/log/ASBTrigger.log", 
+logging.basicConfig( filename="/var/log/ASBTrigger/ASBTrigger.log",
                      format='[ASBTrigger] %(asctime)s: %(message)s',
                      datefmt='%m/%d/%Y %H:%M:%S',
                      level=logging.DEBUG )
@@ -52,7 +52,7 @@ ASB.""" ), formatter_class=argparse.RawTextHelpFormatter )
          logging.info( "Completed." )
       except: 
          logging.error( ( "Not all hosts successfully triggered. Please view host "
-                          "logs in /var/log/ASBTrigger-hosts." ) )
+                          "logs in /var/log/ASBTrigger." ) )
    else:
       logging.info( "No appropriate hosts to trigger." ) 
 
