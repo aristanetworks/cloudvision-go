@@ -1,0 +1,20 @@
+[Unit]
+Description=The Prometheus monitoring system and time series database.
+Documentation=https://prometheus.io
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/default/prometheus.dev
+ExecStart=/usr/bin/prometheus \
+          -config.file=/etc/prometheus/prometheus_dev.yml \
+          -storage.local.path=/persist/prometheus/dev \
+	  -storage.local.retention=168h0m0s \
+	  -web.listen-address=:9091 \
+          -web.console.libraries=/usr/share/prometheus/console_libraries \
+          -web.console.templates=/usr/share/prometheus/consoles \
+          $PROMETHEUS_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

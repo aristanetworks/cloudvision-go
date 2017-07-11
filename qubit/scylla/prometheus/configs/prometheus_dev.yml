@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 1s
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'scylla-dev'
+
+scrape_configs:
+- job_name: scylla
+  honor_labels: true
+  file_sd_configs:
+    - files:
+      - /etc/prometheus/scylla_servers_dev.yml
+
+- job_name: node_exporter
+  honor_labels: true
+  file_sd_configs:
+    - files:
+      - /etc/prometheus/node_exporter_servers_dev.yml

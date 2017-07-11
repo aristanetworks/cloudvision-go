@@ -1,0 +1,6 @@
+# List end points with node exporter
+
+- targets:
+  - 'li101:9100'
+  - 'li102:9100'
+  - 'li103:9100'

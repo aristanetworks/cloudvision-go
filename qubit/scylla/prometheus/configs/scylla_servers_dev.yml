@@ -1,0 +1,6 @@
+# List Scylla end points (dev cluster)
+
+- targets:
+  - 'li101:9180'
+  - 'li102:9180'
+  - 'li103:9180'
