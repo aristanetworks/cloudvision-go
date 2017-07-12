@@ -160,13 +160,23 @@
 
 - name: Install k8s worker manifest
   become: True
-  copy:
-    src: worker-kubeconfig.yaml
+  template:
+    src: worker-kubeconfig.yaml.j2
     dest: /etc/kubernetes/worker-kubeconfig.yaml
     owner: root
     group: root
     mode: 0755
   when: K8S_WORKER
+
+- name: Install master-kubeconfig.yaml
+  become: True
+  copy:
+    src: master-kubeconfig.yaml
+    dest: /etc/kubernetes/master-kubeconfig.yaml
+    owner: root
+    group: root
+    mode: 0755
+  when: K8S_MASTER
 
 - name: Install k8s service
   become: True
@@ -175,7 +185,8 @@
     content: |
       [Service]
       ExecStart=/opt/bin/kubelet \
-        --api_servers={% if K8S_MASTER %}http://127.0.0.1:8080{%else%}https://{{ k8s_masters | join(",") }}{% endif %} \
+        --require-kubeconfig=true \
+        --kubeconfig=/etc/kubernetes/{% if K8S_MASTER %}master{%else%}worker{%endif%}-kubeconfig.yaml \
       {% if K8S_MASTER %}
         --register-schedulable=false \
       {%else%}
@@ -188,7 +199,6 @@
         --cluster_domain=cluster.local \
         --volume-stats-agg-period=0 \
         --cadvisor-port=4194{% if not K8S_MASTER %} \
-        --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
         --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
         --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
 
