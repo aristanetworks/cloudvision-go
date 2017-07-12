@@ -1,0 +1,19 @@
+---
+- name: "Re-enable monitoring on this machine."
+  command: "{{ASB_DB_RESET_DISABLEMONITORING}}"
+
+- name: "Clean up the record of retry count on mysql."
+  shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
+
+# Add the ansible-pull for SpidAr in the future, when it is ready.
+- name: "Same ansible-pull command that's run by /etc/cron.d/AnsiblePull daily, to make sure the server get the latest config.."
+  shell: "ansible-pull --url=http://gerrit/ardc-config --directory=/root/.ansible/pull --inventory=localhost, AroraConfig/AroraConfig.yml --force --purge"
+
+# This assures that there is at least a SMART test scheduled to run
+# so that we can use the results when needed, especially since
+# this server has been installed anew. It also helps to check
+# health of the server right after new installation.
+- name: "Trigger long SMART selftests for each disk."
+  shell: "smartctl -t long /dev/{{ item }}"
+  with_items: "{{ ansible_devices.keys() }}"
+...
