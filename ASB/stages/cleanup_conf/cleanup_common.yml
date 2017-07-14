@@ -5,9 +5,11 @@
 - name: "Clean up the record of retry count on mysql."
   shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
 
-# Add the ansible-pull for SpidAr in the future, when it is ready.
-- name: "Same ansible-pull command that's run by /etc/cron.d/AnsiblePull daily, to make sure the server get the latest config.."
-  shell: "ansible-pull --url=http://gerrit/ardc-config --directory=/root/.ansible/pull --inventory=localhost, AroraConfig/AroraConfig.yml --force --purge"
+# Do the same for SpidAr in the future, when it is ready.
+# Directly running the playbook with shell since ansible doesn't allow including a
+# playbook from within a task file.
+- name: "Run the same playbook ran by /etc/cron.d/AnsiblePull daily, to make sure the server get the latest config.."
+  shell: "ansible-playbook -i localhosts, -c local {{ playbook_dir | dirname }}/AroraConfig/AroraConfig.yml"
 
 # This assures that there is at least a SMART test scheduled to run
 # so that we can use the results when needed, especially since
