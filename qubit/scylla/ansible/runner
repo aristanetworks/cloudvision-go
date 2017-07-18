@@ -2,13 +2,42 @@
 
 # a wrapper around ansible-playbook to keep the command line simple
 
-USAGE="Usage: $0 <playbook path> <inventory> [extra-vars]"
+USAGE=`cat <<ENDOFMESSAGE
+
+Usage: $0 <playbook path> <inventory> <private-key-path> [extra-vars]
+
+The <inventory> arg can be one of the following:
+a) path to the inventory file
+b) comma separated list of hostnames
+
+Examples:
+
+1) $0 /path/to/playbook.yml /path/to/data.inv /path/to/priv.key
+2) $0 /path/to/playbook.yml host1,host2 /path/to/priv.key
+
+For dry-runs, use
+CHECKMODE="--check" $0 ...
+
+For single-stepping, use
+STEPMODE="--step" $0 ...
+
+ENDOFMESSAGE`
 
 PLAYBOOK=${1?"plabook path missing. ${USAGE}"}
-INVENTORY=${2?"inventory missing. ${USAGE}"}
-EXTRA_VARS=${3-""}
+INVENTORY_ARG=${2?"inventory missing. ${USAGE}"}
+PRIVATE_KEY_PATH=${3?"private key path missing. ${USAGE}"}
+EXTRA_VARS=${4-""}
 
-OPTIONS="-c paramiko"
+OPTIONS="${CHECKMODE} ${STEPMODE} -c paramiko -u ansible --private-key=${PRIVATE_KEY_PATH}"
+
+if [[ ! -f ${INVENTORY_ARG} ]]; then
+  # if the inventory arg isn't a path then we assume its a comma
+  # separated list of hostnames. We add the comma suffix, per ansible
+  # syntax
+  INVENTORY="${INVENTORY_ARG},"
+else
+  INVENTORY=${INVENTORY_ARG}
+fi
 
 if [[ -z ${EXTRA_VARS} ]]; then
 	ansible-playbook ${OPTIONS} -i ${INVENTORY} ${PLAYBOOK}
