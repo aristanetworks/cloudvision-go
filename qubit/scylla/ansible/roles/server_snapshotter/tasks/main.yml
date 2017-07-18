@@ -1,0 +1,15 @@
+---
+
+# Takes a snapshot which is optionally stored on external storage
+#
+# inputs:
+#  snapshot_tag = label for the snapshot
+#  DO_BACKUP = true to backup the snapshot
+
+- name: "Create snapshot called {{ snapshot_tag }}"
+  command: "nodetool snapshot -t {{ snapshot_tag }}"
+
+- include: backup.yml
+  when: DO_BACKUP
+
+...

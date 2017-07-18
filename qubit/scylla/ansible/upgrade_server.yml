@@ -1,0 +1,22 @@
+---
+
+# Perform Scylla software upgrade on the server node
+#
+# inputs:
+#   old_scylla_version = Version of Scylla server before upgrade
+#   new_scylla_version = Version of Scylla server after upgrade
+#   since = Time in journalctl format to look for errors
+#
+#
+# Example:
+#
+# ./runner ./upgrade_server.yml ce104 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" since="2017-07-18 04:30:00"'
+
+- name: "Upgrade Scylla server software"
+  hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - { role: server_upgrader }
+
+...

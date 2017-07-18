@@ -1,0 +1,16 @@
+---
+
+# Checks to see that the ops action (eg: upgrade etc) is
+# successful and there are no errors during the ops action
+#
+# inputs:
+#   since = time in journalctl --since format
+#
+- include: checks.yml
+
+- name: "Check again for errors after pausing 2 mins"
+  pause: minutes=2
+
+- include: checks.yml
+
+...

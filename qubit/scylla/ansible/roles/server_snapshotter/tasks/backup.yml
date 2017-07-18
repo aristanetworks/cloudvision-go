@@ -1,0 +1,28 @@
+---
+
+# Backup the snapshot called snapshot_tag onto a backup server
+
+- name: "Mount the backup share"
+  mount: "name={{ BACKUP_MOUNTPOINT }} fstype=nfs src={{ BACKUP_SHARE }} state=mounted"
+
+- name: "Create backup location"
+  file: name="{{ BACKUP_LOCATION }}" state=directory
+
+- name: "Find directories in snapshot"
+  find: paths="{{ SCYLLA_DATA_DIR }}" patterns="{{ snapshot_tag }}" recurse=yes file_type=directory
+  register: snapshot_dirs
+
+- name: "Build list of paths to be archived"
+  set_fact: snapshot_paths="{{ snapshot_paths | default() }} {{ item.path }}"
+  with_items: "{{ snapshot_dirs.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: "Build the snapshot archive"
+  command: "tar zcvf {{ SNAPSHOT_ARCHIVE }} {{ snapshot_paths }}"
+
+# This'll cause flush/sync and hence may take time
+- name: "Unmount the backup share"
+  mount: name="{{ BACKUP_MOUNTPOINT }}" state=unmounted
+
+...

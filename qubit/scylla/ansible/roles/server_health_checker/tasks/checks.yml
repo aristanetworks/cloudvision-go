@@ -1,0 +1,31 @@
+---
+
+- name: "Get all node status"
+  shell: nodetool status | egrep -e '^[A-Z][A-Z]' | awk '{print($1)}'
+  register: status_info
+
+- debug: var=status_info
+
+- name: "Check that all nodes are in UN"
+  assert:
+    that: item == "UN"
+    msg: "Not all nodes in UN status"
+  with_items: "{{ status_info.stdout_lines | list }}"
+
+- name: "Check errors in Scylla server journal"
+  shell: journalctl -u scylla-server --no-pager --since '{{ since }}' | grep -i error
+  register: error_info
+  ignore_errors: true
+
+- set_fact: error_count=0
+
+- name: "Count errors"
+  set_fact: error_count="{{ error_info.stdout_lines | length }}"
+  when: error_info is defined
+
+- debug: msg="Errors detected. Review scylla-server logs."
+  when: "{{ error_count }} > 0"
+
+- debug: var=error_info
+  when: "{{ error_count }} > 0"
+...

@@ -1,0 +1,26 @@
+---
+
+# Checks if the Scylla server version matches the
+# given version
+#
+# inputs:
+#   version = expected Scylla server version. Eg: 1.6.2-20170310.d41ba3b
+
+- name: "Get Scylla server version"
+  uri:
+    url: "http://{{ ansible_hostname }}:10000/storage_service/scylla_release_version"
+    method: GET
+    return_content: yes
+  register: ver_info
+
+- debug: var=ver_info
+
+- set_fact: expected_version="\"{{ version }}\""
+
+- name: "Check Scylla server version"
+  assert:
+    that: "{{ ver_info.content }} == {{ expected_version }}"
+    msg: "Expected version {{ expected_version }} but actual version {{ ver_info.content }}"
+  when: ver_info is defined
+
+...

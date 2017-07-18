@@ -1,0 +1,68 @@
+---
+
+# Performs Scylla server software upgrade
+# The tasks are based on http://docs.scylladb.com/upgrade/upgrade-guide-from-1.x.y-to-1.x.z-rpm/
+#
+# inputs:
+#   old_scylla_version = Version of Scylla server before upgrade
+#   new_scylla_version = Version of Scylla server after upgrade
+#
+#   An example of version is 1.6.6-20170715.dd70520
+
+- set_fact: hosts_under_upgrade="{{ play_hosts | length }}"
+
+- name: "Check that only 1 node is being upgraded"
+  assert:
+    that: "{{ hosts_under_upgrade }} == 1"
+    msg: "Only one host can be upgraded at a time"
+
+- name: "Check version"
+  include_role:
+    name: server_version_checker
+  vars:
+    version: "{{ old_scylla_version }}"
+
+- set_fact: snapshot_tag="{{ ansible_date_time.date }}"
+
+- name: "Drain the node"
+  command: nodetool drain
+
+- name: "Snapshot and optionally backup the snapshot"
+  include_role:
+    name: server_snapshotter
+  vars:
+# backup of the snapshot is disabled until we identify
+# a fast backup location.
+    DO_BACKUP: false
+
+- name: "Backup the Scylla configuration"
+  command: cp /etc/scylla/scylla.yaml /etc/scylla/scylla.yaml.backup-upgrade
+
+# NOTE: There is no need to backup the RPMs since old RPMs
+#       are available in ToolsV2 repo
+
+- name: "Stop Scylla server"
+  include_role:
+    name: server_stopper
+
+- name: "Update the software"
+  command: yum update --disableexcludes=ToolsV2 scylla\* -y
+
+- name: "Start Scylla server"
+  include_role:
+    name: server_starter
+
+- name: "Check health after ops"
+  include_role:
+    name: server_health_checker
+
+- name: "Check version"
+  include_role:
+    name: server_version_checker
+  vars:
+    version: "{{ new_scylla_version }}"
+
+- name: "Clear the snapshot"
+  command: nodetool clearsnapshot -t "{{ snapshot_tag }}"
+
+...

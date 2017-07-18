@@ -1,0 +1,9 @@
+BACKUP_SHARE: "storage101:/infra"
+BACKUP_MOUNTPOINT: "/backup_share"
+BACKUP_LOCATION: "{{ BACKUP_MOUNTPOINT }}/scylla_snapshots/{{ ansible_date_time.date }}/{{ ansible_hostname }}"
+# by default, we don't take backups during snapshotting
+# if backups are needed, then the playbook overrides this variable
+DO_BACKUP: false
+SCYLLA_DATA_DIR: "/var/lib/scylla/data"
+SNAPSHOT_NAME: "{{ ansible_date_time.date }}"
+SNAPSHOT_ARCHIVE: "{{ BACKUP_LOCATION }}/{{ snapshot_tag }}.tar.gz"
