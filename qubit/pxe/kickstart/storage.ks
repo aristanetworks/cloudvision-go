@@ -132,6 +132,7 @@ baseurl=http://tools/ToolsV2/repo/\$basearch/RPMS/
 enabled=1
 gpgcheck=0
 metadata_expire=2h
+exclude=scylla*
 EOF
 
 # enable nightly update of ToolsV2 repo
