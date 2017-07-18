@@ -14,48 +14,55 @@ import (
 	"github.com/aristanetworks/goarista/key"
 )
 
-type loopback chan<- types.Notification
+type loopback struct {
+	ch chan<- types.Notification
+}
 
 // NewLoopback returns a new loopback provider that accepts updates and simply
-// reflects them back into the given channel.
+// reflects them back into the given channel.  If this provider is to be used
+// with an Agent (i.e. pass it to an Agent's WithProvider() option) then just
+// pass nil as the channel instead.
 func NewLoopback(notif chan<- types.Notification) Provider {
-	return loopback(notif)
+	return &loopback{ch: notif}
 }
 
-func (l loopback) Run(s *schema.Schema, root types.Entity, notif chan<- types.Notification) {
+func (l *loopback) Run(s *schema.Schema, root types.Entity, notif chan<- types.Notification) {
+	if l.ch == nil {
+		l.ch = notif
+	}
 	return
 }
 
-func (l loopback) WaitForNotification() {
+func (l *loopback) WaitForNotification() {
 	return
 }
 
-func (l loopback) Stop() {
+func (l *loopback) Stop() {
 	return
 }
 
-func (l loopback) Write(notif types.Notification) error {
-	l <- notif
+func (l *loopback) Write(notif types.Notification) error {
+	l.ch <- notif
 	return nil
 }
 
-func (l loopback) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
+func (l *loopback) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) error {
 	notifs := NotificationsForInstantiateChild(ts, child, attrDef, k)
 	for _, n := range notifs {
-		l <- n
+		l.ch <- n
 	}
 	return nil
 }
 
-func (l loopback) DeleteChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
+func (l *loopback) DeleteChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key) error {
 	notifs, err := NotificationsForDeleteChild(ts, child, attrDef, k)
 	if err != nil {
 		return err
 	}
 	for _, n := range notifs {
-		l <- n
+		l.ch <- n
 	}
 	return nil
 }
