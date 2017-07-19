@@ -1,0 +1,21 @@
+---
+
+# Do a rolling (one node at a time) restart of the hosts
+#
+# inputs:
+#   since = time in journalctl --since format
+
+- name: "Rolling restart of nodes"
+  hosts: all
+  become: yes
+  become_user: root
+  serial: 1
+  roles:
+    - { role: server_stopper }
+    - { role: server_starter }
+    - { role: server_health_checker }
+  post_tasks:
+    - pause:
+        prompt: "Health check failed. Press Ctl+C and choose Abort if errors are critical else Continue"
+      when: "{{ server_health_errors }} > 0"
+...
