@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+import logging
+import MySQLdb
+import DevStatsLib
+
+# Enable logging
+LOGFILE = '/var/log/ASBDataCollector.log'
+logging.basicConfig( filename=LOGFILE,
+                     format='[ASB Data Collector] %(asctime)s: %(message)s',
+                     datefmt='%m/%d/%Y %H:%M:%S',
+                     level=logging.DEBUG )
+
+# MySQL-related constants
+MYSQL_HOST = "ardcdb"
+MYSQL_USER = "arastra"
+ARDC_DB = "datacenter"
+ARDC_TABLE_SERVERS = "servers"
+
+# InfluxDB-related constants
+ASB_MEASUREMENT = "ASBStats"
+
+def collectServerStatuses():
+   res = []
+   try:
+      db = MySQLdb.connect( user=MYSQL_USER,
+                            db=ARDC_DB,
+                            host=MYSQL_HOST )
+      cs = db.cursor()
+      stmt = ( ( 'SELECT name, domain, status FROM %s' ) % ( ARDC_TABLE_SERVERS ) )
+      cs.execute( stmt )
+      rows = cs.fetchall()
+      if not rows:
+         # Something is really wrong if we can't get even one status
+         logging.error( "%s.%s is empty even though it shouldn't be." %
+               ( ARDC_DB, ARDC_TABLE_SERVERS ) )
+      else:
+         res = rows
+   except MySQLdb.MySQLError as e:
+      # In case of MySQL error, write to log
+      logging.error( "Unable to get server statuses, error:\n%s" % e )
+   return res
+
+def getDataPoints():
+   """
+   Collect the data points for each server listed on datacenter.servers table, to be
+   uploaded onto InfluxDB.
+
+   Return
+   ------
+
+   A dict of the form { hostname: ( fieldMap, tagMap ) } where fieldMap is a dict
+      mapping field keys to values and tagMap is a dict mapping tag key to values.
+   """
+   points = {}
+
+   # Collect metrics for ASB
+   serverStatuses = collectServerStatuses()
+
+   # Process the metrics into fields (not indexed) and tags (indexed)
+   for name, domain, status in serverStatuses:
+      fqdn = "%s.%s" % ( name, domain )
+      tagMap = { "host": fqdn }
+      fieldMap = { "status": status }
+
+      points[ name ] = ( fieldMap, tagMap )
+
+   return points
+
+def main():
+   logging.info( "Starting data collection." )
+
+   points = getDataPoints()
+   failedHosts = []
+   for name, ( fieldMap, tagMap ) in points.items():
+      # Push ASB metrics to InfluxDB using DevStatsLib API.
+      success = DevStatsLib.addMetric( ASB_MEASUREMENT, fieldMap=fieldMap,
+                                       tagMap=tagMap )
+      if not success:
+         failedHosts.append( name )
+
+   if failedHosts:
+      logging.warning( "Failed to upload stats for %d out of %d hosts: %s" %
+            ( len( failedHosts), len( points ), ", ".join( failedHosts ) ) )
+   else:
+      logging.info( "Successfully uploaded stats for all %d hosts." % len( points ) )
+
+   logging.info( "Finished data collection." )
+
+if __name__ == "__main__":
+   main()

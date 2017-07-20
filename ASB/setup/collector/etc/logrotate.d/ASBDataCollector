@@ -1,0 +1,9 @@
+# Logrotate rules for ASBDataCollector.log
+
+/var/log/ASBDataCollector.log {
+   weekly
+   compress
+   dateext
+   missingok
+   notifempty
+}
