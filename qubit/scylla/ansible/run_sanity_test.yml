@@ -6,7 +6,7 @@
 # inventory = hosts on which the ansible playbook runs
 #
 # For example:
-#  runner run_sanity_test.yml mw105, "CLUSTER_CONTACT_NODE=mw140"
+#  runner run_sanity_test.yml mw105 ./secret "CLUSTER_CONTACT_NODE=mw140"
 #
 - name: "Run sanity test"
   hosts: all

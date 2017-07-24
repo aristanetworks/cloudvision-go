@@ -4,6 +4,9 @@
 #
 # inputs:
 #   since = time in journalctl --since format
+#
+# example:
+#   runner ./rolling_restart.yml li101,li102,li103 ./secret 'since="2017-07-24 10:00:00"'
 
 - name: "Rolling restart of nodes"
   hosts: all
