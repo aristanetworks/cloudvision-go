@@ -16,6 +16,10 @@
     that: "{{ hosts_under_upgrade }} == 1"
     msg: "Only one host can be upgraded at a time"
 
+- name: "Check health before the ops"
+  include_role:
+    name: server_health_checker
+
 - name: "Check version"
   include_role:
     name: server_version_checker

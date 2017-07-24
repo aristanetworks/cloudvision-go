@@ -1,5 +1,9 @@
 ---
 
+- assert:
+    that: since is defined
+    msg: "var: 'since' has not been defined"
+
 - name: "Get all node status"
   shell: nodetool status | egrep -e '^[A-Z][A-Z]' | awk '{print($1)}'
   register: status_info
