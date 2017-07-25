@@ -39,6 +39,15 @@
     src: roles/common/files/docker.50-options.conf
     dest: /etc/systemd/system/docker.service.d/50-options.conf
 
+# Workaround for bug:
+# https://github.com/systemd/systemd/issues/3374#issuecomment-288882355
+- name: Fix systemd-udevd bug
+  become: True
+  copy:
+    src: roles/common/files/99-default.link
+    dest: /etc/systemd/network/99-default.link
+  register: result_99_default_link
+
 # Arista is using two domains in the search.
 # systemd-networkd is using only the first one from the dhcp server
 # so we hardcode both in this config file to override the default config
@@ -78,4 +87,5 @@
   command: systemctl restart systemd-networkd
   when: >
       result_zy_dhcp_network.changed or result_20_dhcp_network.changed or
-      result_zzz_dhcp_network.changed or result_99_dhcp_network.changed
+      result_zzz_dhcp_network.changed or result_99_dhcp_network.changed or
+      result_99_default_link.changed
