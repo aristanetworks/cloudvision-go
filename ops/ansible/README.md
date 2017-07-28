@@ -10,7 +10,7 @@ brew link --force ansible@2.0
 # Install the remote coreos machines:
 
 ```sh
-ansible-playbook playbook.yml -l r12sXX
+ansible-playbook playbook.yml -i inventories/dev/hosts -l r12sXX
 ```
 
 # Run ansible commands
@@ -21,13 +21,13 @@ You want to run your ansible command from this specific directory, so the `ansib
 
 ### Check if all the machines are ok
 ```sh
-ansible all -m ping
+ansible all -i inventories/dev/hosts -m ping
 ```
 
 ### Ping one specific machine
 
 ```sh
-ansible r12s1 -m ping
+ansible r12s1 -i inventories/dev/hosts -m ping
 ```
 
 ### Generate cloud-config.yml file for the ops.git/coreos repo/folder
@@ -36,14 +36,14 @@ The following command will generate all the cloud-config-IPADDRESS.yml files for
 The generated files will be placed in ~/git/ops/coreos, because the default values for the ops repo path is `~/git/ops`.
 
 ```sh
-ansible-playbook playbook.yml -l localhost
+ansible-playbook playbook.yml -i inventories/dev/hosts -l localhost
 ```
 
 You can override the ops repo path by using the OPS_REPO env var.
 For instance, if your ops repo is `~/projects/common/ops`, the command will be:
 
 ```sh
-OPS_REPO=~/projects/common/ops ansible-playbook playbook.yml -l localhost
+OPS_REPO=~/projects/common/ops ansible-playbook playbook.yml -i inventories/dev/hosts -l localhost
 ```
 
 # Add a new ssh key / Update an existing ssh
@@ -52,5 +52,5 @@ The ssh keys are now in the file `group_vars/coreos/ssh_keys`.
 After adding/updating/removing an ssh key from this file, the cloud-config files need to be generated again (see previous section), and the ssh keys can be deployed again to the entire cluster by using the following command:
 
 ```sh
-ansible-playbook playbook.yml
+ansible-playbook playbook.yml -i inventories/dev/hosts
 ```

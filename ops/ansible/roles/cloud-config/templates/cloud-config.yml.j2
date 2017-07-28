@@ -76,7 +76,7 @@ coreos:
                     --dns=host \
                     --hostname=${SHORTHOSTNAME} \
                     --exec bash \
-                    -- -c "git clone --depth 1 http://gerrit/ardc-config && cd ardc-config/ops/ansible && ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -v playbook.yml -l $(hostname -s) > /ansibleinstall/ansible-playbook-$(date '+%F-%H-%M-%S').logs 2>&1"
+                    -- -c "git clone --depth 1 http://gerrit/ardc-config && cd ardc-config/ops/ansible && ./install_host.sh > /ansibleinstall/ansible-playbook-$(date '+%F-%H-%M-%S').logs 2>&1"
         ExecStartPost=-/usr/bin/rkt rm --uuid-file=${UUIDFILE}
         ExecStartPost=/usr/bin/touch /home/core/.ansible-installed
     - name: data2.mount
