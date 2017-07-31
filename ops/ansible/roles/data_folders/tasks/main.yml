@@ -113,25 +113,3 @@
     mode: 0755
   when: K8S_WORKER
   ignore_errors: True
-
-- name: Create zookeeper data directory
-  become: True
-  file:
-    path: "/data2/zookeeper/data"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
-  when: ZOOKEEPER_ID != 0
-  ignore_errors: True
-
-- name: Create myid zookeeper file
-  become: True
-  copy:
-    content: "{{ ZOOKEEPER_ID }}"
-    dest: "/data2/zookeeper/data/myid"
-    owner: 1000
-    group: 1000
-    mode: 0755
-  when: ZOOKEEPER_ID != 0
-  ignore_errors: True
