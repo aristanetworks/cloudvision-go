@@ -6,6 +6,9 @@
     - motd
     - coreos-config
     - data_folders
+
+- hosts: k8s_cluster
+  roles:
     - k8s_cluster
 
 - hosts: local
