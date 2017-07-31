@@ -11,6 +11,10 @@
   roles:
     - k8s_cluster
 
+- hosts: hadoop
+  roles:
+    - hadoop
+
 - hosts: local
   roles:
     - cloud-config

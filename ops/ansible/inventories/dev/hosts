@@ -42,7 +42,6 @@ K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
 K8S_MASTER=False
 K8S_WORKER=False
 ETCD2=False
-HADOOP=False
 
 [local]
 localhost ansible_connection=local ansible_become=false
