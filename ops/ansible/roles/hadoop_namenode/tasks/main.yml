@@ -1,0 +1,9 @@
+- name: Create namenode directories
+  become: True
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  with_items: "{{ hadoop_namenode_dirs }}"

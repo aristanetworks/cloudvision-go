@@ -25,6 +25,7 @@ K8S_WORKER=False
 [hadoop:children]
 datanodes
 journalnodes
+namenodes
 
 [datanodes]
 r12s1
@@ -48,6 +49,10 @@ r12s16
 r12s1
 r12s2
 r12s3
+
+[namenodes]
+r12s1
+r12s2
 
 [all:vars]
 k8s_version=1.5.6

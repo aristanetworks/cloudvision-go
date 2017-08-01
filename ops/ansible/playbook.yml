@@ -27,6 +27,10 @@
   roles:
     - hadoop_journalnode
 
+- hosts: namenodes
+  roles:
+    - hadoop_namenode
+
 - hosts: zookeeper
   roles:
     - zookeeper

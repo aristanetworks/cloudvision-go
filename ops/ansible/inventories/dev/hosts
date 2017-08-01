@@ -53,6 +53,7 @@ r12s31
 [hadoop:children]
 datanodes
 journalnodes
+namenodes
 
 [datanodes]
 r12s17
@@ -70,6 +71,10 @@ r12s31
 r12s17
 r12s20
 r12s21
+
+[namenodes]
+r12s17
+r12s20
 
 [local]
 localhost ansible_connection=local ansible_become=false

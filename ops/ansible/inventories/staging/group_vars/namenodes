@@ -1,0 +1,3 @@
+ hadoop_namenode_dirs:
+- /data4/namenode
+- /data8/namenode
