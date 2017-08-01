@@ -23,6 +23,10 @@
   roles:
     - hadoop_datanode
 
+- hosts: journalnodes
+  roles:
+    - hadoop_journalnode
+
 - hosts: zookeeper
   roles:
     - zookeeper
