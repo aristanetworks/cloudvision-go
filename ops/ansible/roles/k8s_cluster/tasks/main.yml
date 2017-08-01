@@ -5,11 +5,8 @@
 # to work correctly:
 #   - K8S_MASTER - boolean - hostvar: Will flag this host as a k8s master server
 #   - K8S_WORKER - boolean - hostvar: Will flag this host as a k8s worker server
-#   - ETCD2 - boolean - hostvar: Will flag this host as an ETCD2 server for the k8s cluster
 
 ---
-
-- include: etcd.yml
 
 - name: Create directories
   become: True

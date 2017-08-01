@@ -7,6 +7,10 @@
     - coreos-config
     - data_folders
 
+- hosts: etcd2
+  roles:
+    - etcd2
+
 - hosts: k8s_cluster
   roles:
     - k8s_cluster

@@ -14,8 +14,7 @@
   set_fact:
     etcd2_servers: "{{ etcd2_servers }} + [ '{{ item }}' ]"
     etcd2_endpoints: "{{ etcd2_endpoints }} + [ 'http://{{ hostvars[item]['ansible_host'] }}:2379' ]"
-  with_items: "{{ groups.coreos }}"
-  when: hostvars[item]['ETCD2']
+  with_items: "{{ groups.etcd2 }}"
 
 - name: Generate name for each etcd2 endpoint and assign to each corresponding host
   set_fact:

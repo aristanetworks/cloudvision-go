@@ -1,7 +1,7 @@
 [coreos]
 bs200 ansible_host=172.20.22.4 K8S_WORKER=True
 r12s17  ansible_host=172.24.32.17 K8S_WORKER=True
-r12s18  ansible_host=172.24.32.18 K8S_WORKER=True ETCD2=True
+r12s18  ansible_host=172.24.32.18 K8S_WORKER=True
 # r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
 r12s20  ansible_host=172.24.32.20 K8S_WORKER=True
 r12s21  ansible_host=172.24.32.21 K8S_WORKER=True
@@ -9,8 +9,8 @@ r12s22  ansible_host=172.24.32.22 K8S_WORKER=True
 r12s23  ansible_host=172.24.32.23 K8S_WORKER=True
 r12s24  ansible_host=172.24.32.24 K8S_MASTER=True
 r12s25  ansible_host=172.24.32.25 K8S_WORKER=True
-r12s26  ansible_host=172.24.32.26 K8S_WORKER=True ETCD2=True
-r12s27  ansible_host=172.24.32.27 K8S_WORKER=True ETCD2=True
+r12s26  ansible_host=172.24.32.26 K8S_WORKER=True
+r12s27  ansible_host=172.24.32.27 K8S_WORKER=True
 r12s28  ansible_host=172.24.32.28 K8S_WORKER=True
 r12s29  ansible_host=172.24.32.29 K8S_WORKER=True
 r12s30  ansible_host=172.24.32.30 K8S_WORKER=True
@@ -34,6 +34,11 @@ r12s29
 r12s30
 r12s31
 
+[etcd2]
+r12s18
+r12s26
+r12s27
+
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
@@ -41,7 +46,6 @@ K8S_VERSION=1.5.6
 K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
 K8S_MASTER=False
 K8S_WORKER=False
-ETCD2=False
 
 [local]
 localhost ansible_connection=local ansible_become=false

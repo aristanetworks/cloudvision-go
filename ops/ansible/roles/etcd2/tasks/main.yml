@@ -1,10 +1,3 @@
----
-
-- name: disable etcd2 for non etcd nodes
-  become: True
-  shell: systemctl disable etcd2 && systemctl stop etcd2
-  when: not ETCD2
-
 - name: create folder for etcd2 drop-in file
   become: True
   file:
@@ -13,8 +6,6 @@
     group: root
     mode: 0755
     state: directory
-  when: ETCD2
-
 
 - name: install etcd2 config
   become: True
@@ -32,15 +23,13 @@
     owner: root
     group: root
     mode: 0644
-  when: ETCD2
   register: etcdconfig
 
 - name: Reload systemd config
   become: True
   shell: systemctl daemon-reload &&  systemctl restart etcd2
-  when: ETCD2 and etcdconfig.changed
+  when: etcdconfig.changed
 
 - name: enable etcd2 for etcd nodes
   become: True
   shell: systemctl enable etcd2 && systemctl start etcd2
-  when: ETCD2
