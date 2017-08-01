@@ -1,0 +1,20 @@
+---
+
+- name: Create hadoop data directory
+  become: True
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  with_items: "{{ hadoop_datanode_dirs }}"
+
+- name: Create dfs domain socket directory
+  become: True
+  file:
+    path: "/var/lib/hadoop"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755

@@ -50,6 +50,21 @@ r12s29
 r12s30
 r12s31
 
+[hadoop:children]
+datanodes
+
+[datanodes]
+r12s17
+r12s20
+r12s21
+r12s22
+r12s23
+r12s25
+r12s28
+r12s29
+r12s30
+r12s31
+
 [local]
 localhost ansible_connection=local ansible_become=false
 

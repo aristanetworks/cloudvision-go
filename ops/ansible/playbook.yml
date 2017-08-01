@@ -19,6 +19,10 @@
   roles:
     - hadoop
 
+- hosts: datanodes
+  roles:
+    - hadoop_datanode
+
 - hosts: zookeeper
   roles:
     - zookeeper
