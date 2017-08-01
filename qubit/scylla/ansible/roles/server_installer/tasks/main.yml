@@ -28,8 +28,9 @@
   yum: name=abrt state=absent
 
 # Use ToolsV2 repo instead of Scylla's public repo
+# Ansible yum module does not support --disableexcludes
 - name: "Install Scylla"
-  yum: name={{item}} state=present
+  shell: yum --disableexcludes=all install -y {{item}}
   with_items:
     - scylla-{{SCYLLA_VERSION}}
     - scylla-debuginfo-{{SCYLLA_VERSION}}
