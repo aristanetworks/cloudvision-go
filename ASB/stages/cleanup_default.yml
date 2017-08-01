@@ -2,6 +2,12 @@
 - name: "Run common cleanup steps"
   include: "{{STAGES_PATH}}/cleanup_conf/cleanup_common.yml"
 
+# Do the same for SpidAr in the future, when it is ready.
+# Directly running the playbook with shell since ansible doesn't allow including a
+# playbook from within a task file.
+- name: "Run the same playbook ran by /etc/cron.d/AnsiblePull daily, to make sure the (Arora) server get the latest config.."
+  shell: "ansible-playbook -i localhosts, -c local {{ playbook_dir | dirname }}/AroraConfig/AroraConfig.yml"
+
 - name: "Update datacenter.servers - machine is installed"
   command: "{{ASB_DB_UPDATE_INSTALLED}}"
 ...

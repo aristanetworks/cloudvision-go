@@ -5,12 +5,6 @@
 - name: "Clean up the record of retry count on mysql."
   shell: "{{ ASB_DB_REIMG_RETRY_DELETE }}"
 
-# Do the same for SpidAr in the future, when it is ready.
-# Directly running the playbook with shell since ansible doesn't allow including a
-# playbook from within a task file.
-- name: "Run the same playbook ran by /etc/cron.d/AnsiblePull daily, to make sure the server get the latest config.."
-  shell: "ansible-playbook -i localhosts, -c local {{ playbook_dir | dirname }}/AroraConfig/AroraConfig.yml"
-
 # This assures that there is at least a SMART test scheduled to run
 # so that we can use the results when needed, especially since
 # this server has been installed anew. It also helps to check
