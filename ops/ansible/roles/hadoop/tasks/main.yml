@@ -1,21 +1,11 @@
 
 ---
 
-- name: Create hadoop data directory
+- name: Create hadoop logs directory
   become: True
   file:
-    path: "{{ item }}/dfs"
+    path: "{{ hadoop_logs_dir }}"
     state: directory
     owner: 1000
     group: 1000
     mode: 0755
-  with_items:
-    - /data1
-    - /data2
-    - /data3
-    - /data4
-    - /data5
-    - /data6
-    - /data7
-    - /data8
-  ignore_errors: True
