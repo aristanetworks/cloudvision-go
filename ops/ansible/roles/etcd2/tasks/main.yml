@@ -1,3 +1,22 @@
+- name: Create /opt/bin folder
+  become: True
+  file:
+    path: /opt/bin
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: Install etcdctl 3 binary
+  become: True
+  get_url:
+    url: http://dist/storage/Kubernetes/etcdctl-v{{ ETCDCTL3_VERSION }}-linux-amd64
+    dest: /opt/bin/etcdctl-v{{ ETCDCTL3_VERSION }}
+    checksum: "md5:{{ ETCDCTL3_MD5 }}"
+    owner: root
+    group: root
+    mode: 0755
+
 - name: create folder for etcd2 drop-in file
   become: True
   file:
