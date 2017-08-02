@@ -1,0 +1,5 @@
+# Add aliases to call etcdctl v3 both in v2 mode and v3 mode
+# starting with 2/3 makes calling the alias simpler from the
+# command line. Just type 2 or 3 and tab and it will autocomplete
+alias 2etcdctl="/opt/bin/etcdctl-v{{ ETCDCTL3_VERSION }}"
+alias 3etcdctl="ETCDCTL_API=3 /opt/bin/etcdctl-v{{ ETCDCTL3_VERSION }}"

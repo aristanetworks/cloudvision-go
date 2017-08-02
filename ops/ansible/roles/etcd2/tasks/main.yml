@@ -52,3 +52,12 @@
 - name: enable etcd2 for etcd nodes
   become: True
   shell: systemctl enable etcd2 && systemctl start etcd2
+
+- name: Install bash aliases
+  # Note that docker daemon needs to be restarted in order for this change to
+  # take effect, but as restarting docker daemon will stop all the
+  # running docker containers, it's not done by ansible but left as a manual
+  # process
+  template:
+    src: etcd3.bashrc.j2
+    dest: "{{ ansible_env.HOME }}/.bashrc.d/etcd3.bashrc"
