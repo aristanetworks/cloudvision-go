@@ -1,0 +1,26 @@
+---
+
+# Do a restart of the server along with health check
+#
+# inputs:
+#   since = time in journalctl --since format
+#
+
+- name: "Stopping services"
+  include_role:
+    name: server_stopper
+
+- name: "Starting services"
+  include_role:
+    name: server_starter
+
+- name: "Checking health after restart"
+  include_role:
+    name: server_health_checker
+
+- name: "Pause if critical errors detected"
+  pause:
+    prompt: "Health check failed. Press Ctl+C and choose Abort if errors are critical else Continue"
+  when: "{{ server_health_errors }} > 0"
+
+...
