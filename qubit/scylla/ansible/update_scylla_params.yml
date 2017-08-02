@@ -1,0 +1,86 @@
+---
+
+# Add or Delete a parameter from SCYLLA_ARGS in /etc/sysconfig/scylla-server"
+#
+# In "runner PLAYBOOK INVENTORY SECRET ARGS", the ARGS should be one of:
+#
+# To add a parameter:
+#   'ADD_PARAMETER=1 PARAMETER_INFO="var value"'
+#
+# To delete a parameter:
+#   'DEL_PARAMETER=1 PARAMETER_INFO="var value"'
+#
+# Note that PARAMETER_INFO includes both variable and value so if the value
+# of an existing variable needs to be changed then the parameter must first
+# be deleted and then added. For such deletes, the playbook can be run without
+# restarting the server.
+#
+# To restart the Scylla service after updating the parameter, add the following
+# to args, in addition to above
+#    RESTART_SERVER=1 since="2017-08-02 06:00:00"
+#
+- name: "Update scylla startup params"
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+          scylla_startup_file: /etc/sysconfig/scylla-server
+  serial: 1
+  tasks:
+    - assert:
+        that: ( ADD_PARAMETER is defined or DEL_PARAMETER is defined ) and ( PARAMETER_INFO != "")
+        msg: "PARAMETER_INFO must be non-empty and either ADD_PARAMETER or DEL_PARAMETER must be defined"
+
+    - assert:
+        that: not ( ADD_PARAMETER is defined and DEL_PARAMETER is defined )
+        msg: "Only one of ADD_PARAMETER or DEL_PARAMETER must be defined"
+
+# Parameter add or delete action should leave SCYLLA_ARGS with proper whitespace.
+# No leading whitepace, no trailing whitespace, no additional whitespace
+# when parameter is removed from middle of SCYLLA_ARGS.
+#
+# The regexp fails when PARAMETER_INFO is present in SCYLLA_ARGS line thus
+# making parameter add, idempotent. In other words, PARAMETER_INFO is
+# only added when its absent in SCYLLA_ARGS. The new parameter is always
+# added to the end with leading space.
+    - name: "Add parameter to the end"
+      replace:
+        dest: "{{ scylla_startup_file }}"
+        regexp: '^SCYLLA_ARGS="((?!.*{{ PARAMETER_INFO }}).*)"$'
+        replace: 'SCYLLA_ARGS="\1 {{ PARAMETER_INFO }}"'
+      when: ADD_PARAMETER is defined
+
+# If PARAMETER_INFO is in the middle of SCYLLA_ARGS then PARAMETER_INFO and
+# its surrounding space is replaced with 1 space.
+    - name: "Delete parameter - from middle"
+      replace:
+        dest: "{{ scylla_startup_file }}"
+        regexp: '^SCYLLA_ARGS="(.*?)(\s+{{PARAMETER_INFO}}\s+)(.*)'
+        replace: 'SCYLLA_ARGS="\1 \3'
+      when: DEL_PARAMETER is defined
+
+# If PARAMETER_INFO is in the front or back of SCYLLA_ARGS then PARAMETER_INFO
+# is replaced without regards to whitespace thus causing leading or trailing
+# whitespaces.
+    - name: "Delete parameter - from front/back"
+      replace:
+        dest: "{{ scylla_startup_file }}"
+        regexp: '^SCYLLA_ARGS="(.*?)({{PARAMETER_INFO}})(.*)'
+        replace: 'SCYLLA_ARGS="\1\3'
+      when: DEL_PARAMETER is defined
+
+# Cleanup any leading or trailing whitespaces introduced by add or delete of
+# parameter.
+    - name: "Remove leading or trailing whitespace"
+      replace:
+        dest: "{{ scylla_startup_file }}"
+        regexp: '^SCYLLA_ARGS="(\s*)(.*?)(\s*)"$'
+        replace: 'SCYLLA_ARGS="\2"'
+      when: ADD_PARAMETER is defined or DEL_PARAMETER is defined
+
+    - name: "Restart Scylla server"
+      include_role:
+        name: server_restarter
+      when:
+        - RESTART_SERVER is defined
+...
