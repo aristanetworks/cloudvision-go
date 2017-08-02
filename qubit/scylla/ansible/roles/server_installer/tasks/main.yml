@@ -22,7 +22,7 @@
 # pending transactions which cause yum module based install
 # to fail.
 - name: "Ensure that there are no pending yum transactions"
-  shell: yum-complete-transaction --cleanup-only
+  command: yum-complete-transaction --cleanup-only
 
 - name: "Uninstall ABRT package due to conflicts with Scylla"
   yum: name=abrt state=absent
@@ -30,7 +30,7 @@
 # Use ToolsV2 repo instead of Scylla's public repo
 # Ansible yum module does not support --disableexcludes
 - name: "Install Scylla"
-  shell: yum --disableexcludes=all install -y {{item}}
+  command: yum --disableexcludes=ToolsV2 install -y {{item}}
   with_items:
     - scylla-{{SCYLLA_VERSION}}
     - scylla-debuginfo-{{SCYLLA_VERSION}}
@@ -43,10 +43,10 @@
 
 # install Scylla repair script and its dependencies
 - name: "Install python2 pip"
-  shell: easy_install-2.7 pip
+  command: easy_install-2.7 pip
 
 - name: "Install Tinydb"
-  shell: pip2 install tinydb
+  command: pip2 install tinydb
 
 - name: "Install the repair script"
   copy:
