@@ -1,7 +1,7 @@
 # Logrotate rules for ASBTrigger.log (main log, not the host logs - host logs are too
 # small in size to care about rotating)
 
-/var/log/ASBTrigger.log {
+/var/log/ASBTrigger/ASBTrigger.log {
    weekly
    compress
    dateext
