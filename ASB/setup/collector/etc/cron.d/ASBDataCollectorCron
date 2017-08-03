@@ -1,4 +1,4 @@
 # Cron job that triggers ASBDataCollector script.
 # Runs every minute.
 
-* * * * * root /home/ansible/ASBDataCollector
+*/10 * * * * root /home/ansible/ASBDataCollector
