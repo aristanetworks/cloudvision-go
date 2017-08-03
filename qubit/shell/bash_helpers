@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+# do 'source <this file>' to use the functions setup in this file
+
+# This file provides functions to run commands remotely as well
+# as run commands locally but which impact/get info about hosts.
+#
+# Functions that support remote commands use pdsh format for hosts.
+# Function that support commands on localhost use a blank separate list of hosts.
+#
+# --- start KEYWORD_EXPANSION ---
+#
+# Both remote and localhost functions support keywords that represent a bunch
+# of hosts. For example - scylla-prod represents all hosts in scylla production
+# cluster. The expand_keyword_xx functions enable following usage:
+#
+# scylla_version ce101,ce102 -> specify the hosts explicitly
+# scylla_version scylla-prod -> specify a keyword which is expanded to the list
+#                               of hosts automatically.
+#
+# Variants of expand_keyword_xx functions:
+# expand_keyword_pdsh_hosts -> expand the keyword into pdsh host list format
+# expand_keyword_hosts -> expand the keyword into space separated host list
+#
+# --- end KEYWORD_EXPANSION ---
+
+# --- helpers meant for remote execution ---
+
+SECRET="/home/ansible/.ssh/id_rsa"
+
+function scylla_prod_nodes_pdsh() { echo ce[101-121]; }
+function scylla_dev_nodes_pdsh() { echo li[101-103]; }
+
+# refer to the note labelled KEYWORD_EXPANSION
+function expand_keyword_pdsh_hosts() {
+  KEYWORD=$1
+
+  case ${KEYWORD} in
+    scylla-prod) echo `scylla_prod_nodes_pdsh`;;
+    scylla-dev) echo `scylla_dev_nodes_pdsh`;;
+     *) echo $KEYWORD;;
+   esac
+}
+
+# remote commands are excuted as ansible user
+function run_pdsh_cmd() {
+   HOSTS=$1
+   CMD=$2
+
+   [[ -z "${HOSTS}" ]] && echo "HOSTS variable must be setup" && exit -1
+
+   HOSTLIST=`expand_keyword_pdsh_hosts ${HOSTS}`
+   PDSH_SSH_ARGS_APPEND="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${SECRET}" pdsh -l ansible -w "${HOSTLIST}" "${CMD}"
+}
+
+# --- commands meant for remote execution ---
+
+function scylla_version() {
+	SCRIPT='
+HOSTNAME=`hostname`;
+RUNVER=`wget -qO- http://${HOSTNAME}:10000/storage_service/scylla_release_version`;
+RPMVER=`rpm -qa | grep scylla-server`;
+echo "RPMVER=${RPMVER} RUNVER=${RUNVER}";
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
+function scylla_service_status() { run_pdsh_cmd "$1" "systemctl status scylla-server | grep Active" ; }
+
+# There is a blank at the end of /usr/bin/scylla
+function scylla_process() { run_pdsh_cmd "$1" "ps -efl | grep '/usr/bin/scylla ' | grep -v grep" ; }
+
+function drive_report() { run_pdsh_cmd "$1" "sudo drive_mgmt.sh report"; }
+
+function scylla_df() { run_pdsh_cmd "$1" "sudo df -kh /persist"; }
+
+# --- helpers meant for localhost execution ---
+
+function scylla_prod_nodes() { for node in `seq 101 121`; do echo ce${node}; done; }
+function scylla_dev_nodes() { for node in `seq 101 103`; do echo li${node}; done; }
+
+# refer to the note labelled KEYWORD_EXPANSION
+function expand_keyword_hosts() {
+  KEYWORD=$1
+
+  case ${KEYWORD} in
+    scylla-prod) echo `scylla_prod_nodes`;;
+    scylla-dev) echo `scylla_dev_nodes`;;
+     *) echo $KEYWORD;;
+   esac
+}
+
+# --- commands meant for localhost execution ---
+
+function show_ip() { HOSTLIST=`expand_keyword_hosts $1`; for node in ${HOSTLIST}; do host ${node}; done; }
+function show_ipmi() { HOSTLIST=`expand_keyword_hosts $1`; for node in ${HOSTLIST}; do host ${node}-ipmi; done; }
+
+IPMITOOL="ipmitool -I lanplus -U ADMIN -P ADMIN"
+function ipmi_force_pxe() { ${IPMITOOL} -H $1 chassis bootparam set bootflag force_pxe; }
+function ipmi_force_disk() { ${IPMITOOL} -H $1 chassis bootparam set bootflag force_disk; }
+function ipmi_force_bios() { ${IPMITOOL} -H $1 chassis bootparam set bootflag force_bios; }
+function ipmi_console() { echo $1; ${IPMITOOL} -H $1 sol activate; }
+function ipmi_power_cycle() { ${IPMITOOL} -H $1 chassis power cycle; }
+function ipmi_power_status() { ${IPMITOOL} -H $1 chassis power status; }
