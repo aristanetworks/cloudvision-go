@@ -1,0 +1,26 @@
+---
+
+- name: "Setup SSD tools"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+    - name: "Install smartctl"
+      yum: name=smartmontools state=present
+
+    - name: "Install Intel SSD tool"
+      yum:  name=isdct state=present
+
+    - name: "Install Micron tool"
+      get_url:
+        url: http://dist/ToolsV2/repo/x86_64/RPMS/msecli
+        dest: /usr/bin/msecli
+        mode: 0555
+
+    - name: "Install Arista Milkyway drive mgmt tool"
+      copy:
+        src: resources/drive_mgmt.sh
+        dest: /usr/bin/drive_mgmt.sh
+        mode: 0754
+
+...
