@@ -26,7 +26,7 @@
 
 # --- helpers meant for remote execution ---
 
-SECRET="/home/ansible/.ssh/id_rsa"
+SECRET=${SECRET:="/home/ansible/.ssh/id_rsa"}
 
 function scylla_prod_nodes_pdsh() { echo ce[101-121]; }
 function scylla_dev_nodes_pdsh() { echo li[101-103]; }
@@ -54,6 +54,21 @@ function run_pdsh_cmd() {
 }
 
 # --- commands meant for remote execution ---
+
+# reports if the fstrim job is disabled
+# if the job is enabled then it shows when the job was last run
+function check_fstrim_job() {
+	SCRIPT='
+FSTRIM_GREP=`sudo grep fstrim /etc/cron.daily/jobs.deny > /dev/null 2>&1; echo $?`
+if [[ ${FSTRIM_GREP} -eq 0 ]]
+then
+  echo "fstrim disabled";
+else
+  sudo grep fstrim /var/log/cron | tail -2
+fi
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
 
 function scylla_version() {
 	SCRIPT='
