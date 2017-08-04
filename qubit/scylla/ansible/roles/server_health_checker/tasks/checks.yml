@@ -14,7 +14,7 @@
   assert:
     that: item == "UN"
     msg: "Not all nodes in UN status"
-  with_items: "{{ status_info.stdout_lines | list }}"
+  with_items: "{{ status_info.stdout_lines | default([]) | list }}"
 
 - name: "Check errors in Scylla server journal"
   shell: journalctl -u scylla-server -q -p err..warning --no-pager --since '{{ since }}'
@@ -22,7 +22,7 @@
   ignore_errors: true
 
 - name: "Count errors"
-  set_fact: server_health_errors="{{ error_info.stdout_lines | length }}"
+  set_fact: server_health_errors="{{ error_info.stdout_lines | default([]) | length }}"
 
 - debug: msg="Errors detected. Review scylla-server logs."
   when: "{{ server_health_errors }} > 0"
