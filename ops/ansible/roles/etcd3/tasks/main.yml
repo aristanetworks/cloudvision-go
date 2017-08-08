@@ -1,11 +1,14 @@
 - name: Create /opt/bin folder
   become: True
   file:
-    path: /opt/bin
+    path: "{{ item }}"
     owner: root
     group: root
     mode: 0755
     state: directory
+  with_items:
+    - /opt/bin
+    - /etc/systemd/system/etcd-member.service.d
 
 - name: Install etcdctl 3 binary
   become: True
@@ -25,3 +28,22 @@
   template:
     src: etcd3.bashrc.j2
     dest: "{{ ansible_env.HOME }}/.bashrc.d/etcd3.bashrc"
+
+- name: install etcd3 config
+  become: True
+  copy:
+    content: |
+      [Service]
+      Environment="ETCD_ADVERTISE_CLIENT_URLS=http://{{ ansible_host }}:2379"
+      Environment="ETCD_CORS=*"
+      Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ ansible_host }}:2380"
+      Environment="ETCD_INITIAL_CLUSTER={% set comma = joiner(",") %}{% for host in groups.etcd3 %}{{ comma() }}etcd{{ loop.index - 1 }}=http://{{ hostvars[host]['ansible_host'] }}:2380{% endfor %}"
+      Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+      Environment="ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+      Environment="ETCD_NAME=etcd{{ groups.etcd3.index(inventory_hostname) }}"
+      Environment="ETCD_ENABLE_V2=false"
+    dest: /etc/systemd/system/etcd-member.service.d/30-etcd3.conf
+    owner: root
+    group: root
+    mode: 0644
+  register: etcd3config
