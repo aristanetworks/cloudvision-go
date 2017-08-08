@@ -1,21 +1,3 @@
-- name: Create /opt/bin folder
-  become: True
-  file:
-    path: /opt/bin
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
-
-- name: Install etcdctl 3 binary
-  become: True
-  get_url:
-    url: http://dist/storage/Kubernetes/etcdctl-v{{ ETCDCTL3_VERSION }}-linux-amd64
-    dest: /opt/bin/etcdctl-v{{ ETCDCTL3_VERSION }}
-    checksum: "md5:{{ ETCDCTL3_MD5 }}"
-    owner: root
-    group: root
-    mode: 0755
 
 - name: create folder for etcd2 drop-in file
   become: True
@@ -52,12 +34,3 @@
 - name: enable etcd2 for etcd nodes
   become: True
   shell: systemctl enable etcd2 && systemctl start etcd2
-
-- name: Install bash aliases
-  # Note that docker daemon needs to be restarted in order for this change to
-  # take effect, but as restarting docker daemon will stop all the
-  # running docker containers, it's not done by ansible but left as a manual
-  # process
-  template:
-    src: etcd3.bashrc.j2
-    dest: "{{ ansible_env.HOME }}/.bashrc.d/etcd3.bashrc"
