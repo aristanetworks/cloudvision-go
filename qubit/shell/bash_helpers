@@ -55,6 +55,17 @@ function run_pdsh_cmd() {
 
 # --- commands meant for remote execution ---
 
+function node_version() {
+	SCRIPT='
+DISTRO_REL=$(cat /etc/redhat-release)
+# find the latest kernel rpm installed
+KERNEL_RPM_INSTALLED=$(yum -q list kernel | tail -1 | awk '"'"'{print($2)}'"'"')
+KERNEL_ACTIVE=$(uname -r)
+echo "KERNEL_BOOTED: ${KERNEL_ACTIVE} KERNEL_RPM: ${KERNEL_RPM_INSTALLED} DISTRO: ${DISTRO_REL}"
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
 # reports if the fstrim job is disabled
 # if the job is enabled then it shows when the job was last run
 function check_fstrim_job() {
