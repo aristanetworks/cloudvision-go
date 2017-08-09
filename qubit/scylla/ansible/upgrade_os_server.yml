@@ -1,0 +1,26 @@
+---
+
+# Perform OS upgrade on the server node
+#
+# inputs:
+#    since = Time in journalctl format to look for errors
+#
+# Example:
+#    ./runner ./upgrade_os_server.yml ce104 ./secret 'since="-2m"'
+
+- name: "Upgrade OS on Scylla server"
+  hosts: all
+  become: yes
+  become_user: root
+  serial: 1
+  roles:
+    - { role: server_stopper }
+    - { role: server_os_upgrader }
+    - { role: server_starter }
+    - { role: server_health_checker }
+  post_tasks:
+    - pause:
+        prompt: "Health check failed. Press Ctl+C and choose Abort if errors are critical else Continue"
+      when: "{{ server_health_errors }} > 0"
+
+...

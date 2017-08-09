@@ -1,0 +1,39 @@
+---
+
+# Performs OS upgrade, and restart the host
+#
+
+- name: Obtain OS version before update
+  command: cat /etc/centos-release
+  register: result
+
+- name: Print OS version before update
+  debug: var=result.stdout
+
+- name: Upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+
+# TODO: replace this with  command: reboot
+- name: Power cycle the host
+  local_action: command ipmitool -I lanplus -H {{ inventory_hostname }}-ipmi -U ADMIN -P ADMIN chassis power cycle
+
+# necessary since IPMI command returns immediately
+- name: Pause for the system to power cycle
+  pause: seconds=180
+
+# use search_regex to avoid race with port open check
+- name: Wait for the SSH to be available
+  local_action: wait_for port=22 host={{ inventory_hostname }} timeout=1200 search_regex=OpenSSH
+
+- debug: msg="System has been restarted after the OS Upgrade"
+
+- name: Obtain OS version after update
+  command: cat /etc/centos-release
+  register: result_new
+
+- name: Print OS version after update
+  debug: var=result_new.stdout
+
+...
