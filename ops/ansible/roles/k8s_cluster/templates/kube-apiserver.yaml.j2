@@ -12,7 +12,8 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd_servers={{ etcd2_endpoints | join(",")}}
+    - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['ansible_host'] }}:2379{% endfor %}
+
     - --allow-privileged=true
     - --service-cluster-ip-range=10.3.0.0/16
     - --secure_port=443

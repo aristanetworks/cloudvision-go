@@ -30,7 +30,7 @@
   copy:
     content: |
       FLANNELD_IFACE={{ ansible_host }}
-      FLANNELD_ETCD_ENDPOINTS={{ etcd2_endpoints | join(",") }}
+      FLANNELD_ETCD_ENDPOINTS={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['ansible_host'] }}:2379{% endfor %}
     dest: /etc/flannel/options.env
     owner: root
     group: root
