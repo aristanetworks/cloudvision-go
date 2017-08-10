@@ -16,10 +16,10 @@
       Environment="ETCD_ADVERTISE_CLIENT_URLS=http://{{ ansible_host }}:2379"
       Environment="ETCD_CORS=*"
       Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ ansible_host }}:2380"
-      Environment="ETCD_INITIAL_CLUSTER={{ etcd2_endpoint_cluster | join(",") }}"
+      Environment="ETCD_INITIAL_CLUSTER={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}etcd{{ loop.index - 1 }}=http://{{ hostvars[host]['ansible_host'] }}:2380{% endfor %}"
       Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
       Environment="ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
-      Environment="ETCD_NAME={{ etcd2_name }}"
+      Environment="ETCD_NAME=etcd{{ groups.etcd2.index(inventory_hostname) }}"
     dest: /etc/systemd/system/etcd2.service.d/20-etcd2.conf
     owner: root
     group: root
