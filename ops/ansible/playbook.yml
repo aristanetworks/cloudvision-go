@@ -11,10 +11,6 @@
   roles:
     - etcd2
 
-- hosts: etcd3
-  roles:
-    - etcd3
-
 - hosts: k8s_cluster
   roles:
     - k8s_cluster
