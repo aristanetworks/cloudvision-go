@@ -37,7 +37,7 @@ r12s31
 [etcd2]
 r12s18
 r12s26
-r12s27
+r12s24
 
 [k8s_masters]
 r12s24
