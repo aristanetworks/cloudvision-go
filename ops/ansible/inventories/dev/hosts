@@ -39,6 +39,9 @@ r12s18
 r12s26
 r12s27
 
+[k8s_masters]
+r12s24
+
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
