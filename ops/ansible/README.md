@@ -1,5 +1,11 @@
 # Ansible config for ops (r12s1 to r12s32 machines)
 
+# LIMITATIONS
+
+* **k8s MASTER**: We only support ONE kubernetes master instance in the cluster right now.
+* **ETCD2**: ETCD2 instances are NOT managed by ansible. They are managed manually. The role defined on ansible is just a basic role to have the etcd2 config correctly setup on the host running etcd2 on reinstall/restart/ansible reapply.
+
+
 # Install ansible
 
 ```sh
