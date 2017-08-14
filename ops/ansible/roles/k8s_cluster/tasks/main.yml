@@ -36,13 +36,14 @@
     group: root
     mode: 0600
   when: "K8S_MASTER == True or K8S_WORKER == True"
+  register: flannel_config
 
 - name: Install flanneld service on k8s nodes
   become: True
   copy:
     src: roles/common/files/flanneld.service.40-ExecStartPre-symlink.conf
     dest: /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf
-  register: result
+  register: flannel_service
   when: "K8S_MASTER == True or K8S_WORKER == True"
 
 - name: Install docker flanneld drop-in
@@ -51,12 +52,20 @@
     src: roles/common/files/docker.service.40-flannel.conf
     dest: /etc/systemd/system/docker.service.d/40-flannel.conf
   when: "K8S_MASTER == True or K8S_WORKER == True"
+  register: docker_flannel
 
 - name: Reload systemd config
   become: True
-  command: systemctl daemon-reload
-  when: "K8S_MASTER == True or K8S_WORKER == True"
-  # TODO: We should restart when we really changed something
+  systemd:
+    daemon_reload: yes
+  when: docker_flannel.changed or flannel_config.changed or flannel_service.changed
+
+- name: restart flannel service if needed
+  become: True
+  systemd:
+    name: flanneld.service
+    state: restarted
+  when: flannel_config.changed or flannel_service.changed
 
 # This is too dangerous and not really useful for now.
 # Related github issues:
