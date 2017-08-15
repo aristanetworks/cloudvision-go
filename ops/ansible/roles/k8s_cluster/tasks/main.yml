@@ -115,7 +115,13 @@
     mode: 0600
   with_items: "{{ certificates }}"
 
-- name: Install k8s master manifests
+- name: Remove possible old-config manifest
+  become: True
+  file:
+    path: /etc/kubernetes/manifests/kube-proxy.yaml
+    state: absent
+
+- name: Install k8s manifests
   become: True
   template:
     src: "{{ item }}.j2"
@@ -123,22 +129,7 @@
     owner: root
     group: root
     mode: 0755
-  with_items:
-    - kube-controller-manager.yaml
-    - kube-proxy.yaml
-    - kube-scheduler.yaml
-    - kube-apiserver.yaml
-  when: K8S_MASTER
-
-- name: Install k8s worker proxy
-  become: True
-  template:
-    src: kube-proxy-worker.yaml.j2
-    dest: /etc/kubernetes/manifests/kube-proxy.yaml
-    owner: root
-    group: root
-    mode: 0755
-  when: K8S_WORKER
+  with_items: "{{ manifests }}"
 
 - name: Install k8s worker manifest
   become: True

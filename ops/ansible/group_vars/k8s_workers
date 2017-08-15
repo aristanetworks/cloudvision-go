@@ -2,3 +2,6 @@ certificates:
   - worker.pem
   - worker-key.pem
   - ca.pem
+
+manifests:
+  - kube-proxy-worker.yaml

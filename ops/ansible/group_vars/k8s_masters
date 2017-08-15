@@ -2,3 +2,9 @@ certificates:
   - apiserver.pem
   - apiserver-key.pem
   - ca.pem
+
+manifests:
+  - kube-controller-manager.yaml
+  - kube-proxy-master.yaml
+  - kube-scheduler.yaml
+  - kube-apiserver.yaml
