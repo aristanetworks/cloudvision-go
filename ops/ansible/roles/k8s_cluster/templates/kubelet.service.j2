@@ -1,0 +1,24 @@
+[Service]
+ExecStart=/opt/bin/kubelet \
+  --require-kubeconfig=true \
+  --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
+{% if K8S_MASTER %}
+  --register-schedulable=false \
+{%else%}
+  --register-node=true \
+{% endif %}
+  --allow-privileged=true \
+  --pod-manifest-path=/etc/kubernetes/manifests \
+  --hostname-override={{ ansible_host }} \
+  --cluster_dns=10.3.0.10 \
+  --cluster_domain=cluster.local \
+  --volume-stats-agg-period=0 \
+  --cadvisor-port=4194{% if not K8S_MASTER %} \
+  --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+  --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
