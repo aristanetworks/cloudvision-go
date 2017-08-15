@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/opt/bin/kubelet \
+ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
   --require-kubeconfig=true \
   --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
 {% if K8S_MASTER %}

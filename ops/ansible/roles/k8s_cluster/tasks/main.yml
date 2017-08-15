@@ -76,34 +76,17 @@
 #   when: "K8S_MASTER == True or K8S_WORKER == True"
   # TODO: We should restart when we really changed something
 
-- name: Get current k8s binary info
-  become: True
-  stat:
-    path: /opt/bin/kubelet
-  register: k8sbinary_file
-
-- name: Check if k8s binary is correct
-  become: True
-  set_fact:
-    force_new_download: "{{ k8sbinary_file.stat.exists == False or k8sbinary_file.stat.md5 != k8s_kubelet_md5 }}"
-
-- name: Stop kubelet service
-  become: True
-  command: systemctl stop kubelet.service
-  when: force_new_download
-  # The service might not be installed yet, so we don't mind having errors
-  ignore_errors: True
-
 - name: Install k8s binary
   become: True
   get_url:
     url: http://dist/storage/Kubernetes/kubernetes-{{ k8s_version }}-server-linux-amd64/server/bin/kubelet
-    dest: /opt/bin/kubelet
+    dest: "/opt/bin/kubelet-{{ k8s_version }}"
+    force: no
     checksum: "md5:{{ k8s_kubelet_md5 }}"
     owner: root
     group: root
     mode: 0755
-  when: force_new_download
+  register: kubelet_binary
 
 - name: Install k8s certificates
   become: True
@@ -164,4 +147,4 @@
 - name: Restart k8s service if needed
   become: True
   command: systemctl restart kubelet.service
-  when: "kservice.changed or force_new_download"
+  when: "kservice.changed or kubelet_binary.changed"
