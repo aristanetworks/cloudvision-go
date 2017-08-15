@@ -76,18 +76,6 @@
 #   when: "K8S_MASTER == True or K8S_WORKER == True"
   # TODO: We should restart when we really changed something
 
-- name: Install k8s binary
-  become: True
-  get_url:
-    url: http://dist/storage/Kubernetes/kubernetes-{{ k8s_version }}-server-linux-amd64/server/bin/kubelet
-    dest: "/opt/bin/kubelet-{{ k8s_version }}"
-    force: no
-    checksum: "md5:{{ k8s_kubelet_md5 }}"
-    owner: root
-    group: root
-    mode: 0755
-  register: kubelet_binary
-
 - name: Install k8s certificates
   become: True
   copy:
@@ -145,4 +133,4 @@
     name: kubelet.service
     state: restarted
     daemon_reload: yes
-  when: "kservice.changed or kubelet_binary.changed"
+  when: kservice.changed

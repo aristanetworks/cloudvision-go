@@ -1,5 +1,10 @@
 [Service]
-ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
+Environment=KUBELET_IMAGE_TAG=v{{ k8s_version }}_coreos.0
+Environment="RKT_RUN_ARGS=--volume=resolv,kind=host,source=/etc/resolv.conf \
+  --mount volume=resolv,target=/etc/resolv.conf \
+  --uuid-file-save=/var/run/kubelet-pod.uuid"
+ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
+ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --require-kubeconfig=true \
   --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
 {% if K8S_MASTER %}
@@ -16,6 +21,8 @@ ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
   --cadvisor-port=4194{% if not K8S_MASTER %} \
   --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
   --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
+
+ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
 
 Restart=always
 RestartSec=10
