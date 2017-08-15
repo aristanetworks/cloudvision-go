@@ -1,0 +1,4 @@
+certificates:
+  - apiserver.pem
+  - apiserver-key.pem
+  - ca.pem

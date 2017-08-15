@@ -1,0 +1,4 @@
+certificates:
+  - worker.pem
+  - worker-key.pem
+  - ca.pem
