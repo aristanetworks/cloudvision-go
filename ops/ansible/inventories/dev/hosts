@@ -17,6 +17,14 @@ r12s30  ansible_host=172.24.32.30 K8S_WORKER=True
 r12s31  ansible_host=172.24.32.31 K8S_WORKER=True
 # r12s32  ansible_host=172.24.32.32 # Used by docker registry, managed manually
 
+[coreos:vars]
+ansible_user=core
+ansible_python_interpreter=/home/core/bin/python
+K8S_VERSION=1.5.6
+K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
+K8S_MASTER=False
+K8S_WORKER=False
+
 [etcd2]
 r12s18
 r12s26
@@ -40,14 +48,6 @@ r12s28
 r12s29
 r12s30
 r12s31
-
-[coreos:vars]
-ansible_user=core
-ansible_python_interpreter=/home/core/bin/python
-K8S_VERSION=1.5.6
-K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
-K8S_MASTER=False
-K8S_WORKER=False
 
 [local]
 localhost ansible_connection=local ansible_become=false
