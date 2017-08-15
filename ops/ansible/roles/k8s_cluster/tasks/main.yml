@@ -148,7 +148,7 @@
       [Service]
       ExecStart=/opt/bin/kubelet \
         --require-kubeconfig=true \
-        --kubeconfig=/etc/kubernetes/{% if K8S_MASTER %}master{%else%}worker{%endif%}-kubeconfig.yaml \
+        --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
       {% if K8S_MASTER %}
         --register-schedulable=false \
       {%else%}
