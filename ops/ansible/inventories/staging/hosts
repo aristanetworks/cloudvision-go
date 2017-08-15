@@ -19,7 +19,6 @@ r12s16  ansible_host=172.24.32.16
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
-K8S_VERSION=1.5.6
 K8S_KUBELET_MD5=6965c410cfcd0650e2bdb984a4c8b219
 K8S_MASTER=False
 K8S_WORKER=False
@@ -41,3 +40,6 @@ r12s13
 r12s14
 r12s15
 r12s16
+
+[all:vars]
+k8s_version=1.5.6

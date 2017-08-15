@@ -97,7 +97,7 @@
 - name: Install k8s binary
   become: True
   get_url:
-    url: http://dist/storage/Kubernetes/kubernetes-{{ K8S_VERSION }}-server-linux-amd64/server/bin/kubelet
+    url: http://dist/storage/Kubernetes/kubernetes-{{ k8s_version }}-server-linux-amd64/server/bin/kubelet
     dest: /opt/bin/kubelet
     checksum: "md5:{{ K8S_KUBELET_MD5 }}"
     owner: root
