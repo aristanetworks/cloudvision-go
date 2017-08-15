@@ -177,7 +177,9 @@
 
 - name: Enable kubelet.service unit
   become: True
-  command: systemctl enable kubelet.service
+  systemd:
+    name: kubelet.service
+    enabled: yes
 
 - name: Reload services
   become: True
