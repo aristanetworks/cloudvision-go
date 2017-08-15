@@ -139,12 +139,10 @@
     name: kubelet.service
     enabled: yes
 
-- name: Reload services
-  become: True
-  command: systemctl daemon-reload
-  when: kservice.changed
-
 - name: Restart k8s service if needed
   become: True
-  command: systemctl restart kubelet.service
+  systemd:
+    name: kubelet.service
+    state: restarted
+    daemon_reload: yes
   when: "kservice.changed or kubelet_binary.changed"
