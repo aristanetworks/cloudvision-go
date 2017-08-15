@@ -131,25 +131,14 @@
     mode: 0755
   with_items: "{{ manifests }}"
 
-- name: Install k8s worker manifest
+- name: Install kubeconfig.yaml
   become: True
   template:
-    src: worker-kubeconfig.yaml.j2
-    dest: /etc/kubernetes/worker-kubeconfig.yaml
+    src: "{{ kubeconfig }}.yaml.j2"
+    dest: "/etc/kubernetes/{{ kubeconfig }}.yaml"
     owner: root
     group: root
     mode: 0755
-  when: K8S_WORKER
-
-- name: Install master-kubeconfig.yaml
-  become: True
-  copy:
-    src: master-kubeconfig.yaml
-    dest: /etc/kubernetes/master-kubeconfig.yaml
-    owner: root
-    group: root
-    mode: 0755
-  when: K8S_MASTER
 
 - name: Install k8s service
   become: True

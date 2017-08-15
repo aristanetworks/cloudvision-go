@@ -5,3 +5,5 @@ certificates:
 
 manifests:
   - kube-proxy-worker.yaml
+
+kubeconfig: worker-kubeconfig

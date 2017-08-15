@@ -8,3 +8,5 @@ manifests:
   - kube-proxy-master.yaml
   - kube-scheduler.yaml
   - kube-apiserver.yaml
+
+kubeconfig: master-kubeconfig
