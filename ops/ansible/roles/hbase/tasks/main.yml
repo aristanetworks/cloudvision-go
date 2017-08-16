@@ -1,0 +1,10 @@
+---
+
+- name: Create hbase logs directory
+  become: True
+  file:
+    path: "{{ hbase_logs_dir }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755

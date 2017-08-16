@@ -22,6 +22,9 @@ ansible_python_interpreter=/home/core/bin/python
 K8S_MASTER=False
 K8S_WORKER=False
 
+[hbase:children]
+hadoop
+
 [hadoop:children]
 datanodes
 journalnodes

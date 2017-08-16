@@ -50,6 +50,9 @@ r12s29
 r12s30
 r12s31
 
+[hbase:children]
+hadoop
+
 [hadoop:children]
 datanodes
 journalnodes

@@ -31,6 +31,10 @@
   roles:
     - hadoop_namenode
 
+- hosts: hbase
+  roles:
+    - hbase
+
 - hosts: zookeeper
   roles:
     - zookeeper
