@@ -79,12 +79,12 @@
 - name: Install k8s certificates
   become: True
   copy:
-    src: roles/k8s_vars/certs/{{ item }}
-    dest: /etc/kubernetes/ssl/{{ item }}
+    content: "{{ item.value }}"
+    dest: /etc/kubernetes/ssl/{{ item.key }}
     owner: root
     group: root
     mode: 0600
-  with_items: "{{ certificates }}"
+  with_dict: "{{ certificates }}"
 
 - name: Remove possible old-config manifest
   become: True

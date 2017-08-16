@@ -1,7 +1,8 @@
+---
 certificates:
-  - apiserver.pem
-  - apiserver-key.pem
-  - ca.pem
+  apiserver.pem: "{{ lookup('file', inventory_dir+'/files/apiserver.pem') }}"
+  apiserver-key.pem: "{{ lookup('file', inventory_dir+'/files/apiserver-key.pem') }}"
+  ca.pem: "{{ lookup('file', inventory_dir+'/files/ca.pem') }}"
 
 manifests:
   - kube-controller-manager.yaml

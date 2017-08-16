@@ -1,7 +1,7 @@
 certificates:
-  - worker.pem
-  - worker-key.pem
-  - ca.pem
+  worker.pem: "{{ lookup('file', inventory_dir+'/files/worker.pem') }}"
+  worker-key.pem: "{{ lookup('file', inventory_dir+'/files/worker-key.pem') }}"
+  ca.pem: "{{ lookup('file', inventory_dir+'/files/ca.pem') }}"
 
 manifests:
   - kube-proxy-worker.yaml
