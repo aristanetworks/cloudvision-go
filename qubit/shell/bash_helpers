@@ -55,11 +55,18 @@ function run_pdsh_cmd() {
 
 # --- commands meant for remote execution ---
 
+function scylla_connected_hosts() {
+	SCRIPT='
+sudo ss -rt | grep ":9042" | awk "{print(\$5)}" | awk \-F":" "{print(\$1)}" | sort -u | paste -sd" "
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
 function node_version() {
 	SCRIPT='
 DISTRO_REL=$(cat /etc/redhat-release)
 # find the latest kernel rpm installed
-KERNEL_RPM_INSTALLED=$(yum -q list kernel | tail -1 | awk '"'"'{print($2)}'"'"')
+KERNEL_RPM_INSTALLED=$(yum -q list kernel | tail -1 | awk "{print(\$2)}")
 KERNEL_ACTIVE=$(uname -r)
 echo "KERNEL_BOOTED: ${KERNEL_ACTIVE} KERNEL_RPM: ${KERNEL_RPM_INSTALLED} DISTRO: ${DISTRO_REL}"
 '
