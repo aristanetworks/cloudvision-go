@@ -38,7 +38,3 @@
 - hosts: zookeeper
   roles:
     - zookeeper
-
-- hosts: local
-  roles:
-    - cloud-config
