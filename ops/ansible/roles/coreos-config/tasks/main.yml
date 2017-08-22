@@ -54,41 +54,19 @@
 # Bug: https://github.com/systemd/systemd/issues/2710
 # FIXME: This might be fixed by https://github.com/systemd/systemd/pull/5932
 # Validate and remove file if it works with this fix
-- name: Fix search line in resolv.conf
+- name: Customize network settings
   become: True
   copy:
     src: roles/common/files/zy-dhcp.network
     dest: /etc/systemd/network/zy-dhcp.network
   register: result_zy_dhcp_network
 
-- name: Remove old 20-dhcp.network file
+- name: Restart network to take new network and link config into account
   become: True
-  file:
-    path: /etc/systemd/network/20-dhcp.network
-    state: absent
-  register: result_20_dhcp_network
-
-- name: Remove old zzz-dhcp.network file
-  become: True
-  file:
-    path: /etc/systemd/network/zzz-dhcp.network
-    state: absent
-  register: result_zzz_dhcp_network
-
-- name: Remove old 99-dhcp.network file
-  become: True
-  file:
-    path: /etc/systemd/network/99-dhcp.network
-    state: absent
-  register: result_99_dhcp_network
-
-- name: Restart network to take dhcp search config into account
-  become: True
-  command: systemctl restart systemd-networkd
-  when: >
-      result_zy_dhcp_network.changed or result_20_dhcp_network.changed or
-      result_zzz_dhcp_network.changed or result_99_dhcp_network.changed or
-      result_99_default_link.changed
+  systemd:
+      name: systemd-networkd.service
+      state: restarted
+  when: result_zy_dhcp_network.changed or result_99_default_link.changed
 
 - name: Create the .bashrc.d folder so other roles can customize the core user shell
   file:
