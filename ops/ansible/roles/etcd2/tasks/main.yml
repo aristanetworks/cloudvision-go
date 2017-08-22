@@ -28,9 +28,15 @@
 
 - name: Reload systemd config
   become: True
-  shell: systemctl daemon-reload &&  systemctl restart etcd2
+  systemd:
+    name: etcd2
+    state: restarted
+    daemon_reload: yes
   when: etcdconfig.changed
 
 - name: enable etcd2 for etcd nodes
   become: True
-  shell: systemctl enable etcd2 && systemctl start etcd2
+  systemd:
+    name: etcd2
+    enabled: yes
+    state: started
