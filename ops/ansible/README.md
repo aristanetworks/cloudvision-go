@@ -60,3 +60,21 @@ After adding/updating/removing an ssh key from this file, the cloud-config files
 ```sh
 ansible-playbook playbook.yml -i inventories/dev/hosts
 ```
+
+# k8s services for a cluster
+
+k8s services are created by the role **k8s_services**.
+
+TODO: A shared list of services are defined, and they will be deployed for all the clusters.
+
+TODO: Each inventory is having its own list of services as well.
+
+In order to run this role on your local machine, you have to run `kubectl proxy` so ansible can access the k8s master of the cluster being updated.
+
+To run the role against localhost, use this command:
+
+```sh
+ansible-playbook playbook.yml -l localhost -i inventories/dev/hosts
+```
+
+

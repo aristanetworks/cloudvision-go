@@ -1,0 +1,38 @@
+
+---
+
+- name: deploy etcd endpoints so internal services can access etcd
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Endpoints
+      metadata:
+        name: etcd
+      subsets:
+        - addresses:
+      {% for host in groups.etcd2 %}
+            - ip: {{ hostvars[host]['ansible_host'] }}
+      {% endfor %}
+          ports:
+            - port: 2379
+    state: present
+
+- name: deploy etcd service so internal services can access etcd
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: etcd
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "2379"
+      spec:
+        clusterIP: None
+        ports:
+        - port: 2379
+    state: present
