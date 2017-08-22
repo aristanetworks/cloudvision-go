@@ -38,7 +38,7 @@ coreos:
       drop-ins:
         - name: 50-options.conf
           content: |
-            {% macro docker_ir() %}{% include "common/files/docker.50-options.conf" %}{% endmacro %}{{ docker_ir() | indent(12, True) }}
+            {% macro docker_ir() %}{% include "roles/common/files/docker.50-options.conf" %}{% endmacro %}{{ docker_ir() | indent(12, True) }}
     - name: ansible-metadata.service
       command: start
       content: |
