@@ -68,6 +68,13 @@
       state: restarted
   when: result_zy_dhcp_network.changed or result_99_default_link.changed
 
+- name: Restart timesyncd to take new network config into account
+  become: True
+  systemd:
+      name: systemd-timesyncd.service
+      state: restarted
+  when: result_zy_dhcp_network.changed
+
 - name: Create the .bashrc.d folder so other roles can customize the core user shell
   file:
     path: "{{ ansible_env.HOME }}/.bashrc.d"

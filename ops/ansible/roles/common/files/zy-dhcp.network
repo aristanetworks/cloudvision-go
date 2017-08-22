@@ -3,3 +3,9 @@ DHCP=ipv4
 LinkLocalAddressing=no
 IPv6AcceptRA=no
 Domains=sjc.aristanetworks.com aristanetworks.com
+NTP=time1.google.com
+NTP=time2.google.com
+NTP=time3.google.com
+
+[DHCP]
+UseNTP=false
