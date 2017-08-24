@@ -113,3 +113,14 @@
     mode: 0755
   when: K8S_WORKER
   ignore_errors: True
+
+- name: Create alertmanager data directory
+  become: True
+  file:
+    path: "/data6/am-data"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  when: K8S_WORKER
+  ignore_errors: True
