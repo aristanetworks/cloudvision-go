@@ -11,7 +11,7 @@ services --enabled="systemd-networkd,systemd-resolved"
 # Use text mode install
 text
 # Use network installation media
-url --url="http://pxe.aristanetworks.com/tftpboot/max/dist/"
+nfs --server=nfs101 --dir=/persist2/root/centos7/CentOS-7-x86_64-DVD-1611.iso
 
 ignoredisk --only-use=sda
 
@@ -55,6 +55,12 @@ clearpart --all --initlabel --drives=sda
 -postfix
 -uboot-tools
 -parted
+# With this package 7.3 install stalls on MW servers
+# TBD: investigate importance of microcode_ctl pkg
+# to our deployment.
+# Sometimes FW fixes are provided using this pkg
+# 7.2 did not install this pkg
+-microcode_ctl
 nfs-utils
 wget
 lsof
@@ -90,6 +96,23 @@ rm /etc/sysconfig/network-scripts/ifcfg-eno2
 
 export ENO1_MAC_ADDR=`ip link show dev eno1 | awk '/ether/ {print($2)}'`
 /tmp/root/SetupSystemdBond.py $ENO1_MAC_ADDR
+
+# workaround for systemd-networkd bug (fixed in master)
+# for setting hostname. This workaround is needed
+# since CentOS 7.3 onwards, /etc/hostname is always
+# localhost.localdomain and hostname depends on the
+# transient hostname setup by the network owner - either
+# NetworkManager or systemd-networkd. In CentOS 7.3,
+# systemd-networkd is version v219 which lacks the fix
+# refer to https://github.com/martinpitt/systemd/commit/e8c0de91271331ddbae872de63d0a267d4f71e12
+# for more details
+cat <<EOF > /etc/polkit-1/rules.d/51-set-hostname.rules
+polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.hostname1.set-hostname" && subject.user == "systemd-network") {
+      return polkit.Result.YES;
+      }
+      });
+EOF
 
 systemctl enable systemd-networkd
 systemctl enable systemd-resolved
