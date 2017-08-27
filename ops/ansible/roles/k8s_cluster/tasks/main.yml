@@ -54,6 +54,9 @@
   become: True
   systemd:
     daemon_reload: yes
+    # The name param is not important here as we just do a daemon reload
+    # but as it's mandatory, we just provide a fake one
+    name: docker.service
   when: docker_flannel.changed or flannel_config.changed or flannel_service.changed
 
 - name: restart flannel service if needed
