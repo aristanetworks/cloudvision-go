@@ -2,7 +2,11 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 test:
-	ansible-playbook --syntax-check playbook.yml
+	for i in inventories/*/hosts; do \
+		ansible-playbook --syntax-check playbook.yml -i $$i; \
+	done
+
+
 
 # TODO: Make this work for the jenkins build as well
 local-test:
