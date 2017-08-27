@@ -57,5 +57,10 @@ r12s3
 r12s1
 r12s2
 
+[etcd2]
+r12s1
+r12s7
+r12s9
+
 [all:vars]
 k8s_version=1.5.6
