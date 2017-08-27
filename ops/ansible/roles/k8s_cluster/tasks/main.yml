@@ -63,6 +63,9 @@
     state: restarted
   when: flannel_config.changed or flannel_service.changed
 
+# TODO: init flanneld info on etcd2
+# curl -X PUT -d "value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}" "$ETCD_SERVER/v2/keys/coreos.com/network/config"
+
 # This is too dangerous and not really useful for now.
 # Related github issues:
 # https://github.com/moby/moby/issues/22789
