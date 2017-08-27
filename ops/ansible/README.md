@@ -8,9 +8,12 @@
 
 # Install ansible
 
+Ansible 2.2 minimun is required.
+
 ```sh
-brew install ansible@2.0
-brew link --force ansible@2.0
+brew install ansible
+# Optionally, if needed:
+brew link --force ansible
 ```
 
 # Install the remote coreos machines:
