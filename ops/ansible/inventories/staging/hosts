@@ -62,5 +62,25 @@ r12s1
 r12s7
 r12s9
 
+[k8s_masters]
+r12s7
+
+[k8s_workers]
+r12s1
+r12s2
+r12s3
+r12s4
+r12s5
+r12s6
+r12s8
+r12s9
+r12s10
+r12s11
+r12s12
+r12s13
+r12s14
+r12s15
+r12s16
+
 [all:vars]
 k8s_version=1.5.6
