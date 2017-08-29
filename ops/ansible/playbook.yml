@@ -38,3 +38,7 @@
 - hosts: zookeeper
   roles:
     - zookeeper
+
+- hosts: localhost
+  roles:
+    - k8s_services
