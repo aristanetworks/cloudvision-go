@@ -5,6 +5,23 @@
 
 ---
 
+# We need to check if we redeploy the dns service or not
+# because neither state "present" or "update" work.
+# They fail with: {
+#    "changed": false,
+#    "failed": true,
+#    "msg": "failed to update the resource 'kube-dns': HTTP Error 422: Unprocessable Entity",
+#    "url": "http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/kube-dns"
+# }
+- name: Check if we need to deploy dns service
+  uri:
+    url: http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/kube-dns
+    status_code: 200
+  ignore_errors: True
+  register: dns_service_installed
+
+# If this dns service is changed, it MUST be re-deployed manually.
+# Right now, the kubernetes module cannot redeploy this service correctly.
 - name: deploy dns service
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -31,6 +48,7 @@
           port: 53
           protocol: TCP
     state: update
+  when: "'failed' in dns_service_installed"
 
 - name: deploy dns replication controller
   kubernetes:
