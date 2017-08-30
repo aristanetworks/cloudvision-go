@@ -71,28 +71,7 @@
   when: need_data_immutable.stat.exists == False
 # End of the block
 
-- name: Create kafka data directory
-  become: True
-  file:
-    path: "/data3/kafka-data"
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  when: K8S_WORKER
-  ignore_errors: True
-
-- name: Create elastic search data directory
-  become: True
-  file:
-    path: "/data4/es-data"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
-  when: K8S_WORKER
-  ignore_errors: True
-
+# TODO: We need to change so it runs only for the dev cluster.
 - name: Create cvpbs jenkins slave workspace directory
   become: True
   file:
@@ -100,27 +79,5 @@
   with_items:
     - workspace
     - rpmbuild
-  when: K8S_WORKER
-  ignore_errors: True
-
-- name: Create prometheus data directory
-  become: True
-  file:
-    path: "/data5/prom-data"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
-  when: K8S_WORKER
-  ignore_errors: True
-
-- name: Create alertmanager data directory
-  become: True
-  file:
-    path: "/data6/am-data"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
   when: K8S_WORKER
   ignore_errors: True

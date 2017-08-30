@@ -8,6 +8,8 @@
 
 ---
 
+- include: data_folders.yml
+
 - name: Create directories
   become: True
   file:
