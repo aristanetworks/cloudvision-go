@@ -1,0 +1,69 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy zookeeper cluster services
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zookeeper-{{ hostvars[item]['ZOOKEEPER_ID'] - 1 }}
+      spec:
+        clusterIP: None
+        ports:
+          - name: client
+            port: 2181
+          - name: followers
+            port: 2888
+          - name: election
+            port: 3888
+        selector:
+          app: zookeeper
+          server-id: "{{ hostvars[item]['ZOOKEEPER_ID'] - 1 }}"
+  with_items: "{{ groups.zookeeper }}"
+
+- name: deploy zookeeper cluster daemonsets
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: zookeeper-{{ hostvars[item]['ZOOKEEPER_ID'] - 1 }}
+      spec:
+        template:
+          metadata:
+            labels:
+              app: zookeeper
+              server-id: "{{ hostvars[item]['ZOOKEEPER_ID'] - 1 }}"
+          spec:
+            nodeSelector:
+              zookeeper: "{{ hostvars[item]['ZOOKEEPER_ID'] - 1 }}"
+            containers:
+              - name: server
+                image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-zookeeper
+                imagePullPolicy: Always
+                ports:
+                  - containerPort: 2181
+                  - containerPort: 2888
+                  - containerPort: 3888
+                volumeMounts:
+                  - mountPath: /zookeeper/data
+                    name: data
+                  - mountPath: /zookeeper/wal
+                    name: wal
+            volumes:
+            - name: data
+              hostPath:
+                path: /data2/zookeeper/data
+            - name: wal
+              hostPath:
+                path: /data3/zookeeper/wal
+  with_items: "{{ groups.zookeeper }}"

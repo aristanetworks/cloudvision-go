@@ -62,6 +62,11 @@ r12s1
 r12s7
 r12s9
 
+[zookeeper]
+r12s1 ZOOKEEPER_ID=1
+r12s7 ZOOKEEPER_ID=2
+r12s9 ZOOKEEPER_ID=3
+
 [k8s_masters]
 r12s7
 
