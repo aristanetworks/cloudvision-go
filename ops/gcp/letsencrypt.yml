@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: letsencrypt
+  name: letsencrypt
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 35.197.98.21
+  ports:
+    - port: 22
+      targetPort: 22
+      protocol: TCP
+      name: ssh
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app: letsencrypt
+
+---
+
+# Not sure to understand how this stuff works with Services and the gcp load balancer/VMs stuff :-(
+# It's supposed to open port 80, but I can access 22 and 443 as well...
+# The UI for this is a bit confusing as well...
+# TODO: Understand and fix this.
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: letsencrypt-http
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "letsencrypt-public"
+spec:
+  backend:
+    serviceName: letsencrypt
+    servicePort: 80
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: letsencrypt
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: letsencrypt
+    spec:
+      containers:
+      - name: nginx
+        image: gcr.io/sw-jenkins-build-storage/letsencrypt:latest
+        env:
+          - name: DOMAINS
+            value: >
+              testfabrice1.arista.io
+              testfabrice2.arista.io
+              geiger.dev.corp.arista.io
+              npm.corp.arista.io
+              godoc.corp.arista.io
+              gocover.corp.arista.io
+              jenkins.corp.arista.io
+              gerrit.corp.arista.io
+        ports:
+        - containerPort: 22
+        - containerPort: 80
+        - containerPort: 442
