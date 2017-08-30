@@ -85,3 +85,6 @@ r12s16
 [all:vars]
 k8s_version=1.5.6
 k8s_domain=staging.corp.arista.io
+
+[local]
+localhost ansible_connection=local ansible_become=false
