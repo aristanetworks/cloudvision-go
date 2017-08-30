@@ -1,4 +1,6 @@
 
 ---
 
+- include: dns.yml
+
 - include: etcd.yml
