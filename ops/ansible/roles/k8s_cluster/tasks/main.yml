@@ -79,7 +79,6 @@
 # - name: Restart docker daemon
 #   become: True
 #   command: systemctl restart docker.service
-#   when: "K8S_MASTER == True or K8S_WORKER == True"
   # TODO: We should restart when we really changed something
 
 - name: start docker deamon (or be sure it's running)
