@@ -7,7 +7,7 @@ ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
 ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --require-kubeconfig=true \
   --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
-{% if K8S_MASTER %}
+{% if 'k8s_masters' in group_names %}
   --register-schedulable=false \
 {%else%}
   --register-node=true \
