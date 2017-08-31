@@ -1,0 +1,136 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy prometheus service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: prometheus
+        labels:
+          app: prometheus
+        annotations:
+          external_type: 'http'
+          prometheus.io/scrape: 'true'
+      spec:
+        type: LoadBalancer
+        ports:
+        - name: web
+          port: 9090
+        selector:
+          app: prometheus
+
+- name: deploy prometheus config
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    file_reference: "{{ role_path }}/files/prometheus-config.yml"
+
+- name: deploy prometheus server
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: prometheus
+      spec:
+        template:
+          metadata:
+            labels:
+              app: prometheus
+          spec:
+            nodeSelector:
+              prometheus: node
+            containers:
+            - name: prometheus
+              image: quay.io/prometheus/prometheus:v1.7.1
+              args:
+                - -storage.local.path=/prom-data
+                - -storage.local.retention=360h
+                - -config.file=/etc/prometheus/prometheus.yml
+              ports:
+              - name: web
+                containerPort: 9090
+              volumeMounts:
+              - name: config
+                mountPath: /etc/prometheus
+              - name: storage
+                mountPath: /prom-data
+            securityContext:
+              runAsUser: 1000
+              fsGroup: 1000
+            volumes:
+            - name: config
+              configMap:
+                name: prometheus
+            - name: storage
+              hostPath:
+                path: /data5/prom-data
+
+- name: deploy node exporter
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: prometheus-node-exporter
+      spec:
+        template:
+          metadata:
+            name: prometheus-node-exporter
+            annotations:
+              prometheus.io.scrape: "true"
+            labels:
+              app: prometheus-node-exporter
+          spec:
+            containers:
+            - name: prometheus-node-exporter
+              image: prom/node-exporter:v0.14.0
+              args:
+              - --collector.procfs=/host/proc
+              - --collector.sysfs=/host/sys
+              - --collector.filesystem.ignored-mount-points
+              - ^/(sys|proc|dev|host|etc|rootfs/var/lib)($|/)
+              - --collector.filesystem.ignored-fs-types
+              - ^(autofs|binfmt_misc|cgroup|debugfs|devpts|devtmpfs|hugetlbfs|mqueue|nsfs|overlay|proc|pstore|securityfs|selinuxfs|sysfs|vfat)$
+              volumeMounts:
+              - name: proc
+                mountPath: /host/proc
+                readOnly: true
+              - name: sys
+                mountPath: /host/sys
+                readOnly: true
+              - name: rootfs
+                mountPath: /rootfs
+                readOnly: true
+              securityContext:
+                privileged: true
+              ports:
+              - containerPort: 9100
+            volumes:
+            - name: proc
+              hostPath:
+                path: /proc
+            - name: sys
+              hostPath:
+                path: /sys
+            - name: rootfs
+              hostPath:
+                path: /
+            hostPID: true
+            hostNetwork: true
