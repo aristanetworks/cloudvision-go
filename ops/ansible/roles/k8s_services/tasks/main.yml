@@ -10,3 +10,5 @@
 - include: zookeeper.yml
 
 - include: prometheus.yml
+
+- include: alertmanager.yml

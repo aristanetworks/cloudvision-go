@@ -1,0 +1,67 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy alertmanager service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: alertmanager
+        labels:
+          app: alertmanager
+        annotations:
+          external_type: 'http'
+          prometheus.io/scrape: 'true'
+      spec:
+        type: LoadBalancer
+        ports:
+        - name: web
+          port: 9093
+        selector:
+          app: alertmanager
+
+- name: deploy alertmanager deamonset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: alertmanager
+      spec:
+        template:
+          metadata:
+            labels:
+              app: alertmanager
+          spec:
+            nodeSelector:
+              alertmanager: node
+            containers:
+            - name: alertmanager
+              args:
+                - -config.file=/etc/alertmanager/config.yml
+                - -storage.path=/am-data
+              image: prom/alertmanager:v0.8.0
+              ports:
+              - name: web
+                containerPort: 9093
+              volumeMounts:
+              - name: storage
+                mountPath: /am-data
+            securityContext:
+              runAsUser: 1000
+              fsGroup: 1000
+            volumes:
+            - name: storage
+              hostPath:
+                path: /data6/am-data
