@@ -1,0 +1,52 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+
+- name: deploy proxy service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: proxy
+      spec:
+        replicas: 2
+        selector:
+          app: proxy
+        template:
+          metadata:
+            name: proxy
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "9101"
+            labels:
+              app: proxy
+          spec:
+            nodeSelector:
+              role: proxy
+            # We can bind to any port as we expose tcp ports so we need to
+            # directly connect to the host network
+            hostNetwork: true
+            containers:
+            - name: prometheus-haproxy-exporter
+              image: prom/haproxy-exporter:v0.7.1
+              args:
+                - -haproxy.scrape-uri=http://localhost/haproxyStats?stats;csv
+              ports:
+              - containerPort: 9101
+            - name: proxy
+              image: registry.docker.sjc.aristanetworks.com:5000/haproxy
+              imagePullPolicy: Always
+              args:
+      {% for host in groups.etcd2 %}
+                - -node
+                - http://{{ hostvars[host]['ansible_host'] }}:2379
+      {% endfor %}
+              env:
+                - name: DOMAIN
+                  value: .{{ k8s_domain }}

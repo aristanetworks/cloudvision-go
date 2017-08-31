@@ -3,6 +3,8 @@
 
 - include: dns.yml
 
+- include: proxy.yml
+
 - include: etcd.yml
 
 - include: zookeeper.yml
