@@ -1,0 +1,65 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy grafana service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: grafana
+        labels:
+          app: grafana
+        annotations:
+          external_type: "http"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 3000
+        selector:
+          app: grafana
+
+- name: deploy grafana replication controller
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: grafana
+      spec:
+        replicas: 1
+        selector:
+          app: grafana
+        template:
+          metadata:
+            name: grafana
+            labels:
+              app: grafana
+          spec:
+            containers:
+              - name: grafana
+                image: registry.docker.sjc.aristanetworks.com:5000/k8s/grafana
+                imagePullPolicy: Always
+                env:
+                  - name: GF_AUTH_ANONYMOUS_ENABLED
+                    value: "true"
+                  - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+                    value: "Admin"
+                  - name: GF_AUTH_USERS_ALLOW_SIGN_UP
+                    value: "false"
+                  - name: GF_AUTH_DISABLE_LOGIN_FORM
+                    value: "true"
+                  - name: GF_AUTH_DISABLE_SIGNOUT_MENU
+                    value: "true"
+                ports:
+                  - containerPort: 3000
