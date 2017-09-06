@@ -387,15 +387,15 @@ class ConfigStestOnly( Config ):
             mklabel gpt
             mkpart grub 0% 2MB
             mkpart primary 2MB 20GB
-            mkpart primary 20GB 276GB
-            mkpart primary 276GB -1s
+            mkpart primary 20GB 148GB
+            mkpart primary 148GB -1s
             set 1 bios_grub on""" )
       else:
          parted( mdstat, device, """
             mklabel gpt
             mkpart primary 0% 20GB
-            mkpart primary 20GB 276GB
-            mkpart primary 276GB -1s
+            mkpart primary 20GB 148GB
+            mkpart primary 148GB -1s
             set 1 boot on""" )
 
    def main( self, mdstat, devices, args ):
