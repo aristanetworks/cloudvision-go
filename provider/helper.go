@@ -39,7 +39,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 				initialAttrs[attrKey] = v
 			}
 		}
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), nil, &initialAttrs, child)
+		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), nil, initialAttrs, child)
 	}
 	parent := child.Parent()
 	attrName := attrDef.Name
@@ -54,7 +54,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 			path += "/" + attrName
 		}
 		notifs[1] = types.NewNotificationWithEntity(ts, path, nil,
-			&map[key.Key]interface{}{k: child.Ptr()}, parent)
+			map[key.Key]interface{}{k: child.Ptr()}, parent)
 	}
 	// In "AgentMode" the ordering of the two notifications should be switched
 	if GetMode() == AgentMode {
@@ -162,5 +162,5 @@ func NotificationsForCollectionCount(ts time.Time, collName string, count uint32
 	}
 
 	return types.NewNotificationWithEntity(ts, parent.Path()+"/_counts", nil,
-		&map[key.Key]interface{}{key.New(collName): count}, parent)
+		map[key.Key]interface{}{key.New(collName): count}, parent)
 }
