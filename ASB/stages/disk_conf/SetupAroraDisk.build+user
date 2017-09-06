@@ -375,6 +375,47 @@ class ConfigUserOnly( Config ):
    def main( self, mdstat, devices, args ):
       ConfigRaidV3Drives().main( mdstat, devices, args )
 
+class ConfigStestOnly( Config ):
+   def __init__( self ):
+      Config.__init__( self, 'stestOnly', 2, 2,
+            helpText="Configure a 2-disk stest server" )
+
+   @staticmethod
+   def partition( mdstat, device, biosBootPartition = False ):
+      if biosBootPartition:
+         parted( mdstat, device, """
+            mklabel gpt
+            mkpart grub 0% 2MB
+            mkpart primary 2MB 20GB
+            mkpart primary 20GB 276GB
+            mkpart primary 276GB -1s
+            set 1 bios_grub on""" )
+      else:
+         parted( mdstat, device, """
+            mklabel gpt
+            mkpart primary 0% 20GB
+            mkpart primary 20GB 276GB
+            mkpart primary 276GB -1s
+            set 1 boot on""" )
+
+   def main( self, mdstat, devices, args ):
+      partno = 2 if args.bbp else 1
+      self.partition( mdstat, devices[ 0 ], args.bbp )
+      self.partition( mdstat, devices[ 1 ], args.bbp )
+      PartTools.mdCreate( "/dev/md1",
+                [ "%s%d" % ( devices[ 0 ], partno ) ,
+                  "%s%d" % ( devices[ 1 ], partno ) ], level="mirror",
+                metadata="0.90" )
+      PartTools.mdCreate( "/dev/md2",
+                [ "%s%d" % ( devices[ 0 ], partno + 1 ) ,
+                  "%s%d" % ( devices[ 1 ], partno + 1 ) ], level="mirror" )
+      PartTools.mdCreate( "/dev/md3",
+                [ "%s%d" % ( devices[ 0 ], partno + 2 ) ,
+                  "%s%d" % ( devices[ 1 ], partno + 2 ) ], level="0" )
+      PartTools.mkfs( "/dev/md1", "/" )
+      PartTools.mkfs( "/dev/md2", "/persist" )
+      PartTools.mkfs( "/dev/md3", "/persist2" )
+
 class ConfigSwiftPrimary( Config ):
    def __init__( self ):
       Config.__init__( self, 'swiftPrimary', 1, 1, helpText="Configure a primary"
@@ -514,6 +555,7 @@ def main( args ):
          ConfigBs3(),
          ConfigBuildOnly(),
          ConfigUserOnly(),
+         ConfigStestOnly(),
          ConfigSwift(),
          ConfigSwiftPrimary(),
          ConfigSwiftSecondary(),
