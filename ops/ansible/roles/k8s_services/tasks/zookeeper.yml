@@ -116,3 +116,37 @@
                     value: zookeeper-0:2181
                 ports:
                   - containerPort: 8080
+
+- name: deploy zookeeper prometheus exporter
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: zk-prom
+      spec:
+        replicas: 1
+        selector:
+          app: zk-prom
+        template:
+          metadata:
+            name: zk-prom
+            labels:
+              app: zk-prom
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "9114"
+          spec:
+            containers:
+            - name: prometheus
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/zk-prom
+              imagePullPolicy: Always
+              args:
+                - /usr/bin/zookeeper_exporter
+                - zookeeper-0:2181
+                - zookeeper-1:2181
+                - zookeeper-2:2181
+              ports:
+                - containerPort: 9114
