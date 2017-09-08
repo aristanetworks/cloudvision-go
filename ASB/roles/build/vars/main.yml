@@ -1,4 +1,4 @@
-build_conf:
+build_stages:
    repair_start: default
    repair_running: default
    repair_verify: default

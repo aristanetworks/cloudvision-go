@@ -1,4 +1,4 @@
-atestveos_conf:
+atestveos_stages:
    repair_start: default
    repair_running: default
    repair_verify: default

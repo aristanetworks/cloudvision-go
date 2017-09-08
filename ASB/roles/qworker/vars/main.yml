@@ -12,7 +12,7 @@
 # DISK: performs the PXE kickstart based install, advances to CLEANUP stage
 # CLEANUP: checks install state and advances to HELP_ME or INSTALLED stage
 #
-qworker_conf:
+qworker_stages:
    reimage_healthcheck: milkyway
    disk: qworker
    cleanup: milkyway

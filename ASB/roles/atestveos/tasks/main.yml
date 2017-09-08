@@ -1,4 +1,4 @@
 ---
 - name: "Configuring as ATEST server with vEOS specialty - running installation stage requested"
-  include: "{{STAGES_PATH}}/{{STATUS}}_{{atestveos_conf[STATUS]}}.yml"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{atestveos_stages[STATUS]}}.yml"
 ...

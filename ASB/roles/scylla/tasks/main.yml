@@ -1,4 +1,4 @@
 ---
 - name: "Configuring as Scylla server - running installation stage requested"
-  include: "{{STAGES_PATH}}/{{STATUS}}_{{scylla_conf[STATUS]}}.yml"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{scylla_stages[STATUS]}}.yml"
 ...

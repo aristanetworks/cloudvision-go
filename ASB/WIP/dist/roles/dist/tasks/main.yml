@@ -1,4 +1,0 @@
----
-- name: "Configuring as DIST server - running installation stage requested"
-  include: "{{STAGES_PATH}}/{{STATUS}}_{{dist_conf[STATUS]}}.yml"
-...

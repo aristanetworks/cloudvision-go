@@ -1,4 +1,4 @@
 ---
 - name: "Configuring as BUILD server - running installation stage requested"
-  include: "{{STAGES_PATH}}/{{STATUS}}_{{build_conf[STATUS]}}.yml"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{build_stages[STATUS]}}.yml"
 ...

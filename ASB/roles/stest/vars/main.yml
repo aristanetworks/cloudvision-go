@@ -1,4 +1,4 @@
-stest_conf:
+stest_stages:
    repair_start: default
    repair_running: default
    repair_verify: default

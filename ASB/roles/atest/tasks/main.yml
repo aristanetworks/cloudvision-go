@@ -1,4 +1,4 @@
 ---
 - name: "Configuring as ATEST server - running installation stage requested"
-  include: "{{STAGES_PATH}}/{{STATUS}}_{{atest_conf[STATUS]}}.yml"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{atest_stages[STATUS]}}.yml"
 ...
