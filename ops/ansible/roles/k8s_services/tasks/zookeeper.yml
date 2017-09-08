@@ -67,3 +67,52 @@
               hostPath:
                 path: /data3/zookeeper/wal
   with_items: "{{ groups.zookeeper }}"
+
+- name: deploy zookeeper ui service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zookeeperui
+        labels:
+          app: zookeeperui
+        annotations:
+          external_type: "http"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 8080
+        selector:
+          app: zookeeperui
+
+- name: deploy zookeeper ui rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: zookeeperui
+      spec:
+        replicas: 1
+        selector:
+          app: zookeeperui
+        template:
+          metadata:
+            name: zookeeperui
+            labels:
+              app: zookeeperui
+          spec:
+            containers:
+              - name: zookeeperui
+                image: vivint/zk-web-docker
+                imagePullPolicy: Always
+                env:
+                  - name: DEFAULT_NODE
+                    value: zookeeper-0:2181
+                ports:
+                  - containerPort: 8080
