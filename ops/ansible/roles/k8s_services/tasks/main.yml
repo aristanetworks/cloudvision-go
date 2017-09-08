@@ -14,3 +14,5 @@
 - include: alertmanager.yml
 
 - include: grafana.yml
+
+- include: kafka.yml

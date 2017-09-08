@@ -1,0 +1,127 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy kafka dns service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kafka
+        labels:
+          app: kafka-broker
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "7071"
+          external_type: "tcp"
+          external_port: "9092"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 9092
+          name: kafka-port
+          targetPort: 9094
+          protocol: TCP
+        selector:
+          app: kafka-broker
+
+- name: deploy kafka daemon set
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: kafka-broker
+      spec:
+        template:
+          metadata:
+            labels:
+              app: kafka-broker
+          spec:
+            nodeSelector:
+              kafka: broker
+            containers:
+            - name: kafka-broker
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-kafka
+              imagePullPolicy: Always
+              env:
+                - name: NODENAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
+              ports:
+              - containerPort: 9094
+                hostPort: 9094
+                protocol: TCP
+                name: kafka
+              - containerPort: 9093
+                hostPort: 9093
+                protocol: TCP
+                name: jmx
+              - containerPort: 7071
+                protocol: TCP
+                name: jmx-exporter
+              volumeMounts:
+              - mountPath: /kafka-data
+                name: storage
+            volumes:
+            - name: storage
+              hostPath:
+                path: /data3/kafka-data
+
+- name: deploy kafka ui service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kafkaui
+        labels:
+          app: kafkaui
+        annotations:
+          external_type: "http"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 9000
+        selector:
+          app: kafkaui
+
+- name: deploy kafka ui rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: kafkaui
+      spec:
+        replicas: 1
+        selector:
+          app: kafkaui
+        template:
+          metadata:
+            name: kafkaui
+            labels:
+              app: kafkaui
+          spec:
+            containers:
+              - name: kafkaui
+                image: registry.docker.sjc.aristanetworks.com:5000/aeris/kafka-manager
+                imagePullPolicy: Always
+                env:
+                  - name: ZK_HOSTS
+                    value: zookeeper-0:2181,zookeeper-1:2181,zookeeper-2:2181
+                ports:
+                  - containerPort: 9000
