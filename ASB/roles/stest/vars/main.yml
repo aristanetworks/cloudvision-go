@@ -5,8 +5,7 @@ stest_stages:
    reimage_healthcheck: stest
    reimage_wipe: default
    reimage_verify: default
-   disk: default
-   os: default
+   core: default
    resync_running: default
    config: stest
    auth: default

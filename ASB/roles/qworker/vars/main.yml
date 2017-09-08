@@ -14,5 +14,5 @@
 #
 qworker_stages:
    reimage_healthcheck: milkyway
-   disk: qworker
+   core: milkyway
    cleanup: milkyway

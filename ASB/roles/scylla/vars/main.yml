@@ -14,5 +14,5 @@
 #
 scylla_stages:
    reimage_healthcheck: milkyway
-   disk: scylla
+   core: milkyway
    cleanup: milkyway

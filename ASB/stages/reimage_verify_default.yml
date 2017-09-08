@@ -31,5 +31,5 @@
 # ----------------------------------------------------------------------------------
 
 - name: "Update server status"
-  command: "{{ASB_DB_UPDATE_DISK}}"
+  command: "{{ASB_DB_UPDATE_CORE}}"
 ...

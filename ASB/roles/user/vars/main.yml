@@ -5,8 +5,7 @@ user_stages:
    reimage_healthcheck: default
    reimage_wipe: user
    reimage_verify: default
-   disk: user
-   os: user
+   core: user
    config: user
    auth: default
    cleanup: default

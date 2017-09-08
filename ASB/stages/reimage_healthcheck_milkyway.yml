@@ -25,5 +25,5 @@
 #        stages, do ASB_DB_UPDATE_REIMG_WIPE. Until then, use DISK to do
 #        PXE kickstart based install when healthchecks pass
 - name: "Update server status"
-  command:  "{{ASB_DB_UPDATE_DISK}}"
+  command:  "{{ASB_DB_UPDATE_CORE}}"
 ...

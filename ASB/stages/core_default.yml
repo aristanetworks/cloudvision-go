@@ -2,18 +2,22 @@
 - block:
    - name: "Copy disk setup script to /root"
      copy:
-         src: "{{STAGES_PATH}}/disk_conf/SetupAroraDisk.build+user"
+         src: "{{STAGES_PATH}}/core_conf/SetupAroraDisk.build+user"
          dest: /root
 
    - name: "Partition and format disks"
      shell: "python /root/{{DISK_CMD}}"
+
+   - name: "Install OS"
+     shell: "{{SW_CMD}}"
+
   rescue:
-   - name: "Some error occurred, retrying ASB from beginning."
+   - name: "Reimage this machine"
      include: "{{STAGES_PATH}}/reimage_conf/retry.yml"
 
-   - fail: msg="Disk install was unsuccessful - retrying"
+   - fail: msg="Errors while setting up disk and installing OS; Retrying by reimaging anew"
 
-# Make resync rate high to get the MD array resync done before OS install.
+# Make resync rate high to get the MD array resync done.
 # The rates are reset back to the normal values during config stage.
 - name: "Increase maximum disk resync rate."
   shell: "echo 1000000 > /proc/sys/dev/raid/speed_limit_max"
@@ -25,5 +29,8 @@
 
 - name: "Update datacenter.servers with status that disk setup has finished"
   command: "{{ASB_DB_UPDATE_RESYNC_RUNNING}}"
+
+- name: "Reboot"
+  command: reboot
 ...
 

@@ -12,6 +12,6 @@
   command: "{{ASB_DB_UPDATE_CLEANUP}}"
 
 - name: "Starting PXE installation"
-  shell: "pxe-kexec -n pxe <<< \"scylla-pxe-kexec\""
+  shell: "pxe-kexec -n pxe <<< \"{{ROLE_NAME}}-pxe-kexec\""
 ...
 

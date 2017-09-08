@@ -1,4 +1,15 @@
 ---
+- name: "Setup Mail"
+  replace:
+      dest: "/etc/postfix/main.cf"
+      regexp: "#relayhost = uucphost"
+      replace: "relayhost = aristanetworks.com"
+
+- name: "Copy pre-configured Abuildd.conf for build servers"
+  copy:
+      src: "{{STAGES_PATH}}/config_conf/Abuildd-{{ROLE_NAME}}.conf"
+      dest: "/etc/Abuildd.conf"
+
 - name: "Set up motd"
   copy:
       src: "{{STAGES_PATH}}/config_conf/motd.{{ROLE_NAME}}only"
