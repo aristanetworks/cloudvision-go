@@ -17,4 +17,8 @@ opsjenkins:
 
 jenkins: pylint build test opsjenkins
 
+push:
+	# update dist
+	a4 ssh dist git --git-dir=/dist/storage/ardc-config/.git --work-tree=/dist/storage/ardc-config pull --rebase
+
 .PHONY: all pylint build clean jenkins test
