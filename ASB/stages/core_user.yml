@@ -21,6 +21,12 @@
 - name: "Update datacenter.servers with status that disk setup has finished"
   command: "{{ASB_DB_UPDATE_CONF}}"
 
+# Best effort to get server to reboot from disk. Would not work with older servers
+# without ipmitool available.
+- name: "Set boot devive to disk"
+  command: "ipmitool -H {{ ansible_hostname }}-ipmi -U ADMIN -P ADMIN chassis bootdev disk options=persistent"
+  ignore_errors: true
+
 - name: "Reboot"
   command: reboot
 ...

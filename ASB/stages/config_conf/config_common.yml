@@ -62,5 +62,11 @@
 
 - name: "Setup serial console"
   shell: "/usr/sbin/SetupAroraSerial"
+
+# Best effort to get server to reboot from disk. Would not work with older servers
+# without ipmitool available.
+- name: "Set boot device to disk"
+  command: "ipmitool -H {{ ansible_hostname }}-ipmi -U ADMIN -P ADMIN chassis bootdev disk options=persistent"
+  ignore_errors: true
 ...
 
