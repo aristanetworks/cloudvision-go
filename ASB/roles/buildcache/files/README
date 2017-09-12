@@ -1,0 +1,4 @@
+Dumping some buildcache/centos7 specific PXE setup here.
+
+centos7.cfg --> pxelinux.cfg file.
+centos7.ks  --> kickstart file.

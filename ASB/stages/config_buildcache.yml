@@ -1,0 +1,22 @@
+---
+# TODO Can't find this RPM -- not on ToolsV2 as expected
+#- name: "Install Arora-Buildcache specific RPM"
+#  yum:
+#      name: AroraWeb-Buildcache
+#      state: installed
+
+# TODO: need to disable firewall on ports 80/HTTP and 443/HTTPS?
+- name: "Install Apache"
+  yum:
+      name: httpd
+      state: installed
+
+# TODO: create dirs and update mount points in /etc/fstab
+
+
+- name: "Update datacenter.servers with status configuration ready"
+  command: "{{ASB_DB_UPDATE_CLEANUP}}"
+
+- name: "Reboot"
+  command: "reboot"
+...

@@ -1,0 +1,4 @@
+---
+- name: "Configuring as BUILDCACHE server - running installation stage requested"
+  include: "{{STAGES_PATH}}/{{STATUS}}_{{buildcache_stages[STATUS]}}.yml"
+...

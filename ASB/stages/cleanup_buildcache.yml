@@ -1,0 +1,7 @@
+---
+- name: "Run common cleanup steps"
+  include: "{{STAGES_PATH}}/cleanup_conf/cleanup_common.yml"
+
+- name: "Update datacenter.servers - machine is installed"
+  command: "{{ASB_DB_UPDATE_INSTALLED}}"
+...

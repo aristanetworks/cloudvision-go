@@ -1,0 +1,8 @@
+# FIXME: Many stages are disabled right now because ASB pipelines are not ready yet
+# TODO: alot of these buildcache specific stages can be squashed with MW setup to create generic stages for CentOS
+buildcache_stages:
+   reimage_healthcheck: buildcache
+   core: buildcache
+   resync_running: default
+   config: buildcache
+   cleanup: buildcache

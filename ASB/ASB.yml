@@ -60,14 +60,15 @@
      # 4. Apply appropriate server type based on role type of this server.
 
   roles:
-      - { role: atest,     when: ROLE_NAME == 'atest' }
-      - { role: build,     when: ROLE_NAME == 'build' }
-      - { role: user,      when: ROLE_NAME == 'user'  }
-      - { role: stest,     when: ROLE_NAME == 'stest' }
-      - { role: atestveos, when: ROLE_NAME == 'atestveos' }
-      - { role: scylla,    when: ROLE_NAME == 'scylla' }
-      - { role: qworker,   when: ROLE_NAME == 'qworker' }
-      - { role: dworker,   when: ROLE_NAME == 'dworker' }
+      - { role: atest,          when: ROLE_NAME == 'atest' }
+      - { role: build,          when: ROLE_NAME == 'build' }
+      - { role: user,           when: ROLE_NAME == 'user'  }
+      - { role: stest,          when: ROLE_NAME == 'stest' }
+      - { role: atestveos,      when: ROLE_NAME == 'atestveos' }
+      - { role: scylla,         when: ROLE_NAME == 'scylla' }
+      - { role: qworker,        when: ROLE_NAME == 'qworker' }
+      - { role: dworker,        when: ROLE_NAME == 'dworker' }
+      - { role: buildcache,     when: ROLE_NAME == 'buildcache' }
       # --- WIP ---
       #- { role: dist,     when: ROLE_NAME == 'dist' }
 ...

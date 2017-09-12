@@ -29,4 +29,3 @@
 - name: "Reboot"
   command: reboot
 ...
-
