@@ -15,4 +15,6 @@
 scylla_stages:
    reimage_healthcheck: milkyway
    core: milkyway
+   core_verify: default
+   resync_running: milkyway
    cleanup: milkyway

@@ -1,5 +1,4 @@
 ---
-
 # FIXME:
 #  Once the PXE kickstart based install is broken down into granular ASB
 #  stages we can use disk partitioning steps etc here. Until then, just
@@ -8,8 +7,8 @@
 - name: "Verify pxe server is reachable"
   command: "ping -c 5 pxe"
 
-- name: "Update datacenter.servers with status CLEANUP"
-  command: "{{ASB_DB_UPDATE_CLEANUP}}"
+- name: "Update datacenter.servers with status CORE_VERIFY"
+  command: "{{ASB_DB_UPDATE_CORE_VERIFY}}"
 
 - name: "Starting PXE installation"
   shell: "pxe-kexec -n pxe <<< \"{{ROLE_NAME}}-pxe-kexec\""

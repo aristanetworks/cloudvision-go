@@ -6,6 +6,7 @@ atest_stages:
    reimage_wipe: default
    reimage_verify: default
    core: default
+   core_verify: default
    resync_running: default
    config: default
    auth: default

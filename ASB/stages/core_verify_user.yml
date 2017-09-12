@@ -1,0 +1,7 @@
+---
+# TODO ADD CORE VERIFICATION TASKS HERE
+
+- name: "Update datacenter.servers - machine is installed"
+  command: "{{ASB_DB_UPDATE_CONF}}"
+...
+

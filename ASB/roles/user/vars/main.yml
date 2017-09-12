@@ -5,7 +5,9 @@ user_stages:
    reimage_healthcheck: default
    reimage_wipe: user
    reimage_verify: default
-   core: user
+   core: default
+   core_verify: user
+   # We do not run RAID resync step for user servers.
    config: user
    auth: default
    cleanup: default

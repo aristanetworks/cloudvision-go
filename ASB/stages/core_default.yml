@@ -17,18 +17,8 @@
 
    - fail: msg="Errors while setting up disk and installing OS; Retrying by reimaging anew"
 
-# Make resync rate high to get the MD array resync done.
-# The rates are reset back to the normal values during config stage.
-- name: "Increase maximum disk resync rate."
-  shell: "echo 1000000 > /proc/sys/dev/raid/speed_limit_max"
-  ignore_errors: true
-
-- name: "Increase minimum disk resync rate."
-  shell: "echo 50000 > /proc/sys/dev/raid/speed_limit_min"
-  ignore_errors: true
-
 - name: "Update datacenter.servers with status that disk setup has finished"
-  command: "{{ASB_DB_UPDATE_RESYNC_RUNNING}}"
+  command: "{{ASB_DB_UPDATE_CORE_VERIFY}}"
 
 # Best effort to get server to reboot from disk. Would not work with older servers
 # without ipmitool available.
