@@ -1,0 +1,22 @@
+---
+
+# read CPS (Current_Pending_Sector)
+#
+# input:
+#   cps_disks -> list of Linux disk names
+#   keyname -> keyname to be added to the disk_details dictionary
+#
+- name: "Get CPS"
+  shell: "{{ READ_CPS }}"
+  loop_control:
+    loop_var: disk
+    label: "{{ disk }}"
+  with_items: "{{ cps_disks }}"
+  register: read_cps
+
+- set_fact:
+        disk_details: "{{ disk_details | default({}) | combine( {item._ansible_item_label: { keyname: item.stdout | int }}, recursive=True) }}"
+  with_items: "{{ read_cps.results }}"
+
+
+...

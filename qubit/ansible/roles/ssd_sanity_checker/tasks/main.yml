@@ -1,0 +1,130 @@
+---
+
+# recipe for sanity checking an SSD disk
+#   input: list of Linux disk names
+#
+# (Step: check) read complete disk
+# if CPS == 0 and no read errors then disk is good for use
+# else perform clobber+verify steps
+#
+# (Step: clobber) clobber complete disk
+# if write error or CPS != 0 fail the disk
+#
+# (Step: verify) read complete disk
+# if read error or CPS != 0 fail the disk
+#
+# (Step: classify) Report the good and bad disks
+# with their serial numbers and the reason why they
+# are classified as GOOD or BAD
+
+- debug: msg="Sanity test on disks {{ disks }}"
+
+# disk_details is a dictionary that tracks the state of different steps
+# (check,clobber,verify) for each disk being sanity tested
+- set_fact:
+        disk_details: {}
+
+# --------------- READ STEP ----------------------
+#
+# Perform the read test as part of check step
+- include: read_test.yml disk_details="{{ disk_details }}" read_disks="{{ disks }}" step=check
+
+- debug: msg="disk_details after check step {{ disk_details }}"
+- debug: var=disk_details
+
+# Find disks which require the clobber step to be done
+# If CPS == 0 and no read errors in check step then clobber step is not
+# needed for such disks and they will be classified as good disks
+- set_fact:
+        disks_to_clobber: []
+
+- set_fact:
+        disk_details: "{{ disk_details | combine( {item.key: {'clobber_needed': not item.value.check_done or item.value.check_end_read_cps != 0 | bool}}, recursive=True) }}"
+  with_dict: "{{ disk_details }}"
+
+- set_fact:
+        disks_to_clobber: "{{ disks_to_clobber + [ item.key ] }}"
+  with_dict: "{{ disk_details }}"
+  when: "{{ item.value.clobber_needed }}"
+
+- debug: msg="Disks which need to be clobbered {{ disks_to_clobber }}"
+
+# --------------- CLOBBER STEP ----------------------
+#
+# Perform the write test as part of clobber step
+- include: write_test.yml disk_details="{{ disk_details }}" write_disks="{{ disks_to_clobber }}" step=clobber
+
+- debug: msg="disk_details after clobber step {{ disk_details }}"
+- debug: var=disk_details
+
+# Find disks which require the verify test to be done
+# If a disk has write error or CPS != 0 after write step
+# then such disk needn't go through verify step and it can
+# be classified as bad disk
+- set_fact:
+        disks_need_verify: []
+
+- set_fact:
+        disk_details: "{{ disk_details | combine( {item: {'verify_needed': disk_details[item].clobber_done and disk_details[item].clobber_end_write_cps == 0 | bool}}, recursive=True) }}"
+  with_items: "{{ disks_to_clobber }}"
+
+- set_fact:
+        disks_need_verify: "{{ disks_need_verify + [ item.key ] }}"
+  with_dict: "{{ disk_details }}"
+  when: "{{ item.value.verify_needed is defined and item.value.verify_needed }}"
+
+- debug: msg="Disks which need verify {{ disks_need_verify }}"
+
+# --------------- VERIFY STEP ----------------------
+#
+# Perform the read test as part of verify step
+- include: read_test.yml disk_details="{{ disk_details }}" read_disks="{{ disks_need_verify }}" step=verify
+
+- debug: msg="disk_details after verify step {{ disk_details }}"
+- debug: var=disk_details
+
+# --------------- CLASSIFY STEP ----------------------
+#
+- set_fact:
+        bad_write_disks: []
+        bad_verify_disks: []
+
+# Identify the disks which have write failures or CPS after
+# write step is non-zero. Such disks are classified has bad
+# disks
+- set_fact:
+        bad_write_disks: "{{ bad_write_disks + [ item.key ] }}"
+  with_dict: "{{ disk_details }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: "{{ item.value.clobber_done is defined and (not item.value.clobber_done  or item.value.clobber_end_write_cps != 0) }}"
+
+- debug: msg="Disks that failed clobber step or have clobber_end_write_cps != 0 {{ bad_write_disks}}"
+
+# Identify the disks which have read failures during verify step
+# or CPS after verify step is non-zero. Such disks are classified as
+# bad disks
+- set_fact:
+         bad_verify_disks: "{{ bad_verify_disks + [ item.key ] }}"
+  with_dict: "{{ disk_details }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: "{{ item.value.verify_done is defined and (not item.value.verify_done  or item.value.verify_end_read_cps != 0) }}"
+
+- debug: msg="Disks that failed verify step or have verify_end_read_cps != 0 {{ bad_verify_disks }}"
+
+- set_fact:
+        bad_disks: "{{ bad_write_disks + bad_verify_disks }}"
+
+- set_fact:
+        good_disks: "{{ disk_details.keys() | difference(bad_disks) }}"
+
+- debug: msg="Bad disks -> {{ bad_disks }} Good disks -> {{ good_disks }}"
+
+# Print the serial numbers for good and bad disks
+- include: show_serial.yml serial_disks="{{ bad_write_disks }}" message="Disks that failed clobber step or have clobber_end_write_cps != 0"
+- include: show_serial.yml serial_disks="{{ bad_verify_disks }}" message="Disks that failed verify step or have verify_end_read_cps != 0"
+- include: show_serial.yml serial_disks="{{ bad_disks }}" message="These are bad disks"
+- include: show_serial.yml serial_disks="{{ good_disks }}" message="These are good disks"
+
+- debug: msg="Disk sanity test completed."

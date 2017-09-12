@@ -1,0 +1,28 @@
+---
+
+# CAUTION: RUNNING THIS PLAYBOOK WILL CAUSE DATA-LOSS
+#
+# sanity check an SSD drive
+#   perform read-write-read tests on SSD and check stats
+#   to decide if the SSD is usable or not
+#
+# This playbook should be run from Live mode since
+# it clobbers the drives.
+#
+# Eg: runner ./sanity_check_ssd.yml li102 ./secret
+#
+- name: "Sanity check SSD drives"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+
+# assumes all drives are SSDs
+    - name: "Find all SSD drives"
+      set_fact:
+        disks: "{{ ansible_devices.keys() }}"
+
+    - name: "Start sanity check"
+      include_role:
+        name: ssd_sanity_checker
+...

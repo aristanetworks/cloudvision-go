@@ -1,0 +1,67 @@
+---
+# get CPS before full disk read
+# do a full read of the disk
+# get CPS after full disk read
+#
+# input:
+#   read_disks -> list of Linux disk names
+#   step -> name eg: check, verify etc
+#
+
+- debug: msg="{{step}} begin"
+
+- include: cps.yml cps_disks="{{ read_disks }}" keyname="{{step}}_begin_read_cps"
+
+# start the async jobs
+- name: "Start async full drive read test"
+  command: "dd if=/dev/{{item}} of=/dev/null bs=1M iflag=direct"
+  async: "{{ ASYNC_JOB_TIMEOUT}}"
+  register: full_read
+  poll: 0
+  loop_control:
+    label: "{{ item }}"
+  with_items: "{{ read_disks }}"
+
+- debug: var=full_read
+
+# poll for async jobs
+- name: "Wait for async full drive reads to complete"
+  async_status:
+    jid: "{{ item.ansible_job_id }}"
+  register: job_result
+  with_items: "{{ full_read.results }}"
+  until: job_result.finished
+  loop_control:
+    label: "{{ item._ansible_item_label }}"
+  retries: "{{ ASYNC_JOB_POLL_RETRIES }}"
+  delay: "{{ ASYNC_JOB_POLL_DELAY }}"
+  ignore_errors: True
+
+- set_fact:
+    job_results: "{{ job_result.results if job_result is defined else [] }}"
+
+# Fail this test if the jobs timeout since the jobs may actually
+# be running on the server.
+# Caller of this task file is responsible for handling failures here
+- block:
+    - fail: msg="Async read job has timedout {{ item._ansible_item_label }}"
+      when: "{{ item.finished != 1 }}"
+      with_items: "{{ job_results }}"
+  rescue:
+    - debug: var=job_results
+    - fail: msg="Failing because one/more async jobs have timedout"
+
+- debug: msg="All async jobs completed. JobResult={{ job_results }}"
+
+- set_fact:
+    name: "{{step}}_done"
+
+- set_fact:
+        disk_details: "{{ disk_details | combine( {item.item.item: { name: item.rc == 0 | bool }}, recursive=True) }}"
+  with_items: "{{ job_results }}"
+
+- include: cps.yml cps_disks="{{ read_disks }}" keyname="{{step}}_end_read_cps"
+
+- debug: msg="{{step}} completed"
+
+...

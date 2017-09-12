@@ -1,0 +1,15 @@
+READ_CPS: "smartctl -A /dev/{{ disk }} | awk '/Current_Pending_Sector/ {print $10}'"
+READ_SERIAL_NUMBER: "smartctl -i /dev/{{ disk }} | awk '/Serial Number/ {print $3}'"
+
+# --- Tunables for controlling the async jobs ---
+#
+# ASYNC_JOB_TIMEOUT = timeout in seconds until which the status of async task
+#                     can be checked
+ASYNC_JOB_TIMEOUT: 10800
+# ASYNC_JOB_POLL_RETRIES = maximum number of retries while polling the
+#                          completion of async jobs managed by the module
+#                          async_status
+ASYNC_JOB_POLL_RETRIES: 36
+# ASYNC_JOB_POLL_DELAY = delay in seconds between each poll of all the async
+#                        jobs managed by the module async_status
+ASYNC_JOB_POLL_DELAY: 300

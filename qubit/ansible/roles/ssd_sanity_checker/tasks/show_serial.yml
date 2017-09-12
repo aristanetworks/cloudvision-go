@@ -1,0 +1,33 @@
+---
+# show serial number of disks with message
+#
+#  input:
+#    serial_disks -> list of Linux disk names
+#    message -> string to be printed before printing serial numbers
+
+- name: "Find serial numbers of disks"
+  shell: "{{ READ_SERIAL_NUMBER }}"
+  loop_control:
+    loop_var: disk
+    label: "{{ disk }}"
+  register: serial
+  with_items: "{{ serial_disks }}"
+
+- set_fact:
+    serial_results: "{{ serial.results if serial is defined else [] }}"
+
+# explicit init to empty list is needed so that if this task file is
+# included then previos serialnums isn't used
+- set_fact:
+        serialnums: []
+
+- set_fact:
+        serialnums: "{{ serialnums + [ item.stdout ] }}"
+  with_items: "{{ serial_results }}"
+
+- debug: msg="{{ message }}\n {{serialnums}}"
+  when: "{{ serial_results | length > 0 }}"
+
+...
+
+
