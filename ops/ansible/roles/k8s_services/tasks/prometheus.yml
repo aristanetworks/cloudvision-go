@@ -33,7 +33,14 @@
     api_endpoint: 127.0.0.1:8001
     insecure: true
     state: present
-    file_reference: "{{ role_path }}/files/prometheus-config.yml"
+    file_reference: "{{ role_path }}/files/prometheus.yml"
+
+- name: deploy prometheus alerts config
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    file_reference: "{{ role_path }}/files/alerts.yml"
 
 - name: deploy prometheus server
   kubernetes:
@@ -59,13 +66,15 @@
               args:
                 - -storage.local.path=/prom-data
                 - -storage.local.retention=360h
-                - -config.file=/etc/prometheus/prometheus.yml
+                - -config.file=/etc/prometheus/config.yml
               ports:
               - name: web
                 containerPort: 9090
               volumeMounts:
               - name: config
                 mountPath: /etc/prometheus
+              - name: alerts
+                mountPath: /etc/alerts
               - name: storage
                 mountPath: /prom-data
             securityContext:
@@ -75,6 +84,9 @@
             - name: config
               configMap:
                 name: prometheus
+            - name: alerts
+              configMap:
+                name: alerts
             - name: storage
               hostPath:
                 path: /data5/prom-data
