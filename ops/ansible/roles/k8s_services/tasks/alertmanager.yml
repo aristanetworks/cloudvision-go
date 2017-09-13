@@ -28,6 +28,13 @@
         selector:
           app: alertmanager
 
+- name: deploy alertmanager config
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    file_reference: "{{ role_path }}/files/alertmanager.yml"
+
 - name: deploy alertmanager deamonset
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -56,12 +63,17 @@
               - name: web
                 containerPort: 9093
               volumeMounts:
+              - name: config
+                mountPath: /etc/alertmanager
               - name: storage
                 mountPath: /am-data
             securityContext:
               runAsUser: 1000
               fsGroup: 1000
             volumes:
+            - name: config
+              configMap:
+                name: alertmanager
             - name: storage
               hostPath:
                 path: /data6/am-data
