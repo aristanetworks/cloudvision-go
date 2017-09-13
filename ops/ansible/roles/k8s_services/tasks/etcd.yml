@@ -10,6 +10,8 @@
       kind: Endpoints
       metadata:
         name: etcd
+        labels:
+          app: etcd
       subsets:
         - addresses:
       {% for host in groups.etcd2 %}
@@ -28,6 +30,8 @@
       kind: Service
       metadata:
         name: etcd
+        labels:
+          app: etcd
         annotations:
           prometheus.io/scrape: "true"
           prometheus.io/port: "2379"
