@@ -9,6 +9,8 @@ BUG_CPUSET_SCYLLA_SETUP=1
 BUG_NODE_EXP=1
 # refer to Scylla issue: 140
 BUG_SERIAL_STARTUP=1
+# refer to Scylla issue: 202
+BUG_LONG_RING_DELAY=1
 
 [scylla_nodes:vars]
 CLUSTER_NAME="prod"

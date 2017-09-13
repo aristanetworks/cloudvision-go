@@ -7,17 +7,25 @@ JDK_VER_DIR=1.8.0_131
 BUG_CPUSET_SCYLLA_SETUP=1
 # refer to Scylla issue: XXX
 BUG_NODE_EXP=1
+# refer to Scylla issue: 140
+BUG_SERIAL_STARTUP=1
+# refer to Scylla issue: 202
+BUG_LONG_RING_DELAY=1
+
 # format supported by hwloc-calc
 CPU_SPEC=socket:0-.core:0-
 
 [scylla_nodes:vars]
 CLUSTER_NAME="dev"
-CLUSTER_SEED_IPS="172.30.0.4"
+CLUSTER_SEED_IPS="172.30.0.4,172.30.16.5,172.30.32.4"
+
+# seed_to_start_first and scylla_seed_nodes groups are needed
+# due to BUG_SERIAL_STARTUP. See start_server.yml for more
+# details
+[seed_to_start_first]
+li101
 
 [scylla_nodes]
-li101 DC=DC1 RACK=R132 LISTEN_IP="172.30.0.4"
-li102 DC=DC1 RACK=R166 LISTEN_IP="172.30.16.5"
-li103 DC=DC1 RACK=R189 LISTEN_IP="172.30.32.4"
-
-[test_nodes]
-mw117
+li101 RACK=R132 DC=DC1 LISTEN_IP="172.30.0.4"
+li102 RACK=R166 DC=DC1 LISTEN_IP="172.30.16.5"
+li103 RACK=R189 DC=DC1 LISTEN_IP="172.30.32.4"

@@ -10,7 +10,7 @@
     - telegraf
 
 - name: "Wait for port 9042"
-  wait_for: host="{{ ansible_hostname }}" port=9042 timeout="{{ PORT_UP_DELAY }}"
+  wait_for: host="{{ ansible_hostname }}" port=9042 timeout="{{ 9042_UP_DELAY }}"
 
 # JMX port is currently available only on localhost
 - name: "Wait for port 7199"

@@ -43,4 +43,11 @@
 - name: "Run the tunables"
   shell: /etc/rc.local
 
+- name: "(workaround) Add long ring delay"
+  replace:
+    dest: /etc/sysconfig/scylla-server
+    regexp: '^SCYLLA_ARGS="((?!.*--ring-delay-ms 300000).*)"$'
+    replace: 'SCYLLA_ARGS="\1 --ring-delay-ms 300000"'
+  when: "BUG_LONG_RING_DELAY | int == 1"
+
 ...

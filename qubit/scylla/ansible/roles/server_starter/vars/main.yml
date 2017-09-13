@@ -1,0 +1,6 @@
+# 20min to take into account bootstrapping of a node
+# when joining a cluster
+9042_UP_DELAY: 1200
+
+# default wait of 5min for port up
+PORT_UP_DELAY: 300
