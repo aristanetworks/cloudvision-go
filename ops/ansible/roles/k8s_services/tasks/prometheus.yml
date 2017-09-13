@@ -66,6 +66,7 @@
               args:
                 - -storage.local.path=/prom-data
                 - -storage.local.retention=360h
+                - -alertmanager.url=http://alertmanager:9093
                 - -config.file=/etc/prometheus/config.yml
               ports:
               - name: web
