@@ -14,6 +14,9 @@ Ansible 2.2 minimun is required.
 brew install ansible
 # Optionally, if needed:
 brew link --force ansible
+
+# Install PyYAML as well (needed to deploy k8s services)
+pip install PyYAML
 ```
 
 # Install the remote coreos machines:
