@@ -81,10 +81,10 @@ def fetch_status( fqdn ):
 
 def trigger( servers ):
    # Trigger Command
-   prod = "http://gerrit/ardc-config"
-   trigger_cmd = ( 'sudo -i flock -xn /tmp/ASB.lck env GIT_SSL_NO_VERIFY=true ansible-pull '
-               '--url=%s --directory=/root/.ansible/pull ASB/ASB.yml '
-               '--inventory=localhost, --purge' ) % ( prod )
+   prod = "http://gerrit.corp.arista.io/ardc-config"
+   trigger_cmd = ( 'sudo -i flock -xn /tmp/ASB.lck ansible-pull --url=%s '
+                   '--directory=/root/.ansible/pull ASB/ASB.yml '
+                   '--inventory=localhost, --purge' ) % ( prod )
 
    # PDSH Command
    pdsh_cmd = ( "PDSH_SSH_ARGS_APPEND='-o StrictHostKeyChecking=no' pdsh -w %s %s"
