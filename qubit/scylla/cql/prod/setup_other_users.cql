@@ -1,9 +1,9 @@
 CONSISTENCY ALL;
 // login in using root/arastra
 // cqlsh -u root -p <...> -f setup2.cql <node>
-DROP USER IF EXISTS cassandra;
-DROP USER IF EXISTS ether;
-DROP USER IF EXISTS arastra;
+// DROP USER IF EXISTS cassandra;
+// DROP USER IF EXISTS ether;
+// DROP USER IF EXISTS arastra;
 
 // ether: This user can modify data keyspace "ether" but not change schema.
 //        To be used with Quantumfs and other qubit tools.
