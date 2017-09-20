@@ -37,20 +37,6 @@ skipx
 # System timezone
 timezone America/Los_Angeles --ntpservers=ntp.aristanetworks.com
 
-# TODO Set network information? Should not need to do this
-#network --hostname=bs306.sjc.aristanetworks.com
-
-# TODO not sure if this is necessary -- This bonded stuff should go in config
-# Network information - workaround bonding issues with manual config below:
-#network --device=bond0 --bondslaves=eno1 --bootproto=dhcp --activate --bondopts=mode=802.3ad
-#,xmit_hash_policy=layer2,miimon=1000 --ipv6=no
-#network --device=eno1 --bootproto=dhcp --ipv6=auto --activate
-#network --device=eno2 --bootproto=dhcp --ipv6=auto
-
-# TODO THIS BREAKS Required for systemd-networkd
-#repo --name=updates --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra
-
-
 # ===================================================================================
 #                                     DISK Setup
 # ===================================================================================
@@ -115,21 +101,11 @@ ntp
 net-tools
 %end
 
-
 # ===================================================================================
 #                                   ADD-ON section
 # ===================================================================================
 %addon com_redhat_kdump --disable --reserve-mb='128'
 %end
-
-
-# ===================================================================================
-#                                   PRE Section
-# ===================================================================================
-#%pre
-#yum clean all
-#
-#%end
 
 # ===================================================================================
 #                                   POST Section
@@ -139,18 +115,24 @@ net-tools
 echo "Following commands are being run from \%post section in KS"
 
 # Temporarily mount NFS to get needed files
+# TODO: This is a temporary workaround, should stop doing this once a better
+# solution is found.
+echo "Mounting nfs101:/persist2/milkyway to get needed files..."
 mkdir -p /tmp/root
 mount nfs101:/persist2/milkyway /tmp/root
 
 # Minimum pkg requirements
 # NOTE: Need this epel-release as a requirement for all other pkgs
+echo "Installing packages..."
 yum install -y epel-release
 yum install -y systemd-networkd systemd-resolved
 yum install -y cpufrequtils sysstat ipmitool pdsh vim-minimal
 yum install -y htop dstat strace tcpdump xfsprogs tar lsof
 yum install -y pciutils yum-utils mysql git
-yum install -y ansible smartmontools
+yum install -y ansible smartmontools bind-utils
+yum install -y yum-cron
 
+echo "Setting up default arastra and ansible accounts..."
 # Arastra Default Account Setup
 groupadd -g 10000 arastra
 useradd -u 10000 -g 10000 -c "Arista Networks anonymous account" -G wheel,root arastra
@@ -169,6 +151,17 @@ chown ansible:ansible -R ~ansible/.ssh
 chmod 700 ~ansible/.ssh
 chmod 644 ~ansible/.ssh/authorized_keys
 
+echo "Setting Arora18Release and ToolsV2 repos..."
+# setup Arora18Release repo
+cat <<EOF > /etc/yum.repos.d/Arora.repo
+[Arora18Release]
+name=AroraRelease
+baseurl=http://dist/Abuild/Arora18.release/x86_64_18/latest/RPMS
+enabled=1
+gpgcheck=0
+metadata_expire=2h
+EOF
+
 # Setup ToolsV2 repo
 cat <<EOF > /etc/yum.repos.d/ToolsV2.repo
 [ToolsV2]
@@ -180,15 +173,13 @@ metadata_expire=2h
 exclude=scylla*
 EOF
 
-# Enable nightly update of ToolsV2 repo
-# We don't enable automatic nightly update for any other repo
-cp /tmp/root/ToolsV2-update /etc/cron.daily/
-chmod a+x /etc/cron.daily/ToolsV2-update
-chmod a+x /etc/cron.daily/logrotate
-
+echo "Configuring network bonding..."
 # Remove ifcfg scripts since we use systemd
 rm /etc/sysconfig/network-scripts/ifcfg-eno1
 rm /etc/sysconfig/network-scripts/ifcfg-eno2
+
+export ENO1_MAC_ADDR=`ip link show dev eno1 | awk '/ether/ {print($2)}'`
+/tmp/root/SetupSystemdBond.py $ENO1_MAC_ADDR
 
 yum install -y lldpad
 systemctl enable lldpad
@@ -214,17 +205,12 @@ EOF
 
 systemctl enable systemd-networkd
 systemctl enable systemd-resolved
-systemctl disable firewalld
 
 # Setup NTP Server Config
 echo 'server ntp.aristanetworks.com' >> /etc/ntp.conf
 systemctl enable ntpd
 
-# Setup DNS resolver Config
-#echo 'search sjc.aristanetworks.com. aristanetworks.com\n' >> /etc/resolv.conf
-#echo 'nameserver 172.22.22.40\n' >> /etc/resolv.conf
-#echo 'nameserver 172.22.22.10\n' >> /etc/resolv.conf
-
+echo "Setting up serial console..."
 # setup serial console
 # must retain content added by anaconda
 SERIAL_PORT=1

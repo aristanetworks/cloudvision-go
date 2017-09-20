@@ -1,18 +1,105 @@
 ---
-# TODO Can't find this RPM -- not on ToolsV2 as expected
-#- name: "Install Arora-Buildcache specific RPM"
-#  yum:
-#      name: AroraWeb-Buildcache
-#      state: installed
+- name: "Install AroraConfig-ansible-pull RPM to get the nightly ansible-pull cron job"
+  yum:
+     name: AroraConfig-ansible-pull
+     state: installed
 
-# TODO: need to disable firewall on ports 80/HTTP and 443/HTTPS?
+- name: "Install Buildcache specific RPM"
+  yum:
+     name: Buildcache
+     state: installed
+
 - name: "Install Apache"
   yum:
-      name: httpd
-      state: installed
+     name: httpd
+     state: installed
 
-# TODO: create dirs and update mount points in /etc/fstab
+- name: "Enable Apache"
+  service:
+     name: httpd
+     enabled: yes
 
+- name: "Disable firewall on port 80/HTTP"
+  firewalld:
+     port: 80/http
+     permanent: true
+     immediate: true
+     state: disabled
+
+- name: "Disable firewall on port 443/HTTPS"
+  firewalld:
+     port: 443/https
+     permanent: true
+     immediate: true
+     state: disabled
+
+- name: "Create mount point /var/buildcache"
+  file:
+     path: /var/buildcache
+     state: directory
+     owner: apache
+     group: apache
+     mode: 0755
+
+- name: "Create directory /persist/var"
+  file:
+     path: /persist/var
+     state: directory
+     owner: root
+     group: root
+     mode: 0755
+
+- name: "Create directory /persist/tmp"
+  file:
+     path: /persist/tmp
+     state: directory
+     owner: root
+     group: root
+     mode: 1777
+
+- name: "Create directory /persist/var/buildcache"
+  file:
+     path: /persist/var/buildcache
+     state: directory
+     owner: apache
+     group: apache
+     mode: 0755
+
+- name: "Create directory /persist/var/log"
+  file:
+     path: /persist/var/log
+     state: directory
+     owner: root
+     group: root
+     mode: 0755
+
+- name: "Create directory /persist/var/crash"
+  file:
+     path: /persist/var/crash
+     state: directory
+     owner: root
+     group: root
+     mode: 0755
+
+- name: "Mount /persist/tmp on /tmp as a bind mount - takes effect upon reboot"
+  lineinfile:
+     dest: /etc/fstab
+     line: "/persist/tmp /tmp none bind 0 0"
+
+- name: "Mount /persist/var/buildcache on /var/buildcache as a bind mount - takes effect upon reboot"
+  lineinfile:
+     dest: /etc/fstab
+     line: "/persist/var/buildcache /var/buildcache none bind 0 0"
+
+- name: "Mount /persist/var/log on /var/log as a bind mount - takes effect upon reboot"
+  lineinfile:
+     dest: /etc/fstab
+     line: "/persist/var/log /var/log none bind 0 0"
+
+- name: "Mount /persist/var/crash on /var/crash as a bind mount - takes effect upon reboot"
+  lineinfile:
+     dest: /etc/fstab
+     line: "/persist/var/crash /var/crash none bind 0 0"
 
 - name: "Update datacenter.servers with status configuration ready"
   command: "{{ASB_DB_UPDATE_CLEANUP}}"
