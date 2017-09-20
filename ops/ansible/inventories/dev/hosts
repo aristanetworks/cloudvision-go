@@ -1,20 +1,20 @@
 [coreos]
 bs200 ansible_host=172.20.22.4 K8S_WORKER=True
-r12s17  ansible_host=172.24.32.17 K8S_WORKER=True
+r12s17  ansible_host=r123s17.sjc.aristanetworks.com K8S_WORKER=True
 r12s18  ansible_host=r123s18.sjc.aristanetworks.com K8S_WORKER=True
 # r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
-r12s20  ansible_host=172.24.32.20 K8S_WORKER=True
-r12s21  ansible_host=172.24.32.21 K8S_WORKER=True
-r12s22  ansible_host=172.24.32.22 K8S_WORKER=True
-r12s23  ansible_host=172.24.32.23 K8S_WORKER=True
+r12s20  ansible_host=r123s20.sjc.aristanetworks.com K8S_WORKER=True
+r12s21  ansible_host=r123s21.sjc.aristanetworks.com K8S_WORKER=True
+r12s22  ansible_host=r123s22.sjc.aristanetworks.com K8S_WORKER=True
+r12s23  ansible_host=r123s23.sjc.aristanetworks.com K8S_WORKER=True
 r12s24  ansible_host=172.24.32.24 K8S_MASTER=True
-r12s25  ansible_host=172.24.32.25 K8S_WORKER=True
+r12s25  ansible_host=r123s25.sjc.aristanetworks.com K8S_WORKER=True
 r12s26  ansible_host=r123s26.sjc.aristanetworks.com K8S_WORKER=True
 r12s27  ansible_host=r123s27.sjc.aristanetworks.com K8S_WORKER=True
-r12s28  ansible_host=172.24.32.28 K8S_WORKER=True
-r12s29  ansible_host=172.24.32.29 K8S_WORKER=True
-r12s30  ansible_host=172.24.32.30 K8S_WORKER=True
-r12s31  ansible_host=172.24.32.31 K8S_WORKER=True
+r12s28  ansible_host=r123s28.sjc.aristanetworks.com K8S_WORKER=True
+r12s29  ansible_host=r123s29.sjc.aristanetworks.com K8S_WORKER=True
+r12s30  ansible_host=r123s30.sjc.aristanetworks.com K8S_WORKER=True
+r12s31  ansible_host=r123s31.sjc.aristanetworks.com K8S_WORKER=True
 # r12s32  ansible_host=172.24.32.32 # Used by docker registry, managed manually
 
 [coreos:vars]
