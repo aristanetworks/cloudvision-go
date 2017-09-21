@@ -32,7 +32,7 @@ def main( args=None ):
    logFormatter = logging.Formatter(
                         fmt="[restore_server]    %(asctime)s: %(message)s",
                         datefmt="%m/%d/%Y %H:%M:%S" )
-   consoleHandler = logging.StreamHandler()
+   consoleHandler = logging.StreamHandler( sys.stdout )
    logger.addHandler( consoleHandler )
    if args.logfile:
       # Also log to file if user specifies a log file

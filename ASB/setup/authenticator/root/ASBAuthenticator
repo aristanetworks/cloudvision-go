@@ -90,12 +90,21 @@ def main():
       preAuthServers = [ sv for sv in preAuthServers if CONTAINS_DOMAIN in sv ]
 
       # Only authenicate servers that are either:
-      #    (1) whitelisted, ie. have a whitelisted file in ASB account, or
-      #    (2) already authenticated, ie. have an user account on ticketserver.
+      #    (1) whitelisted, ie. have a whitelisted file in ASB account, OR
+      #    (2) once authenticated, ie. have an user account on ticketserver, OR
+      #    (3) currently not authenicated, ie. "a4 login" requires password.
       allowed = set( whitelist ).union( preAuthServers )
       authServers = set( needTicket ) & allowed
 
       for sv in authServers:
+         # Checking if server is already authenticated, ie. (3)
+         ret = subprocess.call( "P4USER=arastra timeout 30 a4 ssh %s a4 login" % sv,
+                                shell=True )
+         if not ret:
+            logging.info( "Server %s already has ticket, skipping." % sv )
+            continue
+
+         # Issue ticket to server
          logging.info( "Attempting to issue ticket to %s" % sv )
          ret = subprocess.call( "timeout 60 /root/restore_server %s --log-file %s"\
                                 % ( sv, LOGFILE ), shell=True )
