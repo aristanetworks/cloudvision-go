@@ -23,7 +23,7 @@
             name: proxy
             annotations:
               prometheus.io/scrape: "true"
-              prometheus.io/port: "9101"
+              prometheus.io/port: "9201"
             labels:
               app: proxy
           spec:
@@ -37,8 +37,9 @@
               image: prom/haproxy-exporter:v0.7.1
               args:
                 - -haproxy.scrape-uri=http://localhost/haproxyStats?stats;csv
+                - --web.listen-address=:9201
               ports:
-              - containerPort: 9101
+              - containerPort: 9201
             - name: proxy
               image: registry.docker.sjc.aristanetworks.com:5000/haproxy
               imagePullPolicy: Always
