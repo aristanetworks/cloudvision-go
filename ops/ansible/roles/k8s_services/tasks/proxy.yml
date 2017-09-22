@@ -50,4 +50,4 @@
       {% endfor %}
               env:
                 - name: DOMAIN
-                  value: .{{ k8s_domain }}
+                  value: .{{ k8s_domain | regex_replace('^internal\.', '') }}
