@@ -1,5 +1,5 @@
 [coreos]
-bs200 ansible_host=172.20.22.4 K8S_WORKER=True
+bs200 ansible_host=bs200.sjc.aristanetworks.com K8S_WORKER=True
 r12s17  ansible_host=r123s17.sjc.aristanetworks.com K8S_WORKER=True
 r12s18  ansible_host=r123s18.sjc.aristanetworks.com K8S_WORKER=True
 # r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.

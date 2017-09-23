@@ -1,20 +1,20 @@
 [coreos]
 r12s1 ansible_host=172.24.32.1
-r12s2  ansible_host=172.24.32.2
+r12s2  ansible_host=r123s2.sjc.aristanetworks.com
 r12s3  ansible_host=172.24.32.3
-r12s4  ansible_host=172.24.32.4
-r12s5  ansible_host=172.24.32.5
-r12s6  ansible_host=172.24.32.6
+r12s4  ansible_host=r123s4.sjc.aristanetworks.com
+r12s5  ansible_host=r123s5.sjc.aristanetworks.com
+r12s6  ansible_host=r123s6.sjc.aristanetworks.com
 r12s7  ansible_host=172.24.32.7
-r12s8  ansible_host=172.24.32.8
-r12s9  ansible_host=172.24.32.9
-r12s10  ansible_host=172.24.32.10
-r12s11  ansible_host=172.24.32.11
-r12s12  ansible_host=172.24.32.12
-r12s13  ansible_host=172.24.32.13
-r12s14  ansible_host=172.24.32.14
-r12s15  ansible_host=172.24.32.15
-r12s16  ansible_host=172.24.32.16
+r12s8  ansible_host=r123s8.sjc.aristanetworks.com
+r12s9  ansible_host=r123s9.sjc.aristanetworks.com
+r12s10  ansible_host=r123s10.sjc.aristanetworks.com
+r12s11  ansible_host=r123s11.sjc.aristanetworks.com
+r12s12  ansible_host=r123s12.sjc.aristanetworks.com
+r12s13  ansible_host=r123s13.sjc.aristanetworks.com
+r12s14  ansible_host=r123s14.sjc.aristanetworks.com
+r12s15  ansible_host=r123s15.sjc.aristanetworks.com
+r12s16  ansible_host=r123s16.sjc.aristanetworks.com
 
 [coreos:vars]
 ansible_user=core
@@ -61,6 +61,7 @@ r12s2
 r12s1
 r12s7
 r12s9
+
 
 [zookeeper]
 r12s1 ZOOKEEPER_ID=1
