@@ -99,6 +99,7 @@
     group: root
     mode: 0600
   with_dict: "{{ certificates }}"
+  register: kcerts
 
 - name: Remove possible old-config manifest
   become: True
@@ -115,6 +116,7 @@
     group: root
     mode: 0755
   with_items: "{{ manifests }}"
+  register: kmanifests
 
 - name: Install kubeconfig.yaml
   become: True
@@ -147,4 +149,4 @@
     name: kubelet.service
     state: restarted
     daemon_reload: yes
-  when: kservice.changed
+  when: kservice.changed or kcerts.changed or kmanifests.changed

@@ -6,7 +6,7 @@ ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Setup dev cluster
 kubectl config set-cluster dev \
-	--server=https://172.24.32.24 \
+	--server=https://r123s24.sjc.aristanetworks.com \
 	--certificate-authority="$ROOTDIR/ansible/inventories/dev/files/ca.pem"
 kubectl config set-credentials dev \
 	--certificate-authority="$ROOTDIR/ansible/inventories/dev/files/ca.pem" \

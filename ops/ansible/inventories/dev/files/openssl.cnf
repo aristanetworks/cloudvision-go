@@ -9,5 +9,9 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = kubernetes
 DNS.2 = kubernetes.default
+DNS.3 = r12s24.sjc.aristanetworks.com
+DNS.4 = r123s24.sjc.aristanetworks.com
+DNS.5 = master.dev-infra.corp.arista.io
 IP.1 = 10.3.0.1
 IP.2 = 172.24.32.24
+IP.3 = 172.30.190.25
