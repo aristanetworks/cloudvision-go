@@ -1,7 +1,7 @@
 [coreos]
 r12s1 ansible_host=172.24.32.1
 r12s2  ansible_host=r123s2.sjc.aristanetworks.com
-r12s3  ansible_host=172.24.32.3
+r12s3  ansible_host=r123s3.sjc.aristanetworks.com
 r12s4  ansible_host=r123s4.sjc.aristanetworks.com
 r12s5  ansible_host=r123s5.sjc.aristanetworks.com
 r12s6  ansible_host=r123s6.sjc.aristanetworks.com
