@@ -1,20 +1,20 @@
 [coreos]
-r123s1.sjc.aristanetworks.com ansible_host=r123s1.sjc.aristanetworks.com
-r123s2.sjc.aristanetworks.com  ansible_host=r123s2.sjc.aristanetworks.com
-r123s3.sjc.aristanetworks.com  ansible_host=r123s3.sjc.aristanetworks.com
-r123s4.sjc.aristanetworks.com  ansible_host=r123s4.sjc.aristanetworks.com
-r123s5.sjc.aristanetworks.com  ansible_host=r123s5.sjc.aristanetworks.com
-r123s6.sjc.aristanetworks.com  ansible_host=r123s6.sjc.aristanetworks.com
-r123s7.sjc.aristanetworks.com  ansible_host=r123s7.sjc.aristanetworks.com
-r123s8.sjc.aristanetworks.com  ansible_host=r123s8.sjc.aristanetworks.com
-r123s9.sjc.aristanetworks.com  ansible_host=r123s9.sjc.aristanetworks.com
-r123s10.sjc.aristanetworks.com  ansible_host=r123s10.sjc.aristanetworks.com
-r123s11.sjc.aristanetworks.com  ansible_host=r123s11.sjc.aristanetworks.com
-r123s12.sjc.aristanetworks.com  ansible_host=r123s12.sjc.aristanetworks.com
-r123s13.sjc.aristanetworks.com  ansible_host=r123s13.sjc.aristanetworks.com
-r123s14.sjc.aristanetworks.com  ansible_host=r123s14.sjc.aristanetworks.com
-r123s15.sjc.aristanetworks.com  ansible_host=r123s15.sjc.aristanetworks.com
-r123s16.sjc.aristanetworks.com  ansible_host=r123s16.sjc.aristanetworks.com
+r123s1.sjc.aristanetworks.com
+r123s2.sjc.aristanetworks.com
+r123s3.sjc.aristanetworks.com
+r123s4.sjc.aristanetworks.com
+r123s5.sjc.aristanetworks.com
+r123s6.sjc.aristanetworks.com
+r123s7.sjc.aristanetworks.com
+r123s8.sjc.aristanetworks.com
+r123s9.sjc.aristanetworks.com
+r123s10.sjc.aristanetworks.com
+r123s11.sjc.aristanetworks.com
+r123s12.sjc.aristanetworks.com
+r123s13.sjc.aristanetworks.com
+r123s14.sjc.aristanetworks.com
+r123s15.sjc.aristanetworks.com
+r123s16.sjc.aristanetworks.com
 
 [coreos:vars]
 ansible_user=core

@@ -12,7 +12,7 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['ansible_host'] }}:2379{% endfor %}
+    - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
 
     - --allow-privileged=true
     - --service-cluster-ip-range=10.3.0.0/16

@@ -1,20 +1,20 @@
 [coreos]
-bs200.sjc.aristanetworks.com ansible_host=bs200.sjc.aristanetworks.com
-r123s17.sjc.aristanetworks.com ansible_host=r123s17.sjc.aristanetworks.com
-r123s18.sjc.aristanetworks.com ansible_host=r123s18.sjc.aristanetworks.com
+bs200.sjc.aristanetworks.com
+r123s17.sjc.aristanetworks.com
+r123s18.sjc.aristanetworks.com
 # r123s19.sjc.aristanetworks.com # Used by cvpi team, not managed by ansible.
-r123s20.sjc.aristanetworks.com ansible_host=r123s20.sjc.aristanetworks.com
-r123s21.sjc.aristanetworks.com ansible_host=r123s21.sjc.aristanetworks.com
-r123s22.sjc.aristanetworks.com ansible_host=r123s22.sjc.aristanetworks.com
-r123s23.sjc.aristanetworks.com ansible_host=r123s23.sjc.aristanetworks.com
-r123s24.sjc.aristanetworks.com ansible_host=r123s24.sjc.aristanetworks.com
-r123s25.sjc.aristanetworks.com ansible_host=r123s25.sjc.aristanetworks.com
-r123s26.sjc.aristanetworks.com ansible_host=r123s26.sjc.aristanetworks.com
-r123s27.sjc.aristanetworks.com ansible_host=r123s27.sjc.aristanetworks.com
-r123s28.sjc.aristanetworks.com ansible_host=r123s28.sjc.aristanetworks.com
-r123s29.sjc.aristanetworks.com ansible_host=r123s29.sjc.aristanetworks.com
-r123s30.sjc.aristanetworks.com ansible_host=r123s30.sjc.aristanetworks.com
-r123s31.sjc.aristanetworks.com ansible_host=r123s31.sjc.aristanetworks.com
+r123s20.sjc.aristanetworks.com
+r123s21.sjc.aristanetworks.com
+r123s22.sjc.aristanetworks.com
+r123s23.sjc.aristanetworks.com
+r123s24.sjc.aristanetworks.com
+r123s25.sjc.aristanetworks.com
+r123s26.sjc.aristanetworks.com
+r123s27.sjc.aristanetworks.com
+r123s28.sjc.aristanetworks.com
+r123s29.sjc.aristanetworks.com
+r123s30.sjc.aristanetworks.com
+r123s31.sjc.aristanetworks.com
 # r123s32.sjc.aristanetworks.com # Used by docker registry, managed manually
 
 [coreos:vars]

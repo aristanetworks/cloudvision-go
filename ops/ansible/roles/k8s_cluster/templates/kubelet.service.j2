@@ -14,7 +14,7 @@ ExecStart=/usr/lib/coreos/kubelet-wrapper \
 {% endif %}
   --allow-privileged=true \
   --pod-manifest-path=/etc/kubernetes/manifests \
-  --hostname-override={{ ansible_host }} \
+  --hostname-override={{ inventory_hostname }} \
   --cluster_dns=10.3.0.10 \
   --cluster_domain={{ k8s_domain }} \
   --volume-stats-agg-period=0 \

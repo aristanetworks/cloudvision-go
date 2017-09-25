@@ -46,7 +46,7 @@
               args:
       {% for host in groups.etcd2 %}
                 - -node
-                - http://{{ hostvars[host]['ansible_host'] }}:2379
+                - http://{{ hostvars[host]['inventory_hostname'] }}:2379
       {% endfor %}
               env:
                 - name: DOMAIN
