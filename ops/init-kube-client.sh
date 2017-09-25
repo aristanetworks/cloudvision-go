@@ -6,7 +6,7 @@ ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Setup dev cluster
 kubectl config set-cluster dev \
-	--server=https://r123s24.sjc.aristanetworks.com \
+	--server=https://master.dev-infra.corp.arista.io \
 	--certificate-authority="$ROOTDIR/ansible/inventories/dev/files/ca.pem"
 kubectl config set-credentials dev \
 	--certificate-authority="$ROOTDIR/ansible/inventories/dev/files/ca.pem" \
@@ -20,7 +20,7 @@ kubectl config use-context dev
 
 # Setup staging cluster
 kubectl config set-cluster staging \
-	--server=https://172.24.32.7 \
+	--server=https://master.staging-infra.corp.arista.io \
 	--certificate-authority="$ROOTDIR/ansible/inventories/staging/files/ca.pem"
 kubectl config set-credentials staging \
 	--certificate-authority="$ROOTDIR/ansible/inventories/staging/files/ca.pem" \
