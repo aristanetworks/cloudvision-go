@@ -48,7 +48,7 @@
           port: 53
           protocol: TCP
     state: update
-  when: "'failed' in dns_service_installed"
+  when: dns_service_installed.failed
 
 - name: deploy dns replication controller
   kubernetes:
