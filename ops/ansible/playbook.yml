@@ -1,4 +1,13 @@
 ---
+
+- hosts: all
+  gather_facts: False
+  tasks:
+    - name: Validate ansible version
+      assert:
+        that: "ansible_version.full | version_compare('2.4', '>=')"
+        msg: "ansible v2.4 or later is required. {{ansible_version}}"
+
 - hosts: coreos
   gather_facts: False
   roles:

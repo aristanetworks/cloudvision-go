@@ -8,7 +8,7 @@
 
 # Install ansible
 
-Ansible 2.2 minimun is required.
+Ansible 2.4 minimun is required.
 
 ```sh
 brew install ansible
