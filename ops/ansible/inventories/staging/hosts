@@ -19,8 +19,6 @@ r12s16  ansible_host=r123s16.sjc.aristanetworks.com
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
-K8S_MASTER=False
-K8S_WORKER=False
 
 [hbase:children]
 hadoop

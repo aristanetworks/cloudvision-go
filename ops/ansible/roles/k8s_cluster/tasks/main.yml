@@ -1,10 +1,6 @@
-# This role will install kubernetes on the specified hosts
-# When this role is applied to a host group, it will
-# look for some vars for each host and install the different k8s components based on those vars
-# Here is the list of all the host variables that MUST be defined in order for this role
-# to work correctly:
-#   - K8S_MASTER - boolean - hostvar: Will flag this host as a k8s master server
-#   - K8S_WORKER - boolean - hostvar: Will flag this host as a k8s worker server
+# This role will install a kubernetes cluster on the specified hosts
+# based on the k8s_masters and k8s_workers ansible groups
+# for the processed inventory
 
 ---
 

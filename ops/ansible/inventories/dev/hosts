@@ -1,27 +1,25 @@
 [coreos]
-bs200 ansible_host=bs200.sjc.aristanetworks.com K8S_WORKER=True
-r12s17  ansible_host=r123s17.sjc.aristanetworks.com K8S_WORKER=True
-r12s18  ansible_host=r123s18.sjc.aristanetworks.com K8S_WORKER=True
+bs200 ansible_host=bs200.sjc.aristanetworks.com
+r12s17  ansible_host=r123s17.sjc.aristanetworks.com
+r12s18  ansible_host=r123s18.sjc.aristanetworks.com
 # r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
-r12s20  ansible_host=r123s20.sjc.aristanetworks.com K8S_WORKER=True
-r12s21  ansible_host=r123s21.sjc.aristanetworks.com K8S_WORKER=True
-r12s22  ansible_host=r123s22.sjc.aristanetworks.com K8S_WORKER=True
-r12s23  ansible_host=r123s23.sjc.aristanetworks.com K8S_WORKER=True
-r12s24  ansible_host=r123s24.sjc.aristanetworks.com K8S_MASTER=True
-r12s25  ansible_host=r123s25.sjc.aristanetworks.com K8S_WORKER=True
-r12s26  ansible_host=r123s26.sjc.aristanetworks.com K8S_WORKER=True
-r12s27  ansible_host=r123s27.sjc.aristanetworks.com K8S_WORKER=True
-r12s28  ansible_host=r123s28.sjc.aristanetworks.com K8S_WORKER=True
-r12s29  ansible_host=r123s29.sjc.aristanetworks.com K8S_WORKER=True
-r12s30  ansible_host=r123s30.sjc.aristanetworks.com K8S_WORKER=True
-r12s31  ansible_host=r123s31.sjc.aristanetworks.com K8S_WORKER=True
+r12s20  ansible_host=r123s20.sjc.aristanetworks.com
+r12s21  ansible_host=r123s21.sjc.aristanetworks.com
+r12s22  ansible_host=r123s22.sjc.aristanetworks.com
+r12s23  ansible_host=r123s23.sjc.aristanetworks.com
+r12s24  ansible_host=r123s24.sjc.aristanetworks.com
+r12s25  ansible_host=r123s25.sjc.aristanetworks.com
+r12s26  ansible_host=r123s26.sjc.aristanetworks.com
+r12s27  ansible_host=r123s27.sjc.aristanetworks.com
+r12s28  ansible_host=r123s28.sjc.aristanetworks.com
+r12s29  ansible_host=r123s29.sjc.aristanetworks.com
+r12s30  ansible_host=r123s30.sjc.aristanetworks.com
+r12s31  ansible_host=r123s31.sjc.aristanetworks.com
 # r12s32  ansible_host=172.24.32.32 # Used by docker registry, managed manually
 
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
-K8S_MASTER=False
-K8S_WORKER=False
 
 [etcd2]
 r12s18
