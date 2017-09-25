@@ -19,6 +19,10 @@
     - coreos-config
     - data_folders
 
+- hosts: cvpbs
+  roles:
+    - cvpbs
+
 - hosts: etcd2
   roles:
     - etcd2

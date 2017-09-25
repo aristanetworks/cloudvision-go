@@ -51,6 +51,9 @@ r12s29
 r12s30
 r12s31
 
+[cvpbs:children]
+k8s_workers
+
 [hbase:children]
 hadoop
 

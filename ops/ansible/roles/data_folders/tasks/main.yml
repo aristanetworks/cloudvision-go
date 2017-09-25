@@ -70,14 +70,3 @@
       ignore_errors: true
   when: need_data_immutable.stat.exists == False
 # End of the block
-
-# TODO: We need to change so it runs only for the dev cluster.
-- name: Create cvpbs jenkins slave workspace directory
-  become: True
-  file:
-    path: "/data2/cvpbs/{{ item }}"
-  with_items:
-    - workspace
-    - rpmbuild
-  when: K8S_WORKER
-  ignore_errors: True

@@ -1,0 +1,11 @@
+
+---
+
+- name: Create cvpbs jenkins slave workspace directory
+  become: True
+  file:
+    path: "/data2/cvpbs/{{ item }}"
+  with_items:
+    - workspace
+    - rpmbuild
+  ignore_errors: True
