@@ -1,53 +1,53 @@
 [coreos]
-bs200 ansible_host=bs200.sjc.aristanetworks.com
-r12s17  ansible_host=r123s17.sjc.aristanetworks.com
-r12s18  ansible_host=r123s18.sjc.aristanetworks.com
-# r12s19  ansible_host=172.24.32.19 # Used by cvpi team, not managed by ansible.
-r12s20  ansible_host=r123s20.sjc.aristanetworks.com
-r12s21  ansible_host=r123s21.sjc.aristanetworks.com
-r12s22  ansible_host=r123s22.sjc.aristanetworks.com
-r12s23  ansible_host=r123s23.sjc.aristanetworks.com
-r12s24  ansible_host=r123s24.sjc.aristanetworks.com
-r12s25  ansible_host=r123s25.sjc.aristanetworks.com
-r12s26  ansible_host=r123s26.sjc.aristanetworks.com
-r12s27  ansible_host=r123s27.sjc.aristanetworks.com
-r12s28  ansible_host=r123s28.sjc.aristanetworks.com
-r12s29  ansible_host=r123s29.sjc.aristanetworks.com
-r12s30  ansible_host=r123s30.sjc.aristanetworks.com
-r12s31  ansible_host=r123s31.sjc.aristanetworks.com
-# r12s32  ansible_host=172.24.32.32 # Used by docker registry, managed manually
+bs200.sjc.aristanetworks.com ansible_host=bs200.sjc.aristanetworks.com
+r123s17.sjc.aristanetworks.com ansible_host=r123s17.sjc.aristanetworks.com
+r123s18.sjc.aristanetworks.com ansible_host=r123s18.sjc.aristanetworks.com
+# r123s19.sjc.aristanetworks.com # Used by cvpi team, not managed by ansible.
+r123s20.sjc.aristanetworks.com ansible_host=r123s20.sjc.aristanetworks.com
+r123s21.sjc.aristanetworks.com ansible_host=r123s21.sjc.aristanetworks.com
+r123s22.sjc.aristanetworks.com ansible_host=r123s22.sjc.aristanetworks.com
+r123s23.sjc.aristanetworks.com ansible_host=r123s23.sjc.aristanetworks.com
+r123s24.sjc.aristanetworks.com ansible_host=r123s24.sjc.aristanetworks.com
+r123s25.sjc.aristanetworks.com ansible_host=r123s25.sjc.aristanetworks.com
+r123s26.sjc.aristanetworks.com ansible_host=r123s26.sjc.aristanetworks.com
+r123s27.sjc.aristanetworks.com ansible_host=r123s27.sjc.aristanetworks.com
+r123s28.sjc.aristanetworks.com ansible_host=r123s28.sjc.aristanetworks.com
+r123s29.sjc.aristanetworks.com ansible_host=r123s29.sjc.aristanetworks.com
+r123s30.sjc.aristanetworks.com ansible_host=r123s30.sjc.aristanetworks.com
+r123s31.sjc.aristanetworks.com ansible_host=r123s31.sjc.aristanetworks.com
+# r123s32.sjc.aristanetworks.com # Used by docker registry, managed manually
 
 [coreos:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
 
 [etcd2]
-r12s18
-r12s26
-r12s24
+r123s18.sjc.aristanetworks.com
+r123s26.sjc.aristanetworks.com
+r123s24.sjc.aristanetworks.com
 
 [all:vars]
 k8s_version=1.5.6
 k8s_domain=internal.dev.corp.arista.io
 
 [k8s_masters]
-r12s24
+r123s24.sjc.aristanetworks.com
 
 [k8s_workers]
-bs200
-r12s17
-r12s18
-r12s20
-r12s21
-r12s22
-r12s23
-r12s25
-r12s26
-r12s27
-r12s28
-r12s29
-r12s30
-r12s31
+bs200.sjc.aristanetworks.com
+r123s17.sjc.aristanetworks.com
+r123s18.sjc.aristanetworks.com
+r123s20.sjc.aristanetworks.com
+r123s21.sjc.aristanetworks.com
+r123s22.sjc.aristanetworks.com
+r123s23.sjc.aristanetworks.com
+r123s25.sjc.aristanetworks.com
+r123s26.sjc.aristanetworks.com
+r123s27.sjc.aristanetworks.com
+r123s28.sjc.aristanetworks.com
+r123s29.sjc.aristanetworks.com
+r123s30.sjc.aristanetworks.com
+r123s31.sjc.aristanetworks.com
 
 [cvpbs:children]
 k8s_workers
@@ -61,30 +61,30 @@ journalnodes
 namenodes
 
 [datanodes]
-r12s17
-r12s20
-r12s21
-r12s22
-r12s23
-r12s25
-r12s28
-r12s29
-r12s30
-r12s31
+r123s17.sjc.aristanetworks.com
+r123s20.sjc.aristanetworks.com
+r123s21.sjc.aristanetworks.com
+r123s22.sjc.aristanetworks.com
+r123s23.sjc.aristanetworks.com
+r123s25.sjc.aristanetworks.com
+r123s28.sjc.aristanetworks.com
+r123s29.sjc.aristanetworks.com
+r123s30.sjc.aristanetworks.com
+r123s31.sjc.aristanetworks.com
 
 [journalnodes]
-r12s17
-r12s20
-r12s21
+r123s17.sjc.aristanetworks.com
+r123s20.sjc.aristanetworks.com
+r123s21.sjc.aristanetworks.com
 
 [namenodes]
-r12s17
-r12s20
+r123s17.sjc.aristanetworks.com
+r123s20.sjc.aristanetworks.com
 
 [local]
 localhost ansible_connection=local ansible_become=false
 
 [zookeeper]
-r12s18 ZOOKEEPER_ID=1
-r12s24 ZOOKEEPER_ID=2
-r12s26 ZOOKEEPER_ID=3
+r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
+r123s24.sjc.aristanetworks.com ZOOKEEPER_ID=2
+r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3

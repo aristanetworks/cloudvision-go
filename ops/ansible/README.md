@@ -1,4 +1,4 @@
-# Ansible config for ops (r12s1 to r12s32 machines)
+# Ansible config for ops (r123s1 to r123s32 machines)
 
 # LIMITATIONS
 
@@ -22,7 +22,7 @@ pip install PyYAML
 # Install the remote coreos machines:
 
 ```sh
-ansible-playbook playbook.yml -i inventories/dev/hosts -l r12sXX
+ansible-playbook playbook.yml -i inventories/dev/hosts -l r123sXX.*
 ```
 
 # Run ansible commands
@@ -39,7 +39,7 @@ ansible all -i inventories/dev/hosts -m ping
 ### Ping one specific machine
 
 ```sh
-ansible r12s1 -i inventories/dev/hosts -m ping
+ansible r123s1.sjc.aristanetworks.com -i inventories/dev/hosts -m ping
 ```
 
 ### Generate cloud-config.yml file for the ops.git/coreos repo/folder
