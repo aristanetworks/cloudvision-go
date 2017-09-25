@@ -2,8 +2,6 @@
 ---
 
 - name: deploy etcd endpoints so internal services can access etcd
-  # TODO: Enable again when ansible_host is all hostnames and not ips
-  when: False
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
@@ -17,7 +15,7 @@
       subsets:
         - addresses:
       {% for host in groups.etcd2 %}
-            - ip: {{ lookup('dig', hostvars[host]['ansible_host']) }} {{ hostvars[host]['ansible_host'] }}
+            - ip: {{ lookup('dig', host) }}
       {% endfor %}
           ports:
             - port: 2379
