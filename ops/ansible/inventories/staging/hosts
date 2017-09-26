@@ -16,7 +16,19 @@ r123s14.sjc.aristanetworks.com
 r123s15.sjc.aristanetworks.com
 r123s16.sjc.aristanetworks.com
 
-[coreos:vars]
+# This group is a fake group used to have all the hosts
+# on coreos use the same vars
+# Some hosts are referenced using differents hostnames
+# So some secondary hostnames used to reference a coreos host
+# are not in the "coreos" group (as it would run twice the roles for the same host)
+# So this group is here to take care of sharing the coreos hosts config.
+[coreos_ansible_config]
+master.staging-infra.corp.arista.io
+
+[coreos_ansible_config:children]
+coreos
+
+[coreos_ansible_config:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
 
@@ -67,7 +79,7 @@ r123s7.sjc.aristanetworks.com ZOOKEEPER_ID=2
 r123s9.sjc.aristanetworks.com ZOOKEEPER_ID=3
 
 [k8s_masters]
-r123s7.sjc.aristanetworks.com
+master.staging-infra.corp.arista.io
 
 [k8s_workers]
 r123s1.sjc.aristanetworks.com

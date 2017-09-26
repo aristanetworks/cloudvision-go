@@ -17,7 +17,19 @@ r123s30.sjc.aristanetworks.com
 r123s31.sjc.aristanetworks.com
 # r123s32.sjc.aristanetworks.com # Used by docker registry, managed manually
 
-[coreos:vars]
+# This group is a fake group used to have all the hosts
+# on coreos use the same vars
+# Some hosts are referenced using differents hostnames
+# So some secondary hostnames used to reference a coreos host
+# are not in the "coreos" group (as it would run twice the roles for the same host)
+# So this group is here to take care of sharing the coreos hosts config.
+[coreos_ansible_config]
+master.dev-infra.corp.arista.io
+
+[coreos_ansible_config:children]
+coreos
+
+[coreos_ansible_config:vars]
 ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
 
@@ -31,7 +43,7 @@ k8s_version=1.5.6
 k8s_domain=internal.dev.corp.arista.io
 
 [k8s_masters]
-r123s24.sjc.aristanetworks.com
+master.dev-infra.corp.arista.io
 
 [k8s_workers]
 bs200.sjc.aristanetworks.com
