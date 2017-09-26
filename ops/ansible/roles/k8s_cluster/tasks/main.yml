@@ -26,6 +26,7 @@
     - /etc/flannel
     - /etc/systemd/system/flanneld.service.d
     - /etc/systemd/system/docker.service.d
+    - /etc/ssl/etcd
 
 - import_tasks: flannel-etcd.yml
   when: not flannel_kube
@@ -82,6 +83,19 @@
   with_dict: "{{ certificates }}"
   register: kcerts
 
+
+- name: Install etcd client certificates
+  become: True
+  copy:
+    content: "{{ item.value }}"
+    dest: /etc/ssl/etcd/{{ item.key }}
+    owner: root
+    group: root
+    mode: 0600
+  with_dict: "{{ etcd_certificates }}"
+  register: clientcerts
+  when: "'k8s_masters' in group_names"
+
 - name: Remove possible old-config manifest
   become: True
   file:
@@ -130,7 +144,7 @@
     name: kubelet.service
     state: restarted
     daemon_reload: yes
-  when: kservice.changed or kcerts.changed or kmanifests.changed or kubelet_binary.changed
+  when: kservice.changed or kcerts.changed or kmanifests.changed or kubelet_binary.changed or clientcerts.changed
 
 - name: Install socat binary
   become: True

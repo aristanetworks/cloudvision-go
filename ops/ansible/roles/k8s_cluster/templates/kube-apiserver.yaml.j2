@@ -12,7 +12,7 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address={{ lookup('ip_by_prefix', private_ip_prefix) }}
-    - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
+    - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}https://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
 
     - --allow-privileged=true
     - --service-cluster-ip-range={{ service_cluster_ip_range }}
@@ -26,6 +26,9 @@ spec:
     - --runtime-config=batch/v2alpha1
     - --storage-backend
     - etcd2
+    - --etcd-cafile=/etc/ssl/etcd/ca.pem
+    - --etcd-certfile=/etc/ssl/etcd/client.pem
+    - --etcd-keyfile=/etc/ssl/etcd/client-key.pem
     - --storage-media-type
     - application/json
     - --feature-gates=PersistentLocalVolumes=true
@@ -43,7 +46,13 @@ spec:
     - mountPath: /etc/ssl/certs
       name: ssl-certs-host
       readOnly: true
+    - mountPath: /etc/ssl/etcd
+      name: ssl-certs-etcd
+      readOnly: true
   volumes:
+  - hostPath:
+      path: /etc/ssl/etcd
+    name: ssl-certs-etcd
   - hostPath:
       path: /etc/kubernetes/ssl
     name: ssl-certs-kubernetes

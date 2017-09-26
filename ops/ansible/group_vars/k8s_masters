@@ -4,6 +4,11 @@ certificates:
   apiserver-key.pem: "{{ lookup('file', inventory_dir+'/files/k8s/apiserver-key.pem') }}"
   ca.pem: "{{ lookup('file', inventory_dir+'/files/k8s/ca.pem') }}"
 
+etcd_certificates:
+  client.pem: "{{ lookup('file', inventory_dir+'/files/etcd/client.pem') }}"
+  client-key.pem: "{{ lookup('file', inventory_dir+'/files/etcd/client-key.pem') }}"
+  ca.pem: "{{ lookup('file', inventory_dir+'/files/etcd/ca.pem') }}"
+
 manifests:
   - kube-controller-manager.yaml
   - kube-proxy-master.yaml

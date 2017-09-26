@@ -1,0 +1,5 @@
+---
+certificates:
+   etcd.pem: "{{ lookup('file', inventory_dir+'/files/etcd/etcd.pem') }}"
+   etcd-key.pem: "{{ lookup('file', inventory_dir+'/files/etcd/etcd-key.pem') }}"
+   ca.pem: "{{ lookup('file', inventory_dir+'/files/etcd/ca.pem') }}"
