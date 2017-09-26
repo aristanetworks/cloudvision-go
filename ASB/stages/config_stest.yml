@@ -13,6 +13,28 @@
       name: docker
       state: installed
 
+- name: "Customize open file limit"
+  become: True
+  copy:
+    src: 92-Stest.conf
+    dest: /etc/security/limits.d/92-Stest.conf
+
+- name: "Customize Max process limit"
+  become: True
+  copy:
+    src: 92-Stest-nproc.conf
+    dest: /etc/security/limits.d/93-Stest-nproc.conf
+
+- name: "Customize inotify instances and watches"
+  become: True
+  copy:
+    src: Stest.conf
+    dest: /etc/sysctl.d/Stest.conf
+
+- name: "Update sysctl"
+  become: True
+  command: sysctl --system
+
 - name: "Add docker to rc.local"
   lineinfile:
      dest: /etc/rc.d/rc.local
