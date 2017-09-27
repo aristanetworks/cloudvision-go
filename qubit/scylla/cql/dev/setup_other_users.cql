@@ -7,14 +7,15 @@ CONSISTENCY ALL;
 
 // ether: This user can modify data keyspace "ether" but not change schema.
 //        To be used with Quantumfs and other qubit tools.
-CREATE USER IF NOT EXISTS ether     WITH PASSWORD 'ether'     NOSUPERUSER;
+CREATE USER IF NOT EXISTS ether WITH PASSWORD 'ether' NOSUPERUSER;
 REVOKE ALL PERMISSIONS ON ALL KEYSPACES FROM ether;
-GRANT MODIFY ON KEYSPACE dev_qubit0 to ether;
-GRANT SELECT ON KEYSPACE dev_qubit0 to ether;
+GRANT MODIFY ON KEYSPACE dev_qubit1 to ether;
+GRANT SELECT ON KEYSPACE dev_qubit1 to ether;
+
+GRANT MODIFY ON KEYSPACE dev_cluster_box to ether;
+GRANT SELECT ON KEYSPACE dev_cluster_box to ether;
 
 // arastra: This user can only read data.
-CREATE USER IF NOT EXISTS arastra   WITH PASSWORD 'arastra'   NOSUPERUSER;
+CREATE USER IF NOT EXISTS arastra WITH PASSWORD 'arastra' NOSUPERUSER;
 REVOKE ALL PERMISSIONS ON ALL KEYSPACES FROM arastra;
 GRANT SELECT ON ALL KEYSPACES TO arastra;
-
-
