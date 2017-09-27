@@ -4,7 +4,7 @@
 
 ---
 
-- include: data_folders.yml
+- include_tasks: data_folders.yml
 
 - name: Create directories
   become: True
