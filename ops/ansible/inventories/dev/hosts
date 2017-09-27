@@ -25,6 +25,9 @@ r123s31.sjc.aristanetworks.com
 # So this group is here to take care of sharing the coreos hosts config.
 [coreos_ansible_config]
 master.dev-infra.corp.arista.io
+0.etcd.dev-infra.corp.arista.io
+1.etcd.dev-infra.corp.arista.io
+2.etcd.dev-infra.corp.arista.io
 
 [coreos_ansible_config:children]
 coreos
@@ -34,9 +37,9 @@ ansible_user=core
 ansible_python_interpreter=/home/core/bin/python
 
 [etcd2]
-r123s18.sjc.aristanetworks.com
-r123s26.sjc.aristanetworks.com
-r123s24.sjc.aristanetworks.com
+0.etcd.dev-infra.corp.arista.io
+1.etcd.dev-infra.corp.arista.io
+2.etcd.dev-infra.corp.arista.io
 
 [all:vars]
 k8s_version=1.5.6

@@ -24,6 +24,9 @@ r123s16.sjc.aristanetworks.com
 # So this group is here to take care of sharing the coreos hosts config.
 [coreos_ansible_config]
 master.staging-infra.corp.arista.io
+0.etcd.staging-infra.corp.arista.io
+1.etcd.staging-infra.corp.arista.io
+2.etcd.staging-infra.corp.arista.io
 
 [coreos_ansible_config:children]
 coreos
@@ -68,9 +71,9 @@ r123s1.sjc.aristanetworks.com
 r123s2.sjc.aristanetworks.com
 
 [etcd2]
-r123s1.sjc.aristanetworks.com
-r123s7.sjc.aristanetworks.com
-r123s9.sjc.aristanetworks.com
+0.etcd.staging-infra.corp.arista.io
+1.etcd.staging-infra.corp.arista.io
+2.etcd.staging-infra.corp.arista.io
 
 
 [zookeeper]
