@@ -97,6 +97,9 @@ r123s14.sjc.aristanetworks.com
 r123s15.sjc.aristanetworks.com
 r123s16.sjc.aristanetworks.com
 
+[registry]
+r123s9.sjc.aristanetworks.com
+
 [cvpbs:children]
 k8s_workers
 

@@ -1,6 +1,16 @@
 
 ---
 
+- name: Create registry data directory
+  become: True
+  file:
+    path: "/data2/registry-data"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  ignore_errors: True
+
 - name: Create kafka data directory
   become: True
   file:

@@ -1,0 +1,84 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: create docker registry volume
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "docker-registry-data-{{ groups.registry[0] | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ groups.registry[0] }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 2Ti
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: docker-registry-data
+        local:
+          path: /data2/registry-data
+
+- name: deploy registry statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: registry
+      spec:
+        selector:
+          matchLabels:
+            app: registry
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: registry
+          spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
+            containers:
+            - name: registry
+              image: registry:2.5.2
+              ports:
+              - name: web
+                containerPort: 5000
+              volumeMounts:
+              - name: data
+                mountPath: /var/lib/registry
+            securityContext:
+              runAsUser: 1000
+              fsGroup: 1000
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: docker-registry-data
+            resources:
+              requests:
+                storage: 2Ti

@@ -5,6 +5,8 @@
 
 - import_tasks: dns.yml
 
+- import_tasks: registry.yml
+
 - import_tasks: proxy.yml
 
 - import_tasks: etcd.yml

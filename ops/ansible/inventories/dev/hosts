@@ -102,6 +102,9 @@ r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
 master.dev-infra.corp.arista.io ZOOKEEPER_ID=2
 r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3
 
+[registry]
+r123s18.sjc.aristanetworks.com
+
 # The following group lists all the hostnames which should be put in /etc/hosts file of
 # each host
 [etc_hosts]
