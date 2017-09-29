@@ -86,6 +86,22 @@
     state: started
     enabled: yes
 
+- name: Check if kubelet binary not already installed
+  stat:
+    path: /opt/bin/kubelet-{{ k8s_version }}
+  register: kubelet_stat
+
+- name: Download kubelet binary
+  become: True
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/v{{ k8s_version }}/bin/linux/amd64/kubelet
+    checksum: "md5:{{ k8s_kubelet_md5 }}"
+    dest: "/opt/bin/kubelet-{{ k8s_version }}"
+    force: yes
+    mode: 0755
+  when: kubelet_stat.stat.checksum is not defined or kubelet_stat.stat.md5 != k8s_kubelet_md5
+  register: kubelet_binary
+
 - name: Install k8s certificates
   become: True
   copy:
@@ -145,4 +161,4 @@
     name: kubelet.service
     state: restarted
     daemon_reload: yes
-  when: kservice.changed or kcerts.changed or kmanifests.changed
+  when: kservice.changed or kcerts.changed or kmanifests.changed or kubelet_binary.changed
