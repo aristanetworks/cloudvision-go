@@ -1,18 +1,18 @@
 
 ---
 
-- include_tasks: dns.yml
+- import_tasks: dns.yml
 
-- include_tasks: proxy.yml
+- import_tasks: proxy.yml
 
-- include_tasks: etcd.yml
+- import_tasks: etcd.yml
 
-- include_tasks: zookeeper.yml
+- import_tasks: zookeeper.yml
 
-- include_tasks: prometheus.yml
+- import_tasks: prometheus.yml
 
-- include_tasks: alertmanager.yml
+- import_tasks: alertmanager.yml
 
-- include_tasks: grafana.yml
+- import_tasks: grafana.yml
 
-- include_tasks: kafka.yml
+- import_tasks: kafka.yml
