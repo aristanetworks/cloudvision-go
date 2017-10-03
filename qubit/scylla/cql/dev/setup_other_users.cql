@@ -12,8 +12,8 @@ REVOKE ALL PERMISSIONS ON ALL KEYSPACES FROM ether;
 GRANT MODIFY ON KEYSPACE dev_qubit1 to ether;
 GRANT SELECT ON KEYSPACE dev_qubit1 to ether;
 
-GRANT MODIFY ON KEYSPACE dev_cluster_box to ether;
-GRANT SELECT ON KEYSPACE dev_cluster_box to ether;
+GRANT MODIFY ON KEYSPACE dev_ninja0 to ether;
+GRANT SELECT ON KEYSPACE dev_ninja0 to ether;
 
 // arastra: This user can only read data.
 CREATE USER IF NOT EXISTS arastra WITH PASSWORD 'arastra' NOSUPERUSER;
