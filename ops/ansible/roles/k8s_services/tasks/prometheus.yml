@@ -33,7 +33,7 @@
     api_endpoint: 127.0.0.1:8001
     insecure: true
     state: present
-    file_reference: "{{ role_path }}/files/prometheus.yml"
+    file_reference: "{{ role_path }}/files/prometheus{% if (k8s_version | version_compare('1.7', '>=')) %}-1.7{% endif %}.yml"
 
 - name: deploy prometheus alerts config
   kubernetes:
