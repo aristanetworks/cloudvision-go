@@ -1,4 +1,5 @@
 import os
+import yaml
 from ansible.plugins.action import ActionBase
 from ansible.utils.vars import merge_hash
 
@@ -16,7 +17,12 @@ class ActionModule(ActionBase):
          result['failed'] = True
          result['msg'] = "Stopping after yaml output"
          print "\x1B[35m================ YAML OUTPUT FOR TASK ================"
-         print self._task.args['inline_data']
+         if 'inline_data' in self._task.args:
+            print self._task.args['inline_data']
+         elif 'file_reference' in self._task.args:
+            print "File: %s" % self._task.args['file_reference']
+         else:
+            print "NO inline_data nor file_reference provided"
          print "======================================================\x1B[m"
       else:
          # Run the real kubernetes module
