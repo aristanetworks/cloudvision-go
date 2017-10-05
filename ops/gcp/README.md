@@ -38,6 +38,7 @@ kubectl apply -f letsencrypt.yml
 
 ### Notes
 
+#### Public IP Address
 A public ip address needs to be created:
 
 ```sh
@@ -45,3 +46,10 @@ gcloud compute addresses create letsencrypt-public --region=us-west1
 ```
 
 For the rest, the Service with LoadBalancerIP/Ingress etc, I'm not sure to understand how/why it works :-O Need to investigate. Maybe simplify all this.
+
+#### Persistent Storage
+A persistent volume needs to be created in order to have the let's encrypt data (`etc/letsencrypt`) persistent between pod restarts.
+
+```sh
+gcloud compute disks create --size=1GB --zone=us-west1-a letsencrypt-data
+```
