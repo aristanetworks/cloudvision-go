@@ -59,8 +59,6 @@ spec:
         env:
           - name: DOMAINS
             value: >
-              testfabrice1.arista.io
-              testfabrice2.arista.io
               geiger.dev.corp.arista.io
               npm.corp.arista.io
               godoc.corp.arista.io
@@ -71,3 +69,15 @@ spec:
         - containerPort: 22
         - containerPort: 80
         - containerPort: 442
+        volumeMounts:
+        - mountPath: /etc/letsencrypt
+          name: letsencrypt-data
+          subPath: letsencrypt
+        - mountPath: /etc/nginx/sites-enabled
+          name: letsencrypt-data
+          subPath: sites-enabled
+      volumes:
+      - name: letsencrypt-data
+        gcePersistentDisk:
+          pdName: letsencrypt-data
+          fsType: ext4

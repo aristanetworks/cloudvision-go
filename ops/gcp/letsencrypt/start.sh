@@ -20,8 +20,11 @@ set -x
 
 # Create nginx config for all the declared domains
 for d in $DOMAINS;
-	do
-	cat <<EOF > "/etc/nginx/sites-enabled/$d.conf"
+do
+	if [ -f "/etc/nginx/sites-enabled/$d.conf" ]; then
+		echo "SKIPPING: $d nginx config already present"
+	else
+		cat <<EOF > "/etc/nginx/sites-enabled/$d.conf"
 server {
 	listen 80;
 	listen [::]:80;
@@ -38,7 +41,10 @@ server {
 	}
 }
 EOF
-	done;
+
+	fi
+
+done;
 
 # Start nginx
 nginx &
@@ -50,7 +56,11 @@ nginx &
 # shellcheck disable=SC2034
 for d in $DOMAINS;
 do
-	certbot --nginx --agree-tos -n -m ops-dev@arista.com -d "$d"
+	if [ -d "/etc/letsencrypt/live/$d" ]; then
+		echo "SKIPPING: $d certificate already present"
+	else
+		certbot --nginx --agree-tos -n -m ops-dev@arista.com -d "$d"
+	fi
 done;
 
 # Run every day
