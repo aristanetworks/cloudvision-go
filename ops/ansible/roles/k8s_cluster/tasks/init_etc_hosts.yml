@@ -1,0 +1,21 @@
+# We assume that we don't have external dns resolution.
+# Internally in the k8s cluster, all the services will talk
+# to each other using the k8s internal dns.
+# But externally, as we don't have a dns service, we
+# need to put the few external services into /etc/hosts
+# so we don't need dns setup.
+# Those external services are the following so far:
+# - etc servers (used by k8s master + haproxy service)
+# - k8s master (used by k8s workers kubelet)
+# - docker registry (used by k8s kubelet to pull the images to run)
+
+---
+
+- name: Add external hostnames to /etc/hosts
+  become: True
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {% for item in groups.etc_hosts %}
+      {{ lookup('dig', item) }} {{ item }}
+      {% endfor %}

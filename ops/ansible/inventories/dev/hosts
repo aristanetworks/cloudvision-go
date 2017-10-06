@@ -104,3 +104,11 @@ localhost ansible_connection=local ansible_become=false
 r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
 r123s24.sjc.aristanetworks.com ZOOKEEPER_ID=2
 r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3
+
+# The following group lists all the hostnames which should be put in /etc/hosts file of
+# each host
+[etc_hosts]
+master.dev-infra.corp.arista.io
+0.etcd.dev-infra.corp.arista.io
+1.etcd.dev-infra.corp.arista.io
+2.etcd.dev-infra.corp.arista.io
