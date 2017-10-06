@@ -154,6 +154,7 @@ cmd = Cmd()
 
 
 # ========================== Ansible Push Test Class  ===========================
+@unittest.skip("Skipping test for now. Ask @fabrice/ren for more info")
 class TestAnsiblePushTests( unittest.TestCase ):
 
    def callcmd( self, command ): #pylint:disable-msg=R0201
