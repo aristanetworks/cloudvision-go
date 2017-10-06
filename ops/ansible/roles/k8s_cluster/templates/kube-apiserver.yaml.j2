@@ -28,6 +28,7 @@ spec:
     - etcd2
     - --storage-media-type
     - application/json
+    - --feature-gates=PersistentLocalVolumes=true
     ports:
     - containerPort: 443
       hostPort: 443

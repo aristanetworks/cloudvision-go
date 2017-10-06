@@ -12,6 +12,7 @@ spec:
     - /hyperkube
     - scheduler
     - --master=http://127.0.0.1:8080
+    - --feature-gates=PersistentLocalVolumes=true
     livenessProbe:
       httpGet:
         host: 127.0.0.1
