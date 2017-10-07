@@ -3,3 +3,5 @@
 smtp_server: prod-mx.aristanetworks.com
 
 slack_api_url: https://hooks.slack.com/services/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
+
+firewall: False

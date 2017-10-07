@@ -1,0 +1,26 @@
+
+---
+
+- name: Install iptable rule files
+  become: True
+  template:
+    src: iptables-rules.j2
+    dest: /var/lib/iptables/rules-save
+    owner: root
+    group: root
+    mode: 0644
+  register: iptables_file
+
+# We don't use the service as it does not have
+# "--flush" flag. We could add a drop-in to change this
+# but as it's only one change here, I run the command here
+# for now.
+- name: Install iptable rules
+  become: True
+  command: /sbin/iptables-restore --noflush /var/lib/iptables/rules-save
+  when: iptables_file.changed
+
+- name: Enable iptable rules on reboot
+  systemd:
+    name: iptables-restore.service
+    enabled: yes
