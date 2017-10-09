@@ -1,0 +1,7 @@
+---
+
+- name: deploy update-certs.sh script
+  become: True
+  copy:
+    src: update-certs.sh
+    dest: /etc/haproxy/ssl/update-certs.sh
