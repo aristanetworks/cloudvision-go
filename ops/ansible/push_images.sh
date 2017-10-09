@@ -18,11 +18,11 @@ set -ex
 
 SRC_REPO=registry.docker.sjc.aristanetworks.com:5000
 TARGET_REPO=registry.$1.corp.arista.io
+CLUSTER=$1
 
-if [ -z "$1" ]; then
-	echo "Cluster name not provided"
-	exit 1
-fi
+source ./util.sh
+
+check_cluster_name "$CLUSTER"
 
 if [ -z "$2" ]; then
 	IMAGES="aeris/k8s-kafka
