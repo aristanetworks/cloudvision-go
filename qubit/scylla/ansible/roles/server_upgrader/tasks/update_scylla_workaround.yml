@@ -1,0 +1,17 @@
+---
+# use the scylla repo instead of ToolsV2 to update the scylla software
+
+- name: "Fetch the scylla repo"
+  get_url:
+        url: "{{ SCYLLA_REPO_URL }}"
+        dest: /etc/yum.repos.d/scylla.repo
+
+- name: "Update the scylla software"
+  command: yum update scylla* -y
+
+- name: "Remove the scylla repo"
+  file:
+    path: /etc/yum.repos.d/scylla.repo
+    state: absent
+
+...

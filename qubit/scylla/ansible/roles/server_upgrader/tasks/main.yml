@@ -49,8 +49,13 @@
   include_role:
     name: server_stopper
 
+- name: "(workaround) Update Scylla software"
+  include: update_scylla_workaround.yml
+  when: "BUG_SCYLLA_REPO | int == 1"
+
 - name: "Update the software"
   command: yum update --disableexcludes=ToolsV2 scylla\* -y
+  when: BUG_SCYLLA_REPO is not defined
 
 - name: "Start Scylla server"
   include_role:
