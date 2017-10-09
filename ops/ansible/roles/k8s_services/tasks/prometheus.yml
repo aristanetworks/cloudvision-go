@@ -90,7 +90,7 @@
                 name: alerts
             - name: storage
               hostPath:
-                path: /data5/prom-data
+                path: /mnt/disks/data5/prom-data
 
 - name: deploy node exporter
   kubernetes:

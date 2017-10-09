@@ -4,7 +4,7 @@
 - name: Create cvpbs jenkins slave workspace directory
   become: True
   file:
-    path: "/data2/cvpbs/{{ item }}"
+    path: "/mnt/disks/data2/cvpbs/{{ item }}"
     state: directory
     owner: 1000
     group: 1000

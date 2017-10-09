@@ -79,66 +79,66 @@ coreos:
                     -- -c "git clone --depth 1 http://gerrit/ardc-config && cd ardc-config/ops/ansible && ./install_host.sh > /ansibleinstall/ansible-playbook-$(date '+%F-%H-%M-%S').logs 2>&1"
         ExecStartPost=-/usr/bin/rkt rm --uuid-file=${UUIDFILE}
         ExecStartPost=/usr/bin/touch /home/core/.ansible-installed
-    - name: data2.mount
+    - name: mnt-disks-data2.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK2
-        Where=/data2
+        Where=/mnt/disks/data2
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data3.mount
+    - name: mnt-disks-data3.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK3
-        Where=/data3
+        Where=/mnt/disks/data3
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data4.mount
+    - name: mnt-disks-data4.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK4
-        Where=/data4
+        Where=/mnt/disks/data4
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data5.mount
+    - name: mnt-disks-data5.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK5
-        Where=/data5
+        Where=/mnt/disks/data5
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data6.mount
+    - name: mnt-disks-data6.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK6
-        Where=/data6
+        Where=/mnt/disks/data6
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data7.mount
+    - name: mnt-disks-data7.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK7
-        Where=/data7
+        Where=/mnt/disks/data7
         Type=ext4
         Options=nofail
         TimeoutSec=10
-    - name: data8.mount
+    - name: mnt-disks-data8.mount
       command: start
       content: |
         [Mount]
         What=LABEL=DISK8
-        Where=/data8
+        Where=/mnt/disks/data8
         Type=ext4
         Options=nofail
         TimeoutSec=10

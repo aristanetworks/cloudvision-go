@@ -1,5 +1,5 @@
 hadoop_datanode_dirs:
-- /data5/dfs
-- /data6/dfs
-- /data7/dfs
-- /data8/dfs
+- /mnt/disks/data5/dfs
+- /mnt/disks/data6/dfs
+- /mnt/disks/data7/dfs
+- /mnt/disks/data8/dfs

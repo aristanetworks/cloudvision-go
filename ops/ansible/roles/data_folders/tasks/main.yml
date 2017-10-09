@@ -1,35 +1,35 @@
 
 ---
-
+ 
 - name: Check if we need to make /dataX folders immutables
   stat:
     path: "{{ ansible_env.HOME }}/.data_immutable"
   register: need_data_immutable
-
+ 
 - block:
-    # We want to freeze the /dataX dirs on the root partition, so in the
+    # We want to freeze the /mnt/disks/dataX dirs on the root partition, so in the
     # case of mounting the data drive fails, services do not start to write in a
-    # /dataX folder in the root partition and fill up the root drive.
+    # /mnt/disks/dataX folder in the root partition and fill up the root drive.
     # In order to do so, we need to access the root "/" partition, so
-    # we bind mount it on /mnt/root, create the /dataX folders and freeze them
+    # we bind mount it on /mnt/root, create the /mnt/disks/dataX folders and freeze them
     # using chattr +i (immutable) attribute.
     - name: Create mountpoint to mount root partition
       become: True
       file:
         path: /mnt/root
         state: directory
-
+ 
     - name: Check if mountpoint created
       command: mountpoint -q /mnt/root
       register: ismounted
       ignore_errors: True
-
-    - name: Mount / to /mnt/root so we can disable the /data* dirs later
+ 
+    - name: Mount /mnt/disks to /mnt/root so we can disable the /mnt/disks/data* dirs later
       become: True
-      command: mount -o bind / /mnt/root
+      command: mount -o bind /mnt/disks /mnt/root
       when: ismounted.rc != 0
-
-    - name: Create /data* folder in the root partition
+ 
+    - name: Create data* folder in the root partition
       become: True
       file:
         path: "/mnt/root{{ item }}"
@@ -42,12 +42,12 @@
         - /data6
         - /data7
         - /data8
-
+ 
     # Before making the folder immutable, I check if there is any file.
     # If so, I fail, because that means a service is or has used this folder
     # so manual intervention is needed in order to move/trash the data
     # and rerun the process
-    - name: Freeze /data* folder in the root partition
+    - name: Freeze /mnt/disks/data* folder in the root partition
       become: True
       shell: '[ "$(ls -A /mnt/root{{ item }})" ] && exit 1 || chattr +i /mnt/root{{item}}'
       with_items:
@@ -58,7 +58,7 @@
         - /data6
         - /data7
         - /data8
-
+ 
     - name: Mark this process as done
       shell: touch $HOME/.data_immutable
       args:
@@ -69,4 +69,4 @@
       command: umount /mnt/root
       ignore_errors: true
   when: need_data_immutable.stat.exists == False
-# End of the block
+# End of the block data8
