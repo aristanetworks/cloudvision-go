@@ -25,7 +25,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
 		// directory's attributes, which are internal.
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), &[]key.Key{}, nil, child)
+		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), []key.Key{}, nil, child)
 	} else {
 		path := child.Path()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
@@ -91,10 +91,10 @@ func NotificationsForDeleteChild(ts time.Time, child types.Entity, attrDef *type
 
 	// Zero out the child's attributes.
 	notifs = append(notifs, types.NewNotificationWithEntity(ts, child.Path(),
-		&[]key.Key{}, nil, child))
+		[]key.Key{}, nil, child))
 
 	// Finally remove this entity from its parent's attribute or collection
-	notifs = append(notifs, types.NewNotificationWithEntity(ts, path, &[]key.Key{k}, nil, parent))
+	notifs = append(notifs, types.NewNotificationWithEntity(ts, path, []key.Key{k}, nil, parent))
 
 	return notifs, nil
 }
@@ -118,13 +118,13 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 		if !attr.IsInstantiating {
 			if attr.IsColl {
 				afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
-					e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
+					e.Path()+"/"+attr.Name, []key.Key{}, nil, e))
 			}
 			continue
 		}
 		if attr.IsColl {
 			afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
-				e.Path()+"/"+attr.Name, &[]key.Key{}, nil, e))
+				e.Path()+"/"+attr.Name, []key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
 			children.ForEach(func(k key.Key, child interface{}) error {
 				childEntities = append(childEntities, child.(types.Entity))
@@ -147,7 +147,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 				childEntity.Path(), err)
 		}
 		notifs = append(notifs, types.NewNotificationWithEntity(ts,
-			childEntity.Path(), &[]key.Key{}, nil, childEntity))
+			childEntity.Path(), []key.Key{}, nil, childEntity))
 	}
 	return append(notifs, afterRecurseNotifs...), nil
 }
