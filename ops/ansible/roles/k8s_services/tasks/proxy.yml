@@ -51,3 +51,5 @@
               env:
                 - name: DOMAIN
                   value: .{{ k8s_domain | regex_replace('^internal\.', '') }}
+                - name: BIND_INTERFACE
+                  value: "*"
