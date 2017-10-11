@@ -219,6 +219,7 @@ KIND_URL = {
     "horizontalpodautoscaler": "/apis/extensions/v1beta1/namespaces/{namespace}/horizontalpodautoscalers",  # NOQA
     "ingress": "/apis/extensions/v1beta1/namespaces/{namespace}/ingresses",
     "job": "/apis/extensions/v1beta1/namespaces/{namespace}/jobs",
+    "statefulset": "/apis/apps/v1beta1/namespaces/{namespace}/statefulsets",
 }
 USER_AGENT = "ansible-k8s-module/0.0.1"
 
@@ -345,7 +346,7 @@ def main():
         mutually_exclusive=(('file_reference', 'inline_data'),
                             ('url_username', 'insecure'),
                             ('url_password', 'insecure')),
-        required_one_of=(('file_reference', 'inline_data')),
+        required_one_of=[['file_reference', 'inline_data']],
     )
 
     if not HAS_LIB_YAML:

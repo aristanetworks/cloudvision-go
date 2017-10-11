@@ -8,6 +8,10 @@
 - import_tasks: etcd.yml
 
 - import_tasks: zookeeper.yml
+  when: cluster_name == staging
+
+- import_tasks: zookeeper-statefulset.yml
+  when: cluster_name == dev
 
 - import_tasks: prometheus.yml
 

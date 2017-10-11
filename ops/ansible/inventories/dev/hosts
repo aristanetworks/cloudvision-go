@@ -102,7 +102,7 @@ localhost ansible_connection=local ansible_become=false
 
 [zookeeper]
 r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
-r123s24.sjc.aristanetworks.com ZOOKEEPER_ID=2
+master.dev-infra.corp.arista.io ZOOKEEPER_ID=2
 r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3
 
 # The following group lists all the hostnames which should be put in /etc/hosts file of

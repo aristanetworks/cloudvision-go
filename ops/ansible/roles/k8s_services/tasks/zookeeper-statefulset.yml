@@ -1,0 +1,250 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: create zookeeper-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "zookeeper-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 5Gi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: zookeeper-data
+        local:
+          path: /data2/zookeeper/data
+  with_items: "{{ groups.zookeeper }}"
+
+- name: deploy zookeeper service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zookeeper
+        labels:
+          app: zookeeper
+      spec:
+        ports:
+        - port: 2181
+          name: client
+        - port: 2888
+          name: server
+        - port: 3888
+          name: election
+        clusterIP: None
+        selector:
+          app: zookeeper
+
+- name: add zookeeper configmap
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: zookeeper-config
+      data:
+        zoo.cfg: |
+          tickTime=2000
+          initLimit=10
+          syncLimit=5
+          dataDir=/zookeeper/data
+          dataLogDir=/zookeeper/wal
+          clientPort=2181
+          server.1=zookeeper-0.zookeeper:2888:3888
+          server.2=zookeeper-1.zookeeper:2888:3888
+          server.3=zookeeper-2.zookeeper:2888:3888
+          quorumListenOnAllIPs=true
+        java.env: |
+          JVMFLAGS=-Djava.net.preferIPv4Stack=true
+        log4j.properties: |
+          zookeeper.root.logger=INFO, CONSOLE
+          zookeeper.console.threshold=INFO
+          zookeeper.log.dir=.
+          zookeeper.log.file=zookeeper.log
+          zookeeper.log.threshold=DEBUG
+          zookeeper.tracelog.dir=.
+          zookeeper.tracelog.file=zookeeper_trace.log
+          log4j.rootLogger=${zookeeper.root.logger}
+          log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+          log4j.appender.CONSOLE.Threshold=${zookeeper.console.threshold}
+          log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+          log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+          log4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender
+          log4j.appender.ROLLINGFILE.Threshold=${zookeeper.log.threshold}
+          log4j.appender.ROLLINGFILE.File=${zookeeper.log.dir}/${zookeeper.log.file}
+          log4j.appender.ROLLINGFILE.MaxFileSize=10MB
+          log4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout
+          log4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+          log4j.appender.TRACEFILE=org.apache.log4j.FileAppender
+          log4j.appender.TRACEFILE.Threshold=TRACE
+          log4j.appender.TRACEFILE.File=${zookeeper.tracelog.dir}/${zookeeper.tracelog.file}
+          log4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout
+          log4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L][%x] - %m%n
+
+- name: deploy zookeeper statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: zookeeper
+      spec:
+        serviceName: zookeeper
+        replicas: 0
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: zookeeper
+          spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
+            nodeSelector:
+              zookeeper: server
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-zookeeper
+              imagePullPolicy: Always
+              ports:
+              - containerPort: 2181
+              - containerPort: 2888
+              - containerPort: 3888
+              volumeMounts:
+              - name: data
+                mountPath: /zookeeper/data
+              - name: wal
+                subPath:
+                mountPath: /zookeeper/wal
+              - name: config
+                mountPath: /home/aeris/zookeeper/conf
+            volumes:
+            - name: wal
+              hostPath:
+                path: /data3/zookeeper/wal
+            - name: config
+              configMap:
+                name: zookeeper-config
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: "zookeeper-data"
+            resources:
+              requests:
+                storage: 5Gi
+
+- name: deploy zookeeper ui service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: zookeeperui
+        labels:
+          app: zookeeperui
+        annotations:
+          external_type: "http"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 8080
+        selector:
+          app: zookeeperui
+
+- name: deploy zookeeper ui rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: zookeeperui
+      spec:
+        replicas: 1
+        selector:
+          app: zookeeperui
+        template:
+          metadata:
+            name: zookeeperui
+            labels:
+              app: zookeeperui
+          spec:
+            containers:
+              - name: zookeeperui
+                image: vivint/zk-web-docker
+                imagePullPolicy: Always
+                env:
+                  - name: DEFAULT_NODE
+                    value: zookeeper-0.zookeeper:2181
+                ports:
+                  - containerPort: 8080
+
+- name: deploy zookeeper prometheus exporter
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: zk-prom
+      spec:
+        replicas: 1
+        selector:
+          app: zk-prom
+        template:
+          metadata:
+            name: zk-prom
+            labels:
+              app: zk-prom
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "9114"
+          spec:
+            containers:
+            - name: prometheus
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/zk-prom
+              imagePullPolicy: Always
+              args:
+                - /usr/bin/zookeeper_exporter
+                - zookeeper-0.zookeeper:2181
+                - zookeeper-1.zookeeper:2181
+                - zookeeper-2.zookeeper:2181
+              ports:
+                - containerPort: 9114
