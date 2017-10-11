@@ -75,7 +75,7 @@
             volumes:
             - name: storage
               hostPath:
-                path: /mnt/disks/data3/kafka-data
+                path: /data3/kafka-data
 
 - name: deploy kafka ui service
   kubernetes:

@@ -4,7 +4,7 @@
 - name: Create zookeeper data directory (dataDir)
   become: True
   file:
-    path: "/mnt/disks/data2/zookeeper/data"
+    path: "/data2/zookeeper/data"
     state: directory
     owner: 1000
     group: 1000
@@ -15,7 +15,7 @@
   become: True
   copy:
     content: "{{ ZOOKEEPER_ID }}"
-    dest: "/mnt/disks/data2/zookeeper/data/myid"
+    dest: "/data2/zookeeper/data/myid"
     owner: 1000
     group: 1000
     mode: 0755
@@ -24,7 +24,7 @@
 - name: Create zookeeper transaction log directory (dataLogDir)
   become: True
   file:
-    path: "/mnt/disks/data3/zookeeper/wal"
+    path: "/data3/zookeeper/wal"
     state: directory
     owner: 1000
     group: 1000

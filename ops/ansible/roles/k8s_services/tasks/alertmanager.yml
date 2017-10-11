@@ -150,4 +150,4 @@
                 name: alertmanager
             - name: storage
               hostPath:
-                path: /mnt/disks/data6/am-data
+                path: /data6/am-data

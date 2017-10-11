@@ -1,1 +1,1 @@
-hadoop_journalnode_dir: /mnt/disks/data2/journalnode
+hadoop_journalnode_dir: /data2/journalnode

@@ -62,10 +62,10 @@
             volumes:
             - name: data
               hostPath:
-                path: /mnt/disks/data2/zookeeper/data
+                path: /data2/zookeeper/data
             - name: wal
               hostPath:
-                path: /mnt/disks/data3/zookeeper/wal
+                path: /data3/zookeeper/wal
   with_items: "{{ groups.zookeeper }}"
 
 - name: deploy zookeeper ui service

@@ -1,1 +1,1 @@
-hadoop_logs_dir: /mnt/disks/data4/logs/hadoop
+hadoop_logs_dir: /data4/logs/hadoop

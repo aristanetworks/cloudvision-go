@@ -1,3 +1,3 @@
 hadoop_namenode_dirs:
-- /mnt/disks/data4/namenode
-- /mnt/disks/data8/namenode
+- /data4/namenode
+- /data8/namenode
