@@ -57,7 +57,7 @@ options:
     description:
       - The desired action to take on the Kubernetes data.
     required: true
-    choices: [ absent, present, replace, update ]
+    choices: [ absent, present, replace, update, apply ]
     default: present
   url_password:
     description:
@@ -149,6 +149,7 @@ api_response:
 
 import base64
 import json
+import sys
 
 try:
     import yaml
@@ -325,6 +326,27 @@ def k8s_update_resource(module, url, data, patch_operation):
         module.fail_json(msg="failed to update the resource '%s': %s" % (name, info['msg']), url=url)
     return True, body
 
+def k8s_apply_resource(module, url, data, patch_operation):
+    name = data.get('metadata', {}).get('name')
+    if name is None:
+        module.fail_json(msg="Missing a named resource in object metadata when trying to apply a resource")
+
+    info, body = api_request(module, url + '/' + name)
+    if info['status'] == 404:
+        # Create the resource
+        return k8s_create_resource(module, url, data)
+    elif info['status'] == 200:
+        # Update the resource
+        metadata = body.get('metadata', {})
+        generation = metadata.get('generation')
+        if generation is None:
+            module.fail_json(msg="Unable to retrieve generation for the existing resource. Metadata is %s" % metadata, url=url)
+        info, body = k8s_update_resource(module, url, data, patch_operation)
+        new_generation = body.get('metadata', {}).get('generation')
+        return generation != new_generation, body
+    else:
+        module.fail_json(msg="failed to apply the resource '%s' (Unknown status code %d): %s" % (name, info['status'], info['msg']), url=url)
+    return True, body
 
 def main():
     module = AnsibleModule(
@@ -341,7 +363,7 @@ def main():
                                  choices=['JSON Patch', 'Merge Patch', 'Strategic Merge Patch']),
             file_reference=dict(type='str'),
             inline_data=dict(type='str'),
-            state=dict(type='str', default='present', choices=['absent', 'present', 'replace', 'update'])
+            state=dict(type='str', default='present', choices=['absent', 'present', 'replace', 'update', 'apply'])
         ),
         mutually_exclusive=(('file_reference', 'inline_data'),
                             ('url_username', 'insecure'),
@@ -411,6 +433,8 @@ def main():
             item_changed, item_body = k8s_replace_resource(module, url, item)
         elif state == 'update':
             item_changed, item_body = k8s_update_resource(module, url, item, patch_operation)
+        elif state == 'apply':
+            item_changed, item_body = k8s_apply_resource(module, url, item, patch_operation)
 
         changed |= item_changed
         body.append(item_body)
