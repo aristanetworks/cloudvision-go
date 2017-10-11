@@ -1,101 +1,72 @@
 
 ---
 
-- name: Create /mnt/disks directory
-  become: True
-  file:
-    path: /mnt/disks
-    state: directory
+- name: Check if we need to make /dataX folders immutables
+  stat:
+    path: "{{ ansible_env.HOME }}/.data_immutable"
+  register: need_data_immutable
 
-- name: Move /data1 to /mnt/disks/data1
-  become: True
-  command: mv /data1 /mnt/disks/ creates=/mnt/disks/data1
+- block:
+    # We want to freeze the /mnt/disks/dataX dirs on the root partition, so in the
+    # case of mounting the data drive fails, services do not start to write in a
+    # /mnt/disks/dataX folder in the root partition and fill up the root drive.
+    # In order to do so, we need to access the root "/" partition, so
+    # we bind mount it on /mnt/root, create the /mnt/disks/dataX folders and freeze them
+    # using chattr +i (immutable) attribute.
+    - name: Create mountpoint to mount root partition
+      become: True
+      file:
+        path: /mnt/root
+        state: directory
 
-- name: Create /mnt/disks/data[2-8] directories
-  become: True
-  file:
-    path: "/mnt/disks/{{ item }}"
-    state: directory
-  with_items:
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
-    - data8
+    - name: Check if mountpoint created
+      command: mountpoint -q /mnt/root
+      register: ismounted
+      ignore_errors: True
 
-- name: Make /mnt/disks/data[2-8] directories immutable
-  become: True
-  shell: "mountpoint /mnt/disks/{{ item }} || chattr =i /mnt/disks/{{ item }}"
-  with_items:
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
-    - data8
+    - name: Mount /mnt/disks to /mnt/root so we can disable the /mnt/disks/data* dirs later
+      become: True
+      command: mount -o bind /mnt/disks /mnt/root
+      when: ismounted.rc != 0
 
-- name: Create mnt-disks-data[2-8].mount services to mount drives at /mnt/disks/data[2-8]
-  become: True
-  copy:
-    dest: "/etc/systemd/system/mnt-disks-{{ item }}.mount"
-    content: |
-      [Mount]
-      What=LABEL={{ item }}
-      Where=/mnt/disks/{{ item }}
-      Type=ext4
-      Options=nofail
-      TimeoutSec=10
-  with_items:
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
-    - data8
+    - name: Create data* folder in the root partition
+      become: True
+      file:
+        path: "/mnt/root{{ item }}"
+        state: directory
+      with_items:
+        - /data2
+        - /data3
+        - /data4
+        - /data5
+        - /data6
+        - /data7
+        - /data8
 
-- name: stop data[2-8].mount services
-  become: True
-  systemd:
-    name: "{{ item }}.mount"
-    state: stopped
-    daemon_reload: yes
-  with_items:
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
-    - data8
+    # Before making the folder immutable, I check if there is any file.
+    # If so, I fail, because that means a service is or has used this folder
+    # so manual intervention is needed in order to move/trash the data
+    # and rerun the process
+    - name: Freeze /mnt/disks/data* folder in the root partition
+      become: True
+      shell: '[ "$(ls -A /mnt/root{{ item }})" ] && exit 1 || chattr +i /mnt/root{{item}}'
+      with_items:
+        - /data2
+        - /data3
+        - /data4
+        - /data5
+        - /data6
+        - /data7
+        - /data8
 
-- name: relabel drives from DISK[2-8] to data[2-8]
-  become: True
-  ignore_errors: True
-  shell: "existing=$(blkid -L {{ item.1 }}) && e2label ${existing} data{{ item.0 | int + 2 }}"
-  with_indexed_items:
-    - DISK2
-    - DISK3
-    - DISK4
-    - DISK5
-    - DISK6
-    - DISK7
-    - DISK8
-
-- name: start mnt-disks-data[2-8].mount services
-  become: True
-  ignore_errors: True
-  systemd:
-    name: "mnt-disks-{{ item }}.mount"
-    state: started
-  with_items:
-    - data2
-    - data3
-    - data4
-    - data5
-    - data6
-    - data7
-    - data8
+    - name: Mark this process as done
+      shell: touch $HOME/.data_immutable
+      args:
+        creates: $HOME/.data_immutable
+  always:
+    - name: Unmount /mnt/root
+      become: True
+      command: umount /mnt/root
+      ignore_errors: true
+  when: need_data_immutable.stat.exists == False
+# End of the block data8
