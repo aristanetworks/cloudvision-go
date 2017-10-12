@@ -207,3 +207,115 @@
             resources:
               requests:
                 storage: 1Gi
+
+# DATANODES
+
+- name: Create datanode-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "datanode-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 2Ti
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: datanode-data
+        local:
+          # TODO: create only one volume for now since
+          # we can only mount one local volume to a pod
+          # should be fixed in k8s 1.9
+          path: "{{ hostvars[item]['hadoop_datanode_dirs'][0] }}"
+  with_items: "{{ groups.datanodes }}"
+
+
+- name: Deploy datanode statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: datanode
+      spec:
+        serviceName: hadoop
+        replicas: {{ groups.datanodes | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: hadoop
+              hadoop: datanode
+          spec:
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              imagePullPolicy: Always
+              args: ["./bin/hdfs", "datanode", "-Ddfs.datanode.data.dir=file:///data1,file:///data2,file:///data3,file:///data4"]
+              env:
+              - name: HADOOP_LOGFILE
+                value: "datanode.log"
+              ports:
+              - containerPort: 50010
+              - containerPort: 50075
+              - containerPort: 50020
+              volumeMounts:
+              - name: data1
+                subPath: data
+                mountPath: /data1
+              - name: data2
+                subPath: data
+                mountPath: /data2
+              - name: data3
+                subPath: data
+                mountPath: /data3
+              - name: data4
+                subPath: data
+                mountPath: /data4
+              - name: data1
+                subPath: logs
+                mountPath: /logs
+              - name: var-lib-hadoop
+                mountPath: /var/lib/hadoop
+            volumes:
+            # TODO: make it a pvc when we can mount multiple local volumes to pods
+            - name: data2
+              hostPath:
+                path: /data6/dfs
+            - name: data3
+              hostPath:
+                path: /data7/dfs
+            - name: data4
+              hostPath:
+                path: /data8/dfs
+            - name: var-lib-hadoop
+              hostPath:
+                path: /var/lib/hadoop
+        volumeClaimTemplates:
+        - metadata:
+            name: data1
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: datanode-data
+            resources:
+              requests:
+                storage: 2Ti
+
