@@ -326,6 +326,21 @@ def k8s_update_resource(module, url, data, patch_operation):
         module.fail_json(msg="failed to update the resource '%s': %s" % (name, info['msg']), url=url)
     return True, body
 
+def getVersion(module, kind, body):
+    if not kind:
+        module.fail_json(msg="Invalid kind '%s' for resource version" % kind)
+        return None
+    if kind == 'ConfigMap':
+        name = 'resourceVersion'
+    else:
+        name = 'generation'
+
+    version = body.get('metadata', {}).get(name)
+    if not version:
+        module.fail_json(msg="Unable to retrieve %s for the existing resource. Metadata is %s" % (name, metadata))
+        return None
+    return version
+
 def k8s_apply_resource(module, url, data, patch_operation):
     name = data.get('metadata', {}).get('name')
     if name is None:
@@ -337,16 +352,16 @@ def k8s_apply_resource(module, url, data, patch_operation):
         return k8s_create_resource(module, url, data)
     elif info['status'] == 200:
         # Update the resource
-        metadata = body.get('metadata', {})
-        generation = metadata.get('generation')
-        if generation is None:
-            module.fail_json(msg="Unable to retrieve generation for the existing resource. Metadata is %s" % metadata, url=url)
+        kind = data.get('kind')
+        old_version = getVersion(module, kind, body)
+        if not old_version:
+            return False, body
         info, body = k8s_update_resource(module, url, data, patch_operation)
-        new_generation = body.get('metadata', {}).get('generation')
-        return generation != new_generation, body
-    else:
-        module.fail_json(msg="failed to apply the resource '%s' (Unknown status code %d): %s" % (name, info['status'], info['msg']), url=url)
-    return True, body
+        new_version = getVersion(module, kind, body)
+        return old_version != new_version, body
+
+    module.fail_json(msg="failed to apply the resource '%s' (Unknown status code %d): %s" % (name, info['status'], info['msg']), url=url)
+    return False, body
 
 def main():
     module = AnsibleModule(

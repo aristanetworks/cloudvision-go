@@ -64,7 +64,7 @@
 - name: add kafka configmap
   kubernetes:
     api_endpoint: 127.0.0.1:8001
-    # state: apply
+    state: apply
     insecure: true
     inline_data: |
       apiVersion: v1
