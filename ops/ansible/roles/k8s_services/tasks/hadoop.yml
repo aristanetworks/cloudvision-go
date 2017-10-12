@@ -1,0 +1,105 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: Deploy hadoop service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hadoop
+      spec:
+        ports:
+          - port: 1234
+            name: placeholder
+        clusterIP: None
+        selector:
+          app: hadoop
+
+# JOURNALNODES
+
+- name: Create journalnode-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "journalnode-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 1Gi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: journalnode-data
+        local:
+          path: "{{ hostvars[item]['hadoop_journalnode_dir'] }}"
+  with_items: "{{ groups.journalnodes }}"
+
+- name: Deploy journalnode statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: journalnode
+      spec:
+        serviceName: hadoop
+        replicas: {{ groups.journalnodes | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: hadoop
+              hadoop: journalnode
+          spec:
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              imagePullPolicy: Always
+              args: ["./bin/hdfs", "journalnode"]
+              env:
+              - name: HADOOP_LOGFILE
+                value: "journalnode.log"
+              ports:
+              - containerPort: 8485
+              - containerPort: 8480
+              - containerPort: 8481
+              volumeMounts:
+              - name: data
+                subPath: data
+                mountPath: /data
+              - name: data
+                subPath: logs
+                mountPath: /logs
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: journalnode-data
+            resources:
+              requests:
+                storage: 1Gi

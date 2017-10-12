@@ -1,8 +1,11 @@
 - name: Create journalnode directories
   become: True
   file:
-    path: "{{ hadoop_journalnode_dir }}"
+    path: "{{ hadoop_journalnode_dir }}/{{ item }}"
     state: directory
     owner: 1000
     group: 1000
     mode: 0755
+  with_items:
+  - data
+  - logs

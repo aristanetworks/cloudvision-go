@@ -13,6 +13,8 @@
 - import_tasks: zookeeper-statefulset.yml
   when: cluster_name == dev
 
+- import_tasks: hadoop.yml
+
 - import_tasks: prometheus.yml
 
 - import_tasks: alertmanager.yml
