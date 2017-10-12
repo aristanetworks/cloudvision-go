@@ -22,7 +22,7 @@ pip install PyYAML
 # Install the remote coreos machines:
 
 ```sh
-ansible-playbook playbook.yml -i inventories/dev/hosts -l r123sXX.*
+ansible-playbook cluster.yml -i inventories/dev/hosts -l r123sXX.*
 ```
 
 # Run ansible commands
@@ -48,14 +48,14 @@ The following command will generate all the cloud-config-IPADDRESS.yml files for
 The generated files will be placed in ~/git/ops/coreos, because the default values for the ops repo path is `~/git/ops`.
 
 ```sh
-ansible-playbook playbook.yml -i inventories/dev/hosts -l localhost
+ansible-playbook cluster.yml -i inventories/dev/hosts -l localhost
 ```
 
 You can override the ops repo path by using the OPS_REPO env var.
 For instance, if your ops repo is `~/projects/common/ops`, the command will be:
 
 ```sh
-OPS_REPO=~/projects/common/ops ansible-playbook playbook.yml -i inventories/dev/hosts -l localhost
+OPS_REPO=~/projects/common/ops ansible-playbook cluster.yml -i inventories/dev/hosts -l localhost
 ```
 
 # Add a new ssh key / Update an existing ssh
@@ -64,7 +64,7 @@ The ssh keys are now in the file `group_vars/coreos/ssh_keys`.
 After adding/updating/removing an ssh key from this file, the cloud-config files need to be generated again (see previous section), and the ssh keys can be deployed again to the entire cluster by using the following command:
 
 ```sh
-ansible-playbook playbook.yml -i inventories/dev/hosts
+ansible-playbook cluster.yml -i inventories/dev/hosts
 ```
 
 # k8s services for a cluster
@@ -80,7 +80,7 @@ In order to run this role on your local machine, you have to run `kubectl proxy`
 To run the role against localhost, use this command:
 
 ```sh
-ansible-playbook playbook.yml -l localhost -i inventories/dev/hosts
+ansible-playbook cluster.yml -l localhost -i inventories/dev/hosts
 ```
 
-
+# I

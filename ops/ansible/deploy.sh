@@ -23,7 +23,7 @@ check_cluster_name "$CLUSTER"
 shift
 
 ansible-playbook \
-	playbook.yml \
+	cluster.yml \
 	-i "$ROOTDIR/inventories/$CLUSTER/hosts" \
 	--vault-password-file "$ROOTDIR/.pass.$CLUSTER" \
 	"$@"

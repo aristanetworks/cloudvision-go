@@ -13,4 +13,4 @@ then
 fi
 
 # Run ansible for this host
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i "${INVENTORY}" -v playbook.yml -l "${INSTALLHOST}"
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i "${INVENTORY}" -v cluster.yml -l "${INSTALLHOST}"

@@ -12,4 +12,4 @@ DISPLAY_K8S_YAML="$2" ansible-playbook \
 	--start-at-task \
 	"$2" \
 	--check \
-	playbook.yml
+	cluster.yml
