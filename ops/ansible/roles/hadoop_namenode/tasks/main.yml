@@ -1,9 +1,11 @@
 - name: Create namenode directories
   become: True
   file:
-    path: "{{ item }}"
+    path: "{{ item[0] }}/{{ item[1] }}"
     state: directory
     owner: 1000
     group: 1000
     mode: 0755
-  with_items: "{{ hadoop_namenode_dirs }}"
+  with_nested:
+  - "{{ hadoop_namenode_dirs }}"
+  - [ 'data', 'logs' ]

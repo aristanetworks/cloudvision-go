@@ -103,3 +103,107 @@
             resources:
               requests:
                 storage: 1Gi
+
+# NAMENODES
+
+- name: Create namenode-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "namenode-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 1Gi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: namenode-data
+        local:
+          # TODO: create only one volume for now since
+          # we can only mount one local volume to a pod
+          # should be fixed in k8s 1.9
+          path: "{{ hostvars[item]['hadoop_namenode_dirs'][0] }}"
+  with_items: "{{ groups.namenodes }}"
+
+
+- name: Deploy namenode statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: namenode
+      spec:
+        serviceName: hadoop
+        replicas: {{ groups.namenodes | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: hadoop
+              hadoop: namenode
+          spec:
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              imagePullPolicy: Always
+              args: ["./bin/hdfs", "namenode"]
+              env:
+              - name: HADOOP_LOGFILE
+                value: "namenode.log"
+              ports:
+              - containerPort: 8020
+              - containerPort: 50070
+              volumeMounts:
+              - name: data1
+                subPath: data
+                mountPath: /data1
+              - name: data2
+                subPath: data
+                mountPath: /data2
+              - name: data1
+                subPath: logs
+                mountPath: /logs
+            - name: zkfc
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              imagePullPolicy: Always
+              args: ["./bin/hdfs", "zkfc"]
+              env:
+              - name: HADOOP_LOGFILE
+                value: "zkfc.log"
+              volumeMounts:
+              - name: data1
+                subPath: logs
+                mountPath: /logs
+            volumes:
+            # TODO: make it a pvc when we can mount multiple local volumes to pods
+            - name: data2
+              hostPath:
+                path: /data8/namenode
+        volumeClaimTemplates:
+        - metadata:
+            name: data1
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: namenode-data
+            resources:
+              requests:
+                storage: 1Gi
