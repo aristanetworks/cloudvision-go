@@ -20,3 +20,7 @@
 - import_tasks: grafana.yml
 
 - import_tasks: kafka.yml
+  when: cluster_name == "staging"
+
+- import_tasks: kafka-statefulset.yml
+  when: cluster_name == "dev"

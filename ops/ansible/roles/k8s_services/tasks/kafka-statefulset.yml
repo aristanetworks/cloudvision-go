@@ -1,0 +1,245 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: create kafka-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "kafka-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 2Ti
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: kafka-data
+        local:
+          path: /data3/kafka-data
+  with_items: "{{ groups.kafka_brokers }}"
+
+- name: deploy kafka service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kafka
+        labels:
+          app: kafka-broker
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "7071"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 9092
+          name: kafka-port
+          targetPort: 9094
+          protocol: TCP
+        selector:
+          app: kafka-broker
+
+- name: add kafka configmap
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    # state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: kafka-config
+      data:
+        default.server.properties: |
+          # Copyright (c) 2015 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+
+          # Read about these settings here: http://kafka.apache.org/documentation.html
+
+          broker.id=0
+          port=9094
+          listeners=PLAINTEXT://0.0.0.0:9094
+          advertised.listeners=PLAINTEXT://NODENAME:9094
+          reserved.broker.max.id=1000000000
+
+          # Suggestions from the kafka documentation
+
+          # Replication configurations
+          min.insync.replicas=2
+          default.replication.factor=3
+          unclean.leader.election.enable=false
+          num.replica.fetchers=4
+          replica.fetch.max.bytes=1048576
+          replica.fetch.wait.max.ms=500
+          replica.high.watermark.checkpoint.interval.ms=5000
+          replica.socket.timeout.ms=30000
+          replica.socket.receive.buffer.bytes=65536
+          replica.lag.time.max.ms=10000
+          replica.lag.max.messages=4000
+
+          controller.socket.timeout.ms=30000
+          controller.message.queue.size=10
+
+          # Log configuration
+          num.partitions=8
+          message.max.bytes=1000000
+          auto.create.topics.enable=true
+          delete.topic.enable=true
+          offsets.topic.num.partitions=100
+          log.dir=/kafka-data/data
+          log.index.interval.bytes=4096
+          log.index.size.max.bytes=10485760
+          log.retention.hours=168
+          # https://issues.apache.org/jira/browse/KAFKA-3806?focusedCommentId=15906349&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-15906349
+          offsets.retention.minutes=10080
+          log.flush.interval.ms=10000
+          log.flush.interval.messages=20000
+          log.flush.scheduler.interval.ms=2000
+          log.roll.hours=168
+          log.retention.check.interval.ms=300000
+          log.segment.bytes=1073741824
+
+          # ZK configuration
+          zookeeper.connection.timeout.ms=6000
+          zookeeper.connect=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181/kafka
+          zookeeper.sync.time.ms=2000
+
+          # Socket server configuration
+          num.io.threads=8
+          # num.network.threads=8 # The config doc suggests 3 here in a different place, which is the default.
+          socket.request.max.bytes=104857600
+          socket.receive.buffer.bytes=1048576
+          socket.send.buffer.bytes=1048576
+          queued.max.requests=16
+          fetch.purgatory.purge.interval.requests=100
+          producer.purgatory.purge.interval.requests=100
+
+- name: deploy kafka statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: kafka-broker
+      spec:
+        serviceName: kafka
+        replicas: {{ groups.kafka_brokers | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: kafka-broker
+          spec:
+            containers:
+            - name: kafka-broker
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-kafka
+              imagePullPolicy: Always
+              env:
+                - name: NODENAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.podIP
+              ports:
+              - containerPort: 9094
+                protocol: TCP
+                name: kafka
+              - containerPort: 9093
+                protocol: TCP
+                name: jmx
+              - containerPort: 7071
+                protocol: TCP
+                name: jmx-exporter
+              volumeMounts:
+              - mountPath: /kafka-data
+                name: data
+              - name: config
+                mountPath: /home/aeris/kafka/config/default.server.properties
+                subPath: default.server.properties
+            volumes:
+            - name: config
+              configMap:
+                name: kafka-config
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: kafka-data
+            resources:
+              requests:
+                storage: 2Ti
+
+
+- name: deploy kafka ui service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kafkaui
+        labels:
+          app: kafkaui
+        annotations:
+          external_type: "http"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 9000
+        selector:
+          app: kafkaui
+
+- name: deploy kafka ui rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: kafkaui
+      spec:
+        replicas: 1
+        selector:
+          app: kafkaui
+        template:
+          metadata:
+            name: kafkaui
+            labels:
+              app: kafkaui
+          spec:
+            containers:
+              - name: kafkaui
+                image: registry.docker.sjc.aristanetworks.com:5000/aeris/kafka-manager
+                imagePullPolicy: Always
+                env:
+                  - name: ZK_HOSTS
+                    value: zookeeper-0.zookeeper:2181,zookeeper-1:2181.zookeeper,zookeeper-2.zookeeper:2181
+                ports:
+                  - containerPort: 9000
