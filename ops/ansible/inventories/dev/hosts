@@ -85,6 +85,13 @@ r123s20.sjc.aristanetworks.com
 [hbasemasters:children]
 namenodes
 
+[regionservers:children]
+datanodes
+
+[hbase:children]
+hbasemasters
+datanodes
+
 [kafka_brokers]
 r123s17.sjc.aristanetworks.com
 r123s20.sjc.aristanetworks.com

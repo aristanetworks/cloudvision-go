@@ -22,6 +22,8 @@
         selector:
           app: hbase
 
+# MASTERS
+
 - name: Create hbasemaster-data volumes
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -53,8 +55,6 @@
         local:
           path: "{{ hostvars[item]['hbase_data_dir'] }}"
   with_items: "{{ groups.hbasemasters }}"
-
-# MASTERS
 
 - name: Deploy hbasemaster statefulset
   kubernetes:
@@ -100,3 +100,89 @@
             resources:
               requests:
                 storage: 1Gi
+
+# REGIONSERVERS
+
+- name: Create regionserver-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "regionserver-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 1Gi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: regionserver-data
+        local:
+          path: "{{ hostvars[item]['hbase_data_dir'] }}"
+  with_items: "{{ groups.regionservers }}"
+
+- name: Deploy regionserver statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: regionserver
+        annotations:
+          external_type: http
+          external_port: "16030"
+      spec:
+        serviceName: hbase
+        replicas: {{ groups.regionservers | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: hbase
+              hbase: regionserver
+          spec:
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hbase
+              imagePullPolicy: Always
+              args: [ "./bin/hbase", "regionserver", "start" ]
+              ports:
+              - containerPort: 16020
+              - containerPort: 16030
+              volumeMounts:
+              - name: data
+                subPath: logs
+                mountPath: /logs
+              - name: var-lib-hadoop
+                mountPath: /var/lib/hadoop
+            volumes:
+            - name: var-lib-hadoop
+              hostPath:
+                path: /var/lib/hadoop
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: regionserver-data
+            resources:
+              requests:
+                storage: 1Gi
+
