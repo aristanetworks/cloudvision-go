@@ -3,7 +3,7 @@
 - name: Create hbase logs directory
   become: True
   file:
-    path: "{{ hbase_logs_dir }}"
+    path: "{{ hbase_data_dir }}/logs"
     state: directory
     owner: 1000
     group: 1000

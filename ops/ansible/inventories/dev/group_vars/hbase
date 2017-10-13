@@ -1,1 +1,1 @@
-hbase_logs_dir: /data4/logs/hbase
+hbase_data_dir: /data4/hbase

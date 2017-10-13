@@ -22,6 +22,9 @@
 - import_tasks: hadoop.yml
   when: cluster_name == "dev"
 
+- import_tasks: hbase.yml
+  when: cluster_name == "dev"
+
 - import_tasks: prometheus.yml
 
 - import_tasks: alertmanager.yml

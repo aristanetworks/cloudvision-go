@@ -59,9 +59,6 @@ r123s31.sjc.aristanetworks.com
 [cvpbs:children]
 k8s_workers
 
-[hbase:children]
-hadoop
-
 [hadoop:children]
 datanodes
 journalnodes
@@ -84,6 +81,9 @@ r123s21.sjc.aristanetworks.com
 [namenodes]
 r123s17.sjc.aristanetworks.com
 r123s20.sjc.aristanetworks.com
+
+[hbasemasters:children]
+namenodes
 
 [kafka_brokers]
 r123s17.sjc.aristanetworks.com

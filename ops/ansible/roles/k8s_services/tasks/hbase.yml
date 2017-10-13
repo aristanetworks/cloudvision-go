@@ -1,0 +1,102 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: Deploy hbase service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hbase
+      spec:
+        ports:
+        - port: 1234
+          name: placeholder
+        clusterIP: None
+        selector:
+          app: hbase
+
+- name: Create hbasemaster-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "hbasemaster-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 1Gi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: hbasemaster-data
+        local:
+          path: "{{ hostvars[item]['hbase_data_dir'] }}"
+  with_items: "{{ groups.hbasemasters }}"
+
+# MASTERS
+
+- name: Deploy hbasemaster statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: hbasemaster
+        annotations:
+          external_type: http
+          external_port: "16010"
+      spec:
+        serviceName: hbase
+        replicas: {{ groups.hbasemasters | length }}
+        podManagementPolicy: "Parallel"
+        template:
+          metadata:
+            labels:
+              app: hbase
+              hbase: master
+          spec:
+            containers:
+            - name: server
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hbase
+              imagePullPolicy: Always
+              args: ["./bin/hbase", "master", "start"]
+              ports:
+              - containerPort: 16000
+              - containerPort: 16010
+              volumeMounts:
+              - name: data
+                subPath: logs
+                mountPath: /logs
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: hbasemaster-data
+            resources:
+              requests:
+                storage: 1Gi
