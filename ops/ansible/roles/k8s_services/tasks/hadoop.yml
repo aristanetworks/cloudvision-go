@@ -145,12 +145,16 @@
 - name: Deploy namenode statefulset
   kubernetes:
     api_endpoint: 127.0.0.1:8001
+    state: apply
     insecure: true
     inline_data: |
       apiVersion: apps/v1beta1
       kind: StatefulSet
       metadata:
         name: namenode
+        annotations:
+          external_type: http
+          external_port: "50070"
       spec:
         serviceName: hadoop
         replicas: {{ groups.namenodes | length }}
