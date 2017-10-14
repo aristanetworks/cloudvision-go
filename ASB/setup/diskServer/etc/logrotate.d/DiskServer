@@ -1,0 +1,9 @@
+# Logrotate rules for DiskServer.log
+
+/var/log/DiskServer.log {
+   weekly
+   compress
+   dateext
+   missingok
+   notifempty
+}

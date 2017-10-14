@@ -1,0 +1,4 @@
+# Cron job that check every minute if the disk http server is up and running, and
+# restart it if necessary.
+
+* * * * * root flock -xn /tmp/DiskServer.lck python /root/diskServer.py --port 8080

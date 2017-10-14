@@ -1,0 +1,35 @@
+# Disk+Partition scheme for buildcache server with 3 disks
+# TODO: This should be removed once diskServer.py is modified to query the scheme
+#       from MySQL db.
+
+# Only use these disks to setup
+ignoredisk --only-use=sda,sdb,sdc
+
+# System bootloader configuration
+bootloader --location=mbr --boot-drive=sda --timeout=5
+bootloader --location=mbr --boot-drive=sdb --timeout=5
+bootloader --location=mbr --boot-drive=sdc --timeout=5
+
+# Clean up previously created partitions
+clearpart --drives=sda,sdb,sdc --all --initlabel
+
+# Create partitions on each disk
+part biosboot --size=2 --ondisk=sda --fstype=biosboot
+part biosboot --size=2 --ondisk=sdb --fstype=biosboot
+part biosboot --size=2 --ondisk=sdc --fstype=biosboot
+
+# 20GB for first partition of each disk
+part raid.11 --asprimary --size=20000 --ondisk=sda --fstype=ext4
+part raid.21 --asprimary --size=20000 --ondisk=sdb --fstype=ext4
+part raid.31 --asprimary --size=20000 --ondisk=sdc --fstype=ext4
+
+# Rest for second partition
+part raid.12 --asprimary --size=1 --grow --ondisk=sda --fstype=ext4
+part raid.22 --asprimary --size=1 --grow --ondisk=sdb --fstype=ext4
+part raid.32 --asprimary --size=1 --grow --ondisk=sdc --fstype=ext4
+
+# RAID1 for / (20GB)
+raid / --level=1 --fstype=ext4 --device=1 --label=/ raid.11 raid.21 raid.31
+# RAID0 for /persist
+raid /persist --level=0 --fstype=ext4 --device=2 --label=/persist raid.12 raid.22 raid.32
+
