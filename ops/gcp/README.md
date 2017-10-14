@@ -14,6 +14,17 @@ The image is deploy to a Google Container Registry instance so the GCP k8s clust
 The public dns will point to the container deployed in 1/
 The arista internal dns will point to the kubernetes cluster having the Let's Encrypt certificates deployed.
 
+#### Getting the private ssh keys for the docker image
+
+First you need to get the following private key files from [Arista Secret Server](https://secsrv01.aristanetworks.com/). The secret name is `letsencrypt-gcp-container-ssh-private-keys` and it provides a `tgz` file where the four private keys are.
+You will put those files in the `letsencrypt/ssh` folder.
+
+ssh_host_dsa_key
+ssh_host_ecdsa_key
+ssh_host_ed25519_key
+ssh_host_rsa_key
+
+
 ## Building the letsencrypt docker image:
 
 from this directory, run:
