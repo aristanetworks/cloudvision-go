@@ -1,0 +1,290 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: deploy recorder
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: recorder
+      spec:
+        replicas: 8
+        selector:
+          app: recorder
+        template:
+          metadata:
+            name: recorder
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "6060"
+            labels:
+              app: recorder
+          spec:
+            containers:
+            - name: recorder
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris-recorder
+              imagePullPolicy: Always
+              ports:
+              - containerPort: 6060
+              args:
+                - -kafkaaddrs
+                - kafka:9092
+                - -storage
+                - hbase
+                - -storageoption
+                - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+                - -storageoption
+                - table=aeris
+                - -storageoption
+                - rpcqueuesize=100
+                - -storageoption
+                - workers=1000
+                - -workers=80
+                - -todb
+                - todb_qualified
+                - -postdb
+                - postdb_qualified
+                - -group
+                - aeris_recorder_hbase
+                - -v=5
+                - -monitor
+                - 0.0.0.0:6060
+
+- name: deploy dispatcher
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: dispatcher
+      spec:
+        replicas: 8
+        selector:
+          app: dispatcher
+        template:
+          metadata:
+            name: dispatcher
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "6060"
+            labels:
+              app: dispatcher
+          spec:
+            containers:
+            - name: dispatcher
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris-dispatcher
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 6060
+                  name: metrics
+              args:
+                - -kafkaaddrs
+                - kafka:9092
+                - -storage
+                - hbase
+                - -storageoption
+                - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+                - -storageoption
+                - table=aeris
+                - -postdb
+                - postdb_qualified
+                - -postdbgroup
+                - aeris_dispatcher_postDB
+                - -subscriptions
+                - subscriptions_hbase
+                - -v=3
+                - -monitor
+                - 0.0.0.0:6060
+
+- name: deploy apiserver grpc service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: apiserver-grpc
+        labels:
+          app: apiserver-grpc
+        annotations:
+          external_type: grpc
+          external_port: "11002"
+          external_name: apiserver
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 11002
+        selector:
+          app: apiserver
+
+- name: deploy apiserver rest/websocket services
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: apiserver
+        labels:
+          app: apiserver
+        annotations:
+          external_type: http
+          external_port: "11003"
+          external_name: apiserver
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 11003
+        selector:
+          app: aeris-clusterserver-hbase
+
+- name: deploy apiserver statefulset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
+      metadata:
+        name: apiserver
+      spec:
+        serviceName: apiserver
+        replicas: 4
+        template:
+          metadata:
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "6060"
+            labels:
+              app: apiserver
+          spec:
+            containers:
+            - name: apiserver
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris-apiserver
+              imagePullPolicy: Always
+              env:
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              args:
+                - -id
+                - $(POD_NAME)
+                - -grpcaddr
+                - 0.0.0.0:11002
+                - -httpaddr
+                - 0.0.0.0:11003
+                - -kafkaaddrs
+                - kafka:9092
+                - -storage
+                - hbase
+                - -storageoption
+                - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+                - -storageoption
+                - table=aeris
+                - -todb
+                - todb_qualified
+                - -postdb
+                - postdb_qualified
+                - -subscriptions
+                - subscriptions_hbase
+                - -buffersize=100
+                - -v=5
+                - -monitor
+                - 0.0.0.0:6060
+              ports:
+                - containerPort: 11003
+                  name: apiserver
+                - containerPort: 6060
+                  name: metrics
+              resources:
+                limits:
+                  cpu: "8"
+                  memory: 2Gi
+
+- name: deploy ingest service
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ingest
+        labels:
+          app: ingest
+        annotations:
+          external_type: grpc
+          external_port: "9910"
+      spec:
+        type: LoadBalancer
+        ports:
+        - port: 9910
+        selector:
+          app: ingest
+
+- name: deploy ingest rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: ingest
+      spec:
+        replicas: 2
+        selector:
+          app: ingest
+        template:
+          metadata:
+            name: ingest
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "6060"
+            labels:
+              app: ingest
+          spec:
+            containers:
+            - name: ingest
+              image: registry.docker.sjc.aristanetworks.com:5000/aeris-ingest
+              imagePullPolicy: Always
+              args:
+                - -port
+                - "9910"
+                - -kafkaaddrs
+                - kafka:9092
+                - -todb
+                - todb_qualified
+                - -storage
+                - hbase
+                - -storageoption
+                - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+                - -storageoption
+                - table=aeris
+                - -v=8
+                - -monitor
+                - 0.0.0.0:6060
+              ports:
+                - containerPort: 9910
+                  name: ingest
+                - containerPort: 6060
+                  name: metrics

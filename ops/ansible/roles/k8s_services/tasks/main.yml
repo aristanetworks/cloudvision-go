@@ -33,3 +33,6 @@
 
 - import_tasks: kafka-statefulset.yml
   when: cluster_name == "dev"
+
+- import_tasks: aeris.yml
+  when: cluster_name == "dev"
