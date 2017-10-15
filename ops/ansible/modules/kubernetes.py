@@ -330,12 +330,13 @@ def getVersion(module, kind, body):
     if not kind:
         module.fail_json(msg="Invalid kind '%s' for resource version" % kind)
         return None
-    if kind == 'ConfigMap':
+    if kind in ['ConfigMap', 'Service']:
         name = 'resourceVersion'
     else:
         name = 'generation'
 
-    version = body.get('metadata', {}).get(name)
+    metadata = body.get('metadata', {})
+    version = metadata.get(name)
     if not version:
         module.fail_json(msg="Unable to retrieve %s for the existing resource. Metadata is %s" % (name, metadata))
         return None
