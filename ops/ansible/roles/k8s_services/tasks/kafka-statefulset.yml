@@ -40,6 +40,7 @@
 - name: deploy kafka service
   kubernetes:
     api_endpoint: 127.0.0.1:8001
+    state: apply
     insecure: true
     inline_data: |
       apiVersion: v1
