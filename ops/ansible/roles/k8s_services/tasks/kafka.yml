@@ -19,8 +19,6 @@
         annotations:
           prometheus.io/scrape: "true"
           prometheus.io/port: "7071"
-          external_type: "tcp"
-          external_port: "9092"
       spec:
         type: LoadBalancer
         ports:
