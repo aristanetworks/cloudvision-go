@@ -9,6 +9,8 @@
 
 - import_tasks: proxy.yml
 
+- import_tasks: proxy2.yml
+
 - import_tasks: etcd.yml
 
 - import_tasks: zookeeper.yml

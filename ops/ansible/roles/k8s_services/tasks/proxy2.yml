@@ -1,0 +1,111 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+- name: add nginx catchall configmap
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nginx-catchall-config
+      data:
+        nginx.conf: |
+          # Copyright (c) 2015 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          user  nginx;
+          worker_processes  1;
+
+          error_log  stderr warn;
+          pid        /var/run/nginx.pid;
+
+          events {
+              worker_connections  1024;
+          }
+
+          http {
+              default_type  text/plain;
+
+              log_format  main  '$remote_addr $host - $remote_user [$time_local] "$request" '
+                                '$status $body_bytes_sent "$http_referer" '
+                                '"$http_user_agent" "$http_x_forwarded_for"';
+
+              access_log  stdout main;
+
+              keepalive_timeout  65;
+
+              server {
+                  listen       8080;
+                  server_name  localhost;
+                  server_tokens off;
+
+                  location / {
+                      return 404 "404 Not Found";
+                  }
+              }
+          }
+
+- name: deploy private proxy2 rc
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: proxy2
+      spec:
+        selector:
+          matchLabels:
+            app: proxy2
+        template:
+          metadata:
+            name: proxy2
+            # annotations:
+            #   TODO: enable some kind of metric to monitor nghttpx
+            #   prometheus.io/scrape: "true"
+            #   prometheus.io/port: "9201"
+            labels:
+              app: proxy2
+          spec:
+            nodeSelector:
+              role: proxy
+            containers:
+            - name: proxy2
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2:fabrice
+              imagePullPolicy: Always
+              args:
+      {% for host in groups.etcd2 %}
+                - -node
+                - http://{{ hostvars[host]['inventory_hostname'] }}:2379
+      {% endfor %}
+              env:
+                - name: DOMAIN
+                  value: .{{ k8s_domain | regex_replace('^internal\.', '') }}
+                - name: BIND_INTERFACE
+                  value: "*"
+              ports:
+                - name: http
+                  containerPort: 80
+                  # Try new nghttpx using 8080 port to not conflict with the existing
+                  # haproxy
+                  hostPort: 8080
+                - name: https
+                  containerPort: 443
+                  # Disable exposing https for now
+                  # hostPort: 443
+            - name: catchall-service
+              image: nginx:1.13.5
+              volumeMounts:
+              - name: nginx-catchall-config
+                mountPath: /etc/nginx/nginx.conf
+                subPath: nginx.conf
+            volumes:
+            - name: nginx-catchall-config
+              configMap:
+                name: nginx-catchall-config
