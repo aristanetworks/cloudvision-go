@@ -92,4 +92,4 @@ There are two init actions so far:
 * Format the namenode: The env var and its value are `NAMENODE_FORMAT=yesformatnamenode`. This command is dangerous and *MUST NOT* be executed on existing cluster.
 In order to protect this action to not be executed even when the env var is set, ansible will pause and ask for a randomly generated code which will be to be copied as the input of the prompt. Only when the code is correct, namenode formatting will be processed.
 
-* Initialize the aeris db schema: The env var and its value are TBD.
+* Initialize the aeris db schema: The env var and its value are `AERIS_INITDBSCHEMA=yes`.

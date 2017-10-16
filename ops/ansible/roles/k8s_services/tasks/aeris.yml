@@ -5,6 +5,44 @@
 
 ---
 
+- name: Init DB schema
+  when: "lookup('env', 'AERIS_INITDBSCHEMA') == 'yes'"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: aerisinit
+      spec:
+        restartPolicy: Never
+        containers:
+        - name: aerisinit
+          image: registry.docker.sjc.aristanetworks.com:5000/aeris-cli
+          imagePullPolicy: Always
+          args:
+            - init
+            - --storage
+            - hbase
+            - --storageoption
+            - table=aeris
+            - --storageoption
+            - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
+            - --storageoption
+            - COMPRESSION=SNAPPY
+            - --storageoption
+            - VERSIONS=2147483647
+            - --storageoption
+            - DATA_BLOCK_ENCODING=FAST_DIFF
+            - --storageoption
+            - TTL=2147483647
+
+- name: Check output of the aeris schema init phase
+  when: "lookup('env', 'AERIS_INITDBSCHEMA') == 'yes'"
+  pause:
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f aerisinit'"
+
 - name: deploy recorder
   kubernetes:
     api_endpoint: 127.0.0.1:8001
