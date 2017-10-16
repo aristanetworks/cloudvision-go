@@ -35,6 +35,18 @@ else
 	IMAGES=$2
 fi
 
+# Start kubectl port-forward to access the cluster internal docker registry
+kubectl port-forward "$(kubectl get po -l app=docker_registry --template '{{(index .items 0).metadata.name}}')" 443:5000
+PID=$!
+
+cleanup () {
+	echo "Stopping port forward..."
+	kill $PID
+	wait
+	echo "Port forward stopped."
+}
+trap cleanup EXIT
+
 for image in $IMAGES; do
 	docker pull "$SRC_REPO/$image"
 	docker tag "$SRC_REPO/$image" "$TARGET_REPO/$image"
