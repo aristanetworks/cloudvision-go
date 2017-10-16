@@ -141,7 +141,6 @@
           path: "{{ hostvars[item]['hadoop_namenode_dirs'][0] }}"
   with_items: "{{ groups.namenodes }}"
 
-
 - name: Deploy namenode statefulset
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -211,6 +210,12 @@
             resources:
               requests:
                 storage: 1Gi
+
+# FORMAT NAMENODE
+
+- name: format namenode
+  import_tasks: hadoop_init.yml
+  when: "lookup('env', 'NAMENODE_FORMAT') == 'yesformatnamenode'"
 
 # DATANODES
 

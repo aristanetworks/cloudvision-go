@@ -1,0 +1,77 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: create security code
+  local_action: shell uuidgen | cut -c1-8
+  register: format_code
+
+- name: ask user for the code
+  pause:
+    prompt: "Namenode Format will destroy ALL the cluster data. Please enter the code '{{format_code.stdout}}' to validate the action. Press Ctrl+c and then \"a\" to abort"
+  register: user_input
+
+- name: Format zkfc
+  when: "user_input.user_input == format_code.stdout"
+  local_action: >
+    command
+    ssh core@{{ groups.namenodes[0] }}
+    docker run --rm --entrypoint ./bin/hdfs
+    -e HADOOP_LOGFILE=zkfcformat.log
+    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
+    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs:/logs
+    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    zkfc -Ddfs.ha.namenode.id=nn0 -formatZK
+  register: formatzkfc
+
+- name: Check output of the format zkfc
+  when: "user_input.user_input == format_code.stdout"
+  pause:
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nBootstrap standby result:\nSTDOUT: {{ formatzkfc.stdout }}\nSTDERR: {{ formatzkfc.stderr }}"
+
+- name: Format namenode
+  when: "user_input.user_input == format_code.stdout"
+  local_action: >
+    command
+    ssh core@{{ groups.namenodes[0] }}
+    docker run --rm --entrypoint ./bin/hdfs
+    -e HADOOP_LOGFILE=namenodeformat.log
+    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
+    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/data:/data1
+    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs:/logs
+    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}/data:/data2
+    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    namenode -Ddfs.ha.namenode.id=nn0 -format -force
+  register: namenodeformat
+
+- name: Check output of the namenode format init phase
+  when: "user_input.user_input == format_code.stdout"
+  pause:
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nNamenode format result:\nSTDOUT: {{ namenodeformat.stdout }}\nSTDERR: {{ namenodeformat.stderr }}"
+
+- name: Bootstrap standby
+  when: "user_input.user_input == format_code.stdout"
+  local_action: >
+    command
+    ssh core@{{ groups.namenodes[1] }}
+    docker run --rm --entrypoint ./bin/hdfs
+    -e HADOOP_LOGFILE=namenodebootstrap.log
+    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
+    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/data:/data1
+    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/logs:/logs
+    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][1] }}/data:/data2
+    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    namenode -Ddfs.ha.namenode.id=nn1 -bootstrapStandby
+  register: bootstrapstandby
+
+- name: Check output of the bootstrap standby
+  when: "user_input.user_input == format_code.stdout"
+  pause:
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nBootstrap standby result:\nSTDOUT: {{ bootstrapstandby.stdout }}\nSTDERR: {{ bootstrapstandby.stderr }}"
+
+- pause:
+    prompt: "Namenode format has been skipped (or you entered the wrong code). Press ENTER to resume. Press Ctrl+c and then \"a\" to abort"
+  when: "user_input.user_input != format_code.stdout"

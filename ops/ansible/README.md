@@ -83,4 +83,13 @@ To run the role against localhost, use this command:
 ansible-playbook cluster.yml -l localhost -i inventories/dev/hosts
 ```
 
-# I
+## Init a new cluster
+
+A new cluster initialization needs to go through some one time initialization actions.
+In order to not have those tasks executed by default, an env var needs to be passed in the command line for those actions to be executed.
+There are two init actions so far:
+
+* Format the namenode: The env var and its value are `NAMENODE_FORMAT=yesformatnamenode`. This command is dangerous and *MUST NOT* be executed on existing cluster.
+In order to protect this action to not be executed even when the env var is set, ansible will pause and ask for a randomly generated code which will be to be copied as the input of the prompt. Only when the code is correct, namenode formatting will be processed.
+
+* Initialize the aeris db schema: The env var and its value are TBD.
