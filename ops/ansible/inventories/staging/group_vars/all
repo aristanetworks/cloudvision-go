@@ -6,6 +6,6 @@ slack_api_url: https://hooks.slack.com/services/T0DFK8ZC7/B0DFT0TE0/LPqI8bVNVNw4
 
 firewall: false
 
-k8s_version: 1.5.6
-k8s_kubelet_md5: 6965c410cfcd0650e2bdb984a4c8b219
+k8s_version: 1.8.1
+k8s_kubelet_md5: 64a0b5653030d087d249a92d83f7dde1
 k8s_domain: internal.staging.corp.arista.io
