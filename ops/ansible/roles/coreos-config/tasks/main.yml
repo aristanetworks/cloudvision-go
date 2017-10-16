@@ -89,6 +89,6 @@
     dest: "{{ ansible_env.HOME }}/.bashrc"
 
 - name: Install common bashrc file
-  copy:
-    src: util.bashrc
+  template:
+    src: util.bashrc.j2
     dest: "{{ ansible_env.HOME }}/.bashrc.d/util.bashrc"
