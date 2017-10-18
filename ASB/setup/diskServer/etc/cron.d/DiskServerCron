@@ -1,3 +1,4 @@
+MAILTO=asb-dev@arista.com
 # Cron job that check every minute if the disk http server is up and running, and
 # restart it if necessary.
 
