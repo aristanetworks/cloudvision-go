@@ -1,0 +1,17 @@
+
+---
+
+# In order to be able to run some pods on the master or etcd nodes
+# we taint them so specific pods can be scheduled even if the node is
+# cordoned.
+# This is mainly used for zookeeper pods and docker regitry pod.
+- name: taint master and etcd nodes
+  uri:
+    url: "http://127.0.0.1:8001/api/v1/nodes/{{ item }}"
+    method: PATCH
+    body: |
+      {"spec":{"taints":[{"effect":"NoSchedule","key":"type","timeAdded":null,"value":"critical"}]}}
+    body_format: json
+    headers:
+      Content-Type: "application/strategic-merge-patch+json"
+  with_items: "{{ (groups.zookeeper + groups.registry) | unique }}"

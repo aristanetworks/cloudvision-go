@@ -1,6 +1,8 @@
 
 ---
 
+- import_tasks: init.yml
+
 - import_tasks: dns.yml
 
 - import_tasks: proxy.yml
