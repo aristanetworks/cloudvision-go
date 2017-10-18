@@ -27,47 +27,8 @@
     - /etc/systemd/system/flanneld.service.d
     - /etc/systemd/system/docker.service.d
 
-- name: Install flannel config
-  become: True
-  copy:
-    content: |
-      FLANNELD_IFACE={{ ansible_default_ipv4["address"] }}
-      FLANNELD_ETCD_ENDPOINTS={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
-    dest: /etc/flannel/options.env
-    owner: root
-    group: root
-    mode: 0600
-  register: flannel_config
-
-- name: Install flanneld service on k8s nodes
-  become: True
-  copy:
-    src: roles/common/files/flanneld.service.40-ExecStartPre-symlink.conf
-    dest: /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf
-  register: flannel_service
-
-- name: Install docker flanneld drop-in
-  become: True
-  copy:
-    src: roles/common/files/docker.service.40-flannel.conf
-    dest: /etc/systemd/system/docker.service.d/40-flannel.conf
-  register: docker_flannel
-
-- name: Reload systemd config
-  become: True
-  systemd:
-    daemon_reload: yes
-    # The name param is not important here as we just do a daemon reload
-    # but as it's mandatory, we just provide a fake one
-    name: docker.service
-  when: docker_flannel.changed or flannel_config.changed or flannel_service.changed
-
-- name: restart flannel service if needed
-  become: True
-  systemd:
-    name: flanneld.service
-    state: restarted
-  when: flannel_config.changed or flannel_service.changed
+- import_tasks: flannel-etcd.yml
+  # when: "cluster_name == 'dev'"
 
 # TODO: init flanneld info on etcd2
 # curl -X PUT -d "value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}" "$ETCD_SERVER/v2/keys/coreos.com/network/config"
