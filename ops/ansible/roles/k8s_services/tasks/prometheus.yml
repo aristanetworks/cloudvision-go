@@ -46,7 +46,7 @@
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
-    state: present
+    state: apply
     inline_data: |
       apiVersion: extensions/v1beta1
       kind: DaemonSet
@@ -68,6 +68,7 @@
                 - -storage.local.retention=360h
                 - -alertmanager.url=http://alertmanager:9093
                 - -config.file=/etc/prometheus/config.yml
+                - -web.external-url=http://prometheus{{ k8s_domain | regex_replace('^internal', '') }}
               ports:
               - name: web
                 containerPort: 9090
