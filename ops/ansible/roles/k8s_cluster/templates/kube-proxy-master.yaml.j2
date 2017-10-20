@@ -12,6 +12,9 @@ spec:
     - /hyperkube
     - proxy
     - --master=http://127.0.0.1:8080
+{% if flannel_kube %}
+    - --cluster-cidr=10.2.0.0/16
+{% endif %}
     securityContext:
       privileged: true
     volumeMounts:

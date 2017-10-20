@@ -1,0 +1,67 @@
+
+---
+
+- name: Remove flannel config
+  become: True
+  file:
+    path: /etc/flannel/options.env
+    state: absent
+
+- name: Remove flanneld service on k8s nodes
+  become: True
+  file:
+    dest: /etc/systemd/system/flanneld.service.d/40-ExecStartPre-symlink.conf
+    state: absent
+
+- name: Remove docker flanneld drop-in
+  become: True
+  file:
+    dest: /etc/systemd/system/docker.service.d/40-flannel.conf
+    state: absent
+
+- name: Reload systemd config
+  become: True
+  systemd:
+    daemon_reload: yes
+    # The name param is not important here as we just do a daemon reload
+    # but as it's mandatory, we just provide a fake one
+    name: docker.service
+
+- name: Stop and disable flannel service
+  become: True
+  systemd:
+    name: flanneld.service
+    state: stopped
+    enabled: no
+
+- name: Remove flannel config for docker
+  become: True
+  file:
+    dest: /run/flannel/flannel_docker_opts.env
+    state: absent
+
+- name: stop docker daemon
+  become: True
+  systemd:
+    name: docker
+    state: stopped
+
+- name: stop containerd daemon
+  become: True
+  systemd:
+    name: containerd
+    state: stopped
+
+- name: shutdown docker bridge
+  become: True
+  command: ifconfig docker0 down
+
+- name: delete docker bridge
+  become: True
+  command: brctl delbr docker0
+
+- name: Restart docker daemon
+  become: True
+  systemd:
+    name: docker
+    state: restarted

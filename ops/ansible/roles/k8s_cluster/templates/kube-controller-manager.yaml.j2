@@ -16,6 +16,11 @@ spec:
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --feature-gates=PersistentLocalVolumes=true
+{% if flannel_kube %}
+    - --allocate-node-cidrs=true
+    - --cluster-cidr=10.2.0.0/16
+    - --node-cidr-mask-size=24
+{% endif %}
     livenessProbe:
       httpGet:
         host: 127.0.0.1

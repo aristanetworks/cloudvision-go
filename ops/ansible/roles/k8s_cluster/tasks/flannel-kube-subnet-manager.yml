@@ -1,0 +1,33 @@
+
+---
+
+- name: Remove flannel old config
+  import_tasks: flannel-remove-old-config.yml
+  when: False
+
+- name: Creates cni folders
+  become: True
+  file:
+    dest: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - /opt/cni-v{{ cni_version }}/bin
+    - /etc/cni/net.d
+
+- name: Download cni plugins
+  become: True
+  get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v{{ cni_version }}/cni-plugins-amd64-v{{ cni_version }}.tgz
+    dest: /tmp/cni-plugins-amd64-v{{ cni_version }}.tgz
+    checksum: sha1:{{cni_sha1}}
+
+- name: Install cni plugins
+  become: True
+  unarchive:
+    src: /tmp/cni-plugins-amd64-v{{ cni_version }}.tgz
+    remote_src: yes
+    dest: /opt/cni-v{{ cni_version }}/bin
+    creates: /opt/cni-v{{ cni_version }}/bin/flannel

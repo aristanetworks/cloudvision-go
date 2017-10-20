@@ -36,7 +36,7 @@
   # process
   become: True
   copy:
-    src: roles/common/files/docker.50-options.conf
+    src: roles/common/files/docker.50-options{% if flannel_kube %}-default{% endif %}.conf
     dest: /etc/systemd/system/docker.service.d/50-options.conf
 
 # Workaround for bug:

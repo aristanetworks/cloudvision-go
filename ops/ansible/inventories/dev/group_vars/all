@@ -5,7 +5,11 @@ smtp_server: prod-mx.aristanetworks.com
 slack_api_url: https://hooks.slack.com/services/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
 
 firewall: false
+flannel_kube: true
 
 k8s_version: 1.8.1
 k8s_kubelet_md5: 64a0b5653030d087d249a92d83f7dde1
 k8s_domain: internal.dev.corp.arista.io
+
+cni_version: 0.6.0
+cni_sha1: d595d3ded6499a64e8dac02466e2f5f2ce257c9f

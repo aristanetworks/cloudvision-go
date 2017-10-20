@@ -13,6 +13,9 @@ spec:
     - proxy
     - --master=https://{{ hostvars[groups.k8s_masters[0]]['inventory_hostname'] }}
     - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
+{% if flannel_kube %}
+    - --cluster-cidr=10.2.0.0/16
+{% endif %}
     securityContext:
       privileged: true
     volumeMounts:

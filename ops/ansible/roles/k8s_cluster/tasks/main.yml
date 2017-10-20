@@ -28,7 +28,10 @@
     - /etc/systemd/system/docker.service.d
 
 - import_tasks: flannel-etcd.yml
-  # when: "cluster_name == 'dev'"
+  when: not flannel_kube
+
+- import_tasks: flannel-kube-subnet-manager.yml
+  when: flannel_kube
 
 # TODO: init flanneld info on etcd2
 # curl -X PUT -d "value={\"Network\":\"10.2.0.0/16\",\"Backend\":{\"Type\":\"vxlan\"}}" "$ETCD_SERVER/v2/keys/coreos.com/network/config"
