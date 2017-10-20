@@ -107,6 +107,29 @@ function drive_report() { run_pdsh_cmd "$1" "sudo drive_mgmt.sh report"; }
 
 function scylla_df() { run_pdsh_cmd "$1" "sudo df -kh /persist"; }
 
+function scylla_enable_slowquerylog() {
+SCRIPT='
+HOSTNAME=`hostname`;
+curl -sS -X POST --header "Content-Type: application/json" --header "Accept: application/json" "http://${HOSTNAME}:10000/storage_service/slow_query?enable=true&ttl=86400&threshold=10000"
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
+function scylla_disable_slowquerylog() {
+SCRIPT='
+HOSTNAME=`hostname`;
+curl -sS -X POST --header "Content-Type: application/json" --header "Accept: application/json" "http://${HOSTNAME}:10000/storage_service/slow_query?enable=false&ttl=86400&threshold=10000"
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
+function scylla_show_slowquerylog() {
+SCRIPT='
+HOSTNAME=`hostname`;
+curl -sS -X GET --header "Accept: application/json" "http://${HOSTNAME}:10000/storage_service/slow_query"
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
 # --- helpers meant for localhost execution ---
 
 function scylla_prod_nodes() { for node in `seq 101 121`; do echo ce${node}; done; }
