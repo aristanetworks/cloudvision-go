@@ -241,6 +241,6 @@
                 imagePullPolicy: Always
                 env:
                   - name: ZK_HOSTS
-                    value: zookeeper-0.zookeeper:2181,zookeeper-1:2181.zookeeper,zookeeper-2.zookeeper:2181
+                    value: zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
                 ports:
                   - containerPort: 9000
