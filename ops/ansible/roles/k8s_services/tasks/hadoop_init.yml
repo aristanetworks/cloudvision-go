@@ -18,13 +18,23 @@
   when: "user_input.user_input == format_code.stdout"
   local_action: >
     command
-    ssh core@{{ groups.namenodes[0] }}
-    docker run --rm --entrypoint ./bin/hdfs
-    -e HADOOP_LOGFILE=zkfcformat.log
-    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
-    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs:/logs
-    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
-    zkfc -Ddfs.ha.namenode.id=nn0 -formatZK
+    kubectl run zkfc-format
+    --attach --rm --restart=Never --record=true
+    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --overrides
+    '{ "apiVersion": "v1", "spec":
+      {
+        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
+        "containers": [ {
+          "name": "zkfc-format",
+          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "imagePullPolicy": "Always",
+          "env": [ {"name": "HADOOP_LOGFILE", "value": "zkfcformat.log" } ],
+          "args": ["./bin/hdfs", "zkfc", "-Ddfs.ha.namenode.id=nn0", "-formatZK", "-force"],
+          "volumeMounts": [
+            { "mountPath": "/logs", "name": "logs" } ] } ],
+        "volumes": [
+          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs" } } ] } }'
   register: formatzkfc
 
 - name: Check output of the format zkfc
@@ -36,15 +46,29 @@
   when: "user_input.user_input == format_code.stdout"
   local_action: >
     command
-    ssh core@{{ groups.namenodes[0] }}
-    docker run --rm --entrypoint ./bin/hdfs
-    -e HADOOP_LOGFILE=namenodeformat.log
-    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
-    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/data:/data1
-    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs:/logs
-    -v {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}/data:/data2
-    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
-    namenode -Ddfs.ha.namenode.id=nn0 -format -force
+    kubectl run namenode-format
+    --attach --rm --restart=Never --record=true
+    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --overrides
+    '{ "apiVersion": "v1", "spec":
+      {
+        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
+        "containers": [ {
+          "name": "namenode-format",
+          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "imagePullPolicy": "Always",
+          "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodeformat.log" } ],
+          "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn0", "-format", "-force"],
+          "volumeMounts": [
+            { "mountPath": "/logs", "name": "logs" },
+            { "mountPath": "/data1", "name": "data1" },
+            { "mountPath": "/data2", "name": "data2" }
+            ] } ],
+        "volumes": [
+          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs" } },
+          { "name": "data1", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/data" } },
+          { "name": "data2", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}/data" } }
+        ] } }'
   register: namenodeformat
 
 - name: Check output of the namenode format init phase
@@ -56,15 +80,32 @@
   when: "user_input.user_input == format_code.stdout"
   local_action: >
     command
-    ssh core@{{ groups.namenodes[1] }}
-    docker run --rm --entrypoint ./bin/hdfs
-    -e HADOOP_LOGFILE=namenodebootstrap.log
-    --dns=10.3.0.10 --dns-search default.svc.{{ k8s_domain }}
-    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/data:/data1
-    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/logs:/logs
-    -v {{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][1] }}/data:/data2
-    -t registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
-    namenode -Ddfs.ha.namenode.id=nn1 -bootstrapStandby
+    kubectl run namenode-bootstrap
+    --attach --rm --restart=Never --record=true
+    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --overrides
+    '{ "apiVersion": "v1", "spec":
+      {
+        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[1] }}" },
+        "containers": [ {
+          "name": "namenode-bootstrap",
+          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "imagePullPolicy": "Always",
+          "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodebootstrap.log" } ],
+          "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn1", "-bootstrapStandby"],
+          "volumeMounts": [
+            { "mountPath": "/logs", "name": "logs" },
+            { "mountPath": "/data1", "name": "data1" },
+            { "mountPath": "/data2", "name": "data2" }
+            ] } ],
+        "volumes": [
+          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/logs" } },
+          { "name": "data1", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/data" } },
+          { "name": "data2", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][1] }}/data" } }
+        ] } }'
+
+
+
   register: bootstrapstandby
 
 - name: Check output of the bootstrap standby
