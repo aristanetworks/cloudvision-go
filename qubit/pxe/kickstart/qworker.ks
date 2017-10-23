@@ -186,7 +186,7 @@ cat ${FILE}
 /usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg
 
 #Install Arora kernel
-#yum install -y AroraKernel
+yum install -y AroraKernel
 
 # since all milkyway servers use SSDs
 # enable TRIM  job
