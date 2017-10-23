@@ -22,6 +22,9 @@
   register: st
   ignore_errors: true
 
+- debug:
+    msg: "Console {{ console }}, NTP: {{ ntp }}, FSTRIM Status {{ st }}"
+
 - name: "PXE install status"
   set_fact:
     PXE_KS_INSTALL_STATUS: "{{ console | succeeded and ntp | succeeded and st.stat.exists | bool }}"
