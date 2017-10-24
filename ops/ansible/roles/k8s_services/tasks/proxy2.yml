@@ -80,10 +80,8 @@
               image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
               imagePullPolicy: Always
               args:
-      {% for host in groups.etcd2 %}
-                - -node
-                - http://{{ hostvars[host]['inventory_hostname'] }}:2379
-      {% endfor %}
+                - -backend
+                - kubernetes
               env:
                 - name: DOMAIN
                   value: .{{ k8s_domain | regex_replace('^internal\.', '') }}
