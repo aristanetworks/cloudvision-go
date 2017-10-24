@@ -77,7 +77,7 @@
               role: proxy
             containers:
             - name: proxy2
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2:fabrice
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
               imagePullPolicy: Always
               args:
       {% for host in groups.etcd2 %}
