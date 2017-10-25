@@ -18,7 +18,7 @@ spec:
     - --feature-gates=PersistentLocalVolumes=true
 {% if flannel_kube %}
     - --allocate-node-cidrs=true
-    - --cluster-cidr=10.2.0.0/16
+    - --cluster-cidr={{ cluster_cidr }}
     - --node-cidr-mask-size=24
 {% endif %}
     livenessProbe:

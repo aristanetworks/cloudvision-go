@@ -15,7 +15,7 @@ spec:
     - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
 
     - --allow-privileged=true
-    - --service-cluster-ip-range=10.3.0.0/16
+    - --service-cluster-ip-range={{ service_cluster_ip_range }}
     - --secure_port=443
     - --advertise-address={{ ansible_default_ipv4["address"] }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota
