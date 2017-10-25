@@ -68,7 +68,7 @@
                 - -storage.local.retention=360h
                 - -alertmanager.url=http://alertmanager:9093
                 - -config.file=/etc/prometheus/config.yml
-                - -web.external-url=http://prometheus{{ k8s_domain | regex_replace('^internal', '') }}
+                - -web.external-url=http://prometheus.{{ k8s_domain }}
               ports:
               - name: web
                 containerPort: 9090

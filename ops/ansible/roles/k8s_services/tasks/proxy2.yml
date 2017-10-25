@@ -84,7 +84,7 @@
                 - kubernetes
               env:
                 - name: DOMAIN
-                  value: .{{ k8s_domain | regex_replace('^internal\.', '') }}
+                  value: .{{ k8s_domain }}
                 - name: BIND_INTERFACE
                   value: "*"
               ports:

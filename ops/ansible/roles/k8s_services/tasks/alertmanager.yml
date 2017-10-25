@@ -132,7 +132,7 @@
               args:
                 - -config.file=/etc/alertmanager/config.yml
                 - -storage.path=/am-data
-                - -web.external-url=http://alertmanager{{ k8s_domain | regex_replace('^internal', '') }}
+                - -web.external-url=http://alertmanager.{{ k8s_domain }}
               image: prom/alertmanager:v0.8.0
               ports:
               - name: web
