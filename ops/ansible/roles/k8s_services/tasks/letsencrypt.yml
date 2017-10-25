@@ -1,0 +1,253 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+# Deploy letsencrypt "automatic" mode
+# This mode is for prod clusters.
+# A prod cluster will take care of generating/renewing
+# the let's encrypt certificates itself.
+# In order to do this, a pod with nginx server and certbot must
+# take care of generating/renewing the certs.
+# When certs are generated/renewed, this pod will publish
+# the certs as secrets to k8s
+# TODO: We should decouple the secret publishing to a separate pod
+#       so we have a better security
+#       (nginx pod should not be able to access k8s cluster)
+# TODO: We should move those things to kube-system or a new aeris-system namespace
+#       so it's not visible from other pods
+- name: deploy letsencrypt service
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: letsencrypt
+        labels:
+          app: letsencrypt
+      spec:
+        type: LoadBalancer
+        ports:
+        - name: web
+          port: 80
+        selector:
+          app: letsencrypt
+
+- name: create letsencrypt volume
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "letsencrypt-data-{{ groups.letsencrypt[0] | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ groups.letsencrypt[0] }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          storage: 100Mi
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: letsencrypt-data
+        local:
+          path: /data2/letsencrypt-data
+
+# This pod will have only ONE instance
+# It will answer all the public http (port 80) traffic.
+# It is NOT exposed publicly, and it is proxied by the public http(80) proxies
+# It will take care of generating/renewing the let's encrypt certificates
+# and publishing them as secret in the k8s cluster.
+# All the non-let's encrypt challenge hits will redirect to
+# https://www.arista.com
+- name: deploy letsencrypt Statefulset
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: apps/v1beta1
+      kind: Statefulset
+      metadata:
+        name: letsencrypt
+      spec:
+        selector:
+          matchLabels:
+            app: letsencrypt
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: letsencrypt
+            annotations:
+              prometheus.io/scrape: 'true'
+          spec:
+            containers:
+            - name: letsencrypt
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/letsencrypt
+              env:
+                - name: DOMAINS
+                  value: >
+                    apiserver.{{ k8s_domain }}
+                    ingest.{{ k8s_domain }}
+                    www.{{ k8s_domain }}
+              ports:
+              - containerPort: 80
+                name: http
+                protocol: TCP
+              volumeMounts:
+              - mountPath: /etc/letsencrypt
+                name: letsencrypt-data
+                subPath: letsencrypt
+              - mountPath: /etc/nginx/sites-enabled
+                name: letsencrypt-data
+                subPath: sites-enabled
+            securityContext:
+              runAsUser: 1000
+              fsGroup: 1000
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: letsencrypt-data
+            resources:
+              requests:
+                storage: 100Mi
+
+- name: add nghttpx config for letsencrypt proxy port 80
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: letsencrypt-nghttpx-proxy
+      data:
+        nghttpx.conf: |
+          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+
+          no-via=yes
+          add-x-forwarded-for=yes
+          server-name=Arista
+
+          # TODO: Select only public interface
+          frontend=0.0.0.0,80;no-tls
+
+          backend=letsencrypt;dns
+
+# This pod will run on all the proxy public machines
+# It will listen and answer all the http traffic (port 80)
+# So there will be several instances of this pod.
+# All the traffic will be redirected to the single instance let's encrypt pod
+# All the 404 will redirect to https://www.arista.io
+- name: deploy letsencrypt proxy2 rc for port 80
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: letsencrypt-proxy2
+      spec:
+        selector:
+          matchLabels:
+            app: letsencrypt-proxy2
+        template:
+          metadata:
+            name: letsencrypt-proxy2
+            # annotations:
+            #   TODO: enable some kind of metric to monitor nghttpx
+            #   prometheus.io/scrape: "true"
+            #   prometheus.io/port: "9201"
+            labels:
+              app: letsencrypt-proxy2
+          spec:
+            nodeSelector:
+              role: proxy
+            containers:
+            - name: letsencrypt-proxy2
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
+              imagePullPolicy: Always
+              command:
+                - dumb-init
+              args:
+                - nghttpx
+                - --user=aeris
+                - --pid-file=/var/run/nghttpx.pid
+                --conf=/etc/nghttpx/nghttpx.conf
+              ports:
+                - name: http
+                  containerPort: 80
+              volumeMounts:
+              - name: letsencrypt-nghttpx-proxy
+                mountPath: /etc/nghttpx/nghttpx.conf
+                subPath: nghttpx.conf
+            volumes:
+            - name: letsencrypt-nghttpx-proxy
+              configMap:
+                name: letsencrypt-nghttpx-proxy
+
+# Deploy letsencrypt "gcp" mode
+# This mode is for dev and staging clusters.
+# Those clusters are not exposed to internet so
+# they can't generate/renew certs using certbot.
+# The gcp is used for this.
+# a service running in those clusters will retrieve the
+# certs and publish them as secrets, simulating what the letsencrypt pod
+# is doing in "automatic" mode.
+- name: deploy gcp letsencrypt Deployment
+  when: letsencrypt_mode == "gcp"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: Deployment
+      metadata:
+        name: gcp-letsencrypt
+      spec:
+        selector:
+          matchLabels:
+            app: gcp-letsencrypt
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: gcp-letsencrypt
+            annotations:
+              prometheus.io/scrape: 'true'
+          spec:
+            containers:
+            - name: gcp-letsencrypt
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/gcp-letsencrypt
+            securityContext:
+              runAsUser: 1000
+              fsGroup: 1000
