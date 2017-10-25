@@ -13,3 +13,5 @@ k8s_domain: dev.corp.arista.io
 
 cni_version: 0.6.0
 cni_sha1: d595d3ded6499a64e8dac02466e2f5f2ce257c9f
+
+cluster_dns: 10.3.0.10
