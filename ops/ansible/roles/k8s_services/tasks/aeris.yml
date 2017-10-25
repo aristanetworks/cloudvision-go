@@ -238,8 +238,6 @@
                 - table=aeris
                 - -todb
                 - todb_qualified
-                - -postdb
-                - postdb_qualified
                 - -subscriptions
                 - subscriptions_hbase
                 - -buffersize=100
