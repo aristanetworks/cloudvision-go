@@ -60,6 +60,12 @@ spec:
           - name: DOMAINS
             value: >
               geiger.dev.corp.arista.io
+              ingest.dev.corp.arista.io
+              apiserver.dev.corp.arista.io
+              alertmanager.dev.corp.arista.io
+              prometheus.dev.corp.arista.io
+              grafana.dev.corp.arista.io
+              kafkaui.dev.corp.arista.io
               npm.corp.arista.io
               godoc.corp.arista.io
               gocover.corp.arista.io
