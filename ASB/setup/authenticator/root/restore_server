@@ -42,8 +42,9 @@ def main( args=None ):
 
    # Verify the server is a FQDN
    server = args.server
-   if len( server.split( "." ) ) <= 1:
-      logging.error( "Server must be a FQDN, got '%s' instead." % server )
+   if not server.endswith("aristanetworks.com"):
+      logging.error( ( "Server must be a FQDN from the 'aristanetworks.com' domain,"
+                       "got '%s' instead." ) % server )
       logging.error( "Aborting." )
       return 1
 

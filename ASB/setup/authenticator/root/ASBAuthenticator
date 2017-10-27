@@ -8,14 +8,13 @@
 # ready to be issued a ticket and issues ticket. Assumes this script is
 # initiated as root by cron job
 
-
 import MySQLdb
 import subprocess
 import glob
 import os
 import sys
 import logging
-
+import time
 
 # Enable logging
 LOGFILE = '/var/log/ASBAuthenticator.log'
@@ -33,9 +32,12 @@ HOME_DIR = "/home"
 # FQDN of all servers to be authenticated should contain this
 CONTAINS_DOMAIN = "aristanetworks.com"
 
+# Constant in seconds for period which whitelist files are valid
+# 24 hours/day * 3600 seconds/hour = 86400 seconds/day
+WHITELIST_VALID_PERIOD = 86400
+
 # ----------------------------------------------------------------------------------
 # Utility Functions
-# ----------------------------------------------------------------------------------
 def _connect():
    try:
       db = MySQLdb.connect( user="arastra",
@@ -52,7 +54,14 @@ def _disconnect( cursor, dbcon ):
    cursor.close()
    dbcon.close()
 
-def fetch_servers_with_status( status ):
+def fetch_servers_with_status( status, test=False ):
+   # XXX: Testing not yet set up for more than whitelist verification
+   # NOTE: If MySQL support added to testing, there is a need to update
+   # the docker image used in testing or mocking on the host where the
+   # test is being run (see ardc package for similar example to the latter)
+   if test:
+      return [ ("test", "aristanetworks.com") ]
+
    try:
       db, cs = _connect()
 
@@ -67,14 +76,55 @@ def fetch_servers_with_status( status ):
       logging.error( "Could not fetch server records from servers table." )
       sys.exit( 1 )
 
+def prune_whitelist( whitelist ):
+   logging.info( "Checking for outdated whitelist files..." )
+
+   pruned = []
+   toDelete = []
+   now = time.time()
+
+   for f in whitelist:
+      fPath = os.path.join( WHITELIST_DIR, f )
+      if os.path.isdir( fPath ):
+         # Ignore all directories
+         continue
+
+      fTime = os.path.getmtime( fPath )
+      if now - fTime > WHITELIST_VALID_PERIOD:
+         # Remove whitelist files which are older than a day
+         toDelete.append( f )
+      else:
+         pruned.append( f )
+
+   if len( toDelete ):
+      logging.info( "Found %d outdated whitelist files to delete." % \
+                    len( toDelete ) )
+   else:
+      logging.info( "No outdated whitelist files found." )
+
+   for d in toDelete:
+      try:
+         os.remove( os.path.join( WHITELIST_DIR, d ) )
+         logging.info( "Deleted expired whitelist file: %s" % d )
+      except OSError as e:
+         logging.error( "Failed to delete whitelist file: %s, ERROR: %s" % \
+                        ( d, e.strerror ) )
+
+   return pruned
 # ----------------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------------
 def main():
+   if "--test" in sys.argv:
+      logging.info( "Running in test mode..." )
+      TEST_MODE = True
+   else:
+      TEST_MODE = False
+
    logging.info( "Waking up - scanning for servers." )
 
    # Fetch all hosts that need P4 ticket issued
-   hosts = fetch_servers_with_status( "auth" )
+   hosts = fetch_servers_with_status( "auth", test=TEST_MODE )
 
    if hosts:
       # Full FQDN of servers that need ticket on datacenter.servers
@@ -83,7 +133,19 @@ def main():
 
       # Get list of whitelisted FQDNs in ASB account
       whitelist = [ os.path.basename( p ) for p in glob.glob(
-                    os.path.join( WHITELIST_DIR, "*" ) ) ]
+                    os.path.join( WHITELIST_DIR, "*" ) )
+                    if p.endswith( CONTAINS_DOMAIN )  ]
+
+      # Get rid of expired whitelist files
+      whitelist = prune_whitelist( whitelist )
+
+      # XXX: Testing not yet set up for more than whitelist verification
+      # Thoughts on how to meaningfully incorporate restore_server script
+      # are still needed. Returning here in order to not run the restore_server
+      # logic while in test mode. 
+      if TEST_MODE:
+         logging.info( "Skipping ticketing for test mode..." )
+         return
 
       # Get list of servers already authenticated, ie. servers that has user account
       preAuthServers = os.listdir( HOME_DIR )
@@ -124,6 +186,7 @@ def main():
                logging.info( "Re-issued ticket for %s" % sv )
 
    logging.info( "Going back to sleep." )
+
 
 
 if __name__ == "__main__":

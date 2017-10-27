@@ -80,7 +80,7 @@ class Config( object ):
    pkgdir = "AroraConfig"
 
    # Misc files directory 
-   misc_files = "AroraConfig_testfiles"
+   misc_files = "AroraConfig/AroraConfig_testfiles"
    
    # Path to RSA public host key.
    path_to_hostpub = 'test/dockerfiles/ar_fedora/ssh/id_rsa.pub'

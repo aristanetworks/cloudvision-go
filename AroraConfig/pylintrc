@@ -1,0 +1,105 @@
+[MASTER]
+
+# Pickle collected data for later comparisons.
+persistent=no
+
+
+[MESSAGES CONTROL]
+
+# NB: Any time you change the set of warnings that are disabled, you
+# should also increment the a4PylintVersion setting in A4/pylint.py
+
+# for pylint 0.20.0, FC12
+disable-checker=Design,Similarities
+disable-msg=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011
+
+# for pylint 0.22.0, FC14
+#disable=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011,Design,Similarities
+
+# for pylint 1.4.1, Mac OS 10.10.2
+disable=C0103,C0111,C0302,R0201,W0122,W0142,W0232,W0511,W0603,W0613,W0614,I0011,Design,Similarities,bad-whitespace,missing-docstring,invalid-name,bad-continuation,too-many-arguments,too-many-statements,too-many-branches,too-many-locals,too-many-instance-attributes,too-many-public-methods,fixme,too-many-lines,too-few-public-methods,anomalous-backslash-in-string,trailing-whitespace,global-statement,star-args,deprecated-lambda,too-many-return-statements,cyclic-import,eval-used,unpacking-non-sequence,cell-var-from-loop,multiple-imports,wrong-import-order,wrong-import-position,ungrouped-imports,unidiomatic-typecheck,redefined-variable-type,no-staticmethod-decorator,no-classmethod-decorator,singleton-comparison,simplifiable-if-statement,consider-using-enumerate,duplicate-except,logging-not-lazy,misplaced-bare-raise,relative-import,superfluous-parens,unsupported-membership-test,useless-else-on-loop,too-many-nested-blocks,too-many-boolean-expressions,misplaced-comparison-constant,no-self-use,len-as-condition
+
+# for pylint 1.7.1
+#disable=len-as-condition
+
+# C0103 = invalid name
+# C0111 = missing docstring
+# C0302 = too many lines in file
+# R0201 = Method could be a function
+# W0122 = Use of the exec statement
+# W0142 = Used * or ** magic
+# W0232 = Class has no __init__ method
+# W0511 = XXX or FIXME note in the code
+# W0603 = Using the global statement
+# W0613 = Unused argument %r
+# W0614 = unused import from wildcard import
+# I0011 = Locally disabling %s
+
+[REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, msvs
+# (visual studio) and html
+output-format=text
+
+# Put messages in a separate file for each module / package specified on the
+# command line instead of printing them on stdout. Reports (if any) will be
+# written in a file name "pylint_global.[txt|html]".
+files-output=no
+
+# Tells wether to display a full report or only the messages
+reports=no
+
+
+[BASIC]
+
+# List of builtins function names that should not be used, separated by a comma
+bad-functions=apply,input
+
+
+[TYPECHECK]
+
+# List of classes names for which member attributes should not be checked
+# (useful for classes with attributes dynamicaly set).
+ignored-classes=
+
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E0201 when accessed.
+generated-members=trace0,trace1,trace2,trace3,trace4,trace5,trace6,trace7,trace8,trace9,AndReturn,AndRaise,WithSideEffects,MultipleTimes,InAnyOrder,objects
+# AndReturn, AndRaise, WithSideEffects, MultipleTimes and InAnyOrder are for mox.
+# objects is for Django.
+
+# This defaults to 'yes', in which case you don't get checking of members where the
+# name of the class contains 'mixin'.
+ignore-mixin-members=no
+
+[VARIABLES]
+
+# A regular expression matching names used for dummy variables (i.e. not used).
+dummy-variables-rgx=_
+
+
+[CLASSES]
+
+# List of method names used to declare (i.e. assign) instance attributes.
+defining-attr-methods=__init__
+
+
+[IMPORTS]
+
+# Deprecated modules which should not be used, separated by a comma
+deprecated-modules=regsub,TERMIOS,Bastion,rexec
+
+
+[MISCELLANEOUS]
+
+# List of note tags to take in consideration, separated by a comma.
+notes=FIXME,XXX,TODO
+
+
+[FORMAT]
+
+# Maximum number of characters on a single line.
+max-line-length=85
+
+# String used as indentation unit.
+indent-string='   '

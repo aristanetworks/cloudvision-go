@@ -12,10 +12,8 @@ test:
 clean:
 		./setup.py clean -a
 
-opsjenkins:
-	$(MAKE) -C ops/ansible
-
-jenkins: pylint build test opsjenkins
+#jenkins: pylint build test
+jenkins: pylint build
 
 push:
 	# update dist

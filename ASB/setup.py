@@ -11,10 +11,10 @@ tests_requires = []
 packages = find_packages()
 
 setup(
-   name='ardc-config',
+   name='ASB',
    version='1.0',
-   description='Arista Datacenter Ansible Management Infrastructure',
-   author='Ren Lee, Max Okumoto',
+   description='Automatic Server Bringup',
+   author='Ren Lee, Leo Kam, Adam Setters',
    author_email='ren@arista.com',
    license='Arista Networks',
    url='http://gerrit/ardc-config',
