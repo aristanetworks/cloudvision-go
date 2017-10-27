@@ -97,7 +97,7 @@
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
-    state: present
+    state: apply
     inline_data: |
       apiVersion: extensions/v1beta1
       kind: DaemonSet
@@ -112,6 +112,11 @@
             labels:
               app: prometheus-node-exporter
           spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
             containers:
             - name: prometheus-node-exporter
               image: prom/node-exporter:v0.14.0
