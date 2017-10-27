@@ -17,8 +17,8 @@
       Environment="ETCD_CORS=*"
       Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ inventory_hostname }}:2380"
       Environment="ETCD_INITIAL_CLUSTER={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}etcd{{ loop.index - 1 }}=http://{{ hostvars[host]['inventory_hostname'] }}:2380{% endfor %}"
-      Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
-      Environment="ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+      Environment="ETCD_LISTEN_CLIENT_URLS=http://{{ lookup('ip_by_prefix', private_ip_prefix) }}:2379"
+      Environment="ETCD_LISTEN_PEER_URLS=http://{{ lookup('ip_by_prefix', private_ip_prefix) }}:2380"
       Environment="ETCD_NAME=etcd{{ groups.etcd2.index(inventory_hostname) }}"
     dest: /etc/systemd/system/etcd2.service.d/20-etcd2.conf
     owner: root

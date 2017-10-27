@@ -19,3 +19,6 @@ cluster_cidr: 10.2.0.0/16
 service_cluster_ip_range: 10.3.0.0/16
 
 letsencrypt_mode: gcp
+
+private_ip_prefix: 172.30.190.
+public_ip_prefix: 172.30.190.

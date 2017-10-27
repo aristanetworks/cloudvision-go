@@ -11,7 +11,7 @@ spec:
     command:
     - /hyperkube
     - apiserver
-    - --bind-address=0.0.0.0
+    - --bind-address={{ lookup('ip_by_prefix', private_ip_prefix) }}
     - --etcd_servers={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}http://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
 
     - --allow-privileged=true
