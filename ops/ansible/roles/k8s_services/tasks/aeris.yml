@@ -324,3 +324,10 @@
                   name: ingest
                 - containerPort: 6060
                   name: metrics
+              volumeMounts:
+                - name: lecert-ingest
+                  mountPath: /etc/letsencrypt/live/ingest
+            volumes:
+              - name: lecert-ingest
+                secret:
+                  secretName: lecert-ingest.{{ k8s_domain }}
