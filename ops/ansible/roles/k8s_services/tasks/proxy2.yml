@@ -176,3 +176,143 @@
               secret:
                 secretName: lecert-{{ name }}.{{ k8s_domain }}
       {% endfor %}
+
+# TODO: Migrate to https
+- name: Add internal http proxy config
+  when: cluster_name in ['dev', 'staging']
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      #jinja2: block_start_string: '[%', block_end_string: '%]', variable_start_string: '[[', variable_end_string: ']]'
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nghttpx-conf-internal-http
+      data:
+        nghttpx.conf.tmpl: |
+          # Copyright (c) 2015 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          # Subject to Arista Networks, Inc.'s EULA.
+          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+          no-via=yes
+          add-x-forwarded-for=yes
+          server-name=Arista
+
+          # frontend HTTP
+          frontend=*,80;no-tls
+
+          # frontend HTTP for nghttpx api access
+          # Must ALWAYS be a unix socket local to the pod. NEVER expose.
+          # Disabled for now
+          # frontend=unix:/var/sharepod/nghttpxapi/socket.sock,80;no-tls;api
+
+          # Catch-all backend
+          ###################
+          backend=127.0.0.1,8080
+
+          # GRPC and HTTP services
+          ########################
+          {{- range gets "/services/default/*" }}
+            {{- $service := json .Value }}
+            {{- if and ($service.metadata.annotations) ($service.metadata.annotations.external_type) }}
+            {{- if eq $service.metadata.annotations.external_type "http" | or (eq $service.metadata.annotations.external_type "grpc") }}
+
+          # Service {{$service.metadata.name}}
+              {{- $endpoints := print "/endpoints/default/" $service.metadata.name }}
+              {{- if exists $endpoints}}
+              {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+              {{- range $j, $addr := $subset.addresses }}
+              {{- range $k, $port := $subset.ports }}
+          backend={{$addr.ip}},{{.port}};{{ if $service.metadata.annotations.external_name }}{{$service.metadata.annotations.external_name}}{{ else }}{{$service.metadata.name}}{{ end }}.[[ k8s_domain ]]{{ if $service.metadata.annotations.external_path }}{{$service.metadata.annotations.external_path}}{{ else }}/{{ end }}{{ if eq $service.metadata.annotations.external_type "grpc" }};proto=h2{{ end }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+
+          # HTTP services for statefulsets
+          ################################
+          {{- range gets "/statefulsets/default/*" }}
+          {{- $statefulset := json .Value }}
+          {{- if and ($statefulset.metadata.annotations) ($statefulset.metadata.annotations.external_type) }}
+          {{- if eq $statefulset.metadata.annotations.external_type "http" }}
+          {{- $endpoints := print "/endpoints/default/" $statefulset.spec.serviceName }}
+          {{- if exists $endpoints }}
+          # Statefulset {{$statefulset.spec.serviceName}}
+          {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+          {{- range $j, $addr := $subset.addresses }}
+          {{- $name := split $addr.hostname "-" }}
+          {{- $name := index $name 0 }}
+          {{- if eq $statefulset.metadata.name $name }}
+          backend={{$addr.ip}},{{$statefulset.metadata.annotations.external_port}};{{$addr.hostname}}.{{$statefulset.spec.serviceName}}.[[ k8s_domain ]]/
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+# TODO: Migrate to https
+# This will be migrated when we can do wildcard certs with Let's Encrypt
+# Until then, we need to keep 80 to handle review deploys.
+- name: deploy http proxy in dev
+  when: cluster_name in ['dev', 'staging']
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: proxy2-internal-http
+      spec:
+        selector:
+          matchLabels:
+            app: proxy2-internal-http
+        template:
+          metadata:
+            name: proxy2-internal-http
+            # annotations:
+            #   TODO: enable some kind of metric to monitor nghttpx
+            #   prometheus.io/scrape: "true"
+            #   prometheus.io/port: "9201"
+            labels:
+              app: proxy2-internal-http
+          spec:
+            nodeSelector:
+              role: proxy
+            containers:
+            - name: proxy2
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
+              imagePullPolicy: Always
+              args:
+                - -backend
+                - kubernetes
+              ports:
+                - name: https
+                  containerPort: 80
+                  hostPort: 80
+              volumeMounts:
+              - name: nghttpx-conf-internal-http
+                mountPath: /etc/confd/templates/nghttpx.conf.tmpl
+                subPath: nghttpx.conf.tmpl
+            - name: catchall-service
+              image: nginx:1.13.5
+              volumeMounts:
+              - name: nginx-catchall-config
+                mountPath: /etc/nginx/nginx.conf
+                subPath: nginx.conf
+            volumes:
+            - name: nginx-catchall-config
+              configMap:
+                name: nginx-catchall-config
+            - name: nghttpx-conf-internal-http
+              configMap:
+                name: nghttpx-conf-internal-http
