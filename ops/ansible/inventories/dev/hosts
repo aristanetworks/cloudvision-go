@@ -1,5 +1,5 @@
 [coreos]
-bs200.sjc.aristanetworks.com
+bs200.sjc.aristanetworks.com private_ip_prefix=172.20.22. public_ip_prefix=172.20.22.
 r123s17.sjc.aristanetworks.com
 r123s18.sjc.aristanetworks.com
 # r123s19.sjc.aristanetworks.com # Used by cvpi team, not managed by ansible.
