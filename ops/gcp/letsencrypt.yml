@@ -67,6 +67,14 @@ spec:
               kafkaui.dev.corp.arista.io
               prometheus.dev.corp.arista.io
               registry.dev.corp.arista.io
+              alertmanager.staging.corp.arista.io
+              apiserver.staging.corp.arista.io
+              geiger.staging.corp.arista.io
+              grafana.staging.corp.arista.io
+              ingest.staging.corp.arista.io
+              kafkaui.staging.corp.arista.io
+              prometheus.staging.corp.arista.io
+              registry.staging.corp.arista.io
               npm.corp.arista.io
               godoc.corp.arista.io
               gocover.corp.arista.io
