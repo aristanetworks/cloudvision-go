@@ -19,7 +19,7 @@ ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
 
   --volume-stats-agg-period=0 \
   --feature-gates=PersistentLocalVolumes=true \
-  --cadvisor-port=4194{% if 'k8s_masters' not in group_names %} \
+  --cadvisor-port=0{% if 'k8s_masters' not in group_names %} \
   --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
   --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem{% endif %}
 
