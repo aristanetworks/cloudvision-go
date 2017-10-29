@@ -26,5 +26,7 @@ ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
 Restart=always
 RestartSec=10
 
+Environment="PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/bin"
+
 [Install]
 WantedBy=multi-user.target

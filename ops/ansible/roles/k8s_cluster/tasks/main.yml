@@ -131,3 +131,13 @@
     state: restarted
     daemon_reload: yes
   when: kservice.changed or kcerts.changed or kmanifests.changed or kubelet_binary.changed
+
+- name: Install socat binary
+  become: True
+  get_url:
+    url: https://github.com/jfrabaute/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
+    checksum: sha256:e2d0da018252fc18f755014854cf4c337a7a1c446879677fc1e20644c744eab2
+    dest: /opt/bin/socat
+    owner: root
+    group: root
+    mode: 0700
