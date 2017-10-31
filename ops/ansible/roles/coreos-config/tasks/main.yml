@@ -99,3 +99,7 @@
   template:
     src: util.bashrc.j2
     dest: "{{ ansible_env.HOME }}/.bashrc.d/util.bashrc"
+
+- name: Custom config for ovh-bhs cluster
+  import_tasks: custom-ovh-bhs.yml
+  when: cluster_name == "ovh-bhs"

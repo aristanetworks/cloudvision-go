@@ -1,0 +1,61 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: Install private vRack ip
+  become: True
+  copy:
+    content: |
+      [Match]
+      Name=eno4
+
+      [Network]
+      Address=172.17.{{ ansible_default_ipv4["address"].split(".")[2:] | join(".") }}/20
+      Gateway=172.17.0.1
+    dest: /etc/systemd/network/10-private-ip-vrack.network
+  register: private_network_install
+
+- name: Restart network to enable private ip
+  become: True
+  systemd:
+    state: restarted
+    name: systemd-networkd
+  when: private_network_install.changed
+
+# Formatting hard drives.
+# Manual process:
+# ansible -i inventories/ovh-bhs/hosts 'all:!localhost' -a 'bash -c "sudo blkid -L DISK2 || sudo mkfs.ext4 -L "DISK2" -F /dev/sdb"'
+# ansible -i inventories/ovh-bhs/hosts 'all:!localhost' -a 'bash -c "sudo blkid -L DISK3 || sudo mkfs.ext4 -L "DISK3" -F /dev/sdc"'
+
+- name: Install mount units
+  become: True
+  copy:
+    dest: /etc/systemd/system/data{{ item }}.mount
+    content: |
+      [Mount]
+      What=LABEL=DISK{{ item }}
+      Where=/data{{ item }}
+      Type=ext4
+      Options=nofail
+      TimeoutSec=10
+  with_items: [2, 3]
+
+- name: Start and enable mounts
+  become: True
+  systemd:
+    state: started
+    enabled: yes
+    name: data{{ item }}.mount
+  with_items: [2, 3]
+
+- name: Create /data1 folder on the root partition
+  become: True
+  file:
+    state: directory
+    path: /data1
+    owner: root
+    group: root
+    mode: 0755
