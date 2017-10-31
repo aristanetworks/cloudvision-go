@@ -103,3 +103,15 @@
 - name: Custom config for ovh-bhs cluster
   import_tasks: custom-ovh-bhs.yml
   when: cluster_name == "ovh-bhs"
+
+- name: Get ip address of all the etcd2 nodes
+  set_fact:
+    etcd2_ips: "[{% for host in groups.etcd2 %}'{{ lookup('dig', host) }}',{% endfor %}]"
+
+- name: Disable etcd2 on non-etcd2 nodes
+  become: True
+  systemd:
+    state: stopped
+    enabled: no
+    name: etcd2.service
+  when: ansible_default_ipv4["address"] not in etcd2_ips
