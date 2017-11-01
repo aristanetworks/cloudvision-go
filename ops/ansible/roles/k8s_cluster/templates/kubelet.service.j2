@@ -8,7 +8,7 @@ ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
 {%else%}
   --register-node=true \
 {% endif %}
-  --allow-privileged=true \
+  --allow-privileged={{ allow_privileged | lower }} \
   --pod-manifest-path=/etc/kubernetes/manifests \
   --hostname-override={{ inventory_hostname }} \
   --cluster_dns={{ cluster_dns }} \
