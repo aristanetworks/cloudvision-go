@@ -200,7 +200,7 @@
             # TODO: make it a pvc when we can mount multiple local volumes to pods
             - name: data2
               hostPath:
-                path: /data8/namenode
+                path: {{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}
         volumeClaimTemplates:
         - metadata:
             name: data1
