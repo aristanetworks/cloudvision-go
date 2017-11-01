@@ -12,7 +12,7 @@
   register: iptables_file
 
 # We don't use the service as it does not have
-# "--flush" flag. We could add a drop-in to change this
+# "--noflush" flag. We could add a drop-in to change this
 # but as it's only one change here, I run the command here
 # for now.
 - name: Install iptable rules
@@ -23,4 +23,28 @@
 - name: Enable iptable rules on reboot
   systemd:
     name: iptables-restore.service
+    enabled: yes
+
+- name: Install ip6table rule files
+  become: True
+  template:
+    src: ip6tables-rules.j2
+    dest: /var/lib/ip6tables/rules-save
+    owner: root
+    group: root
+    mode: 0644
+  register: ip6tables_file
+
+# We don't use the service as it does not have
+# "--noflush" flag. We could add a drop-in to change this
+# but as it's only one change here, I run the command here
+# for now.
+- name: Install ip6table rules
+  become: True
+  command: /sbin/ip6tables-restore --noflush /var/lib/ip6tables/rules-save
+  when: ip6tables_file.changed
+
+- name: Enable ip6table rules on reboot
+  systemd:
+    name: ip6tables-restore.service
     enabled: yes
