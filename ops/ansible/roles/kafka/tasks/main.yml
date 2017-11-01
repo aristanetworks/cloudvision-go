@@ -1,0 +1,13 @@
+
+---
+
+- name: Create kafka data directory
+  become: True
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  ignore_errors: True
+  with_items: "{{ kafka_data_dirs }}"

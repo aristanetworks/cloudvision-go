@@ -63,6 +63,10 @@
   roles:
     - zookeeper
 
+- hosts: kafka_brokers
+  roles:
+    - kafka
+
 - hosts: localhost
   roles:
     - k8s_services

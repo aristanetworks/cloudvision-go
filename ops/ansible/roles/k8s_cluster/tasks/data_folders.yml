@@ -11,16 +11,6 @@
     mode: 0755
   ignore_errors: True
 
-- name: Create kafka data directory
-  become: True
-  file:
-    path: "/data3/kafka-data"
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  ignore_errors: True
-
 - name: Create elastic search data directory
   become: True
   file:

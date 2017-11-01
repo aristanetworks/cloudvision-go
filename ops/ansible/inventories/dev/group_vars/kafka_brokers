@@ -1,0 +1,2 @@
+kafka_data_dirs:
+- /data3/kafka-data

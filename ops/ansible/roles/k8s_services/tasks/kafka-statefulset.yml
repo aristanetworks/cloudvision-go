@@ -34,7 +34,7 @@
         persistentVolumeReclaimPolicy: Retain
         storageClassName: kafka-data
         local:
-          path: /data3/kafka-data
+          path: {{ hostvars[item]["kafka_data_dirs"][0] }}
   with_items: "{{ groups.kafka_brokers }}"
 
 - name: deploy kafka service
