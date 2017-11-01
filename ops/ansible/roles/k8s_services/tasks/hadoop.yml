@@ -278,7 +278,7 @@
             - name: server
               image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
               imagePullPolicy: Always
-              args: ["./bin/hdfs", "datanode", "-Ddfs.datanode.data.dir=file:///data1,file:///data2,file:///data3,file:///data4"]
+              args: ["./bin/hdfs", "datanode", "-Ddfs.datanode.data.dir={% set comma = joiner(",") %}{% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] %}{{ comma() }}file:///data{{ loop.index }}{% endfor %}"]
               env:
               - name: HADOOP_LOGFILE
                 value: "datanode.log"
@@ -287,18 +287,11 @@
               - containerPort: 50075
               - containerPort: 50020
               volumeMounts:
-              - name: data1
+      {% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] %}
+              - name: data{{ loop.index }}
                 subPath: data
-                mountPath: /data1
-              - name: data2
-                subPath: data
-                mountPath: /data2
-              - name: data3
-                subPath: data
-                mountPath: /data3
-              - name: data4
-                subPath: data
-                mountPath: /data4
+                mountPath: /data{{ loop.index }}
+      {% endfor %}
               - name: data1
                 subPath: logs
                 mountPath: /logs
@@ -306,15 +299,11 @@
                 mountPath: /var/lib/hadoop
             volumes:
             # TODO: make it a pvc when we can mount multiple local volumes to pods
-            - name: data2
+      {% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'][1:] %}
+            - name: data{{ loop.index + 1 }}
               hostPath:
-                path: /data6/dfs
-            - name: data3
-              hostPath:
-                path: /data7/dfs
-            - name: data4
-              hostPath:
-                path: /data8/dfs
+                path: {{ item }}
+      {% endfor %}
             - name: var-lib-hadoop
               hostPath:
                 path: /var/lib/hadoop
