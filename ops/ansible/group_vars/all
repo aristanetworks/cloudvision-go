@@ -2,4 +2,11 @@
 
 cluster_name: "{{ inventory_dir | basename }}"
 
-allowed_ip_range: 162.210.128.0/22
+allowed_ips:
+  # Santa Clara HQ
+  - "162.210.128.0/22"
+  # SF
+  - "50.232.156.226"
+  # Dublin
+  - "217.173.96.166"
+  - "159.134.255.34"
