@@ -20,13 +20,13 @@
   when: cluster_name == "staging"
 
 - import_tasks: zookeeper-statefulset.yml
-  when: cluster_name == "dev"
+  when: cluster_name != "staging"
 
 - import_tasks: hadoop.yml
-  when: cluster_name == "dev"
+  when: cluster_name != "staging"
 
 - import_tasks: hbase.yml
-  when: cluster_name == "dev"
+  when: cluster_name != "staging"
 
 - import_tasks: prometheus.yml
 
@@ -38,9 +38,9 @@
   when: cluster_name == "staging"
 
 - import_tasks: kafka-statefulset.yml
-  when: cluster_name == "dev"
+  when: cluster_name != "staging"
 
 - import_tasks: aeris.yml
-  when: cluster_name == "dev"
+  when: cluster_name != "staging"
 
 - import_tasks: letsencrypt.yml
