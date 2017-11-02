@@ -81,18 +81,18 @@
     insecure: true
     state: apply
     inline_data: |
-      apiVersion: extensions/v1beta1
-      kind: DaemonSet
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
       metadata:
         name: prometheus
       spec:
+        serviceName: prometheus
+        replicas: 1
         template:
           metadata:
             labels:
               app: prometheus
           spec:
-            nodeSelector:
-              prometheus: node
             containers:
             - name: prometheus
               image: quay.io/prometheus/prometheus:v1.7.1
@@ -110,7 +110,7 @@
                 mountPath: /etc/prometheus
               - name: alerts
                 mountPath: /etc/alerts
-              - name: storage
+              - name: data
                 mountPath: /prom-data
             securityContext:
               runAsUser: 1000
@@ -122,10 +122,16 @@
             - name: alerts
               configMap:
                 name: alerts
-            - name: storage
-              hostPath:
-                path: {{ hostvars[item]["prometheus_data_dir"] }}
-  with_items: "{{ groups.prometheus }}"
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: prom-data
+            resources:
+              requests:
+                # TODO: Determine how much we want here.
+                storage: 1Ti
 
 - name: deploy node exporter
   kubernetes:
