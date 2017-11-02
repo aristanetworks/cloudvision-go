@@ -189,71 +189,164 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: nghttpx-conf-internal-http
+        name: haproxy-conf-internal-http
       data:
-        nghttpx.conf.tmpl: |
+        haproxy.toml: |
+          [template]
+          src = "haproxy.cfg.tmpl"
+          dest = "/etc/haproxy/haproxy.cfg"
+          keys = [
+            "/services/default",
+            "/endpoints/default",
+            "/statefulsets/default",
+          ]
+
+          check_cmd = "/usr/sbin/haproxy -c -f {{ .src }}"
+          reload_cmd = "haproxy -f /etc/haproxy/haproxy.cfg -p /var/run/haproxy.pid -D -sf $(cat /var/run/haproxy.pid)"
+
+        haproxy.cfg.tmpl: |
           # Copyright (c) 2015 Arista Networks, Inc.  All rights reserved.
           # Arista Networks, Inc. Confidential and Proprietary.
           # Subject to Arista Networks, Inc.'s EULA.
           # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-          no-via=yes
-          add-x-forwarded-for=yes
-          server-name=Arista
+          global
+            daemon
+            pidfile /var/run/haproxy.pid
+            maxconn 128000
 
-          # frontend HTTP
-          frontend=*,80;no-tls
+          defaults
+            mode http
+            timeout connect 5000ms
+            timeout client 50000ms
+            timeout client-fin 50000ms
+            timeout server 50000ms
+            timeout tunnel 1h    # timeout to use with WebSocket and CONNECT
+            stats enable
+            stats uri /haproxyStats
+            errorfile 400 /etc/haproxy/errors/400.http
+            errorfile 403 /etc/haproxy/errors/403.http
+            errorfile 408 /etc/haproxy/errors/408.http
+            errorfile 500 /etc/haproxy/errors/500.http
+            errorfile 502 /etc/haproxy/errors/502.http
+            errorfile 503 /etc/haproxy/errors/503.http
+            errorfile 504 /etc/haproxy/errors/504.http
 
-          # frontend HTTP for nghttpx api access
-          # Must ALWAYS be a unix socket local to the pod. NEVER expose.
-          # Disabled for now
-          # frontend=unix:/var/sharepod/nghttpxapi/socket.sock,80;no-tls;api
+          frontend httpfrontend
+            # Frontend bound on all network interfaces on port 443
+            bind *:80
 
-          # Catch-all backend
-          ###################
-          backend=127.0.0.1,8080
+          # HTTP Services
+          ###############
+          {{ range gets "/services/default/*" }}
+          {{ $service := json .Value }}
+          {{- if and ($service.metadata.annotations) ($service.metadata.annotations.external_type) }}
+          {{- if eq $service.metadata.annotations.external_type "http" }}
+            {{- $hostname := print $service.metadata.labels.app ".[[ k8s_domain ]]" }}
+            {{- if $service.metadata.annotations.external_name }}
+            acl host_{{$service.metadata.labels.app}} hdr(host) {{ $service.metadata.annotations.external_name }}[[ k8s_domain ]]
+            {{- else if $service.metadata.annotations.external_host }}
+            acl host_{{$service.metadata.labels.app}} hdr(host) {{ $service.metadata.annotations.external_host }}
+            {{- else }}
+            acl host_{{$service.metadata.labels.app}} hdr(host) {{ $hostname }}
+            {{- end }}
+            use_backend http_backend_{{$service.metadata.labels.app}} if host_{{$service.metadata.labels.app}}
+          {{- end }}
+          {{- end }}
+          {{- end }}
 
-          # GRPC and HTTP services
-          ########################
+          # HTTP Services from statefulsets
+          #################################
+          {{ range gets "/statefulsets/default/*" }}
+          {{ $statefulset := json .Value }}
+          {{- if and ($statefulset.metadata.annotations) ($statefulset.metadata.annotations.external_type) }}
+          {{- if eq $statefulset.metadata.annotations.external_type "http" }}
+            {{ $endpoints := print "/endpoints/default/" $statefulset.spec.serviceName }}
+            {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- $name := split $addr.hostname "-" }}
+            {{- $name := index $name 0 }}
+            {{- if eq $statefulset.metadata.name $name }}
+            acl host_{{$addr.hostname}}_{{$statefulset.spec.serviceName}} hdr(host) {{$addr.hostname}}.{{$statefulset.spec.serviceName}}[[ k8s_domain ]]
+            use_backend http_backend_{{$addr.hostname}}_{{$statefulset.spec.serviceName}} if host_{{$addr.hostname}}_{{$statefulset.spec.serviceName}}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+          # GRPC Services
+          ##############
           {{- range gets "/services/default/*" }}
-            {{- $service := json .Value }}
-            {{- if and ($service.metadata.annotations) ($service.metadata.annotations.external_type) }}
-            {{- if eq $service.metadata.annotations.external_type "http" | or (eq $service.metadata.annotations.external_type "grpc") }}
+          {{- $service := json .Value }}
+          {{- if and ($service.metadata.annotations) ($service.metadata.annotations.external_type) }}
+          {{- if eq $service.metadata.annotations.external_type "grpc" }}
+          {{- $extport := $service.metadata.annotations.external_port }}
+          {{- $name := $service.metadata.name }}
+          listen tcp_{{ $name }}
+            bind *:{{ $extport }}
+            mode tcp
+            timeout connect  4000
+            timeout client   180000
+            timeout server   180000
+            {{- $endpoints := print "/endpoints/default/" $name }}
+            {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- range $k, $port := $subset.ports }}
+            server tcp_{{ $name }}{{ print "_" $i "_" $j "_" $k }} {{$addr.ip}}:{{.port}}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
 
-          # Service {{$service.metadata.name}}
-              {{- $endpoints := print "/endpoints/default/" $service.metadata.name }}
-              {{- if exists $endpoints}}
-              {{- range $i, $subset := (json (getv $endpoints)).subsets }}
-              {{- range $j, $addr := $subset.addresses }}
-              {{- range $k, $port := $subset.ports }}
-          backend={{$addr.ip}},{{.port}};{{ if $service.metadata.annotations.external_name }}{{$service.metadata.annotations.external_name}}{{ else }}{{$service.metadata.name}}{{ end }}.[[ k8s_domain ]]{{ if $service.metadata.annotations.external_path }}{{$service.metadata.annotations.external_path}}{{ else }}/{{ end }}{{ if eq $service.metadata.annotations.external_type "grpc" }};proto=h2{{ end }}
-              {{- end }}
-              {{- end }}
-              {{- end }}
-              {{- end }}
+          {{define "httpservice"}}
+          # HTTP service
+          backend http_backend_{{.metadata.labels.app}}{{ $name := .metadata.name }}
+            balance roundrobin
+            option httpclose
+            option forwardfor
+            {{ $endpoints := print "/endpoints/default/" .metadata.name }}
+            {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- range $k, $port := $subset.ports }}
+            server {{ $name }}{{ print "_" $i "_" $j "_" $k }} {{$addr.ip}}:{{.port}}
+            {{- end }}
             {{- end }}
             {{- end }}
           {{- end }}
 
-          # HTTP services for statefulsets
-          ################################
+          # Expose services
+          {{- range gets "/services/default/*" }}
+          {{- $service := json .Value }}
+          {{- if and ($service.metadata.annotations) ($service.metadata.annotations.external_type) }}
+          {{- if eq $service.metadata.annotations.external_type "http" }}
+            {{ template "httpservice" $service }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+          # Expose services for statefulsets
           {{- range gets "/statefulsets/default/*" }}
           {{- $statefulset := json .Value }}
           {{- if and ($statefulset.metadata.annotations) ($statefulset.metadata.annotations.external_type) }}
           {{- if eq $statefulset.metadata.annotations.external_type "http" }}
-          {{- $endpoints := print "/endpoints/default/" $statefulset.spec.serviceName }}
-          {{- if exists $endpoints }}
-          # Statefulset {{$statefulset.spec.serviceName}}
-          {{- range $i, $subset := (json (getv $endpoints)).subsets }}
-          {{- range $j, $addr := $subset.addresses }}
-          {{- $name := split $addr.hostname "-" }}
-          {{- $name := index $name 0 }}
-          {{- if eq $statefulset.metadata.name $name }}
-          backend={{$addr.ip}},{{$statefulset.metadata.annotations.external_port}};{{$addr.hostname}}.{{$statefulset.spec.serviceName}}.[[ k8s_domain ]]/
-          {{- end }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
+            {{ $endpoints := print "/endpoints/default/" $statefulset.spec.serviceName }}
+            {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- $name := split $addr.hostname "-" }}
+            {{- $name := index $name 0 }}
+            {{- if eq $statefulset.metadata.name $name }}
+          backend http_backend_{{$addr.hostname}}_{{$statefulset.spec.serviceName}}
+            balance roundrobin
+            option httpclose
+            option forwardfor
+            server {{$addr.hostname}}_{{$statefulset.spec.serviceName}} {{$addr.ip}}:{{$statefulset.metadata.annotations.external_port}}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           {{- end }}
           {{- end }}
           {{- end }}
@@ -271,26 +364,26 @@
       apiVersion: extensions/v1beta1
       kind: DaemonSet
       metadata:
-        name: proxy2-internal-http
+        name: proxy-internal-http
       spec:
         selector:
           matchLabels:
-            app: proxy2-internal-http
+            app: proxy-internal-http
         template:
           metadata:
-            name: proxy2-internal-http
-            # annotations:
-            #   TODO: enable some kind of metric to monitor nghttpx
-            #   prometheus.io/scrape: "true"
-            #   prometheus.io/port: "9201"
+            name: proxy-internal-http
+            annotations:
+              prometheus.io/scrape: "true"
+              prometheus.io/port: "9201"
             labels:
-              app: proxy2-internal-http
+              app: proxy-internal-http
           spec:
             nodeSelector:
               role: proxy
+            hostNetwork: true
             containers:
-            - name: proxy2
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
+            - name: proxy
+              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy
               imagePullPolicy: Always
               args:
                 - -backend
@@ -300,9 +393,12 @@
                   containerPort: 80
                   hostPort: 80
               volumeMounts:
-              - name: nghttpx-conf-internal-http
-                mountPath: /etc/confd/templates/nghttpx.conf.tmpl
-                subPath: nghttpx.conf.tmpl
+              - name: haproxy-conf-internal-http
+                mountPath: /etc/confd/templates/haproxy.cfg.tmpl
+                subPath: haproxy.cfg.tmpl
+              - name: haproxy-conf-internal-http
+                mountPath: /etc/confd/conf.d/haproxy.toml
+                subPath: haproxy.toml
             - name: catchall-service
               image: nginx:1.13.5
               volumeMounts:
@@ -313,6 +409,6 @@
             - name: nginx-catchall-config
               configMap:
                 name: nginx-catchall-config
-            - name: nghttpx-conf-internal-http
+            - name: haproxy-conf-internal-http
               configMap:
-                name: nghttpx-conf-internal-http
+                name: haproxy-conf-internal-http
