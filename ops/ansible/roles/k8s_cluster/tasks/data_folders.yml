@@ -31,16 +31,6 @@
     mode: 0755
   ignore_errors: True
 
-- name: Create prometheus data directory
-  become: True
-  file:
-    path: "/data5/prom-data"
-    state: directory
-    owner: 1000
-    group: 1000
-    mode: 0755
-  ignore_errors: True
-
 - name: Create alertmanager data directory
   become: True
   file:

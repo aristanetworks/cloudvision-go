@@ -1,0 +1,12 @@
+
+---
+
+- name: Create prometheus data directory
+  become: True
+  file:
+    path: "{{ prometheus_data_dir }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: 0755
+  ignore_errors: True

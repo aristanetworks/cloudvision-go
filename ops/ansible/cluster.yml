@@ -51,6 +51,10 @@
   roles:
     - hbase
 
+- hosts: prometheus
+  roles:
+    - prometheus
+
 - hosts: zookeeper
   roles:
     - zookeeper

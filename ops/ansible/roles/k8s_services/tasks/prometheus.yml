@@ -91,7 +91,8 @@
                 name: alerts
             - name: storage
               hostPath:
-                path: /data5/prom-data
+                path: {{ hostvars[item]["prometheus_data_dir"] }}
+  with_items: "{{ groups.prometheus }}"
 
 - name: deploy node exporter
   kubernetes:
