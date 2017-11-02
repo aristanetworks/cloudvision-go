@@ -1,0 +1,17 @@
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = kubernetes
+DNS.2 = kubernetes.default
+DNS.3 = TODO // r12s24.sjc.aristanetworks.com
+DNS.4 = TODO // r123s24.sjc.aristanetworks.com
+DNS.5 = TODO // master.dev-infra.corp.arista.io
+IP.1 = TODO // 10.3.0.1
+IP.2 = TODO // 172.24.32.24
+IP.3 = TODO // 172.30.190.25

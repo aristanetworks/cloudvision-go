@@ -1,0 +1,3 @@
+hadoop_datanode_dirs:
+- /data1/dfs
+- /data2/dfs

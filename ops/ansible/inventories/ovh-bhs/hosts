@@ -1,0 +1,102 @@
+[coreos]
+ns545235.ip-144-217-181.net
+ns545236.ip-144-217-181.net
+ns545237.ip-144-217-181.net
+ns545238.ip-144-217-181.net
+ns545239.ip-144-217-181.net
+ns545241.ip-144-217-181.net
+ns545242.ip-144-217-181.net
+ns545243.ip-144-217-181.net
+ns545244.ip-144-217-181.net
+ns545245.ip-144-217-181.net
+ns545246.ip-144-217-181.net
+ns545247.ip-144-217-181.net
+ns545248.ip-144-217-181.net
+ns545249.ip-144-217-181.net
+ns545250.ip-144-217-181.net
+ns545255.ip-144-217-181.net
+ns545256.ip-144-217-181.net
+ns545257.ip-144-217-181.net
+ns545258.ip-144-217-181.net
+ns545261.ip-144-217-181.net
+ns545264.ip-144-217-181.net
+ns545395.ip-144-217-181.net
+ns545397.ip-144-217-181.net
+ns545402.ip-144-217-181.net
+
+# This group is a fake group used to have all the hosts
+# on coreos use the same vars
+# Some hosts are referenced using differents hostnames
+# So some secondary hostnames used to reference a coreos host
+# are not in the "coreos" group (as it would run twice the roles for the same host)
+# So this group is here to take care of sharing the coreos hosts config.
+[coreos_ansible_config]
+; master.dev-infra.corp.arista.io
+; 0.etcd.dev-infra.corp.arista.io
+; 1.etcd.dev-infra.corp.arista.io
+; 2.etcd.dev-infra.corp.arista.io
+
+[coreos_ansible_config:children]
+coreos
+
+[etcd2]
+; 0.etcd.dev-infra.corp.arista.io
+; 1.etcd.dev-infra.corp.arista.io
+; 2.etcd.dev-infra.corp.arista.io
+
+[k8s_masters]
+; master.dev-infra.corp.arista.io
+
+[k8s_workers]
+
+
+[cvpbs:children]
+k8s_workers
+
+[hadoop:children]
+datanodes
+journalnodes
+namenodes
+
+[datanodes]
+
+[journalnodes]
+; r123s17.sjc.aristanetworks.com
+; r123s20.sjc.aristanetworks.com
+; r123s21.sjc.aristanetworks.com
+
+[namenodes]
+; r123s17.sjc.aristanetworks.com
+; r123s20.sjc.aristanetworks.com
+
+[hbasemasters:children]
+namenodes
+
+[regionservers:children]
+datanodes
+
+[hbase:children]
+hbasemasters
+datanodes
+
+[kafka_brokers]
+
+[local]
+localhost ansible_connection=local ansible_become=false
+
+[zookeeper]
+; r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
+; master.dev-infra.corp.arista.io ZOOKEEPER_ID=2
+; r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3
+
+[registry]
+; r123s18.sjc.aristanetworks.com
+
+# The following group lists all the hostnames which should be put in /etc/hosts file of
+# each host
+[etc_hosts]
+; master.dev-infra.corp.arista.io
+; 0.etcd.dev-infra.corp.arista.io
+; 1.etcd.dev-infra.corp.arista.io
+; 2.etcd.dev-infra.corp.arista.io
+; registry.dev-infra.corp.arista.io
