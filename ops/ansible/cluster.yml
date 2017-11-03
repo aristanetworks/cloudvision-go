@@ -55,6 +55,10 @@
   roles:
     - prometheus
 
+- hosts: alertmanager
+  roles:
+    - alertmanager
+
 - hosts: zookeeper
   roles:
     - zookeeper

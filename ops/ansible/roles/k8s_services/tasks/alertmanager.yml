@@ -151,4 +151,5 @@
                 name: alertmanager
             - name: storage
               hostPath:
-                path: /data6/am-data
+                path: {{ hostvars[item]["alertmanager_data_dir"] }}
+  with_items: "{{ groups.alertmanager }}"
