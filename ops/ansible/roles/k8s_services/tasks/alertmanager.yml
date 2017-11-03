@@ -142,24 +142,24 @@
             slack_configs:
             - channel: '#{{cluster_name}}-alert'
 
-- name: deploy alertmanager deamonset
+- name: deploy alertmanager server
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
     state: present
     inline_data: |
-      apiVersion: extensions/v1beta1
-      kind: DaemonSet
+      apiVersion: apps/v1beta1
+      kind: StatefulSet
       metadata:
         name: alertmanager
       spec:
+        serviceName: alertmanager
+        replicas: 1
         template:
           metadata:
             labels:
               app: alertmanager
           spec:
-            nodeSelector:
-              alertmanager: node
             containers:
             - name: alertmanager
               args:
@@ -173,7 +173,7 @@
               volumeMounts:
               - name: config
                 mountPath: /etc/alertmanager
-              - name: storage
+              - name: data
                 mountPath: /am-data
             securityContext:
               runAsUser: 1000
@@ -182,7 +182,13 @@
             - name: config
               configMap:
                 name: alertmanager
-            - name: storage
-              hostPath:
-                path: {{ hostvars[item]["alertmanager_data_dir"] }}
-  with_items: "{{ groups.alertmanager }}"
+        volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: am-data
+            resources:
+              requests:
+                # TODO: Determine how much we want here.
+                storage: 1Ti
