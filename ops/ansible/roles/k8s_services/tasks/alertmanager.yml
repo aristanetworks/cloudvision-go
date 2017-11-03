@@ -5,6 +5,39 @@
 
 ---
 
+- name: create am-data volumes
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "am-data-{{ item | replace('.', '-') }}"
+        annotations:
+          "volume.alpha.kubernetes.io/node-affinity": '{
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                { "matchExpressions": [
+                  { "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [ "{{ item }}" ]
+                  }
+                ]}
+               ]}
+              }'
+      spec:
+        capacity:
+          # TODO: Determine how much we want here.
+          storage: 1Ti
+        accessModes:
+        - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: am-data
+        local:
+          path: {{ hostvars[item]["alertmanager_data_dir"] }}
+  with_items: "{{ groups.alertmanager }}"
+
 - name: deploy alertmanager service
   kubernetes:
     api_endpoint: 127.0.0.1:8001

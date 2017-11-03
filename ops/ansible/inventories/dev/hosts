@@ -104,6 +104,9 @@ r123s31.sjc.aristanetworks.com
 [prometheus]
 r123s20.sjc.aristanetworks.com
 
+[alertmanager]
+r123s27.sjc.aristanetworks.com
+
 [local]
 localhost ansible_connection=local ansible_become=false
 
