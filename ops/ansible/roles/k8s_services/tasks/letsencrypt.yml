@@ -242,8 +242,6 @@
           metadata:
             labels:
               app: gcp-letsencrypt
-            annotations:
-              prometheus.io/scrape: 'true'
           spec:
             containers:
             - name: gcp-letsencrypt
