@@ -6,8 +6,13 @@
         url: "{{ SCYLLA_REPO_URL }}"
         dest: /etc/yum.repos.d/scylla.repo
 
+- name: "Downgrade the scylla software"
+  command: yum downgrade scylla* -y
+  when: "SCYLLA_DOWNGRADE | int == 1"
+
 - name: "Update the scylla software"
   command: yum update scylla* -y
+  when: "SCYLLA_DOWNGRADE | int != 1"
 
 - name: "Remove the scylla repo"
   file:
