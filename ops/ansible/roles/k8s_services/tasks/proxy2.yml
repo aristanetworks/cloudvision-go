@@ -405,6 +405,13 @@
               - name: nginx-catchall-config
                 mountPath: /etc/nginx/nginx.conf
                 subPath: nginx.conf
+            - name: prometheus-haproxy-exporter
+              image: prom/haproxy-exporter:v0.7.1
+              args:
+                - -haproxy.scrape-uri=http://localhost/haproxyStats?stats;csv
+                - --web.listen-address=:9201
+              ports:
+              - containerPort: 9201
             volumes:
             - name: nginx-catchall-config
               configMap:
