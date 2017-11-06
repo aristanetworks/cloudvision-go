@@ -7,6 +7,11 @@
 
 - name: "Add build server build tags"
   shell: "Abuildd --addtags=\"fedora18 largemem bs3xx\""
+
+- name: "Install Abuild-asyncDeleteTree - only relevant for build servers to clean up after builds"
+  yum:
+      name: Abuild-asyncDeleteTree
+      state: present
   
 # ------------------------
 # Arjobd related changes
