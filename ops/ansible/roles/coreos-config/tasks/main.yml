@@ -17,6 +17,12 @@
     dest: /etc/sysctl.d/inotify.conf
   register: result
 
+- name: update config
+  become: True
+  copy:
+    src: roles/common/files/update.conf
+    dest: /etc/coreos/update.conf
+
 - name: re-enable ipv6 step 1
   become: True
   file:
