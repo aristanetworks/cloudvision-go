@@ -23,3 +23,5 @@ letsencrypt_mode: gcp
 
 private_ip_prefix: 172.30.190.
 public_ip_prefix: 172.30.190.
+
+aeris_topic_version: 1

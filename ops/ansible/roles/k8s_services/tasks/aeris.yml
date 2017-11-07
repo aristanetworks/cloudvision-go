@@ -87,9 +87,9 @@
                 - workers=1000
                 - -workers=80
                 - -todb
-                - todb_qualified
+                - todb_v{{ aeris_topic_version }}
                 - -postdb
-                - postdb_qualified
+                - postdb_v{{ aeris_topic_version }}
                 - -group
                 - aeris_recorder_hbase
                 - -v=5
@@ -136,7 +136,7 @@
                 - -storageoption
                 - table=aeris
                 - -postdb
-                - postdb_qualified
+                - postdb_v{{ aeris_topic_version }}
                 - -postdbgroup
                 - aeris_dispatcher_postDB
                 - -subscriptions
@@ -237,7 +237,7 @@
                 - -storageoption
                 - table=aeris
                 - -todb
-                - todb_qualified
+                - todb_v{{ aeris_topic_version }}
                 - -subscriptions
                 - subscriptions_hbase
                 - -buffersize=100
@@ -309,7 +309,7 @@
                 - -kafkaaddrs
                 - kafka:9092
                 - -todb
-                - todb_qualified
+                - todb_v{{ aeris_topic_version }}
                 - -storage
                 - hbase
                 - -storageoption
