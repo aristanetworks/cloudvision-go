@@ -98,6 +98,7 @@ yum install -y pciutils
 yum install -y yum-utils
 # for Scylla debugging
 yum install -y perf
+yum install -y vim
 
 # Configure bonding
 mkdir /tmp/root
