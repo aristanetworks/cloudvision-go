@@ -9,7 +9,10 @@
 # so that we can use the results when needed, especially since
 # this server has been installed anew. It also helps to check
 # health of the server right after new installation.
-- name: "Trigger long SMART selftests for each disk."
-  shell: "smartctl -t long /dev/{{ item }}"
-  with_items: "{{ ansible_devices.keys() }}"
+#  FIXME - skip non disk devices like mdX
+#  FIXME - use the force flag to handle the scenario where the
+#          long test from previous cleanup phase are still active
+#- name: "Trigger long SMART selftests for each disk."
+#  shell: "smartctl -t long /dev/{{ item }}"
+#  with_items: "{{ ansible_devices.keys() }}"
 ...
