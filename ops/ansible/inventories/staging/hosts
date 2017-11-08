@@ -103,6 +103,12 @@ r123s9.sjc.aristanetworks.com
 [cvpbs:children]
 k8s_workers
 
+[prometheus]
+r123s4.sjc.aristanetworks.com
+
+[alertmanager]
+r123s14.sjc.aristanetworks.com
+
 [local]
 localhost ansible_connection=local ansible_become=false
 
