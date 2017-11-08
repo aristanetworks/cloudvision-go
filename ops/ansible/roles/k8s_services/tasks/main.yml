@@ -16,11 +16,7 @@
 
 - import_tasks: etcd.yml
 
-- import_tasks: zookeeper.yml
-  when: cluster_name == "staging"
-
 - import_tasks: zookeeper-statefulset.yml
-  when: cluster_name != "staging"
 
 - import_tasks: hadoop.yml
   when: cluster_name != "staging"
@@ -34,11 +30,7 @@
 
 - import_tasks: grafana.yml
 
-- import_tasks: kafka.yml
-  when: cluster_name == "staging"
-
 - import_tasks: kafka-statefulset.yml
-  when: cluster_name != "staging"
 
 - import_tasks: aeris.yml
   when: cluster_name != "staging"
