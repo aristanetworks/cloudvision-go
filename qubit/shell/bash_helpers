@@ -158,3 +158,48 @@ function ipmi_force_bios() { ${IPMITOOL} -H $1 chassis bootparam set bootflag fo
 function ipmi_console() { echo $1; ${IPMITOOL} -H $1 sol activate; }
 function ipmi_power_cycle() { ${IPMITOOL} -H $1 chassis power cycle; }
 function ipmi_power_status() { ${IPMITOOL} -H $1 chassis power status; }
+
+# assumes kubectl config is set to point to the right cluster
+function k8_show_qubit_apps() {
+	SEP=${1:-"\n"}
+	#kubectl get pods --show-labels | grep qubit
+	#qubit-walkerd-dev-v1.0.0-vplwb             1/1       Running   1          4d        app=qubit-walkerd-dev,version=v1.0.0
+	#qubit-walkerd-prod-v1.0.0-vql1o            1/1       Running   1          4d        app=qubit-walkerd-prod,version=v1.0.0
+	LIST=`kubectl get pods --no-headers --show-labels |\
+		grep "app=qubit" |\
+		awk '{print($6)}' |\
+		awk -F"," '{for (i=1;i<=NF;i++) if ($i~/app/)print $i}' |\
+		awk -F"=" '{print($2)}'`
+
+	echo $LIST | sed -e "s/ /${SEP}/g"
+}
+
+function k8_show_qubit_pods() {
+
+	PREV_OFS=$OFS
+	OFS=","
+	QUBIT_APPS=`k8_show_qubit_apps ","`
+
+	kubectl get pod -l "app in (${QUBIT_APPS})" -o wide
+}
+
+function k8_show_state() {
+	app=$1
+	# container restarts are reflected in lastState and RESTARTS coluns in get pods -o wide
+	# there is no such thing as pod restart
+	# when a pod terminates a completely new pod is born
+	kubectl get pods --selector=app=$app -o json | jq '
+		{ pod: { name: .items[].metadata.name,
+		         phase: .items[].status.phase},
+		 container: { currentState: .items[].status.containerStatuses[].state,
+			      restartCount: .items[].status.containerStatuses[].restartCount,
+			      lastState: .items[].status.containerStatuses[].lastState }}'
+}
+
+function k8_show_logs() {
+	# previous logs
+	app=$1
+	kubectl get pods --selector=app=$app -o json | jq '.items[].metadata.name' | xargs -I % kubectl logs -p %
+	# current logs
+	kubectl get pods --selector=app=$app -o json | jq '.items[].metadata.name' | xargs -I % kubectl logs %
+}
