@@ -49,7 +49,7 @@
           }
         net-conf.json: >
           {
-            "Network": "10.2.0.0/16",
+            "Network": "{{ cluster_cidr }}",
             "Backend": {
               "Type": "vxlan"
             }
