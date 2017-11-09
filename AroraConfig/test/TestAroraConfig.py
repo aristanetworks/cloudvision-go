@@ -76,23 +76,17 @@ class Config( object ):
    # Template for client server names.
    client_serv = 'ardc_config_sv%s'
 
-   # Package directory
-   pkgdir = "AroraConfig"
-
    # Misc files directory 
-   misc_files = "AroraConfig/AroraConfig_testfiles"
+   misc_files = "AroraConfig_testfiles"
    
    # Path to RSA public host key.
    path_to_hostpub = 'test/dockerfiles/ar_fedora/ssh/id_rsa.pub'
 
    # Relative path to playbooks directory.
-   playbooks = '%s/playbooks/' % pkgdir
+   playbooks = 'playbooks/'
 
    # Main master playbook to be run.
    master = 'AroraConfig.yml'
-
-   # Relative path to master playbook
-   master_plbk = '%s/%s' % ( pkgdir, master )
 
    # Relative path to ping.yml
    ping_plbk = 'test/%s/ping.yml' % misc_files
@@ -215,23 +209,11 @@ class TestAnsiblePushTests( unittest.TestCase ):
       of ansible.cfg, but instead using a playbook to apply the config changes.
 
       '''
-      # XXX: If something is really different from deployment env then the settings
-      # here are probably very different from the deployment env.
-      # XXX: If something is really broken, check that the settings changed here are
-      # the same ones as those in config.yml.
+      self.callcmd( cmd.ex % ( conf.ansible_sv, "mkdir /etc/ansible" ) )
+      self.callcmd( cmd.copy % ( 
+                    "playbooks/files/ansible.cfg", 
+                    "%s:%s" % ( conf.ansible_sv, "/etc/ansible/ansible.cfg" ) ) )
 
-      # Disable host key checking
-      self.callcmd( cmd.ex % ( conf.ansible_sv,
-                    'sed -i \'/host_key_checking/c\host_key_checking = False\' %s' %
-                    conf.as_cfg ) )
-
-      # SSH args - stop auto disconnects after timeout
-      self.callcmd( cmd.ex % ( conf.ansible_sv,
-         'sed -i \'/ssh_args/c\ssh_args = -o ControlMaster=no\' %s' % conf.as_cfg ) )
-
-      # Enable pipelining
-      self.callcmd( cmd.ex % ( conf.ansible_sv,
-         'sed -i \'/pipelining/c\pipelining = True\' %s' % conf.as_cfg ) )
 
 
    def checkPlaybooks( self ): #pylint:disable-msg=R0201
@@ -421,7 +403,7 @@ class TestAnsiblePushTests( unittest.TestCase ):
       self.callcmd( cmd.copy % ( conf.playbooks, '%s:/' % conf.ansible_sv ) )
 
       # Copy over master playbook to ansible server container.
-      self.callcmd( cmd.copy % ( conf.master_plbk, '%s:/' % conf.ansible_sv ) )
+      self.callcmd( cmd.copy % ( conf.master, '%s:/' % conf.ansible_sv ) )
    
       # Copy over ping.yml ansible server container.
       self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_sv ) )
