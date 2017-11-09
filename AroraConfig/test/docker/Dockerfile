@@ -3,25 +3,17 @@
 
 # Custom Fedora image with sshd installed, used for tests in 'ardc-config' package, for
 # Ansible server.
-
-# We need Fedora 18, but Docker library only has images for Fedora 20 and above.
-FROM fedora:20
+FROM fedora:25
 MAINTAINER Ren Lee <ren@arista.com>
 
-# The following are installed:
-# sudo - apparently this is missing from base image
-# openssh - to host ssh connection to server
-# python - dependency for ansible
-# hostname - we want to be able to query the server's name
-# sshpass - Ansible requires this
 RUN yum install -y \
    openssh-server \
    python \
    hostname \
    sshpass \
-   ansible \ 
-   http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-1.0.0-1.x86_64.rpm \
-   http://dist.aristanetworks.com/ToolsV2/repo/x86_64/RPMS/telegraf-Linux-1.6-3.noarch.rpm \
+   ftp://rpmfind.net/linux/fedora/linux/updates/25/x86_64/a/ansible-2.4.0.0-1.fc25.noarch.rpm \
+   http://dist/ToolsV2/repo/x86_64/RPMS/telegraf-1.2.0-1.x86_64.rpm \
+   http://dist/ToolsV2/repo/x86_64/RPMS/telegraf-Linux-1.8-15.noarch.rpm
 
 EXPOSE 22
 
