@@ -68,7 +68,7 @@ class Config( object ):
    DEBUG = False
 
    # Docker image built and available on Arista Docker registry.
-   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/arora-config:f16ec51'
+   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/arora-config:46bb4bb'
 
    # Ansible server name.
    ansible_sv = 'ardc_config_as'
@@ -148,7 +148,7 @@ cmd = Cmd()
 
 
 # ========================== Ansible Push Test Class  ===========================
-@unittest.skip("Skipping test for now. Contact ren@")
+#@unittest.skip("Skipping test for now. Contact ren@")
 class TestAnsiblePushTests( unittest.TestCase ):
 
    def callcmd( self, command ): #pylint:disable-msg=R0201
