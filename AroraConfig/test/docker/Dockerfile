@@ -7,6 +7,8 @@ FROM fedora:25
 MAINTAINER Ren Lee <ren@arista.com>
 
 RUN yum install -y \
+   yum \
+   sudo \
    openssh-server \
    python \
    hostname \

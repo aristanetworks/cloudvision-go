@@ -68,7 +68,7 @@ class Config( object ):
    DEBUG = False
 
    # Docker image built and available on Arista Docker registry.
-   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/arora-config:d26225f'
+   dockerImg = 'registry.docker.sjc.aristanetworks.com:5000/arora-config:f16ec51'
 
    # Ansible server name.
    ansible_sv = 'ardc_config_as'
@@ -80,7 +80,7 @@ class Config( object ):
    misc_files = "AroraConfig_testfiles"
    
    # Path to RSA public host key.
-   path_to_hostpub = 'test/dockerfiles/ar_fedora/ssh/id_rsa.pub'
+   path_to_hostpub = 'test/docker/ssh/id_rsa.pub'
 
    # Relative path to playbooks directory.
    playbooks = 'playbooks/'
@@ -148,7 +148,7 @@ cmd = Cmd()
 
 
 # ========================== Ansible Push Test Class  ===========================
-@unittest.skip("Skipping test for now. Ask ren for more info")
+@unittest.skip("Skipping test for now. Contact ren@")
 class TestAnsiblePushTests( unittest.TestCase ):
 
    def callcmd( self, command ): #pylint:disable-msg=R0201
