@@ -18,3 +18,13 @@ data:
         annotations:
           summary: Instance {{ $labels.instance }} down
           description: '{{ $labels.app }} ({{ $labels.instance }}) has been down for more than 5 minutes.'
+
+      # Alert when a /dataX disk reaches >80% usage.
+      - alert: DiskUsageHigh
+        expr: 100.0-100*(label_replace(node_filesystem_avail{mountpoint=~"/rootfs/data.*"},'mountpoint','$1$3','mountpoint','(/)(rootfs)/?(.*)')/label_replace(node_filesystem_size{mountpoint=~"/rootfs/data.*"},'mountpoint','$1$3','mountpoint','(/)(rootfs)/?(.*)')) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High disk usage on {{ $labels.instance }} for {{ $labels.mountpoint }}.
+          description: 'Disk usage on node {{ $labels.instance }}) at {{ $labels.mountpoint }} is {{ $value }}%.'
