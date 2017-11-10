@@ -1,4 +1,5 @@
 ---
+# CONVERTED FROM ARORACONFIG
 #
 # Our firewall prevents internal machines from directly sending mail
 # to hosts on the internet.  Internally machines are still in the
@@ -12,7 +13,7 @@
 # - specify the max size of messages
 # - undo some changes we no longer need.
 
-- name: "postfix"
+- name: "Update postfix configurations"
   hosts: all
   become: yes
   become_user: root
@@ -29,21 +30,6 @@
      - block:
         - name: "Ensure postfix is installed and is latest."
           yum: name=postfix state=latest
-          when: TEST is not defined
-      
-        # https://github.com/docker/docker/issues/10180
-        - name: "Ensure postfix is installed, rebuild cached MariaDB - TEST ENV ONLY"
-          shell: rpm --rebuilddb && yum -y install postfix
-          when: TEST is defined
-
-        # https://forums.opensuse.org/showthread.php/436441-Postfix-error-message
-        - name: "Remove IPv6 settings for postfix because our docker containers don't support IPv6 routing yet -- TEST ENV ONLY"
-          lineinfile:
-             dest: "{{postfix_mainCf}}"
-             regexp: "inet_protocols = all"
-             line: "inet_protocols = ipv4"
-          notify: "reload postfix"
-          when: TEST is defined
 
         - name: "Start postfix, in case it is reinstalled."
           command: postfix start
@@ -110,10 +96,6 @@
         #----------------------------------------------------------------------
         # End: Temp action to remove prior changes we do not need.
         #----------------------------------------------------------------------
-
-        - name: "TEST"
-          script: test/test_postfix.py
-          when: TEST is defined
 
        when: fixPostfix.stat.exists == True 
          

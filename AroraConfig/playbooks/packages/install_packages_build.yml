@@ -1,0 +1,4 @@
+- name: "Install Abuild-asyncDeleteTree if this is a build server"
+  yum:
+      name: Abuild-asyncDeleteTree
+      state: installed

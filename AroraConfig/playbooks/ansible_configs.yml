@@ -2,20 +2,16 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 ---
-- name: "configs"
+- name: "Manage Ansible configurations on hosts"
   hosts: all
   become: yes
   become_user: root
   vars:
-    configs_ansibleCfgPath: '/etc/ansible/ansible.cfg'
+    configf_path: '/etc/ansible/ansible.cfg'
   tasks:
     - name: "Replace with expected ansible configuration file for consistency"
       copy:
          src: ansible.cfg
-         dest: "{{ configs_ansibleCfgPath }}"
+         dest: "{{ configf_path }}"
          force: yes
-
-    - name: "TEST"
-      script: test/test_configs.sh
-      when: TEST is defined
 ...

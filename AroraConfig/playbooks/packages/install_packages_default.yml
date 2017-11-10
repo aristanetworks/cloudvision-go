@@ -1,0 +1,4 @@
+- name: "Install Telegraf"
+  yum:
+      name: telegraf-Linux
+      state: installed

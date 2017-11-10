@@ -2,13 +2,28 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 ---
-- name: This is the top level file used by ansible-pull.
+- name: "Nightly run Ansible tasks"
   hosts: all
   become: yes
   become_user: root
+  pre_tasks:
+     # XXX: Ansible Bug #24970 in Ansible 2.4 preventing us from using group_vars/all
+     - name: "Try to fetch server record for this machine. Ignore error if server record is not available."
+       command: "mysql -N -u arastra -e \"SELECT role FROM servers WHERE name=\\\"{{ansible_hostname}}\\\" AND domain=\\\"{{ansible_domain}}\\\"\" -h mysql datacenter"
+       register: output
+       ignore_errors: yes
 
-# -------------- ADD YOUR PLAYBOOK BELOW THIS LINE -----------------
-- include: playbooks/configs.yml
+     - name: "Workaround Ansible Bug #27298 in Ansible 2.4"
+       set_fact:
+          output: { "stdout": "UNKNOWN" }
+       when: output | failed
+
+     - name: "Set role name - this may be default UNKNOWN or role name fetched from server record, if exists"
+       set_fact:
+          ROLE_NAME: "{{output.stdout}}"
+
+# All playbooks to be run
+- include: playbooks/ansible_configs.yml
 - include: playbooks/postfix.yml
 - include: playbooks/rclocal.yml
 - include: playbooks/updateMotd.yml

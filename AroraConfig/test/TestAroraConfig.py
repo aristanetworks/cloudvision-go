@@ -4,7 +4,6 @@
 
 import os
 import sys
-import glob
 import subprocess
 import logging
 import unittest
@@ -88,9 +87,6 @@ class Config( object ):
    # Main master playbook to be run.
    master = 'AroraConfig.yml'
 
-   # Relative path to ping.yml
-   ping_plbk = 'test/%s/ping.yml' % misc_files
-
    # Test-only ping playbook
    ping = 'ping.yml'
 
@@ -127,6 +123,7 @@ class Cmd( object ):
    python 2.7 doesn't natively support enum classes.
 
    '''
+   test_ping = "ansible all -m ping"
    create = 'docker run -d -P -t --name %s %s > /dev/null'
    inspectIP = 'docker inspect --format \'{{.NetworkSettings.IPAddress}}\' %s'
    copy = 'docker cp %s %s'
@@ -137,7 +134,7 @@ class Cmd( object ):
    # running on this same node as where the test runs.
    kill = ( 'echo %s | xargs -I %% sh -c "docker kill %%; docker rm %%"' 
             '> /dev/null 2>&1' )
-   ans_pl = 'ansible-playbook %s -e "TEST=true"'
+   ans_pl = 'ansible-playbook %s'
 
 
 # ============================= Global Variables =================================
@@ -215,60 +212,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
                     "%s:%s" % ( conf.ansible_sv, "/etc/ansible/ansible.cfg" ) ) )
 
 
-
-   def checkPlaybooks( self ): #pylint:disable-msg=R0201
-      '''
-      Runs coarse sanity check against the playbooks to see if they meet the minimum
-      requirements for testing. This is more to coerce tests to be written regardless
-      of the test's actual content.
-
-      '''
-
-      # We want people to at least *try* to use the testing framework before their 
-      # playbook gets added to the repo.
-      # The structure we are looking are is:
-      #           - name: "TEST"
-      #             script: test/test_PLAYBOOK.py
-      #             when: TEST is defined
-      #
-      # XXX: This testing would be much easier if we actually wrote a custom Ansible
-      # module only for testing that people can easily include.
-      # XXX: This does not guarantee that these lines follow one immediately after
-      # another, but guarantees the order of the lines and the fact that these lines
-      # do exist in the file.
-      playbooks = glob.glob( os.path.join( conf.playbooks, '*.yml' ) )
-      if not playbooks:
-         logger.error( 'No playbooks found to sanity check.' )
-         sys.exit( 1 )
-
-      for play in playbooks:
-         with open( play, 'r' ) as pl: 
-
-            expectedLns = []
-            expectedLns.append( '"TEST"' )
-            expectedLns.append( 'script: test/' )
-            expectedLns.append( 'when: TEST is defined' ) 
-
-            for line in pl:
-               if not expectedLns:
-                  break
-
-               line = line.lstrip()
-               if not line:
-                  continue
-               elif line[0] == '#':
-                  continue
-               elif expectedLns[ 0 ] in line:
-                  expectedLns.pop( 0 )
-            
-            if expectedLns:
-               logger.error( 'No testing found for playbook "%s".', play )
-               sys.exit( 1 )
-            else:
-               logger.info( 'Looks like there is testing in playbook "%s".', play )
-
-
-
    def thingsThatShouldBeInDockerImage( self ):
       # XXX: All the stuff here should really be in the Docker image, not here!!
       # But because changing Dockerfile is such a pain let's collect them here...
@@ -290,11 +233,6 @@ class TestAnsiblePushTests( unittest.TestCase ):
 
       '''   
       logger.info( 'Starting tests...' )
-
-      # ========== SANITY CHECK PLAYBOOKS ==========
-      # Sanity check that playbooks have testing framework included.
-      logger.info( 'Sanity checking playbooks for tests.' )
-      self.checkPlaybooks()
 
 
       # ========== TRY TO CLEAN UP ENV ==========
@@ -405,12 +343,9 @@ class TestAnsiblePushTests( unittest.TestCase ):
       # Copy over master playbook to ansible server container.
       self.callcmd( cmd.copy % ( conf.master, '%s:/' % conf.ansible_sv ) )
    
-      # Copy over ping.yml ansible server container.
-      self.callcmd( cmd.copy % ( conf.ping_plbk, '%s:/' % conf.ansible_sv ) )
-
       # On Ansible server, run ping.yml as a test.
       logger.info( 'Running sanity ping test on the containers.' )
-      ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.ans_pl % conf.ping ) )
+      ret = self.callcmd( cmd.ex % ( conf.ansible_sv, cmd.test_ping ) )
 
       if ret:
          logger.error( 'Failed ping test. Aborting.' )
@@ -432,17 +367,25 @@ class TestAnsiblePushTests( unittest.TestCase ):
          if ret1:
             # Running the playbooks the first time breaks things.
             logger.error( 'Error with Test iteration 1.' )
+
          if ret2:
             # Trying to maintain with the playbooks breaks things.
             logger.error( 'Error with Test iteration 2.' )
+
          if ret1 and not ret2:
             # Playing the playbooks the first time broke things, but running the
-            # playboks again fixed the problem itself.
+            # playboks again fixed the problem itself so we're looking at
+            # intermittent errors here.
             logger.error( 'Error with Test iteration 1, but iteration 2 fixed it.' )
+
          if not ret1 and ret2:
             logger.error( 'Test iteration 2 broke test iteration 1.' )
+            sys.exit( 1 )
 
-         sys.exit( 1 )
+         if ret1 and ret2:
+            logger.error( 'Both test iterations failed.')
+            sys.exit( 1 )
+
       else:
          logger.info( 'Both test iterations passed without error.' )
 

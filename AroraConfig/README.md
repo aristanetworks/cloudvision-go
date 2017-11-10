@@ -1,6 +1,6 @@
-# ardc-config
-This repository is used to host playbooks, config files (e.g. hosts file like 'ansible\_hosts'), and test framework that is expected to be used by Ansible for datacenter server provisioning and maintenance.
+# ardc-config/AroraConfig
+Hosts nightly run Ansible playbooks as well as playbooks used to convert AroraConfig packages out of Arora.
 
 ## How to Write Playbooks
-Description of what a playbook is and how to write them are available in Ansible's own [documentation](http://docs.ansible.com/ansible/playbooks_intro.html). 
+Reference playbooks in this repo as well as Ansible's [documentation](http://docs.ansible.com/ansible/playbooks_intro.html) for examples. When in doubt, ask ansible-infra@. 
 

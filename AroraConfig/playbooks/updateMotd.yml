@@ -2,7 +2,7 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 ---
-- name: "updateMotd"
+- name: "Update /etc/motd file with Ansible banner message"
   hosts: all
   become: yes
   become_user: root
@@ -23,8 +23,4 @@
           insertbefore: BOF
           line: "{{ updateMotd_ansibleCfgMsg }}"
           create: yes
-
-     - name: "TEST"
-       script: test/test_updateMotd.sh
-       when: TEST is defined
 ...

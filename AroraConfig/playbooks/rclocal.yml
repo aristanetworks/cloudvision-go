@@ -1,8 +1,11 @@
 # Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+# CONVERTED FROM ARORACONFIG
+# Configuration for /etc/rc.d/rc.local
+# Group: System Environment/Base
 ---
-- name: "rclocal"
+- name: "Update /rc.d/rclocal file"
   hosts: all
   become: yes
   become_user: root
@@ -16,9 +19,6 @@
        register: fixRclocal
 
      - block:
-        # Configuration for /etc/rc.d/rc.local
-        # Group: System Environment/Base
-
         - name: "Prepend missing shebang. Create rc.local if it doesn't exist."
           lineinfile:
              dest: "{{ rclocal_RCLOCAL }}"
@@ -48,11 +48,6 @@
           lineinfile:
             dest: "{{ rclocal_RCLOCAL }}"
             line: "/sbin/sysctl -e -p /etc/sysctl.d/Arora.conf > /dev/null"
-
-        - name: "TEST"
-          script: test/test_rclocal.sh
-          when: TEST is defined
-
        when: fixRclocal.stat.exists == True
 ...        
 

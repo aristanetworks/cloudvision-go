@@ -2,23 +2,18 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 ---
-- name: "packages"
+- name: "Install or Remove Packages"
   hosts: all
   become: yes
   become_user: root
   tasks:
-   # ---------- ADD PACKAGES TO BE INSTALLED HERE ----------
+   # All packages that must be installed by default should be included in this taskfile
+   - include: packages/install_packages_default.yml
 
-   - name: "Install Telegraf"
-     yum: name=telegraf-Linux state=installed
+   # Install packages only relevant for build server types
+   - include: packages/install_packages_build.yml
+     when: ROLE_NAME is defined and ROLE_NAME == "build"
 
-
-   # ---------- ADD PACKAGES TO BE BLACKLISTED HERE ----------
-   - name: "Ensure prelink is removed"
-     yum: name="prelink" state=absent
-
-
-   - name: "TEST"
-     script: test/test_packages.sh
-     when: TEST is defined
+   # All packages that must be removed by default should be included in this taskfile
+   - include: packages/remove_packages_default.yml
 ...

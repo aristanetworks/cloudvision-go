@@ -1,0 +1,4 @@
+- name: "Ensure prelink is removed"
+  yum:
+      name: prelink
+      state: absent
