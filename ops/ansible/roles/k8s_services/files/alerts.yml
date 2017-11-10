@@ -5,12 +5,16 @@ metadata:
 data:
   config.yml: |
 
-    # Alert for any instance that is unreachable for more than 5 minutes.
-    ALERT InstanceDown
-    IF up == 0
-    FOR 5m
-    LABELS { severity = "critical" }
-    ANNOTATIONS {
-      summary = "Instance {{ $labels.instance }} down",
-      description = "{{ $labels.app }} ({{ $labels.instance }}) has been down for more than 5 minutes.",
-    }
+    groups:
+    - name: alerts.rules
+      rules:
+
+      # Alert for any instance that is unreachable for >5 minutes.
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Instance {{ $labels.instance }} down
+          description: '{{ $labels.app }} ({{ $labels.instance }}) has been down for more than 5 minutes.'

@@ -95,13 +95,12 @@
           spec:
             containers:
             - name: prometheus
-              image: quay.io/prometheus/prometheus:v1.7.1
+              image: quay.io/prometheus/prometheus:v2.0.0
               args:
-                - -storage.local.path=/prom-data
-                - -storage.local.retention=360h
-                - -alertmanager.url=http://alertmanager:9093
-                - -config.file=/etc/prometheus/config.yml
-                - -web.external-url=http://prometheus.{{ k8s_domain }}
+                - --storage.tsdb.path=/prom-data
+                - --storage.tsdb.retention=360h
+                - --config.file=/etc/prometheus/config.yml
+                - --web.external-url=http://prometheus.{{ k8s_domain }}
               ports:
               - name: web
                 containerPort: 9090

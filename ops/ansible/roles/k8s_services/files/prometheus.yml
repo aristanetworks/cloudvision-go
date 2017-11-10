@@ -5,6 +5,14 @@ metadata:
 data:
   config.yml: |
 
+    # Alertmanager static configuration flag removed in Prometheus 2.0.
+    # https://prometheus.io/docs/prometheus/2.0/migration/#storage
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+
     # Rule files specifies a list of globs. Rules and alerts are read from
     # all matching files.
     rule_files: ['/etc/alerts/config.yml']
