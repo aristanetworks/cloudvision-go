@@ -385,6 +385,10 @@
             - name: proxy
               image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy
               imagePullPolicy: Always
+              env:
+                - name: KUBERNETES_SERVICE_HOST
+                  # TODO: Should switch to "kubernetes" when we get rid of "hostNetwork: true"
+                  value: {{ groups.k8s_masters[0] }}
               args:
                 - -backend
                 - kubernetes
