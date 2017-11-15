@@ -6,7 +6,7 @@
 * **ETCD2**: ETCD2 instances are NOT managed by ansible. They are managed manually. The role defined on ansible is just a basic role to have the etcd2 config correctly setup on the host running etcd2 on reinstall/restart/ansible reapply.
 
 
-# Install ansible
+# Install ansible + cfssl
 
 Ansible 2.4 minimun is required.
 
@@ -17,6 +17,10 @@ brew link --force ansible
 
 # Install PyYAML as well (needed to deploy k8s services)
 pip install PyYAML
+
+# Install cfssl
+go get -u -tags nopkcs11 github.com/cloudflare/cfssl/cmd/cfssl
+go get -u github.com/cloudflare/cfssl/cmd/cfssljson
 ```
 
 # Install the remote coreos machines:

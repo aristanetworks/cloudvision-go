@@ -1,0 +1,13 @@
+
+---
+
+# TODO: generate etcd certs
+
+- name: Check if k8s certs already
+  stat:
+    path: "{{ inventory_dir}}/files/k8s/worker.pem"
+  register: k8s_certs_done
+  ignore_errors: True
+
+- import_tasks: k8s_certs.yml
+  when: k8s_certs_done.failed
