@@ -1,13 +1,18 @@
 
 ---
 
-# TODO: generate etcd certs
+- name: Check if etcd certs already present
+  stat:
+    path: "{{ inventory_dir}}/files/etcd/client.pem"
+  register: etcd_certs_done
 
-- name: Check if k8s certs already
+- import_tasks: etcd_certs.yml
+  when: not etcd_certs_done.stat.exists
+
+- name: Check if k8s certs already present
   stat:
     path: "{{ inventory_dir}}/files/k8s/worker.pem"
   register: k8s_certs_done
-  ignore_errors: True
 
 - import_tasks: k8s_certs.yml
-  when: k8s_certs_done.failed
+  when: not k8s_certs_done.stat.exists

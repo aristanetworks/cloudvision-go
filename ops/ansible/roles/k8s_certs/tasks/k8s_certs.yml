@@ -47,7 +47,7 @@
 
 - name: Create k8s req-csr.json file
   template:
-    src: req-csr.json.j2
+    src: k8s-req-csr.json.j2
     dest: "{{ inventory_dir }}/files/k8s/req-csr.json"
 
 - name: Create k8s client-csr.json file
@@ -86,7 +86,7 @@
     -ca "{{ inventory_dir }}/files/k8s/ca.pem"
     -ca-key "{{ inventory_dir }}/files/k8s/ca-key.pem"
     -config "{{ inventory_dir }}/files/k8s/ca-config.json" "{{ inventory_dir }}/files/k8s/req-csr.json"
-    | cfssljson -bare "{{ inventory_dir }}/files/k8s/worker"
+    | cfssljson -bare "{{ inventory_dir }}/files/k8s/admin"
 
 - name: Generate k8s client certs
   shell: >
@@ -95,7 +95,7 @@
     -ca-key "{{ inventory_dir }}/files/k8s/ca-key.pem"
     -config "{{ inventory_dir }}/files/k8s/ca-config.json"
     -profile client
-    "{{ inventory_dir }}/files/k8s/client-csr.json" | cfssljson -bare "{{ inventory_dir }}/files/k8s/client"
+    "{{ inventory_dir }}/files/k8s/client-csr.json" | cfssljson -bare "{{ inventory_dir }}/files/k8s/worker"
 
 - name: Encrypt certificates
   shell: >
@@ -106,9 +106,9 @@
     - ca-key.pem
     - ca.csr
     - ca.pem
-    - client-key.pem
-    - client.csr
-    - client.pem
+    - admin-key.pem
+    - admin.csr
+    - admin.pem
     - worker-key.pem
     - worker.csr
     - worker.pem
