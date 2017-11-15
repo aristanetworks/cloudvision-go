@@ -35,6 +35,7 @@ ns545402.ip-144-217-181.net
 ; 0.etcd.dev-infra.corp.arista.io
 ; 1.etcd.dev-infra.corp.arista.io
 ; 2.etcd.dev-infra.corp.arista.io
+; registry.dev-infra.corp.arista.io
 
 [coreos_ansible_config:children]
 coreos

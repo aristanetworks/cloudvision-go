@@ -11,11 +11,17 @@
 
 ---
 
+- name: gather facts for etc hosts items
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups.etc_hosts }}"
+
 - name: Add external hostnames to /etc/hosts
   become: True
   blockinfile:
     path: /etc/hosts
     block: |
       {% for item in groups.etc_hosts %}
-      {{ lookup('dig', item) }} {{ item }}
+      {{ lookup('ip_by_prefix', hostvars[item]['private_ip_prefix'], hostvars[item]) }} {{ item }}
       {% endfor %}
