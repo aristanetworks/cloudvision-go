@@ -36,6 +36,62 @@
         local:
           path: /data2/registry-data
 
+- name: gather facts for registry host
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups.registry }}"
+
+- name: haproxy config for docker registry proxy
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: haproxy-docker-registry-config
+      data:
+        haproxy.cfg: |
+          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          # Subject to Arista Networks, Inc.'s EULA.
+          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+          global
+            daemon
+            pidfile /var/run/haproxy.pid
+            maxconn 128000
+
+            ssl-default-bind-ciphers AES128+EECDH:AES128+EDH
+            ssl-default-bind-options force-tlsv12
+            tune.ssl.default-dh-param 2048
+            tune.ssl.cachesize 100000
+            tune.ssl.lifetime 600
+
+          defaults
+            mode http
+            timeout connect 5000ms
+            timeout client 50000ms
+            timeout client-fin 50000ms
+            timeout server 50000ms
+            stats enable
+            stats uri /haproxyStats
+
+          frontend httpfrontend
+            # Frontend bound on private network interface on port 443
+            bind {{ lookup('ip_by_prefix', private_ip_prefix, hostvars[groups.registry[0]]) }}:443 ssl crt /etc/letsencrypt/live/registry/cert-combined.pem
+
+            acl host_registry hdr(host) registry.{{ k8s_infra_domain }}
+            use_backend http_backend_registry if host_registry
+
+          backend http_backend_registry
+            balance roundrobin
+            option httpclose
+            option forwardfor
+            server registry 127.0.0.1:5000
+
 - name: deploy registry statefulset
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -56,6 +112,7 @@
             labels:
               app: registry
           spec:
+            hostNetwork: true
             tolerations:
             - key: "type"
               operator: "Equal"
@@ -64,15 +121,30 @@
             containers:
             - name: registry
               image: registry:2.5.2
-              ports:
-              - name: web
-                containerPort: 5000
+              env:
+              - name: REGISTRY_HTTP_ADDR
+                value: 127.0.0.1:5000
               volumeMounts:
               - name: data
                 mountPath: /var/lib/registry
-            securityContext:
-              runAsUser: 1000
-              fsGroup: 1000
+              securityContext:
+                runAsUser: 1000
+                fsGroup: 1000
+            - name: haproxy
+              image: haproxy:1.7.9
+              volumeMounts:
+              - name: lecert-registry
+                mountPath: /etc/letsencrypt/live/registry
+              - name: haproxy-docker-registry-config
+                mountPath: /usr/local/etc/haproxy/haproxy.cfg
+                subPath: haproxy.cfg
+            volumes:
+              - name: lecert-registry
+                secret:
+                  secretName: lecert-registry.{{ k8s_infra_domain }}
+              - name: haproxy-docker-registry-config
+                configMap:
+                  name: haproxy-docker-registry-config
         volumeClaimTemplates:
         - metadata:
             name: data
