@@ -65,14 +65,14 @@
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
-    state: present
+    state: apply
     file_reference: "{{ role_path }}/files/prometheus.yml"
 
 - name: deploy prometheus alerts config
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
-    state: present
+    state: apply
     file_reference: "{{ role_path }}/files/alerts.yml"
 
 - name: deploy prometheus server
