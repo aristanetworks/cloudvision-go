@@ -1,0 +1,17 @@
+---
+- name: "Delete arastra account by logging in as ansible"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+      - name: "Remove arastra account"
+        user:
+            name: arastra
+            state: absent
+            remove: yes
+
+      - name: "Remove arastra group"
+        group:
+            name: arastra
+            state: absent
+...

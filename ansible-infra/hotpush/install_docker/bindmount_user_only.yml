@@ -1,0 +1,44 @@
+---
+- name: "Create appropriate docker bind mounts only for user servers"
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+      part: "persist"
+      orig_mount_docker: "/{{part}}/docker"
+      orig_mount_imgbuilder: "/{{part}}/imgbuilder"
+      new_mount_docker: "/var/docker"
+      new_mount_imgbuilder: "/var/imgbuilder"
+  tasks:
+      - name: "create /var/docker"
+        file:
+            path: "{{new_mount_docker}}"
+            state: directory
+            owner: root
+            group: root
+            mode: 0755        
+
+      - name: "create /var/imgbuilder"
+        file:
+            path: "{{new_mount_imgbuilder}}"
+            state: directory
+            owner: root
+            group: root
+            mode: 0755        
+
+      - name: "Add to fstab - /var/docker as bind mount"
+        lineinfile:
+            dest: /etc/fstab
+            line: "{{orig_mount_docker}} {{new_mount_docker}} none bind 0 0"
+
+      - name: "Add to fstab - /var/imgbuilder as bind mount"
+        lineinfile:
+            dest: /etc/fstab
+            line: "{{orig_mount_imgbuilder}} {{new_mount_imgbuilder}} none bind 0 0"
+
+      - name: "Mount /var/docker as bind mount"
+        shell: "mount -o bind {{orig_mount_docker}} {{new_mount_docker}}" 
+   
+      - name: "Mount /var/imgbuilder as bind mount"
+        shell: "mount -o bind {{orig_mount_imgbuilder}} {{new_mount_imgbuilder}}" 
+...

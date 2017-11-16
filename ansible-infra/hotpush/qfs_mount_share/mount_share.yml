@@ -1,0 +1,20 @@
+---
+- name: "Mount /share dir for QFS to run inside containers"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+     - name: "Create /share directory"
+       file: 
+         path: /share
+         state: directory
+         owner: root
+         group: root
+         mode: 0755
+
+     - name: "Have /share bind mount to itself"
+       shell: "mount -o bind /share /share"
+
+     - name: "Mark /share subtree as shared"
+       shell: "mount --make-shared /share"
+...

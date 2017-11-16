@@ -1,0 +1,17 @@
+---
+- name: "Push out mount /share changes so they'd persist across reboots"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+      - name: "Mount /share as a bind mount"
+        lineinfile:
+           dest: /etc/fstab
+           line: "/share /share none bind 0 0"
+
+      - name: "Mark /share as shared mount"
+        lineinfile:
+           dest: /etc/rc.d/rc.local
+           line: "mount --make-shared /share"
+...
+

@@ -98,11 +98,11 @@
         #----------------------------------------------------------------------
 
        when: fixPostfix.stat.exists == True 
-         
      
   handlers:
      - name: "reload postfix"
        command: postfix reload
+
      - name: "postmap canonical"
        command: postmap {{postfix_canonicalFile}}
 ...

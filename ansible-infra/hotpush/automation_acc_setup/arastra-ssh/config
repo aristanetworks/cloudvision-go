@@ -1,0 +1,11 @@
+User arastra
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+CheckHostIP no
+IdentityFile /usr/share/Arora/ssh/id_rsa
+SendEnv P4USER
+SendEnv AROSTEST_USER
+SendEnv EDITOR
+SendEnv LANG
+SendEnv BUILD_COLORS
+SendEnv P4MERGE

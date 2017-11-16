@@ -1,0 +1,32 @@
+---
+
+- name: "Customize open file limit"
+  become: True
+  copy:
+    src: 92-Stest.conf
+    dest: /etc/security/limits.d/92-Stest.conf
+
+- name: "Customize Max process limit"
+  become: True
+  copy:
+    src: 93-Stest-nproc.conf
+    dest: /etc/security/limits.d/93-Stest-nproc.conf
+
+- name: "Customize inotify instances and watches"
+  become: True
+  copy:
+    src: Stest.conf
+    dest: /etc/sysctl.d/Stest.conf
+
+- name: "Update sysctl"
+  become: True
+  command: sysctl --system
+
+- name: "Yum update"
+  become: True
+  yum:
+    name: '*'
+    state: latest
+
+- name: "Reboot"
+  command: "reboot"

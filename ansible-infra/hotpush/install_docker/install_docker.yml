@@ -1,0 +1,71 @@
+---
+- name: "Install Docker on persist2 only for build servers"
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+      part: "persist"
+  tasks:
+      - name: "Install Docker - this will start dockerd with /persist/docker path"
+        yum:
+            name: docker
+            state: installed
+
+      - name: "create /{{part}}/var/docker"
+        shell: "sudo mkdir /{{part}}/var/docker"
+
+      - name: "create /{{part}}/var/imgbuilder"
+        shell: "sudo mkdir /{{part}}/var/imgbuilder"
+
+      - name: "create /var/docker"
+        file:
+            path: /var/docker
+            state: directory
+            owner: root
+            group: root
+            mode: 0755        
+
+      - name: "create /var/imgbuilder"
+        file:
+            path: /var/imgbuilder
+            state: directory
+            owner: root
+            group: root
+            mode: 0755        
+
+      - name: "Add to fstab - /var/docker as bind mount"
+        lineinfile:
+            dest: /etc/fstab
+            line: "/{{part}}/var/docker /var/docker none bind 0 0"
+
+      - name: "Add to fstab - /var/imgbuilder as bind mount"
+        lineinfile:
+            dest: /etc/fstab
+            line: "/{{part}}/var/imgbuilder /var/imgbuilder none bind 0 0"
+
+      - name: "Mount /var/docker as bind mount"
+        shell: "mount -o bind /{{part}}/var/docker /var/docker" 
+   
+      - name: "Mount /var/imgbuilder as bind mount"
+        shell: "mount -o bind /{{part}}/var/imgbuilder /var/imgbuilder" 
+
+      - name: "Change docker_path in dockerd config to use bind mount path"
+        lineinfile:
+            dest: /etc/sysconfig/docker
+            regexp: 'other_args'
+            state: present
+            line: 'other_args="-s overlay --insecure-registry registry.docker.sjc.aristanetworks.com:5000 -g /var/docker"'
+
+      - name: "Restart dockerd"
+        shell: "systemctl start docker"
+
+      - name: "Remove wrong docker directory"
+        file:
+            path: /persist/docker
+            state: absent
+            
+      - name: "Add dockerd to rc.local so that it'd start on reboot"
+        lineinfile:
+            dest: /etc/rc.d/rc.local
+            line: "systemctl start docker"
+...

@@ -1,0 +1,5 @@
+Undoing the damage bad addition to EOS on the hosts caused by prelink package.
+
+Usage History
+------------
+2/??/17 -- Requested by sw@ when yum installs were failing, most dire on user servers

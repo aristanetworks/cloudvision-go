@@ -1,0 +1,51 @@
+---
+- name: "Create arastra account by logging in as ansible"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+      - name: "Create arastra group"
+        group:
+            name: arastra
+            gid: 10000
+            
+      - name: "Create default arastra account"
+        user:
+            name: arastra
+            comment: "Arastra Default Account"
+            uid: 10000
+            group: arastra
+            groups: root,wheel
+
+      - name: "Copy over authkeys"
+        copy:
+            src: arastra-ssh/authorized_keys
+            dest: /home/arastra/.ssh/
+            owner: arastra
+            group: arastra
+            mode: 0644
+
+      - name: "Copy over identity key"
+        copy:
+            src: arastra-ssh/id_rsa
+            dest: /home/arastra/.ssh/
+            owner: arastra
+            group: arastra
+            mode: 0600
+
+      - name: "Copy over config"
+        copy:
+            src: arastra-ssh/config
+            dest: /home/arastra/.ssh/
+            owner: arastra
+            group: arastra
+            mode: 0600
+
+      - name: "Change .ssh ownership"
+        file: 
+            path: /home/arastra/.ssh
+            owner: arastra
+            group: arastra
+            mode: 0700
+        
+...

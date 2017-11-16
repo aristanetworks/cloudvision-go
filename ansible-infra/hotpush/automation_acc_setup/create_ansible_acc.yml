@@ -1,0 +1,27 @@
+---
+- name: "Create Ansible account by logging in as arastra"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+      - name: "Create Ansible group"
+        group:
+            name: ansible
+            
+      - name: "Create default Ansible account"
+        user:
+            name: ansible
+            comment: "Ansible Account"
+            uid: 20000
+            group: ansible
+            groups: root,wheel
+
+      - name: "Copy over authkeys"
+        copy:
+            src: ansible-ssh/authorized_keys
+            dest: /home/ansible/.ssh/
+            owner: ansible
+            group: ansible
+            mode: 0644
+
+...

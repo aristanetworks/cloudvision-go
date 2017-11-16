@@ -1,0 +1,6 @@
+Playbooks to conveniently create or delete automation accounts for arastra and ansible.
+
+Usage History
+-------------
+6/??/17 - To create ansible accounts and delete arastra accounts on Milkyway servers for kthommandra@.
+

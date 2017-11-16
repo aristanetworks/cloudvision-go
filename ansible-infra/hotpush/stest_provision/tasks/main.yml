@@ -1,0 +1,9 @@
+---
+
+- name: "Customize Max process limit"
+  become: True
+  copy:
+    src: 93-Stest-nproc.conf
+    dest: /etc/security/limits.d/93-Stest-nproc.conf
+
+

@@ -1,0 +1,12 @@
+---
+- name: "Change docker.sock permissions"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+     - name: "Change /var/run/docker.sock permissions to be world read/writeable"
+       file:
+         path: /var/run/docker.sock
+         mode: 0666
+
+...

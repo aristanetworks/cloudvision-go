@@ -1,0 +1,7 @@
+Installation scripts for docker and correct mounting of data directory for docker.
+
+Data directory for docker should always be mounted to the largest partition on the host i.e. for user servers /persist, for build servers /persist2. These changes were necessary because docker RPM hardcodes the mountpoint to /persist and thus is not relevant for any other servers than user servers.
+
+Usage History
+-------------
+10/31/17-11/3/17 - Requested by kduda@ to run docker and a4c/imgbuilder on build servers

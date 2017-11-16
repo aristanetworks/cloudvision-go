@@ -1,0 +1,5 @@
+Playbooks to create and mount /share as a shared mount on hosts and update /etc/fstab and /rc.d/rc.local so that the changes persist between reboots.
+
+Usage History
+-------------
+5/??/17 - Requested by kduda@ in preparation for QFS mounts

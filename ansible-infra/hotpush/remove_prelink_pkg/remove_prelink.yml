@@ -1,0 +1,19 @@
+---
+- name: "Remove prelink from all servers"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+     - name: "Reinstall prelink since that got removed by AroraConfig and previous Ansible Push"
+       yum:
+         name: prelink
+         state: installed 
+
+     - name: "Undo what prelink has done using prelink"
+       shell: "prelink -ua"
+
+     - name: "Remove prelink from servers" 
+       yum: 
+         name: prelink
+         state: absent
+...

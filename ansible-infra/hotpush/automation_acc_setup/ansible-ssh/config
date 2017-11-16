@@ -1,0 +1,5 @@
+User ansible
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+CheckHostIP no
+IdentityFile /home/ansible/.ssh/id_rsa

@@ -1,0 +1,5 @@
+Place to track and store all Ansible playbooks that have been hotpushed to Arista infrastructure.
+
+Requirements:
+- Name the directory to be relevant to the playbook(s) you are adding
+- Add a README to the directory that explains on high level what the playbooks are doing and when they are used for what/whom
