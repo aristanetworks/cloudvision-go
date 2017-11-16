@@ -1,15 +1,13 @@
 {
   "CN": "kube-apiserver",
   "hosts": [
-{% for item in groups.k8s_masters %}
-    "{{ item }}",
-{% endfor %}
+    "master.dev-infra.corp.arista.io",
     "localhost",
     "127.0.0.1",
-    "{{ service_cluster_ip_range | regex_replace('\d+/\d+', '1') }}",
+    "192.168.0.1",
     "kubernetes",
     "kubernetes.default",
-    "kubernetes.default.internal.{{ k8s_domain }}"
+    "kubernetes.default.internal.dev.corp.arista.io"
   ],
   "key": {
     "algo": "ecdsa",
