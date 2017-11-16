@@ -1,10 +1,14 @@
 {
-  "CN": "etcd",
+  "CN": "kube-apiserver",
   "hosts": [
 {% for item in groups.k8s_masters %}
     "{{ item }}",
 {% endfor %}
-    "localhost"
+    "localhost",
+    "127.0.0.1",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.internal.{{ k8s_domain }}"
   ],
   "key": {
     "algo": "ecdsa",
