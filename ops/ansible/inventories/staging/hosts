@@ -120,7 +120,7 @@ r123s15.sjc.aristanetworks.com
 r123s16.sjc.aristanetworks.com
 
 [prometheus]
-r123s4.sjc.aristanetworks.com
+r123s6.sjc.aristanetworks.com
 
 [alertmanager]
 r123s14.sjc.aristanetworks.com
