@@ -92,7 +92,7 @@ function scylla_version() {
 	SCRIPT='
 HOSTNAME=`hostname`;
 RUNVER=`wget -qO- http://${HOSTNAME}:10000/storage_service/scylla_release_version`;
-RPMVER=`rpm -qa | grep scylla-server`;
+RPMVER=`rpm -qa | grep scylla-.*server`;
 echo "RPMVER=${RPMVER} RUNVER=${RUNVER}";
 '
 	run_pdsh_cmd "$1" "${SCRIPT}"
