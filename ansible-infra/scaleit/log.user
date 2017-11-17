@@ -1,0 +1,474 @@
+
+PLAY [Simple playbook to add, search, and edit a file -  /etc/motd] ********************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [us124.sjc.aristanetworks.com]
+ok: [us136.sjc.aristanetworks.com]
+ok: [us129.sjc.aristanetworks.com]
+ok: [us105.sjc.aristanetworks.com]
+ok: [us125.sjc.aristanetworks.com]
+ok: [us133.sjc.aristanetworks.com]
+ok: [us115.sjc.aristanetworks.com]
+ok: [us112.sjc.aristanetworks.com]
+ok: [us114.sjc.aristanetworks.com]
+ok: [us103.sjc.aristanetworks.com]
+ok: [us122.sjc.aristanetworks.com]
+ok: [us116.sjc.aristanetworks.com]
+ok: [us108.sjc.aristanetworks.com]
+ok: [us102.sjc.aristanetworks.com]
+ok: [us110.sjc.aristanetworks.com]
+ok: [us134.sjc.aristanetworks.com]
+ok: [us126.sjc.aristanetworks.com]
+ok: [us101.sjc.aristanetworks.com]
+ok: [us131.sjc.aristanetworks.com]
+ok: [us118.sjc.aristanetworks.com]
+ok: [bs417.sjc.aristanetworks.com]
+ok: [us128.sjc.aristanetworks.com]
+ok: [us135.sjc.aristanetworks.com]
+ok: [us150.sjc.aristanetworks.com]
+ok: [us149.sjc.aristanetworks.com]
+ok: [us113.sjc.aristanetworks.com]
+ok: [us104.sjc.aristanetworks.com]
+ok: [us119.sjc.aristanetworks.com]
+ok: [us144.sjc.aristanetworks.com]
+ok: [us147.sjc.aristanetworks.com]
+ok: [us146.sjc.aristanetworks.com]
+ok: [us139.sjc.aristanetworks.com]
+ok: [us140.sjc.aristanetworks.com]
+ok: [us121.sjc.aristanetworks.com]
+ok: [us145.sjc.aristanetworks.com]
+ok: [us107.sjc.aristanetworks.com]
+ok: [us142.sjc.aristanetworks.com]
+ok: [us143.sjc.aristanetworks.com]
+ok: [us141.sjc.aristanetworks.com]
+ok: [us109.sjc.aristanetworks.com]
+ok: [us123.sjc.aristanetworks.com]
+ok: [us106.sjc.aristanetworks.com]
+ok: [us152.sjc.aristanetworks.com]
+ok: [us117.sjc.aristanetworks.com]
+ok: [us111.sjc.aristanetworks.com]
+ok: [us148.sjc.aristanetworks.com]
+ok: [us120.sjc.aristanetworks.com]
+ok: [us166.sjc.aristanetworks.com]
+ok: [us168.sjc.aristanetworks.com]
+ok: [us165.sjc.aristanetworks.com]
+ok: [bs304.sjc.aristanetworks.com]
+ok: [us167.sjc.aristanetworks.com]
+ok: [us164.sjc.aristanetworks.com]
+ok: [us161.sjc.aristanetworks.com]
+ok: [us162.sjc.aristanetworks.com]
+ok: [us158.sjc.aristanetworks.com]
+ok: [us159.sjc.aristanetworks.com]
+ok: [us153.sjc.aristanetworks.com]
+ok: [us157.sjc.aristanetworks.com]
+ok: [us156.sjc.aristanetworks.com]
+ok: [us155.sjc.aristanetworks.com]
+ok: [us130.sjc.aristanetworks.com]
+ok: [us137.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us110.sjc.aristanetworks.com]
+changed: [us108.sjc.aristanetworks.com]
+changed: [bs417.sjc.aristanetworks.com]
+changed: [us101.sjc.aristanetworks.com]
+changed: [us105.sjc.aristanetworks.com]
+changed: [us102.sjc.aristanetworks.com]
+changed: [us103.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [us127.sjc.aristanetworks.com]
+ok: [us138.sjc.aristanetworks.com]
+ok: [us163.sjc.aristanetworks.com]
+ok: [us154.sjc.aristanetworks.com]
+ok: [bs932.blrmt.aristanetworks.com]
+ok: [us132.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us155.sjc.aristanetworks.com]
+changed: [us156.sjc.aristanetworks.com]
+changed: [us153.sjc.aristanetworks.com]
+changed: [us137.sjc.aristanetworks.com]
+changed: [us130.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us108.sjc.aristanetworks.com]
+changed: [us110.sjc.aristanetworks.com]
+changed: [us102.sjc.aristanetworks.com]
+changed: [us105.sjc.aristanetworks.com]
+changed: [us103.sjc.aristanetworks.com]
+changed: [us101.sjc.aristanetworks.com]
+changed: [bs417.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us152.sjc.aristanetworks.com]
+changed: [us148.sjc.aristanetworks.com]
+changed: [us120.sjc.aristanetworks.com]
+changed: [us111.sjc.aristanetworks.com]
+changed: [us117.sjc.aristanetworks.com]
+changed: [us150.sjc.aristanetworks.com]
+changed: [us149.sjc.aristanetworks.com]
+changed: [us146.sjc.aristanetworks.com]
+changed: [us147.sjc.aristanetworks.com]
+changed: [us145.sjc.aristanetworks.com]
+changed: [us144.sjc.aristanetworks.com]
+changed: [us143.sjc.aristanetworks.com]
+changed: [us142.sjc.aristanetworks.com]
+changed: [us141.sjc.aristanetworks.com]
+changed: [us140.sjc.aristanetworks.com]
+changed: [us139.sjc.aristanetworks.com]
+changed: [us123.sjc.aristanetworks.com]
+changed: [us121.sjc.aristanetworks.com]
+changed: [us119.sjc.aristanetworks.com]
+changed: [us113.sjc.aristanetworks.com]
+changed: [us109.sjc.aristanetworks.com]
+changed: [us107.sjc.aristanetworks.com]
+changed: [us106.sjc.aristanetworks.com]
+changed: [us104.sjc.aristanetworks.com]
+changed: [us135.sjc.aristanetworks.com]
+changed: [us128.sjc.aristanetworks.com]
+changed: [us136.sjc.aristanetworks.com]
+changed: [us134.sjc.aristanetworks.com]
+changed: [us157.sjc.aristanetworks.com]
+changed: [us133.sjc.aristanetworks.com]
+changed: [us131.sjc.aristanetworks.com]
+changed: [us129.sjc.aristanetworks.com]
+changed: [us126.sjc.aristanetworks.com]
+changed: [us118.sjc.aristanetworks.com]
+changed: [us125.sjc.aristanetworks.com]
+changed: [us124.sjc.aristanetworks.com]
+changed: [us115.sjc.aristanetworks.com]
+changed: [us122.sjc.aristanetworks.com]
+changed: [us116.sjc.aristanetworks.com]
+changed: [us112.sjc.aristanetworks.com]
+changed: [us114.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [us160.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us119.sjc.aristanetworks.com]
+changed: [us118.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+fatal: [us108.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Connection timed out during banner exchange\r\n", "unreachable": true}
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us111.sjc.aristanetworks.com]
+changed: [us116.sjc.aristanetworks.com]
+changed: [us115.sjc.aristanetworks.com]
+changed: [us113.sjc.aristanetworks.com]
+changed: [us114.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us110.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us109.sjc.aristanetworks.com]
+changed: [us107.sjc.aristanetworks.com]
+changed: [us106.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us105.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us104.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us103.sjc.aristanetworks.com]
+changed: [us101.sjc.aristanetworks.com]
+changed: [bs417.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us168.sjc.aristanetworks.com]
+changed: [us166.sjc.aristanetworks.com]
+changed: [us167.sjc.aristanetworks.com]
+changed: [us165.sjc.aristanetworks.com]
+changed: [us159.sjc.aristanetworks.com]
+changed: [us164.sjc.aristanetworks.com]
+changed: [us162.sjc.aristanetworks.com]
+changed: [us161.sjc.aristanetworks.com]
+changed: [us158.sjc.aristanetworks.com]
+changed: [bs304.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us111.sjc.aristanetworks.com]
+changed: [us109.sjc.aristanetworks.com]
+changed: [us106.sjc.aristanetworks.com]
+changed: [us107.sjc.aristanetworks.com]
+changed: [us104.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us155.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us163.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us156.sjc.aristanetworks.com]
+changed: [us157.sjc.aristanetworks.com]
+changed: [us152.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us154.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us153.sjc.aristanetworks.com]
+changed: [us150.sjc.aristanetworks.com]
+changed: [us149.sjc.aristanetworks.com]
+changed: [us148.sjc.aristanetworks.com]
+changed: [us147.sjc.aristanetworks.com]
+changed: [us146.sjc.aristanetworks.com]
+changed: [us145.sjc.aristanetworks.com]
+changed: [us144.sjc.aristanetworks.com]
+changed: [us143.sjc.aristanetworks.com]
+changed: [us142.sjc.aristanetworks.com]
+changed: [us141.sjc.aristanetworks.com]
+changed: [us139.sjc.aristanetworks.com]
+changed: [us140.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us138.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us137.sjc.aristanetworks.com]
+changed: [us136.sjc.aristanetworks.com]
+changed: [us135.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us119.sjc.aristanetworks.com]
+changed: [us118.sjc.aristanetworks.com]
+changed: [us115.sjc.aristanetworks.com]
+changed: [us116.sjc.aristanetworks.com]
+changed: [us114.sjc.aristanetworks.com]
+changed: [us113.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs304.sjc.aristanetworks.com]
+changed: [us131.sjc.aristanetworks.com]
+changed: [us134.sjc.aristanetworks.com]
+changed: [us130.sjc.aristanetworks.com]
+changed: [us133.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us132.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us102.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us129.sjc.aristanetworks.com]
+fatal: [us117.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Connection timed out during banner exchange\r\n", "unreachable": true}
+changed: [us128.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us127.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us125.sjc.aristanetworks.com]
+changed: [us126.sjc.aristanetworks.com]
+changed: [us123.sjc.aristanetworks.com]
+changed: [us124.sjc.aristanetworks.com]
+fatal: [us112.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Connection timed out during banner exchange\r\n", "unreachable": true}
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs932.blrmt.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us120.sjc.aristanetworks.com]
+changed: [us121.sjc.aristanetworks.com]
+changed: [us122.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [us151.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us150.sjc.aristanetworks.com]
+changed: [us149.sjc.aristanetworks.com]
+changed: [us148.sjc.aristanetworks.com]
+changed: [us147.sjc.aristanetworks.com]
+changed: [us145.sjc.aristanetworks.com]
+changed: [us146.sjc.aristanetworks.com]
+changed: [us144.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us138.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us143.sjc.aristanetworks.com]
+changed: [us142.sjc.aristanetworks.com]
+changed: [us141.sjc.aristanetworks.com]
+changed: [us140.sjc.aristanetworks.com]
+changed: [us139.sjc.aristanetworks.com]
+changed: [us137.sjc.aristanetworks.com]
+changed: [us136.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs932.blrmt.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us135.sjc.aristanetworks.com]
+changed: [us134.sjc.aristanetworks.com]
+changed: [us133.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us132.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us131.sjc.aristanetworks.com]
+changed: [us130.sjc.aristanetworks.com]
+changed: [bs304.sjc.aristanetworks.com]
+changed: [us128.sjc.aristanetworks.com]
+changed: [us129.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us127.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us126.sjc.aristanetworks.com]
+changed: [us125.sjc.aristanetworks.com]
+changed: [us124.sjc.aristanetworks.com]
+changed: [us120.sjc.aristanetworks.com]
+changed: [us123.sjc.aristanetworks.com]
+changed: [us122.sjc.aristanetworks.com]
+changed: [us121.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us166.sjc.aristanetworks.com]
+changed: [us168.sjc.aristanetworks.com]
+changed: [us167.sjc.aristanetworks.com]
+changed: [us158.sjc.aristanetworks.com]
+changed: [us165.sjc.aristanetworks.com]
+changed: [us161.sjc.aristanetworks.com]
+changed: [us164.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us160.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us162.sjc.aristanetworks.com]
+changed: [us159.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs932.blrmt.aristanetworks.com]
+changed: [us138.sjc.aristanetworks.com]
+changed: [us132.sjc.aristanetworks.com]
+changed: [us127.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us163.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us157.sjc.aristanetworks.com]
+changed: [us156.sjc.aristanetworks.com]
+changed: [us155.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us154.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us152.sjc.aristanetworks.com]
+changed: [us153.sjc.aristanetworks.com]
+changed: [us168.sjc.aristanetworks.com]
+changed: [us166.sjc.aristanetworks.com]
+changed: [us167.sjc.aristanetworks.com]
+changed: [us165.sjc.aristanetworks.com]
+changed: [us159.sjc.aristanetworks.com]
+changed: [us164.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us160.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us162.sjc.aristanetworks.com]
+changed: [us161.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [us151.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us158.sjc.aristanetworks.com]
+changed: [us163.sjc.aristanetworks.com]
+changed: [us154.sjc.aristanetworks.com]
+changed: [us160.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [us151.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [us151.sjc.aristanetworks.com]
+	to retry, use: --limit @/home/ansible/scaleit/playbooks/change_file_free.retry
+
+PLAY RECAP *****************************************************************************************************************************
+bs304.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs417.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs932.blrmt.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us101.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us102.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us103.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us104.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us105.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us106.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us107.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us108.sjc.aristanetworks.com : ok=3    changed=2    unreachable=1    failed=0   
+us109.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us110.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us111.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us112.sjc.aristanetworks.com : ok=2    changed=1    unreachable=1    failed=0   
+us113.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us114.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us115.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us116.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us117.sjc.aristanetworks.com : ok=2    changed=1    unreachable=1    failed=0   
+us118.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us119.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us120.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us121.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us122.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us123.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us124.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us125.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us126.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us127.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us128.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us129.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us130.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us131.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us132.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us133.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us134.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us135.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us136.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us137.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us138.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us139.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us140.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us141.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us142.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us143.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us144.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us145.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us146.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us147.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us148.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us149.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us150.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us151.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us152.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us153.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us154.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us155.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us156.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us157.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us158.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us159.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us160.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us161.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us162.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us163.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us164.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us165.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us166.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us167.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+us168.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+
+## DURATION:  389 seconds.

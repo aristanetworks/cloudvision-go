@@ -1,0 +1,416 @@
+
+PLAY [Simple playbook to add, search, and edit a file -  /etc/motd] ********************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [atest307.sjc.aristanetworks.com]
+ok: [atest301.sjc.aristanetworks.com]
+ok: [atest321.sjc.aristanetworks.com]
+ok: [atest319.sjc.aristanetworks.com]
+ok: [atest313.sjc.aristanetworks.com]
+ok: [atest314.sjc.aristanetworks.com]
+ok: [atest324.sjc.aristanetworks.com]
+ok: [atest302.sjc.aristanetworks.com]
+ok: [atest322.sjc.aristanetworks.com]
+ok: [atest308.sjc.aristanetworks.com]
+ok: [atest306.sjc.aristanetworks.com]
+ok: [atest320.sjc.aristanetworks.com]
+ok: [atest309.sjc.aristanetworks.com]
+ok: [atest336.sjc.aristanetworks.com]
+ok: [atest325.sjc.aristanetworks.com]
+ok: [atest311.sjc.aristanetworks.com]
+ok: [atest310.sjc.aristanetworks.com]
+ok: [atest333.sjc.aristanetworks.com]
+ok: [atest303.sjc.aristanetworks.com]
+ok: [atest317.sjc.aristanetworks.com]
+ok: [atest327.sjc.aristanetworks.com]
+ok: [atest326.sjc.aristanetworks.com]
+ok: [atest328.sjc.aristanetworks.com]
+ok: [atest335.sjc.aristanetworks.com]
+fatal: [atest316.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: ssh: connect to host atest316.sjc.aristanetworks.com port 22: No route to host\r\n", "unreachable": true}
+ok: [atest340.sjc.aristanetworks.com]
+ok: [atest315.sjc.aristanetworks.com]
+ok: [atest331.sjc.aristanetworks.com]
+ok: [atest338.sjc.aristanetworks.com]
+ok: [atest332.sjc.aristanetworks.com]
+ok: [atest339.sjc.aristanetworks.com]
+ok: [atest304.sjc.aristanetworks.com]
+ok: [atest323.sjc.aristanetworks.com]
+ok: [atest312.sjc.aristanetworks.com]
+ok: [atest334.sjc.aristanetworks.com]
+ok: [atest350.sjc.aristanetworks.com]
+ok: [atest349.sjc.aristanetworks.com]
+ok: [atest348.sjc.aristanetworks.com]
+ok: [atest347.sjc.aristanetworks.com]
+ok: [atest346.sjc.aristanetworks.com]
+ok: [atest345.sjc.aristanetworks.com]
+ok: [atest344.sjc.aristanetworks.com]
+ok: [atest343.sjc.aristanetworks.com]
+ok: [atest342.sjc.aristanetworks.com]
+ok: [atest341.sjc.aristanetworks.com]
+ok: [atest337.sjc.aristanetworks.com]
+ok: [atest330.sjc.aristanetworks.com]
+ok: [atest329.sjc.aristanetworks.com]
+ok: [atest318.sjc.aristanetworks.com]
+ok: [atest305.sjc.aristanetworks.com]
+ok: [atest365.sjc.aristanetworks.com]
+ok: [atest366.sjc.aristanetworks.com]
+ok: [atest364.sjc.aristanetworks.com]
+ok: [atest363.sjc.aristanetworks.com]
+ok: [atest352.sjc.aristanetworks.com]
+ok: [atest362.sjc.aristanetworks.com]
+ok: [atest361.sjc.aristanetworks.com]
+ok: [atest360.sjc.aristanetworks.com]
+ok: [atest359.sjc.aristanetworks.com]
+ok: [atest358.sjc.aristanetworks.com]
+ok: [atest357.sjc.aristanetworks.com]
+ok: [atest356.sjc.aristanetworks.com]
+ok: [atest355.sjc.aristanetworks.com]
+ok: [atest354.sjc.aristanetworks.com]
+ok: [atest353.sjc.aristanetworks.com]
+ok: [atest351.sjc.aristanetworks.com]
+ok: [atest375.sjc.aristanetworks.com]
+ok: [atest373.sjc.aristanetworks.com]
+ok: [atest371.sjc.aristanetworks.com]
+ok: [atest372.sjc.aristanetworks.com]
+ok: [atest370.sjc.aristanetworks.com]
+ok: [atest368.sjc.aristanetworks.com]
+ok: [atest369.sjc.aristanetworks.com]
+ok: [atest367.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [atest350.sjc.aristanetworks.com]
+changed: [atest349.sjc.aristanetworks.com]
+changed: [atest348.sjc.aristanetworks.com]
+changed: [atest347.sjc.aristanetworks.com]
+changed: [atest346.sjc.aristanetworks.com]
+changed: [atest345.sjc.aristanetworks.com]
+changed: [atest343.sjc.aristanetworks.com]
+changed: [atest344.sjc.aristanetworks.com]
+changed: [atest342.sjc.aristanetworks.com]
+changed: [atest341.sjc.aristanetworks.com]
+changed: [atest337.sjc.aristanetworks.com]
+changed: [atest330.sjc.aristanetworks.com]
+changed: [atest329.sjc.aristanetworks.com]
+changed: [atest318.sjc.aristanetworks.com]
+changed: [atest305.sjc.aristanetworks.com]
+changed: [atest340.sjc.aristanetworks.com]
+changed: [atest338.sjc.aristanetworks.com]
+changed: [atest339.sjc.aristanetworks.com]
+changed: [atest334.sjc.aristanetworks.com]
+changed: [atest332.sjc.aristanetworks.com]
+changed: [atest331.sjc.aristanetworks.com]
+changed: [atest323.sjc.aristanetworks.com]
+changed: [atest315.sjc.aristanetworks.com]
+changed: [atest312.sjc.aristanetworks.com]
+changed: [atest304.sjc.aristanetworks.com]
+changed: [atest336.sjc.aristanetworks.com]
+changed: [atest335.sjc.aristanetworks.com]
+changed: [atest333.sjc.aristanetworks.com]
+changed: [atest328.sjc.aristanetworks.com]
+changed: [atest327.sjc.aristanetworks.com]
+changed: [atest325.sjc.aristanetworks.com]
+changed: [atest326.sjc.aristanetworks.com]
+changed: [atest324.sjc.aristanetworks.com]
+changed: [atest322.sjc.aristanetworks.com]
+changed: [atest321.sjc.aristanetworks.com]
+changed: [atest320.sjc.aristanetworks.com]
+changed: [atest319.sjc.aristanetworks.com]
+changed: [atest317.sjc.aristanetworks.com]
+changed: [atest314.sjc.aristanetworks.com]
+changed: [atest313.sjc.aristanetworks.com]
+changed: [atest302.sjc.aristanetworks.com]
+changed: [atest309.sjc.aristanetworks.com]
+changed: [atest311.sjc.aristanetworks.com]
+changed: [atest306.sjc.aristanetworks.com]
+changed: [atest303.sjc.aristanetworks.com]
+changed: [atest310.sjc.aristanetworks.com]
+changed: [atest307.sjc.aristanetworks.com]
+changed: [atest301.sjc.aristanetworks.com]
+changed: [atest308.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [atest376.sjc.aristanetworks.com]
+ok: [atest374.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [atest322.sjc.aristanetworks.com]
+changed: [atest321.sjc.aristanetworks.com]
+changed: [atest313.sjc.aristanetworks.com]
+changed: [atest320.sjc.aristanetworks.com]
+changed: [atest319.sjc.aristanetworks.com]
+changed: [atest318.sjc.aristanetworks.com]
+changed: [atest317.sjc.aristanetworks.com]
+changed: [atest315.sjc.aristanetworks.com]
+changed: [atest314.sjc.aristanetworks.com]
+changed: [atest312.sjc.aristanetworks.com]
+changed: [atest311.sjc.aristanetworks.com]
+changed: [atest310.sjc.aristanetworks.com]
+changed: [atest309.sjc.aristanetworks.com]
+changed: [atest308.sjc.aristanetworks.com]
+changed: [atest307.sjc.aristanetworks.com]
+changed: [atest306.sjc.aristanetworks.com]
+changed: [atest305.sjc.aristanetworks.com]
+changed: [atest304.sjc.aristanetworks.com]
+changed: [atest303.sjc.aristanetworks.com]
+changed: [atest302.sjc.aristanetworks.com]
+changed: [atest301.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [atest366.sjc.aristanetworks.com]
+changed: [atest365.sjc.aristanetworks.com]
+changed: [atest364.sjc.aristanetworks.com]
+changed: [atest363.sjc.aristanetworks.com]
+changed: [atest362.sjc.aristanetworks.com]
+changed: [atest361.sjc.aristanetworks.com]
+changed: [atest360.sjc.aristanetworks.com]
+changed: [atest359.sjc.aristanetworks.com]
+changed: [atest358.sjc.aristanetworks.com]
+changed: [atest357.sjc.aristanetworks.com]
+changed: [atest356.sjc.aristanetworks.com]
+changed: [atest355.sjc.aristanetworks.com]
+changed: [atest354.sjc.aristanetworks.com]
+changed: [atest353.sjc.aristanetworks.com]
+changed: [atest352.sjc.aristanetworks.com]
+changed: [atest351.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [atest321.sjc.aristanetworks.com]
+changed: [atest320.sjc.aristanetworks.com]
+changed: [atest319.sjc.aristanetworks.com]
+changed: [atest315.sjc.aristanetworks.com]
+changed: [atest318.sjc.aristanetworks.com]
+changed: [atest317.sjc.aristanetworks.com]
+changed: [atest314.sjc.aristanetworks.com]
+changed: [atest313.sjc.aristanetworks.com]
+changed: [atest312.sjc.aristanetworks.com]
+changed: [atest311.sjc.aristanetworks.com]
+changed: [atest308.sjc.aristanetworks.com]
+changed: [atest310.sjc.aristanetworks.com]
+changed: [atest309.sjc.aristanetworks.com]
+changed: [atest307.sjc.aristanetworks.com]
+changed: [atest306.sjc.aristanetworks.com]
+changed: [atest305.sjc.aristanetworks.com]
+changed: [atest304.sjc.aristanetworks.com]
+changed: [atest303.sjc.aristanetworks.com]
+changed: [atest302.sjc.aristanetworks.com]
+changed: [atest301.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [atest375.sjc.aristanetworks.com]
+changed: [atest373.sjc.aristanetworks.com]
+changed: [atest371.sjc.aristanetworks.com]
+changed: [atest372.sjc.aristanetworks.com]
+changed: [atest370.sjc.aristanetworks.com]
+changed: [atest369.sjc.aristanetworks.com]
+changed: [atest368.sjc.aristanetworks.com]
+changed: [atest367.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [atest349.sjc.aristanetworks.com]
+changed: [atest350.sjc.aristanetworks.com]
+changed: [atest348.sjc.aristanetworks.com]
+changed: [atest347.sjc.aristanetworks.com]
+changed: [atest344.sjc.aristanetworks.com]
+changed: [atest346.sjc.aristanetworks.com]
+changed: [atest345.sjc.aristanetworks.com]
+changed: [atest343.sjc.aristanetworks.com]
+changed: [atest342.sjc.aristanetworks.com]
+changed: [atest341.sjc.aristanetworks.com]
+changed: [atest340.sjc.aristanetworks.com]
+changed: [atest339.sjc.aristanetworks.com]
+changed: [atest338.sjc.aristanetworks.com]
+changed: [atest337.sjc.aristanetworks.com]
+changed: [atest336.sjc.aristanetworks.com]
+changed: [atest335.sjc.aristanetworks.com]
+changed: [atest334.sjc.aristanetworks.com]
+changed: [atest333.sjc.aristanetworks.com]
+changed: [atest332.sjc.aristanetworks.com]
+changed: [atest331.sjc.aristanetworks.com]
+changed: [atest330.sjc.aristanetworks.com]
+changed: [atest329.sjc.aristanetworks.com]
+changed: [atest328.sjc.aristanetworks.com]
+changed: [atest327.sjc.aristanetworks.com]
+changed: [atest326.sjc.aristanetworks.com]
+changed: [atest325.sjc.aristanetworks.com]
+changed: [atest324.sjc.aristanetworks.com]
+changed: [atest323.sjc.aristanetworks.com]
+changed: [atest365.sjc.aristanetworks.com]
+changed: [atest364.sjc.aristanetworks.com]
+changed: [atest363.sjc.aristanetworks.com]
+changed: [atest362.sjc.aristanetworks.com]
+changed: [atest361.sjc.aristanetworks.com]
+changed: [atest360.sjc.aristanetworks.com]
+changed: [atest359.sjc.aristanetworks.com]
+changed: [atest358.sjc.aristanetworks.com]
+changed: [atest357.sjc.aristanetworks.com]
+changed: [atest356.sjc.aristanetworks.com]
+changed: [atest355.sjc.aristanetworks.com]
+changed: [atest353.sjc.aristanetworks.com]
+changed: [atest354.sjc.aristanetworks.com]
+changed: [atest352.sjc.aristanetworks.com]
+changed: [atest351.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [atest322.sjc.aristanetworks.com]
+changed: [atest348.sjc.aristanetworks.com]
+changed: [atest347.sjc.aristanetworks.com]
+changed: [atest345.sjc.aristanetworks.com]
+changed: [atest346.sjc.aristanetworks.com]
+changed: [atest343.sjc.aristanetworks.com]
+changed: [atest344.sjc.aristanetworks.com]
+changed: [atest342.sjc.aristanetworks.com]
+changed: [atest341.sjc.aristanetworks.com]
+changed: [atest340.sjc.aristanetworks.com]
+changed: [atest339.sjc.aristanetworks.com]
+changed: [atest337.sjc.aristanetworks.com]
+changed: [atest338.sjc.aristanetworks.com]
+changed: [atest336.sjc.aristanetworks.com]
+changed: [atest335.sjc.aristanetworks.com]
+changed: [atest334.sjc.aristanetworks.com]
+changed: [atest333.sjc.aristanetworks.com]
+changed: [atest332.sjc.aristanetworks.com]
+changed: [atest331.sjc.aristanetworks.com]
+changed: [atest330.sjc.aristanetworks.com]
+changed: [atest329.sjc.aristanetworks.com]
+changed: [atest328.sjc.aristanetworks.com]
+changed: [atest327.sjc.aristanetworks.com]
+changed: [atest326.sjc.aristanetworks.com]
+changed: [atest325.sjc.aristanetworks.com]
+changed: [atest324.sjc.aristanetworks.com]
+changed: [atest323.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [atest376.sjc.aristanetworks.com]
+changed: [atest374.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [atest366.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [atest357.sjc.aristanetworks.com]
+changed: [atest356.sjc.aristanetworks.com]
+changed: [atest355.sjc.aristanetworks.com]
+changed: [atest354.sjc.aristanetworks.com]
+changed: [atest352.sjc.aristanetworks.com]
+changed: [atest353.sjc.aristanetworks.com]
+changed: [atest351.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [atest375.sjc.aristanetworks.com]
+changed: [atest371.sjc.aristanetworks.com]
+changed: [atest373.sjc.aristanetworks.com]
+changed: [atest372.sjc.aristanetworks.com]
+changed: [atest370.sjc.aristanetworks.com]
+changed: [atest369.sjc.aristanetworks.com]
+changed: [atest368.sjc.aristanetworks.com]
+changed: [atest367.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [atest350.sjc.aristanetworks.com]
+changed: [atest349.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [atest376.sjc.aristanetworks.com]
+changed: [atest374.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [atest366.sjc.aristanetworks.com]
+changed: [atest365.sjc.aristanetworks.com]
+changed: [atest364.sjc.aristanetworks.com]
+changed: [atest363.sjc.aristanetworks.com]
+changed: [atest362.sjc.aristanetworks.com]
+changed: [atest361.sjc.aristanetworks.com]
+changed: [atest360.sjc.aristanetworks.com]
+changed: [atest359.sjc.aristanetworks.com]
+changed: [atest358.sjc.aristanetworks.com]
+changed: [atest370.sjc.aristanetworks.com]
+changed: [atest369.sjc.aristanetworks.com]
+changed: [atest368.sjc.aristanetworks.com]
+changed: [atest367.sjc.aristanetworks.com]
+changed: [atest375.sjc.aristanetworks.com]
+changed: [atest373.sjc.aristanetworks.com]
+changed: [atest372.sjc.aristanetworks.com]
+changed: [atest371.sjc.aristanetworks.com]
+changed: [atest374.sjc.aristanetworks.com]
+changed: [atest376.sjc.aristanetworks.com]
+	to retry, use: --limit @/home/ansible/scaleit/playbooks/change_file_free.retry
+
+PLAY RECAP *****************************************************************************************************************************
+atest301.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest302.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest303.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest304.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest305.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest306.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest307.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest308.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest309.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest310.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest311.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest312.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest313.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest314.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest315.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest316.sjc.aristanetworks.com : ok=0    changed=0    unreachable=1    failed=0   
+atest317.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest318.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest319.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest320.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest321.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest322.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest323.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest324.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest325.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest326.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest327.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest328.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest329.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest330.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest331.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest332.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest333.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest334.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest335.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest336.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest337.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest338.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest339.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest340.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest341.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest342.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest343.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest344.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest345.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest346.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest347.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest348.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest349.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest350.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest351.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest352.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest353.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest354.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest355.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest356.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest357.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest358.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest359.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest360.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest361.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest362.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest363.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest364.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest365.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest366.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest367.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest368.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest369.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest370.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest371.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest372.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest373.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest374.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest375.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+atest376.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+
+## DURATION:  219 seconds.

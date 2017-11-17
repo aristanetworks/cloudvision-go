@@ -1,0 +1,221 @@
+
+PLAY [Simple playbook to add, search, and edit a file -  /etc/motd] ********************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [stest101.sjc.aristanetworks.com]
+ok: [bs229.sjc.aristanetworks.com]
+ok: [stest103.sjc.aristanetworks.com]
+ok: [stest102.sjc.aristanetworks.com]
+ok: [bs216.sjc.aristanetworks.com]
+ok: [bs205.sjc.aristanetworks.com]
+ok: [bs213.sjc.aristanetworks.com]
+ok: [bs202.sjc.aristanetworks.com]
+ok: [bs232.sjc.aristanetworks.com]
+ok: [bs226.sjc.aristanetworks.com]
+ok: [stest104.sjc.aristanetworks.com]
+ok: [bs220.sjc.aristanetworks.com]
+ok: [bs217.sjc.aristanetworks.com]
+ok: [bs219.sjc.aristanetworks.com]
+ok: [bs208.sjc.aristanetworks.com]
+ok: [bs207.sjc.aristanetworks.com]
+ok: [bs214.sjc.aristanetworks.com]
+ok: [bs225.sjc.aristanetworks.com]
+ok: [bs211.sjc.aristanetworks.com]
+ok: [bs221.sjc.aristanetworks.com]
+ok: [bs223.sjc.aristanetworks.com]
+ok: [bs215.sjc.aristanetworks.com]
+ok: [bs224.sjc.aristanetworks.com]
+ok: [bs210.sjc.aristanetworks.com]
+ok: [bs230.sjc.aristanetworks.com]
+ok: [bs222.sjc.aristanetworks.com]
+ok: [bs218.sjc.aristanetworks.com]
+ok: [bs209.sjc.aristanetworks.com]
+ok: [bs201.sjc.aristanetworks.com]
+fatal: [bs212.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Connection timed out during banner exchange\r\n", "unreachable": true}
+ok: [bs204.sjc.aristanetworks.com]
+ok: [bs206.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs217.sjc.aristanetworks.com]
+changed: [bs214.sjc.aristanetworks.com]
+changed: [bs208.sjc.aristanetworks.com]
+changed: [bs207.sjc.aristanetworks.com]
+changed: [bs232.sjc.aristanetworks.com]
+changed: [stest104.sjc.aristanetworks.com]
+changed: [bs226.sjc.aristanetworks.com]
+changed: [bs220.sjc.aristanetworks.com]
+changed: [bs213.sjc.aristanetworks.com]
+changed: [bs202.sjc.aristanetworks.com]
+changed: [bs216.sjc.aristanetworks.com]
+changed: [stest102.sjc.aristanetworks.com]
+changed: [stest103.sjc.aristanetworks.com]
+changed: [stest101.sjc.aristanetworks.com]
+changed: [bs205.sjc.aristanetworks.com]
+changed: [bs229.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [bs231.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs223.sjc.aristanetworks.com]
+changed: [bs221.sjc.aristanetworks.com]
+changed: [bs211.sjc.aristanetworks.com]
+changed: [bs215.sjc.aristanetworks.com]
+changed: [bs219.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs214.sjc.aristanetworks.com]
+changed: [bs213.sjc.aristanetworks.com]
+changed: [bs208.sjc.aristanetworks.com]
+changed: [bs207.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs206.sjc.aristanetworks.com]
+changed: [bs204.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs205.sjc.aristanetworks.com]
+changed: [bs202.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs218.sjc.aristanetworks.com]
+changed: [bs209.sjc.aristanetworks.com]
+changed: [bs201.sjc.aristanetworks.com]
+changed: [bs230.sjc.aristanetworks.com]
+changed: [bs222.sjc.aristanetworks.com]
+changed: [bs224.sjc.aristanetworks.com]
+changed: [bs210.sjc.aristanetworks.com]
+changed: [bs225.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs229.sjc.aristanetworks.com]
+changed: [bs226.sjc.aristanetworks.com]
+changed: [bs220.sjc.aristanetworks.com]
+changed: [bs217.sjc.aristanetworks.com]
+changed: [bs216.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs202.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs201.sjc.aristanetworks.com]
+changed: [bs223.sjc.aristanetworks.com]
+changed: [bs221.sjc.aristanetworks.com]
+changed: [bs219.sjc.aristanetworks.com]
+changed: [bs215.sjc.aristanetworks.com]
+changed: [bs211.sjc.aristanetworks.com]
+changed: [stest104.sjc.aristanetworks.com]
+changed: [stest103.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs208.sjc.aristanetworks.com]
+changed: [bs207.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs206.sjc.aristanetworks.com]
+changed: [bs204.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs205.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [stest102.sjc.aristanetworks.com]
+changed: [stest101.sjc.aristanetworks.com]
+changed: [bs232.sjc.aristanetworks.com]
+changed: [bs225.sjc.aristanetworks.com]
+changed: [bs224.sjc.aristanetworks.com]
+changed: [bs222.sjc.aristanetworks.com]
+changed: [bs218.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs214.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs210.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs213.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs209.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs204.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs231.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs201.sjc.aristanetworks.com]
+changed: [bs226.sjc.aristanetworks.com]
+changed: [bs229.sjc.aristanetworks.com]
+changed: [bs220.sjc.aristanetworks.com]
+changed: [bs217.sjc.aristanetworks.com]
+changed: [bs216.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs230.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [stest102.sjc.aristanetworks.com]
+changed: [bs232.sjc.aristanetworks.com]
+changed: [stest101.sjc.aristanetworks.com]
+changed: [bs223.sjc.aristanetworks.com]
+changed: [bs221.sjc.aristanetworks.com]
+changed: [bs219.sjc.aristanetworks.com]
+changed: [bs215.sjc.aristanetworks.com]
+changed: [bs211.sjc.aristanetworks.com]
+changed: [bs206.sjc.aristanetworks.com]
+changed: [stest104.sjc.aristanetworks.com]
+changed: [stest103.sjc.aristanetworks.com]
+changed: [bs225.sjc.aristanetworks.com]
+changed: [bs224.sjc.aristanetworks.com]
+changed: [bs218.sjc.aristanetworks.com]
+changed: [bs222.sjc.aristanetworks.com]
+changed: [bs209.sjc.aristanetworks.com]
+changed: [bs210.sjc.aristanetworks.com]
+changed: [bs230.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs231.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs231.sjc.aristanetworks.com]
+	to retry, use: --limit @/home/ansible/scaleit/playbooks/change_file_free.retry
+
+PLAY RECAP *****************************************************************************************************************************
+bs201.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs202.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs204.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs205.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs206.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs207.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs208.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs209.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs210.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs211.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs212.sjc.aristanetworks.com : ok=0    changed=0    unreachable=1    failed=0   
+bs213.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs214.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs215.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs216.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs217.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs218.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs219.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs220.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs221.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs222.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs223.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs224.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs225.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs226.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs229.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs230.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs231.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs232.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+stest101.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+stest102.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+stest103.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+stest104.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+
+## DURATION:  181 seconds.

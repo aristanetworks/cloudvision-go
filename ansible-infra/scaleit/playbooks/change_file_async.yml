@@ -1,0 +1,31 @@
+---
+- name: "Simple playbook to add, search, and edit a file -  /etc/motd" 
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+      - name: "Add a line to /etc/motd"
+        lineinfile: 
+            path: /etc/motd
+            line: "THIS IS A TEST LINE FOR SCALEIT - WILL BE REMOVED SOON"
+            state: present
+        async: 30
+        poll: 2 
+            
+
+      - name: "Change a line in /etc/motd"
+        lineinfile:
+            path: /etc/motd
+            regexp: "SCALEIT"
+            line: "scaleit"
+        async: 30
+        poll: 2
+
+      - name: "Remove a line from /etc/motd"
+        lineinfile:
+            path: /etc/motd
+            regexp: "scaleit"
+            state: absent
+        async: 30
+        poll: 2
+...

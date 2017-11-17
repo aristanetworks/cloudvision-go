@@ -1,0 +1,8 @@
+#!/bin/bash
+
+start=$SECONDS
+ansible-playbook -i $1 -f $2 -l $3 $4
+length=$(( SECONDS - start ))
+
+echo "## DURATION: " $length  "seconds."
+

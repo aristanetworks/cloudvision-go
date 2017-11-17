@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+import MySQLdb
+import argparse
+
+MYSQL_USER = "arastra"
+MYSQL_HOST = "ardcdb"
+MYSQL_DB = "datacenter"
+MYSQL_TABLE = "servers"
+
+if __name__ == "__main__":
+   # Create parser
+   parser = argparse.ArgumentParser( description=( """Generating an ansible inventory file with hosts from datacenter.servers table.""" ),
+                                 formatter_class=argparse.RawTextHelpFormatter )
+   parser.add_argument( "role", nargs="+",
+                    help="Only include the servers of the specified role(s)." )
+   parser.add_argument( "--filename", action="store", default="hosts",
+                    help="Name of the generated inventory file." )
+   # Parse CLI arguments
+   args = parser.parse_args()
+
+   # Connect to MySQL
+   db = MySQLdb.connect( user=MYSQL_USER, db=MYSQL_DB, host=MYSQL_HOST )
+   cursor = db.cursor()
+   cursor.execute( 'set autocommit=1' )
+
+   # Grab relevant rows from MySQL
+   hosts = {}
+   for role in args.role:
+      cursor.execute( "SELECT name, domain FROM %s WHERE role = '%s'" %
+            ( MYSQL_TABLE, role ) )
+      rows = cursor.fetchall()
+      hosts[ role ] = [ "%s.%s" % ( name, domain ) for name, domain in rows  ]
+
+   with open( args.filename, "w" ) as f:
+      for role, hostnames in hosts.items():
+         f.write( "[%s]\n" % role )
+         for hostname in hostnames:
+            f.write( "%s\n" % hostname )
+         f.write( "\n" )
+   print "Generated inventory file %s" % args.filename
+

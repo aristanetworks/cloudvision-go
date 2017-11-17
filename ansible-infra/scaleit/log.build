@@ -1,0 +1,955 @@
+
+PLAY [Simple playbook to add, search, and edit a file -  /etc/motd] ********************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [bs428.sjc.aristanetworks.com]
+fatal: [bs436.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Authentication or permission failure. In some cases, you may have been able to authenticate and did not have permissions on the remote directory. Consider changing the remote temp path in ansible.cfg to a path rooted in \"/tmp\". Failed command was: ( umask 77 && mkdir -p \"` echo /home/arastra/.ansible/tmp/ansible-tmp-1501820614.87-260499649934707 `\" && echo ansible-tmp-1501820614.87-260499649934707=\"` echo /home/arastra/.ansible/tmp/ansible-tmp-1501820614.87-260499649934707 `\" ), exited with result 1", "unreachable": true}
+ok: [bs426.sjc.aristanetworks.com]
+ok: [bs424.sjc.aristanetworks.com]
+ok: [bs425.sjc.aristanetworks.com]
+ok: [bs421.sjc.aristanetworks.com]
+ok: [bs420.sjc.aristanetworks.com]
+ok: [bs423.sjc.aristanetworks.com]
+ok: [bs422.sjc.aristanetworks.com]
+ok: [bs418.sjc.aristanetworks.com]
+ok: [bs419.sjc.aristanetworks.com]
+ok: [bs416.sjc.aristanetworks.com]
+ok: [bs415.sjc.aristanetworks.com]
+ok: [bs414.sjc.aristanetworks.com]
+ok: [bs413.sjc.aristanetworks.com]
+ok: [bs412.sjc.aristanetworks.com]
+ok: [bs411.sjc.aristanetworks.com]
+ok: [bs410.sjc.aristanetworks.com]
+ok: [bs409.sjc.aristanetworks.com]
+ok: [bs408.sjc.aristanetworks.com]
+ok: [bs407.sjc.aristanetworks.com]
+ok: [bs401.sjc.aristanetworks.com]
+ok: [bs405.sjc.aristanetworks.com]
+ok: [bs406.sjc.aristanetworks.com]
+ok: [bs400.sjc.aristanetworks.com]
+ok: [bs404.sjc.aristanetworks.com]
+ok: [bs403.sjc.aristanetworks.com]
+ok: [bs402.sjc.aristanetworks.com]
+ok: [bs399.sjc.aristanetworks.com]
+ok: [bs398.sjc.aristanetworks.com]
+ok: [bs397.sjc.aristanetworks.com]
+ok: [bs396.sjc.aristanetworks.com]
+ok: [bs395.sjc.aristanetworks.com]
+ok: [bs392.sjc.aristanetworks.com]
+ok: [bs394.sjc.aristanetworks.com]
+ok: [bs393.sjc.aristanetworks.com]
+ok: [bs391.sjc.aristanetworks.com]
+ok: [bs390.sjc.aristanetworks.com]
+ok: [bs389.sjc.aristanetworks.com]
+ok: [bs388.sjc.aristanetworks.com]
+ok: [bs386.sjc.aristanetworks.com]
+ok: [bs387.sjc.aristanetworks.com]
+ok: [bs385.sjc.aristanetworks.com]
+ok: [bs384.sjc.aristanetworks.com]
+ok: [bs382.sjc.aristanetworks.com]
+ok: [bs383.sjc.aristanetworks.com]
+fatal: [bs360.sjc.aristanetworks.com]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Connection timed out during banner exchange\r\n", "unreachable": true}
+ok: [bs381.sjc.aristanetworks.com]
+ok: [bs380.sjc.aristanetworks.com]
+ok: [bs379.sjc.aristanetworks.com]
+ok: [bs378.sjc.aristanetworks.com]
+ok: [bs376.sjc.aristanetworks.com]
+ok: [bs377.sjc.aristanetworks.com]
+ok: [bs374.sjc.aristanetworks.com]
+ok: [bs375.sjc.aristanetworks.com]
+ok: [bs373.sjc.aristanetworks.com]
+ok: [bs372.sjc.aristanetworks.com]
+ok: [bs371.sjc.aristanetworks.com]
+ok: [bs369.sjc.aristanetworks.com]
+ok: [bs370.sjc.aristanetworks.com]
+ok: [bs368.sjc.aristanetworks.com]
+ok: [bs367.sjc.aristanetworks.com]
+ok: [bs363.sjc.aristanetworks.com]
+ok: [bs366.sjc.aristanetworks.com]
+ok: [bs365.sjc.aristanetworks.com]
+ok: [bs364.sjc.aristanetworks.com]
+ok: [bs362.sjc.aristanetworks.com]
+ok: [bs361.sjc.aristanetworks.com]
+ok: [bs359.sjc.aristanetworks.com]
+ok: [bs341.sjc.aristanetworks.com]
+ok: [bs358.sjc.aristanetworks.com]
+ok: [bs303.sjc.aristanetworks.com]
+ok: [bs357.sjc.aristanetworks.com]
+ok: [bs353.sjc.aristanetworks.com]
+ok: [bs354.sjc.aristanetworks.com]
+ok: [bs355.sjc.aristanetworks.com]
+ok: [bs352.sjc.aristanetworks.com]
+ok: [bs350.sjc.aristanetworks.com]
+ok: [bs351.sjc.aristanetworks.com]
+ok: [bs347.sjc.aristanetworks.com]
+ok: [bs348.sjc.aristanetworks.com]
+ok: [bs349.sjc.aristanetworks.com]
+ok: [bs346.sjc.aristanetworks.com]
+ok: [bs344.sjc.aristanetworks.com]
+ok: [bs343.sjc.aristanetworks.com]
+ok: [bs345.sjc.aristanetworks.com]
+ok: [bs342.sjc.aristanetworks.com]
+ok: [bs340.sjc.aristanetworks.com]
+ok: [bs328.sjc.aristanetworks.com]
+ok: [bs311.sjc.aristanetworks.com]
+ok: [bs317.sjc.aristanetworks.com]
+ok: [bs306.sjc.aristanetworks.com]
+ok: [bs314.sjc.aristanetworks.com]
+ok: [bs335.sjc.aristanetworks.com]
+ok: [bs310.sjc.aristanetworks.com]
+ok: [bs315.sjc.aristanetworks.com]
+ok: [bs334.sjc.aristanetworks.com]
+ok: [bs324.sjc.aristanetworks.com]
+ok: [bs322.sjc.aristanetworks.com]
+ok: [bs321.sjc.aristanetworks.com]
+ok: [bs307.sjc.aristanetworks.com]
+ok: [bs339.sjc.aristanetworks.com]
+ok: [bs338.sjc.aristanetworks.com]
+ok: [bs333.sjc.aristanetworks.com]
+ok: [bs330.sjc.aristanetworks.com]
+ok: [bs316.sjc.aristanetworks.com]
+ok: [bs323.sjc.aristanetworks.com]
+ok: [bs318.sjc.aristanetworks.com]
+ok: [bs331.sjc.aristanetworks.com]
+ok: [bs325.sjc.aristanetworks.com]
+ok: [bs301.sjc.aristanetworks.com]
+ok: [bs332.sjc.aristanetworks.com]
+ok: [bs319.sjc.aristanetworks.com]
+ok: [bs305.sjc.aristanetworks.com]
+ok: [bs336.sjc.aristanetworks.com]
+ok: [bs329.sjc.aristanetworks.com]
+ok: [bs313.sjc.aristanetworks.com]
+ok: [bs320.sjc.aristanetworks.com]
+ok: [bs337.sjc.aristanetworks.com]
+ok: [bs309.sjc.aristanetworks.com]
+ok: [bs312.sjc.aristanetworks.com]
+ok: [bs327.sjc.aristanetworks.com]
+ok: [bs326.sjc.aristanetworks.com]
+ok: [bs302.sjc.aristanetworks.com]
+ok: [bs443.sjc.aristanetworks.com]
+ok: [bs444.sjc.aristanetworks.com]
+ok: [bs442.sjc.aristanetworks.com]
+ok: [bs441.sjc.aristanetworks.com]
+ok: [bs435.sjc.aristanetworks.com]
+ok: [bs438.sjc.aristanetworks.com]
+ok: [bs440.sjc.aristanetworks.com]
+ok: [bs439.sjc.aristanetworks.com]
+ok: [bs437.sjc.aristanetworks.com]
+ok: [bs427.sjc.aristanetworks.com]
+ok: [bs433.sjc.aristanetworks.com]
+ok: [bs434.sjc.aristanetworks.com]
+ok: [bs429.sjc.aristanetworks.com]
+ok: [bs430.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs421.sjc.aristanetworks.com]
+changed: [bs418.sjc.aristanetworks.com]
+changed: [bs419.sjc.aristanetworks.com]
+changed: [bs416.sjc.aristanetworks.com]
+changed: [bs415.sjc.aristanetworks.com]
+changed: [bs414.sjc.aristanetworks.com]
+changed: [bs400.sjc.aristanetworks.com]
+changed: [bs413.sjc.aristanetworks.com]
+changed: [bs412.sjc.aristanetworks.com]
+changed: [bs411.sjc.aristanetworks.com]
+changed: [bs410.sjc.aristanetworks.com]
+changed: [bs409.sjc.aristanetworks.com]
+changed: [bs407.sjc.aristanetworks.com]
+changed: [bs408.sjc.aristanetworks.com]
+changed: [bs406.sjc.aristanetworks.com]
+changed: [bs405.sjc.aristanetworks.com]
+changed: [bs404.sjc.aristanetworks.com]
+changed: [bs403.sjc.aristanetworks.com]
+changed: [bs402.sjc.aristanetworks.com]
+fatal: [bs382.sjc.aristanetworks.com]: FAILED! => {"failed": true, "msg": "Timeout (12s) waiting for privilege escalation prompt: "}
+changed: [bs399.sjc.aristanetworks.com]
+changed: [bs398.sjc.aristanetworks.com]
+changed: [bs397.sjc.aristanetworks.com]
+changed: [bs396.sjc.aristanetworks.com]
+changed: [bs395.sjc.aristanetworks.com]
+changed: [bs394.sjc.aristanetworks.com]
+changed: [bs392.sjc.aristanetworks.com]
+changed: [bs393.sjc.aristanetworks.com]
+changed: [bs391.sjc.aristanetworks.com]
+changed: [bs390.sjc.aristanetworks.com]
+changed: [bs389.sjc.aristanetworks.com]
+changed: [bs388.sjc.aristanetworks.com]
+changed: [bs386.sjc.aristanetworks.com]
+changed: [bs387.sjc.aristanetworks.com]
+changed: [bs385.sjc.aristanetworks.com]
+changed: [bs341.sjc.aristanetworks.com]
+changed: [bs384.sjc.aristanetworks.com]
+changed: [bs383.sjc.aristanetworks.com]
+changed: [bs381.sjc.aristanetworks.com]
+changed: [bs379.sjc.aristanetworks.com]
+changed: [bs380.sjc.aristanetworks.com]
+changed: [bs374.sjc.aristanetworks.com]
+changed: [bs378.sjc.aristanetworks.com]
+changed: [bs377.sjc.aristanetworks.com]
+changed: [bs376.sjc.aristanetworks.com]
+changed: [bs375.sjc.aristanetworks.com]
+changed: [bs373.sjc.aristanetworks.com]
+changed: [bs372.sjc.aristanetworks.com]
+changed: [bs370.sjc.aristanetworks.com]
+changed: [bs371.sjc.aristanetworks.com]
+changed: [bs369.sjc.aristanetworks.com]
+changed: [bs364.sjc.aristanetworks.com]
+changed: [bs368.sjc.aristanetworks.com]
+changed: [bs367.sjc.aristanetworks.com]
+changed: [bs366.sjc.aristanetworks.com]
+changed: [bs365.sjc.aristanetworks.com]
+changed: [bs361.sjc.aristanetworks.com]
+changed: [bs363.sjc.aristanetworks.com]
+changed: [bs362.sjc.aristanetworks.com]
+changed: [bs359.sjc.aristanetworks.com]
+changed: [bs358.sjc.aristanetworks.com]
+changed: [bs357.sjc.aristanetworks.com]
+changed: [bs355.sjc.aristanetworks.com]
+changed: [bs353.sjc.aristanetworks.com]
+changed: [bs354.sjc.aristanetworks.com]
+changed: [bs352.sjc.aristanetworks.com]
+changed: [bs350.sjc.aristanetworks.com]
+changed: [bs351.sjc.aristanetworks.com]
+changed: [bs349.sjc.aristanetworks.com]
+changed: [bs348.sjc.aristanetworks.com]
+changed: [bs347.sjc.aristanetworks.com]
+changed: [bs346.sjc.aristanetworks.com]
+changed: [bs344.sjc.aristanetworks.com]
+changed: [bs345.sjc.aristanetworks.com]
+changed: [bs343.sjc.aristanetworks.com]
+changed: [bs342.sjc.aristanetworks.com]
+changed: [bs340.sjc.aristanetworks.com]
+changed: [bs339.sjc.aristanetworks.com]
+changed: [bs336.sjc.aristanetworks.com]
+changed: [bs338.sjc.aristanetworks.com]
+changed: [bs337.sjc.aristanetworks.com]
+changed: [bs335.sjc.aristanetworks.com]
+changed: [bs334.sjc.aristanetworks.com]
+changed: [bs333.sjc.aristanetworks.com]
+changed: [bs332.sjc.aristanetworks.com]
+changed: [bs303.sjc.aristanetworks.com]
+changed: [bs331.sjc.aristanetworks.com]
+changed: [bs329.sjc.aristanetworks.com]
+changed: [bs330.sjc.aristanetworks.com]
+changed: [bs328.sjc.aristanetworks.com]
+changed: [bs327.sjc.aristanetworks.com]
+changed: [bs326.sjc.aristanetworks.com]
+changed: [bs324.sjc.aristanetworks.com]
+changed: [bs325.sjc.aristanetworks.com]
+changed: [bs323.sjc.aristanetworks.com]
+changed: [bs322.sjc.aristanetworks.com]
+changed: [bs321.sjc.aristanetworks.com]
+changed: [bs320.sjc.aristanetworks.com]
+changed: [bs319.sjc.aristanetworks.com]
+changed: [bs318.sjc.aristanetworks.com]
+changed: [bs317.sjc.aristanetworks.com]
+changed: [bs315.sjc.aristanetworks.com]
+changed: [bs316.sjc.aristanetworks.com]
+changed: [bs314.sjc.aristanetworks.com]
+changed: [bs313.sjc.aristanetworks.com]
+changed: [bs311.sjc.aristanetworks.com]
+changed: [bs312.sjc.aristanetworks.com]
+changed: [bs310.sjc.aristanetworks.com]
+changed: [bs301.sjc.aristanetworks.com]
+changed: [bs309.sjc.aristanetworks.com]
+changed: [bs307.sjc.aristanetworks.com]
+changed: [bs306.sjc.aristanetworks.com]
+changed: [bs305.sjc.aristanetworks.com]
+changed: [bs302.sjc.aristanetworks.com]
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [bs473.sjc.aristanetworks.com]
+ok: [bs469.sjc.aristanetworks.com]
+ok: [bs478.sjc.aristanetworks.com]
+ok: [bs480.sjc.aristanetworks.com]
+ok: [bs479.sjc.aristanetworks.com]
+ok: [bs477.sjc.aristanetworks.com]
+ok: [bs476.sjc.aristanetworks.com]
+ok: [bs475.sjc.aristanetworks.com]
+ok: [bs474.sjc.aristanetworks.com]
+ok: [bs471.sjc.aristanetworks.com]
+ok: [bs470.sjc.aristanetworks.com]
+ok: [bs472.sjc.aristanetworks.com]
+ok: [bs463.sjc.aristanetworks.com]
+ok: [bs468.sjc.aristanetworks.com]
+ok: [bs467.sjc.aristanetworks.com]
+ok: [bs466.sjc.aristanetworks.com]
+ok: [bs465.sjc.aristanetworks.com]
+ok: [bs457.sjc.aristanetworks.com]
+ok: [bs464.sjc.aristanetworks.com]
+ok: [bs461.sjc.aristanetworks.com]
+ok: [bs462.sjc.aristanetworks.com]
+ok: [bs460.sjc.aristanetworks.com]
+ok: [bs459.sjc.aristanetworks.com]
+ok: [bs458.sjc.aristanetworks.com]
+ok: [bs455.sjc.aristanetworks.com]
+ok: [bs456.sjc.aristanetworks.com]
+ok: [bs454.sjc.aristanetworks.com]
+ok: [bs453.sjc.aristanetworks.com]
+ok: [bs450.sjc.aristanetworks.com]
+ok: [bs452.sjc.aristanetworks.com]
+ok: [bs451.sjc.aristanetworks.com]
+ok: [bs449.sjc.aristanetworks.com]
+ok: [bs448.sjc.aristanetworks.com]
+ok: [bs446.sjc.aristanetworks.com]
+ok: [bs447.sjc.aristanetworks.com]
+ok: [bs445.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs442.sjc.aristanetworks.com]
+changed: [bs441.sjc.aristanetworks.com]
+changed: [bs439.sjc.aristanetworks.com]
+changed: [bs440.sjc.aristanetworks.com]
+changed: [bs438.sjc.aristanetworks.com]
+changed: [bs437.sjc.aristanetworks.com]
+changed: [bs434.sjc.aristanetworks.com]
+changed: [bs433.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs400.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs430.sjc.aristanetworks.com]
+changed: [bs429.sjc.aristanetworks.com]
+changed: [bs427.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs421.sjc.aristanetworks.com]
+changed: [bs419.sjc.aristanetworks.com]
+changed: [bs418.sjc.aristanetworks.com]
+changed: [bs416.sjc.aristanetworks.com]
+changed: [bs415.sjc.aristanetworks.com]
+changed: [bs414.sjc.aristanetworks.com]
+changed: [bs413.sjc.aristanetworks.com]
+changed: [bs412.sjc.aristanetworks.com]
+changed: [bs411.sjc.aristanetworks.com]
+changed: [bs410.sjc.aristanetworks.com]
+changed: [bs409.sjc.aristanetworks.com]
+changed: [bs407.sjc.aristanetworks.com]
+changed: [bs408.sjc.aristanetworks.com]
+changed: [bs406.sjc.aristanetworks.com]
+changed: [bs405.sjc.aristanetworks.com]
+changed: [bs404.sjc.aristanetworks.com]
+changed: [bs403.sjc.aristanetworks.com]
+changed: [bs402.sjc.aristanetworks.com]
+changed: [bs399.sjc.aristanetworks.com]
+changed: [bs398.sjc.aristanetworks.com]
+changed: [bs397.sjc.aristanetworks.com]
+changed: [bs396.sjc.aristanetworks.com]
+changed: [bs395.sjc.aristanetworks.com]
+changed: [bs394.sjc.aristanetworks.com]
+changed: [bs393.sjc.aristanetworks.com]
+changed: [bs392.sjc.aristanetworks.com]
+changed: [bs391.sjc.aristanetworks.com]
+changed: [bs390.sjc.aristanetworks.com]
+changed: [bs389.sjc.aristanetworks.com]
+changed: [bs388.sjc.aristanetworks.com]
+changed: [bs387.sjc.aristanetworks.com]
+changed: [bs386.sjc.aristanetworks.com]
+changed: [bs385.sjc.aristanetworks.com]
+changed: [bs341.sjc.aristanetworks.com]
+changed: [bs384.sjc.aristanetworks.com]
+changed: [bs383.sjc.aristanetworks.com]
+changed: [bs381.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs443.sjc.aristanetworks.com]
+changed: [bs444.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs380.sjc.aristanetworks.com]
+changed: [bs379.sjc.aristanetworks.com]
+changed: [bs378.sjc.aristanetworks.com]
+changed: [bs377.sjc.aristanetworks.com]
+changed: [bs376.sjc.aristanetworks.com]
+changed: [bs373.sjc.aristanetworks.com]
+changed: [bs375.sjc.aristanetworks.com]
+changed: [bs374.sjc.aristanetworks.com]
+changed: [bs372.sjc.aristanetworks.com]
+changed: [bs370.sjc.aristanetworks.com]
+changed: [bs371.sjc.aristanetworks.com]
+changed: [bs364.sjc.aristanetworks.com]
+changed: [bs369.sjc.aristanetworks.com]
+changed: [bs367.sjc.aristanetworks.com]
+changed: [bs368.sjc.aristanetworks.com]
+changed: [bs366.sjc.aristanetworks.com]
+changed: [bs365.sjc.aristanetworks.com]
+changed: [bs363.sjc.aristanetworks.com]
+changed: [bs361.sjc.aristanetworks.com]
+changed: [bs362.sjc.aristanetworks.com]
+changed: [bs359.sjc.aristanetworks.com]
+changed: [bs358.sjc.aristanetworks.com]
+changed: [bs357.sjc.aristanetworks.com]
+changed: [bs353.sjc.aristanetworks.com]
+changed: [bs352.sjc.aristanetworks.com]
+changed: [bs355.sjc.aristanetworks.com]
+changed: [bs354.sjc.aristanetworks.com]
+changed: [bs351.sjc.aristanetworks.com]
+changed: [bs350.sjc.aristanetworks.com]
+changed: [bs349.sjc.aristanetworks.com]
+changed: [bs348.sjc.aristanetworks.com]
+changed: [bs347.sjc.aristanetworks.com]
+changed: [bs346.sjc.aristanetworks.com]
+changed: [bs345.sjc.aristanetworks.com]
+changed: [bs344.sjc.aristanetworks.com]
+changed: [bs343.sjc.aristanetworks.com]
+changed: [bs303.sjc.aristanetworks.com]
+changed: [bs342.sjc.aristanetworks.com]
+changed: [bs340.sjc.aristanetworks.com]
+changed: [bs339.sjc.aristanetworks.com]
+changed: [bs338.sjc.aristanetworks.com]
+changed: [bs336.sjc.aristanetworks.com]
+changed: [bs337.sjc.aristanetworks.com]
+changed: [bs334.sjc.aristanetworks.com]
+changed: [bs335.sjc.aristanetworks.com]
+changed: [bs333.sjc.aristanetworks.com]
+changed: [bs332.sjc.aristanetworks.com]
+changed: [bs331.sjc.aristanetworks.com]
+changed: [bs330.sjc.aristanetworks.com]
+changed: [bs329.sjc.aristanetworks.com]
+changed: [bs328.sjc.aristanetworks.com]
+changed: [bs326.sjc.aristanetworks.com]
+changed: [bs327.sjc.aristanetworks.com]
+changed: [bs325.sjc.aristanetworks.com]
+changed: [bs324.sjc.aristanetworks.com]
+changed: [bs321.sjc.aristanetworks.com]
+changed: [bs323.sjc.aristanetworks.com]
+changed: [bs322.sjc.aristanetworks.com]
+changed: [bs320.sjc.aristanetworks.com]
+changed: [bs319.sjc.aristanetworks.com]
+changed: [bs318.sjc.aristanetworks.com]
+changed: [bs317.sjc.aristanetworks.com]
+changed: [bs316.sjc.aristanetworks.com]
+changed: [bs315.sjc.aristanetworks.com]
+changed: [bs314.sjc.aristanetworks.com]
+changed: [bs313.sjc.aristanetworks.com]
+changed: [bs312.sjc.aristanetworks.com]
+changed: [bs311.sjc.aristanetworks.com]
+changed: [bs310.sjc.aristanetworks.com]
+changed: [bs307.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs401.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs309.sjc.aristanetworks.com]
+changed: [bs306.sjc.aristanetworks.com]
+changed: [bs305.sjc.aristanetworks.com]
+changed: [bs301.sjc.aristanetworks.com]
+changed: [bs302.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs428.sjc.aristanetworks.com]
+changed: [bs426.sjc.aristanetworks.com]
+changed: [bs425.sjc.aristanetworks.com]
+changed: [bs424.sjc.aristanetworks.com]
+changed: [bs423.sjc.aristanetworks.com]
+changed: [bs422.sjc.aristanetworks.com]
+changed: [bs420.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs437.sjc.aristanetworks.com]
+changed: [bs434.sjc.aristanetworks.com]
+changed: [bs433.sjc.aristanetworks.com]
+changed: [bs427.sjc.aristanetworks.com]
+changed: [bs428.sjc.aristanetworks.com]
+changed: [bs425.sjc.aristanetworks.com]
+changed: [bs426.sjc.aristanetworks.com]
+changed: [bs424.sjc.aristanetworks.com]
+changed: [bs423.sjc.aristanetworks.com]
+changed: [bs422.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs421.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs420.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs419.sjc.aristanetworks.com]
+changed: [bs418.sjc.aristanetworks.com]
+changed: [bs416.sjc.aristanetworks.com]
+changed: [bs415.sjc.aristanetworks.com]
+changed: [bs414.sjc.aristanetworks.com]
+changed: [bs411.sjc.aristanetworks.com]
+changed: [bs364.sjc.aristanetworks.com]
+changed: [bs413.sjc.aristanetworks.com]
+changed: [bs407.sjc.aristanetworks.com]
+changed: [bs412.sjc.aristanetworks.com]
+changed: [bs409.sjc.aristanetworks.com]
+changed: [bs410.sjc.aristanetworks.com]
+changed: [bs408.sjc.aristanetworks.com]
+changed: [bs405.sjc.aristanetworks.com]
+changed: [bs406.sjc.aristanetworks.com]
+changed: [bs404.sjc.aristanetworks.com]
+changed: [bs403.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs401.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs402.sjc.aristanetworks.com]
+changed: [bs400.sjc.aristanetworks.com]
+changed: [bs399.sjc.aristanetworks.com]
+changed: [bs398.sjc.aristanetworks.com]
+changed: [bs397.sjc.aristanetworks.com]
+changed: [bs396.sjc.aristanetworks.com]
+changed: [bs395.sjc.aristanetworks.com]
+changed: [bs394.sjc.aristanetworks.com]
+changed: [bs393.sjc.aristanetworks.com]
+changed: [bs392.sjc.aristanetworks.com]
+changed: [bs389.sjc.aristanetworks.com]
+changed: [bs391.sjc.aristanetworks.com]
+changed: [bs390.sjc.aristanetworks.com]
+changed: [bs341.sjc.aristanetworks.com]
+changed: [bs388.sjc.aristanetworks.com]
+changed: [bs387.sjc.aristanetworks.com]
+changed: [bs386.sjc.aristanetworks.com]
+changed: [bs385.sjc.aristanetworks.com]
+changed: [bs384.sjc.aristanetworks.com]
+changed: [bs383.sjc.aristanetworks.com]
+changed: [bs381.sjc.aristanetworks.com]
+changed: [bs380.sjc.aristanetworks.com]
+changed: [bs379.sjc.aristanetworks.com]
+changed: [bs378.sjc.aristanetworks.com]
+changed: [bs374.sjc.aristanetworks.com]
+changed: [bs377.sjc.aristanetworks.com]
+changed: [bs376.sjc.aristanetworks.com]
+changed: [bs375.sjc.aristanetworks.com]
+changed: [bs373.sjc.aristanetworks.com]
+changed: [bs372.sjc.aristanetworks.com]
+changed: [bs371.sjc.aristanetworks.com]
+changed: [bs370.sjc.aristanetworks.com]
+changed: [bs369.sjc.aristanetworks.com]
+changed: [bs367.sjc.aristanetworks.com]
+changed: [bs368.sjc.aristanetworks.com]
+changed: [bs366.sjc.aristanetworks.com]
+changed: [bs365.sjc.aristanetworks.com]
+changed: [bs363.sjc.aristanetworks.com]
+changed: [bs362.sjc.aristanetworks.com]
+changed: [bs361.sjc.aristanetworks.com]
+changed: [bs359.sjc.aristanetworks.com]
+changed: [bs358.sjc.aristanetworks.com]
+changed: [bs357.sjc.aristanetworks.com]
+changed: [bs353.sjc.aristanetworks.com]
+changed: [bs355.sjc.aristanetworks.com]
+changed: [bs354.sjc.aristanetworks.com]
+changed: [bs352.sjc.aristanetworks.com]
+changed: [bs351.sjc.aristanetworks.com]
+changed: [bs350.sjc.aristanetworks.com]
+changed: [bs349.sjc.aristanetworks.com]
+changed: [bs348.sjc.aristanetworks.com]
+changed: [bs303.sjc.aristanetworks.com]
+changed: [bs347.sjc.aristanetworks.com]
+changed: [bs346.sjc.aristanetworks.com]
+changed: [bs345.sjc.aristanetworks.com]
+changed: [bs344.sjc.aristanetworks.com]
+changed: [bs343.sjc.aristanetworks.com]
+changed: [bs342.sjc.aristanetworks.com]
+changed: [bs339.sjc.aristanetworks.com]
+changed: [bs340.sjc.aristanetworks.com]
+changed: [bs338.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs435.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs337.sjc.aristanetworks.com]
+changed: [bs336.sjc.aristanetworks.com]
+changed: [bs335.sjc.aristanetworks.com]
+changed: [bs334.sjc.aristanetworks.com]
+changed: [bs333.sjc.aristanetworks.com]
+changed: [bs332.sjc.aristanetworks.com]
+changed: [bs331.sjc.aristanetworks.com]
+changed: [bs329.sjc.aristanetworks.com]
+changed: [bs330.sjc.aristanetworks.com]
+changed: [bs328.sjc.aristanetworks.com]
+changed: [bs326.sjc.aristanetworks.com]
+changed: [bs327.sjc.aristanetworks.com]
+changed: [bs325.sjc.aristanetworks.com]
+changed: [bs324.sjc.aristanetworks.com]
+changed: [bs323.sjc.aristanetworks.com]
+changed: [bs321.sjc.aristanetworks.com]
+changed: [bs322.sjc.aristanetworks.com]
+changed: [bs320.sjc.aristanetworks.com]
+changed: [bs319.sjc.aristanetworks.com]
+changed: [bs318.sjc.aristanetworks.com]
+changed: [bs317.sjc.aristanetworks.com]
+changed: [bs316.sjc.aristanetworks.com]
+changed: [bs315.sjc.aristanetworks.com]
+changed: [bs313.sjc.aristanetworks.com]
+changed: [bs314.sjc.aristanetworks.com]
+changed: [bs312.sjc.aristanetworks.com]
+changed: [bs305.sjc.aristanetworks.com]
+changed: [bs311.sjc.aristanetworks.com]
+changed: [bs310.sjc.aristanetworks.com]
+changed: [bs307.sjc.aristanetworks.com]
+changed: [bs309.sjc.aristanetworks.com]
+changed: [bs306.sjc.aristanetworks.com]
+changed: [bs301.sjc.aristanetworks.com]
+changed: [bs302.sjc.aristanetworks.com]
+changed: [bs401.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs479.sjc.aristanetworks.com]
+changed: [bs477.sjc.aristanetworks.com]
+changed: [bs480.sjc.aristanetworks.com]
+changed: [bs469.sjc.aristanetworks.com]
+changed: [bs478.sjc.aristanetworks.com]
+changed: [bs476.sjc.aristanetworks.com]
+changed: [bs467.sjc.aristanetworks.com]
+changed: [bs475.sjc.aristanetworks.com]
+changed: [bs474.sjc.aristanetworks.com]
+changed: [bs473.sjc.aristanetworks.com]
+changed: [bs472.sjc.aristanetworks.com]
+changed: [bs471.sjc.aristanetworks.com]
+changed: [bs470.sjc.aristanetworks.com]
+changed: [bs468.sjc.aristanetworks.com]
+changed: [bs465.sjc.aristanetworks.com]
+changed: [bs466.sjc.aristanetworks.com]
+changed: [bs464.sjc.aristanetworks.com]
+changed: [bs463.sjc.aristanetworks.com]
+changed: [bs461.sjc.aristanetworks.com]
+changed: [bs462.sjc.aristanetworks.com]
+changed: [bs459.sjc.aristanetworks.com]
+changed: [bs460.sjc.aristanetworks.com]
+changed: [bs455.sjc.aristanetworks.com]
+changed: [bs458.sjc.aristanetworks.com]
+changed: [bs457.sjc.aristanetworks.com]
+changed: [bs456.sjc.aristanetworks.com]
+changed: [bs454.sjc.aristanetworks.com]
+changed: [bs453.sjc.aristanetworks.com]
+changed: [bs452.sjc.aristanetworks.com]
+changed: [bs451.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs430.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs450.sjc.aristanetworks.com]
+changed: [bs449.sjc.aristanetworks.com]
+changed: [bs448.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs429.sjc.aristanetworks.com]
+
+TASK [Add a line to /etc/motd] *********************************************************************************************************
+changed: [bs446.sjc.aristanetworks.com]
+changed: [bs447.sjc.aristanetworks.com]
+changed: [bs445.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs443.sjc.aristanetworks.com]
+changed: [bs444.sjc.aristanetworks.com]
+changed: [bs442.sjc.aristanetworks.com]
+changed: [bs441.sjc.aristanetworks.com]
+changed: [bs440.sjc.aristanetworks.com]
+changed: [bs438.sjc.aristanetworks.com]
+changed: [bs439.sjc.aristanetworks.com]
+changed: [bs455.sjc.aristanetworks.com]
+changed: [bs454.sjc.aristanetworks.com]
+changed: [bs453.sjc.aristanetworks.com]
+changed: [bs451.sjc.aristanetworks.com]
+changed: [bs452.sjc.aristanetworks.com]
+changed: [bs450.sjc.aristanetworks.com]
+changed: [bs448.sjc.aristanetworks.com]
+changed: [bs449.sjc.aristanetworks.com]
+changed: [bs447.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs443.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs445.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs444.sjc.aristanetworks.com]
+changed: [bs442.sjc.aristanetworks.com]
+changed: [bs441.sjc.aristanetworks.com]
+changed: [bs438.sjc.aristanetworks.com]
+changed: [bs440.sjc.aristanetworks.com]
+changed: [bs439.sjc.aristanetworks.com]
+changed: [bs429.sjc.aristanetworks.com]
+changed: [bs433.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs435.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs437.sjc.aristanetworks.com]
+changed: [bs428.sjc.aristanetworks.com]
+changed: [bs434.sjc.aristanetworks.com]
+changed: [bs427.sjc.aristanetworks.com]
+changed: [bs426.sjc.aristanetworks.com]
+changed: [bs424.sjc.aristanetworks.com]
+changed: [bs425.sjc.aristanetworks.com]
+changed: [bs422.sjc.aristanetworks.com]
+changed: [bs423.sjc.aristanetworks.com]
+changed: [bs420.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs476.sjc.aristanetworks.com]
+changed: [bs475.sjc.aristanetworks.com]
+changed: [bs474.sjc.aristanetworks.com]
+changed: [bs471.sjc.aristanetworks.com]
+changed: [bs467.sjc.aristanetworks.com]
+changed: [bs468.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs430.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs466.sjc.aristanetworks.com]
+changed: [bs465.sjc.aristanetworks.com]
+changed: [bs464.sjc.aristanetworks.com]
+changed: [bs463.sjc.aristanetworks.com]
+changed: [bs462.sjc.aristanetworks.com]
+changed: [bs460.sjc.aristanetworks.com]
+changed: [bs461.sjc.aristanetworks.com]
+changed: [bs446.sjc.aristanetworks.com]
+changed: [bs459.sjc.aristanetworks.com]
+changed: [bs458.sjc.aristanetworks.com]
+changed: [bs457.sjc.aristanetworks.com]
+changed: [bs456.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs457.sjc.aristanetworks.com]
+changed: [bs456.sjc.aristanetworks.com]
+changed: [bs455.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs470.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs454.sjc.aristanetworks.com]
+changed: [bs451.sjc.aristanetworks.com]
+changed: [bs453.sjc.aristanetworks.com]
+changed: [bs452.sjc.aristanetworks.com]
+changed: [bs448.sjc.aristanetworks.com]
+changed: [bs450.sjc.aristanetworks.com]
+changed: [bs449.sjc.aristanetworks.com]
+changed: [bs447.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs472.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs445.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs473.sjc.aristanetworks.com]
+changed: [bs480.sjc.aristanetworks.com]
+changed: [bs479.sjc.aristanetworks.com]
+changed: [bs478.sjc.aristanetworks.com]
+changed: [bs477.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs465.sjc.aristanetworks.com]
+changed: [bs466.sjc.aristanetworks.com]
+changed: [bs463.sjc.aristanetworks.com]
+changed: [bs464.sjc.aristanetworks.com]
+changed: [bs446.sjc.aristanetworks.com]
+changed: [bs462.sjc.aristanetworks.com]
+changed: [bs460.sjc.aristanetworks.com]
+changed: [bs461.sjc.aristanetworks.com]
+changed: [bs459.sjc.aristanetworks.com]
+changed: [bs458.sjc.aristanetworks.com]
+changed: [bs476.sjc.aristanetworks.com]
+changed: [bs475.sjc.aristanetworks.com]
+changed: [bs474.sjc.aristanetworks.com]
+changed: [bs471.sjc.aristanetworks.com]
+changed: [bs468.sjc.aristanetworks.com]
+changed: [bs467.sjc.aristanetworks.com]
+changed: [bs472.sjc.aristanetworks.com]
+changed: [bs477.sjc.aristanetworks.com]
+changed: [bs480.sjc.aristanetworks.com]
+changed: [bs470.sjc.aristanetworks.com]
+changed: [bs479.sjc.aristanetworks.com]
+
+TASK [Change a line in /etc/motd] ******************************************************************************************************
+changed: [bs469.sjc.aristanetworks.com]
+
+TASK [Remove a line from /etc/motd] ****************************************************************************************************
+changed: [bs473.sjc.aristanetworks.com]
+changed: [bs435.sjc.aristanetworks.com]
+changed: [bs478.sjc.aristanetworks.com]
+changed: [bs469.sjc.aristanetworks.com]
+	to retry, use: --limit @/home/ansible/scaleit/playbooks/change_file_free.retry
+
+PLAY RECAP *****************************************************************************************************************************
+bs301.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs302.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs303.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs305.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs306.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs307.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs309.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs310.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs311.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs312.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs313.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs314.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs315.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs316.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs317.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs318.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs319.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs320.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs321.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs322.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs323.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs324.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs325.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs326.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs327.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs328.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs329.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs330.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs331.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs332.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs333.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs334.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs335.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs336.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs337.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs338.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs339.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs340.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs341.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs342.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs343.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs344.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs345.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs346.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs347.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs348.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs349.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs350.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs351.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs352.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs353.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs354.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs355.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs357.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs358.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs359.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs360.sjc.aristanetworks.com : ok=0    changed=0    unreachable=1    failed=0   
+bs361.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs362.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs363.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs364.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs365.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs366.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs367.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs368.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs369.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs370.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs371.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs372.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs373.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs374.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs375.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs376.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs377.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs378.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs379.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs380.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs381.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs382.sjc.aristanetworks.com : ok=1    changed=0    unreachable=0    failed=1   
+bs383.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs384.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs385.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs386.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs387.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs388.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs389.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs390.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs391.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs392.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs393.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs394.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs395.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs396.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs397.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs398.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs399.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs400.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs401.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs402.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs403.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs404.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs405.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs406.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs407.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs408.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs409.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs410.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs411.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs412.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs413.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs414.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs415.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs416.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs418.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs419.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs420.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs421.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs422.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs423.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs424.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs425.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs426.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs427.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs428.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs429.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs430.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs433.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs434.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs435.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs436.sjc.aristanetworks.com : ok=0    changed=0    unreachable=1    failed=0   
+bs437.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs438.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs439.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs440.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs441.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs442.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs443.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs444.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs445.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs446.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs447.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs448.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs449.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs450.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs451.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs452.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs453.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs454.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs455.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs456.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs457.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs458.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs459.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs460.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs461.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs462.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs463.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs464.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs465.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs466.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs467.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs468.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs469.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs470.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs471.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs472.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs473.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs474.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs475.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs476.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs477.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs478.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs479.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+bs480.sjc.aristanetworks.com : ok=4    changed=3    unreachable=0    failed=0   
+
+## DURATION:  440 seconds.
