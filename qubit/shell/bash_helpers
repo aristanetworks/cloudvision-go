@@ -130,6 +130,18 @@ curl -sS -X GET --header "Accept: application/json" "http://${HOSTNAME}:10000/st
 '
 	run_pdsh_cmd "$1" "${SCRIPT}"
 }
+
+function show_drive_models() {
+SCRIPT='
+lsblk -l -n -o NAME | \
+	grep -v [0-9] | \
+	xargs -I $ bash -c "{ echo $; \
+	sudo smartctl -a /dev/$ | \
+	grep -e Model -e Family -e Serial; }"
+'
+	run_pdsh_cmd "$1" "${SCRIPT}"
+}
+
 # --- helpers meant for localhost execution ---
 
 function scylla_prod_nodes() { for node in `seq 101 121`; do echo ce${node}; done; }
