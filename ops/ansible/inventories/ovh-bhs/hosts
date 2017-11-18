@@ -1,7 +1,12 @@
 [coreos]
+# master group (first master / k8s master, etcd0, zk0)
 ns545235.ip-144-217-181.net
+# master group (second master / etcd1, zk1, registry)
 ns545236.ip-144-217-181.net
+# master group (third master / etcd2, zk2)
 ns545237.ip-144-217-181.net
+
+# Workers
 ns545238.ip-144-217-181.net
 ns545239.ip-144-217-181.net
 ns545241.ip-144-217-181.net
@@ -31,25 +36,47 @@ ns545402.ip-144-217-181.net
 # are not in the "coreos" group (as it would run twice the roles for the same host)
 # So this group is here to take care of sharing the coreos hosts config.
 [coreos_ansible_config]
-; master.dev-infra.corp.arista.io
-; 0.etcd.dev-infra.corp.arista.io
-; 1.etcd.dev-infra.corp.arista.io
-; 2.etcd.dev-infra.corp.arista.io
-; registry.dev-infra.corp.arista.io
+master.ovh-bhs-infra.prod.arista.io ansible_host=ns545235.ip-144-217-181.net
+0.etcd.ovh-bhs-infra.prod.arista.io ansible_host=ns545235.ip-144-217-181.net
+1.etcd.ovh-bhs-infra.prod.arista.io ansible_host=ns545236.ip-144-217-181.net
+2.etcd.ovh-bhs-infra.prod.arista.io ansible_host=ns545237.ip-144-217-181.net
+registry.ovh-bhs-infra.prod.arista.io ansible_host=ns545236.ip-144-217-181.net
 
 [coreos_ansible_config:children]
 coreos
 
 [etcd2]
-; 0.etcd.dev-infra.corp.arista.io
-; 1.etcd.dev-infra.corp.arista.io
-; 2.etcd.dev-infra.corp.arista.io
+0.etcd.ovh-bhs-infra.prod.arista.io
+1.etcd.ovh-bhs-infra.prod.arista.io
+2.etcd.ovh-bhs-infra.prod.arista.io
 
 [k8s_masters]
-; master.dev-infra.corp.arista.io
+master.ovh-bhs-infra.prod.arista.io
 
 [k8s_workers]
-
+ns545236.ip-144-217-181.net
+ns545237.ip-144-217-181.net
+ns545238.ip-144-217-181.net
+ns545239.ip-144-217-181.net
+ns545241.ip-144-217-181.net
+ns545242.ip-144-217-181.net
+ns545243.ip-144-217-181.net
+ns545244.ip-144-217-181.net
+ns545245.ip-144-217-181.net
+ns545246.ip-144-217-181.net
+ns545247.ip-144-217-181.net
+ns545248.ip-144-217-181.net
+ns545249.ip-144-217-181.net
+ns545250.ip-144-217-181.net
+ns545255.ip-144-217-181.net
+ns545256.ip-144-217-181.net
+ns545257.ip-144-217-181.net
+ns545258.ip-144-217-181.net
+ns545261.ip-144-217-181.net
+ns545264.ip-144-217-181.net
+ns545395.ip-144-217-181.net
+ns545397.ip-144-217-181.net
+ns545402.ip-144-217-181.net
 
 [cvpbs:children]
 k8s_workers
@@ -60,15 +87,28 @@ journalnodes
 namenodes
 
 [datanodes]
+ns545238.ip-144-217-181.net
+ns545239.ip-144-217-181.net
+ns545241.ip-144-217-181.net
+ns545242.ip-144-217-181.net
+ns545243.ip-144-217-181.net
+ns545244.ip-144-217-181.net
+ns545245.ip-144-217-181.net
+ns545246.ip-144-217-181.net
+ns545247.ip-144-217-181.net
+ns545248.ip-144-217-181.net
+ns545249.ip-144-217-181.net
+ns545250.ip-144-217-181.net
+ns545255.ip-144-217-181.net
 
 [journalnodes]
-; r123s17.sjc.aristanetworks.com
-; r123s20.sjc.aristanetworks.com
-; r123s21.sjc.aristanetworks.com
+ns545238.ip-144-217-181.net
+ns545239.ip-144-217-181.net
+ns545241.ip-144-217-181.net
 
 [namenodes]
-; r123s17.sjc.aristanetworks.com
-; r123s20.sjc.aristanetworks.com
+ns545236.ip-144-217-181.net
+ns545237.ip-144-217-181.net
 
 [hbasemasters:children]
 namenodes
@@ -81,23 +121,31 @@ hbasemasters
 datanodes
 
 [kafka_brokers]
+ns545256.ip-144-217-181.net
+ns545257.ip-144-217-181.net
+ns545258.ip-144-217-181.net
+ns545261.ip-144-217-181.net
+ns545264.ip-144-217-181.net
+ns545395.ip-144-217-181.net
+ns545397.ip-144-217-181.net
+ns545402.ip-144-217-181.net
 
 [local]
 localhost ansible_connection=local ansible_become=false
 
 [zookeeper]
-; r123s18.sjc.aristanetworks.com ZOOKEEPER_ID=1
-; master.dev-infra.corp.arista.io ZOOKEEPER_ID=2
-; r123s26.sjc.aristanetworks.com ZOOKEEPER_ID=3
+master.ovh-bhs-infra.prod.arista.io ZOOKEEPER_ID=1
+ns545236.ip-144-217-181.net ZOOKEEPER_ID=2
+ns545237.ip-144-217-181.net ZOOKEEPER_ID=3
 
 [registry]
-; r123s18.sjc.aristanetworks.com
+ns545236.ip-144-217-181.net
 
 # The following group lists all the hostnames which should be put in /etc/hosts file of
 # each host
 [etc_hosts]
-; master.dev-infra.corp.arista.io
-; 0.etcd.dev-infra.corp.arista.io
-; 1.etcd.dev-infra.corp.arista.io
-; 2.etcd.dev-infra.corp.arista.io
-; registry.dev-infra.corp.arista.io
+master.ovh-bhs-infra.prod.arista.io
+0.etcd.ovh-bhs-infra.prod.arista.io
+1.etcd.ovh-bhs-infra.prod.arista.io
+2.etcd.ovh-bhs-infra.prod.arista.io
+registry.ovh-bhs-infra.prod.arista.io
