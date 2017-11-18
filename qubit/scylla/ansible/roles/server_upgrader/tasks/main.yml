@@ -16,9 +16,9 @@
     that: "{{ hosts_under_upgrade }} == 1"
     msg: "Only one host can be upgraded at a time"
 
+# there is no need to pause for 2mins to check errors here
 - name: "Check health before the ops"
-  include_role:
-    name: server_health_checker
+  include: ../../server_health_checker/tasks/checks.yml
 
 - name: "Check version"
   include_role:

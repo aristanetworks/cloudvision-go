@@ -29,4 +29,12 @@
 
 - debug: var=error_info
   when: "{{ server_health_errors }} > 0"
+
+# if minutes value isn't provided then ENTER key will cause the script to
+# continue. This can be dangerous and hence a large minutes value is used.
+# After Ctl+c is pressed, an option to continue or abort emerges.
+- name: "Review the logs within next 12 hours and then press Ctl+c to see further prompts"
+  pause:
+    minutes: 720
+  when: "{{ server_health_errors }} > 0"
 ...
