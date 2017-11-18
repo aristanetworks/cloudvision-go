@@ -1,3 +1,11 @@
+- name: Create ssh keys data directory
+  file:
+    path: "{{ ansible_env.HOME }}/.ssh/authorized_keys.d"
+    state: directory
+    owner: core
+    group: core
+    mode: 0700
+
 - name: Install ssh keys
   copy:
     content: "{{ ssh_keys | join('\n') }}"
