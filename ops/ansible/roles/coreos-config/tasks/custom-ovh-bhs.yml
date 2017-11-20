@@ -13,8 +13,8 @@
       Name=eno4
 
       [Network]
-      Address=172.17.{{ ansible_default_ipv4["address"].split(".")[2:] | join(".") }}/20
-      Gateway=172.17.0.1
+      Address=172.18.{{ ansible_default_ipv4["address"].split(".")[2:] | join(".") }}/20
+      Gateway=172.18.0.1
     dest: /etc/systemd/network/10-private-ip-vrack.network
   register: private_network_install
 
