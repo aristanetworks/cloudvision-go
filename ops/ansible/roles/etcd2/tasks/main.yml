@@ -18,7 +18,7 @@
     dest: /etc/ssl/etcd/{{ item.key }}
     owner: etcd
     group: etcd
-    mode: 0600
+    mode: 0644
   with_dict: "{{ certificates }}"
   register: etcd_certs
 
@@ -67,3 +67,12 @@
     name: etcd2
     enabled: yes
     state: started
+
+- name: Add vars for etcdctl
+  copy:
+    content: |
+      export ETCDCTL_CA_FILE=/etc/ssl/etcd/ca.pem
+      export ETCDCTL_CERT_FILE=/etc/ssl/etcd/etcd.pem
+      export ETCDCTL_KEY_FILE=/etc/ssl/etcd/etcd-key.pem
+      export ETCDCTL_ENDPOINT={% set comma = joiner(",") %}{% for host in groups.etcd2 %}{{ comma() }}https://{{ hostvars[host]['inventory_hostname'] }}:2379{% endfor %}
+    dest: "{{ ansible_env.HOME }}/.bashrc.d/etcd.bashrc"
