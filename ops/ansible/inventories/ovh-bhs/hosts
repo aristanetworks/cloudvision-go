@@ -130,6 +130,12 @@ ns545395.ip-144-217-181.net
 ns545397.ip-144-217-181.net
 ns545402.ip-144-217-181.net
 
+[prometheus]
+ns545242.ip-144-217-181.net
+
+[alertmanager]
+ns545243.ip-144-217-181.net
+
 [local]
 localhost ansible_connection=local ansible_become=false
 
