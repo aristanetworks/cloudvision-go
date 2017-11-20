@@ -50,6 +50,18 @@
   command: sysctl --system
   when: result.changed or result2.changed or result3.changed
 
+# TODO: Need to revamp this: The insecure registry is only
+#       needed on dev and staging. We shouldn't need this on other clusters.
+#       Even on dev and staging, we should move to the same config as prod.
+- name: Create folder for docker service drop-in
+  become: True
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
 - name: Install docker insecure registry
   # Note that docker daemon needs to be restarted in order for this change to
   # take effect, but as restarting docker daemon will stop all the
