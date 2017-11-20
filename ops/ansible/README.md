@@ -87,6 +87,12 @@ To run the role against localhost, use this command:
 ansible-playbook cluster.yml -l localhost -i inventories/dev/hosts
 ```
 
+## Generate certificates for a cluster:
+
+The script `gen-certs.sh` can be used to generate etcd2 and k8s certificates for a new cluster.
+It will skip the certs creation if certs are already present.
+The certificates are encrypted so they can be committed to the repo.
+
 ## Init a new cluster
 
 A new cluster initialization needs to go through some one time initialization actions.
@@ -97,3 +103,20 @@ There are two init actions so far:
 In order to protect this action to not be executed even when the env var is set, ansible will pause and ask for a randomly generated code which will be to be copied as the input of the prompt. Only when the code is correct, namenode formatting will be processed.
 
 * Initialize the aeris db schema: The env var and its value are `AERIS_INITDBSCHEMA=yes`.
+
+## Accessing clusters other than dev/staging
+
+Production clusters have k8s running on their private network.
+So it's not possible to directly use `kubectl` from a laptop or user server.
+In order to access it, a ssh tunnel needs to be started:
+
+```sh
+ssh -L 8240:<k8s-master-private-ip-address>:443 core@<k8s-master-public-ip-address> [-N]
+```
+
+for `ovh-bhs` cluster, the command is:
+
+```sh
+ssh -L 8240:172.18.181.164:443 core@ns545235.ip-144-217-181.net
+```
+(-N is optional)
