@@ -25,4 +25,6 @@ letsencrypt_mode: automatic
 private_ip_prefix: 172.18.
 public_ip_prefix: 144.217.
 
+private_iface: eno4
+
 aeris_topic_version: 1
