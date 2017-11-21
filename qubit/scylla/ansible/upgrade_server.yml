@@ -7,19 +7,18 @@
 #   new_scylla_version = Version of Scylla server after upgrade
 #   since = Time in journalctl format to look for errors
 #
+# Multiple hosts can be specified, separate by comma.
+# Each host is upgraded individually, one after the other.
 #
 # Example:
 #
-# ./runner ./upgrade_server.yml ce104 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" since="2017-07-18 04:30:00"'
+# ./runner ./upgrade_server.yml ce104,ce105 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="2017-07-18 04:30:00" SCYLLA_DOWNGRADE=0'
 #
-# when BUG_SCYLLA_REPO = 1, use following command line
-#
-# ./runner ./upgrade_server.yml ce104 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="2017-07-18 04:30:00" SCYLLA_DOWNGRADE=0'
-#
-# ./runner ./upgrade_server.yml ce104 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="30 mins ago" SCYLLA_DOWNGRADE=0'
+# ./runner ./upgrade_server.yml ce104,ce105 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="30 mins ago" SCYLLA_DOWNGRADE=0'
 #
 # when you want to downgrade from a private version to a repo based version, use this command
-# ./runner ./upgrade_server.yml ce104 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="2017-07-18 04:30:00" SCYLLA_DOWNGRADE=1'
+# ./runner ./upgrade_server.yml ce104,ce105 ./secret 'old_scylla_version="1.6.2-20170310.d41ba3b" new_scylla_version="1.6.6-20170715.dd70520" SCYLLA_REPO_URL="http://url_to_scylla_repo" since="2017-07-18 04:30:00" SCYLLA_DOWNGRADE=1'
+#
 # the old scylla version can be obtained from scylla_version bash helper
 # the new scylla version can be obtained as following from the scylla repo link
 #   if scylla repo link = https://s3.amazonaws.com/downloads.scylladb.com/enterprise/rpm/unstable/centos/branch-2017.1/21/scylla.repo
@@ -30,6 +29,7 @@
   hosts: all
   become: yes
   become_user: root
+  serial: 1
   vars:
 # Scylla issue: 197
      - BUG_SCYLLA_REPO: 1
