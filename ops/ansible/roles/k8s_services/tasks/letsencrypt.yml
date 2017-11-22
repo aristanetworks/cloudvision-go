@@ -220,7 +220,7 @@
       spec:
         selector:
           matchLabels:
-            app: letsencrypt-proxy
+            letsencrypt-proxy: true
         template:
           metadata:
             name: letsencrypt-proxy
@@ -229,7 +229,7 @@
             #   prometheus.io/scrape: "true"
             #   prometheus.io/port: "9201"
             labels:
-              app: letsencrypt-proxy
+              letsencrypt-proxy: true
           spec:
             nodeSelector:
               role: proxy
