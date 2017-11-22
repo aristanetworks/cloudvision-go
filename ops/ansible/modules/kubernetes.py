@@ -248,13 +248,25 @@ def decode_cert_data(module):
         module.params["certificate_authority_data"] = base64.b64decode(d)
 
 
+def k8s_get_error_msg(info):
+    error = info["msg"]
+    if "body" in info:
+        try:
+            body = json.loads(info["body"])
+            if "message" in body:
+                error += "; message: %s" % body["message"]
+        except:
+            pass
+    return error
+
+
 def api_request(module, url, method="GET", headers=None, data=None):
     body = None
     if data:
         data = json.dumps(data)
     response, info = fetch_url(module, url, method=method, headers=headers, data=data)
     if int(info['status']) == -1:
-        module.fail_json(msg="Failed to execute the API request: %s" % info['msg'], url=url, method=method, headers=headers)
+        module.fail_json(msg="Failed to execute the API request: %s" % k8s_get_error_msg(info), url=url, method=method, headers=headers)
     if response is not None:
         body = json.loads(response.read())
     return info, body
@@ -267,7 +279,7 @@ def k8s_create_resource(module, url, data):
         info, body = api_request(module, url + "/" + name)
         return False, body
     elif info['status'] >= 400:
-        module.fail_json(msg="failed to create the resource: %s" % info['msg'], url=url)
+        module.fail_json(msg="failed to create the resource: %s" % k8s_get_error_msg(info), url=url)
     return True, body
 
 
@@ -281,7 +293,7 @@ def k8s_delete_resource(module, url, data):
     if info['status'] == 404:
         return False, "Resource name '%s' already absent" % name
     elif info['status'] >= 400:
-        module.fail_json(msg="failed to delete the resource '%s': %s" % (name, info['msg']), url=url)
+        module.fail_json(msg="failed to delete the resource '%s': %s" % (name, k8s_get_error_msg(info)), url=url)
     return True, "Successfully deleted resource name '%s'" % name
 
 
@@ -298,7 +310,7 @@ def k8s_replace_resource(module, url, data):
         info, body = api_request(module, url + "/" + name)
         return False, body
     elif info['status'] >= 400:
-        module.fail_json(msg="failed to replace the resource '%s': %s" % (name, info['msg']), url=url)
+        module.fail_json(msg="failed to replace the resource '%s': %s" % (name, k8s_get_error_msg(info)), url=url)
     return True, body
 
 
@@ -323,7 +335,7 @@ def k8s_update_resource(module, url, data, patch_operation):
         info, body = api_request(module, url + "/" + name)
         return False, body
     elif info['status'] >= 400:
-        module.fail_json(msg="failed to update the resource '%s': %s" % (name, info['msg']), url=url)
+        module.fail_json(msg="failed to update the resource '%s': %s" % (name, k8s_get_error_msg(info)), url=url)
     return True, body
 
 def getVersion(module, kind, body):
@@ -361,7 +373,7 @@ def k8s_apply_resource(module, url, data, patch_operation):
         new_version = getVersion(module, kind, body)
         return old_version != new_version, body
 
-    module.fail_json(msg="failed to apply the resource '%s' (Unknown status code %d): %s" % (name, info['status'], info['msg']), url=url)
+    module.fail_json(msg="failed to apply the resource '%s' (Unknown status code %d): %s" % (name, info['status'], k8s_get_error_msg(info)), url=url)
     return False, body
 
 def main():
