@@ -3,7 +3,7 @@
 ns545235.ip-144-217-181.net
 # master group (second master / etcd1, zk1, registry)
 ns545236.ip-144-217-181.net
-# master group (third master / etcd2, zk2)
+# master group (third master / etcd2, zk2, letsencrypt)
 ns545237.ip-144-217-181.net
 
 # Workers
@@ -146,6 +146,9 @@ ns545237.ip-144-217-181.net ZOOKEEPER_ID=3
 
 [registry]
 ns545236.ip-144-217-181.net
+
+[letsencrypt]
+ns545237.ip-144-217-181.net
 
 # The following group lists all the hostnames which should be put in /etc/hosts file of
 # each host
