@@ -102,7 +102,7 @@
     state: apply
     inline_data: |
       apiVersion: apps/v1beta1
-      kind: Statefulset
+      kind: StatefulSet
       metadata:
         name: letsencrypt
       spec:
