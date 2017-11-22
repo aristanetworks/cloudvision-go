@@ -10,7 +10,7 @@
 
 - import_tasks: registry.yml
 
-- import_tasks: proxy2.yml
+- import_tasks: proxy.yml
 
 - import_tasks: etcd.yml
 
