@@ -2,3 +2,10 @@
   yum:
       name: telegraf-Linux
       state: installed
+
+
+- name: "Ensure base package AroraConfig-bs is always installed"
+  yum:
+      name: AroraConfig-bs
+      state: installed
+
