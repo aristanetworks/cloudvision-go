@@ -14,6 +14,10 @@
    - include: packages/install_packages_build.yml
      when: ROLE_NAME is defined and ROLE_NAME == "build"
 
+   # Install packages only relevant for user server types
+   - include: packages/install_packages_user.yml
+     when: ROLE_NAME is defined and ROLE_NAME == "user"
+
    # All packages that must be removed by default should be included in this taskfile
    - include: packages/remove_packages_default.yml
 ...
