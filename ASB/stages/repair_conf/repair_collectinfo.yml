@@ -1,7 +1,7 @@
 ---
 - name: "Collect SMART data on each disk"
   set_fact:
-      disks: "{{ansible_devices.keys()}}"
+      disks: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
 
 - name: "Collect SMART records for each disk for given repair status"
   shell: "smartctl -a /dev/{{item}} >> /root/SMART_{{STATUS}}_{{ansible_hostname}}_{{item}}"

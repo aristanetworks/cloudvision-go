@@ -9,10 +9,11 @@
 # so that we can use the results when needed, especially since
 # this server has been installed anew. It also helps to check
 # health of the server right after new installation.
-#  FIXME - skip non disk devices like mdX
-#  FIXME - use the force flag to handle the scenario where the
-#          long test from previous cleanup phase are still active
-#- name: "Trigger long SMART selftests for each disk."
-#  shell: "smartctl -t long /dev/{{ item }}"
-#  with_items: "{{ ansible_devices.keys() }}"
+#  - pick only SCSI devices like sd[a,b,c..] etc and ignore
+#    block devices like loop0, md125 etc
+#  - use the force flag to handle the scenario where the
+#      long test from previous cleanup phase are still active
+- name: "Trigger long SMART selftests for each disk."
+  shell: "smartctl -t long -t force /dev/{{ item }}"
+  with_items: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
 ...

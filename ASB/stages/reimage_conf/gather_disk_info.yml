@@ -2,7 +2,7 @@
 # Gather the relevant disk info for use by reimage tasks.
 - name: "Get the list of available disks on this machine."
   set_fact:
-     disks: "{{ ansible_devices.keys() }}"
+     disks: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
 
 - name: "Get the model for each disk."
   set_fact:
