@@ -87,6 +87,132 @@
           {% macro certbotstart() %}{% include "./roles/"+(role_path|basename)+"/files/certbot-start.sh" %}{% endmacro %}
       {{ certbotstart() | indent(4) }}
 
+- name: add haproxy config for letsencrypt proxy port 80
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      #jinja2: block_start_string: '[%', block_end_string: '%]', variable_start_string: '[[', variable_end_string: ']]'
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: letsencrypt-haproxy-config
+      data:
+        haproxy.toml: |
+          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          # Subject to Arista Networks, Inc.'s EULA.
+          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+          [template]
+          src = "haproxy.cfg.tmpl"
+          dest = "/etc/haproxy/haproxy.cfg"
+          keys = [
+            "/services/default",
+            "/endpoints/default",
+          ]
+
+          check_cmd = "/usr/sbin/haproxy -c -f {{ .src }}"
+          reload_cmd = "haproxy -f /etc/haproxy/haproxy.cfg -p /var/run/haproxy.pid -D -sf $(cat /var/run/haproxy.pid)"
+
+        haproxy.cfg.tmpl: |
+          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          # Subject to Arista Networks, Inc.'s EULA.
+          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+          global
+            daemon
+            pidfile /var/run/haproxy.pid
+            maxconn 128000
+
+          defaults
+            mode http
+            timeout connect 5000ms
+            timeout client 50000ms
+            timeout client-fin 50000ms
+            timeout server 50000ms
+
+          listen stats
+            bind 127.0.0.1:1234
+            mode http
+            stats enable
+            stats uri /
+            stats refresh 5s
+
+          listen letsencrypt
+            bind :80
+            mode http
+          {{- if exists "/endpoints/default/letsencrypt"}}
+            {{- range $i, $subset := (json (getv "/endpoints/default/letsencrypt")).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- range $k, $port := $subset.ports }}
+            server le_{{ $i }}_{{ $j }}_{{ $k }} {{$addr.ip}}:{{.port}}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+
+# This pod will run on all the proxy public machines
+# It will listen and answer all the http traffic (port 80)
+# So there will be several instances of this pod.
+# All the traffic will be redirected to the single instance let's encrypt pod
+# All the 404 will redirect to https://www.arista.io
+- name: deploy letsencrypt proxy daemonset for port 80
+  when: letsencrypt_mode == "automatic"
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: letsencryptproxy
+      spec:
+        selector:
+          matchLabels:
+            letsencryptproxy: "true"
+        template:
+          metadata:
+            name: letsencryptproxy
+            # annotations:
+            #   TODO: Add prometheus monitoring
+            #   prometheus.io/scrape: "true"
+            #   prometheus.io/port: "9201"
+            labels:
+              letsencryptproxy: "true"
+          spec:
+            nodeSelector:
+              letsencryptproxy: "true"
+            containers:
+            - name: proxy
+              image: aristanetworks/haproxy-confd
+              imagePullPolicy: Always
+              args:
+                - -backend
+                - kubernetes
+                - -watch
+                - "true"
+                - -logtostderr
+              ports:
+                - name: http
+                  containerPort: 80
+                  hostPort: 80
+              volumeMounts:
+              - name: letsencrypt-haproxy-config
+                mountPath: /etc/confd/templates/haproxy.cfg.tmpl
+                subPath: haproxy.cfg.tmpl
+              - name: letsencrypt-haproxy-config
+                mountPath: /etc/confd/conf.d/haproxy.toml
+                subPath: haproxy.toml
+            volumes:
+            - name: letsencrypt-haproxy-config
+              configMap:
+                name: letsencrypt-haproxy-config
+
 # This pod will have only ONE instance
 # It will answer all the public http (port 80) traffic.
 # It is NOT exposed publicly, and it is proxied by the public http(80) proxies
@@ -117,9 +243,15 @@
             annotations:
               prometheus.io/scrape: 'true'
           spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
             containers:
             - name: letsencrypt
               image: aristanetworks/letsencrypt
+              imagePullPolicy: Always
               args:
                 - /start.sh
               env:
@@ -133,22 +265,19 @@
                 protocol: TCP
               volumeMounts:
               - mountPath: /etc/letsencrypt
-                name: letsencrypt-data
+                name: data
                 subPath: letsencrypt
               - mountPath: /etc/nginx/sites-enabled
-                name: letsencrypt-data
+                name: data
                 subPath: sites-enabled
               - mountPath: /start.sh
                 name: letsencrypt-start-script
                 subPath: start.sh
-                defaultMode: 0744
-            securityContext:
-              runAsUser: 1000
-              fsGroup: 1000
             volumes:
             - name: letsencrypt-start-script
               configMap:
                 name: letsencrypt-start-script
+                defaultMode: 0755
         volumeClaimTemplates:
         - metadata:
             name: data
@@ -158,95 +287,6 @@
             resources:
               requests:
                 storage: 100Mi
-
-- name: add haproxy config for letsencrypt proxy port 80
-  when: letsencrypt_mode == "automatic"
-  kubernetes:
-    api_endpoint: 127.0.0.1:8001
-    state: apply
-    insecure: true
-    inline_data: |
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: letsencrypt-haproxy-config
-      data:
-        haproxy.cfg: |
-          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
-          # Arista Networks, Inc. Confidential and Proprietary.
-          # Subject to Arista Networks, Inc.'s EULA.
-          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
-
-          global
-            daemon
-            pidfile /var/run/haproxy.pid
-            maxconn 128000
-
-          defaults
-            mode http
-            timeout connect 5000ms
-            timeout client 50000ms
-            timeout client-fin 50000ms
-            timeout server 50000ms
-            # stats enable
-            # stats uri /haproxyStats
-
-          frontend httpfrontend
-            bind *:80
-
-          default_backend letsencrypt
-
-          backend letsencrypt
-            mode http
-            server le letsencrypt:80
-
-# This pod will run on all the proxy public machines
-# It will listen and answer all the http traffic (port 80)
-# So there will be several instances of this pod.
-# All the traffic will be redirected to the single instance let's encrypt pod
-# All the 404 will redirect to https://www.arista.io
-- name: deploy letsencrypt proxy daemonset for port 80
-  when: letsencrypt_mode == "automatic"
-  kubernetes:
-    api_endpoint: 127.0.0.1:8001
-    insecure: true
-    state: apply
-    inline_data: |
-      apiVersion: extensions/v1beta1
-      kind: DaemonSet
-      metadata:
-        name: letsencrypt-proxy
-      spec:
-        selector:
-          matchLabels:
-            letsencrypt-proxy: true
-        template:
-          metadata:
-            name: letsencrypt-proxy
-            # annotations:
-            #   TODO: Add prometheus monitoring
-            #   prometheus.io/scrape: "true"
-            #   prometheus.io/port: "9201"
-            labels:
-              letsencrypt-proxy: true
-          spec:
-            nodeSelector:
-              role: proxy
-            containers:
-            - name: letsencrypt-proxy
-              image: haproxy:1.7.9
-              ports:
-                - name: http
-                  containerPort: 80
-                  hostPort: 80
-              volumeMounts:
-              - name: letsencrypt-haproxy-config
-                mountPath: /etc/haproxy/haproxy.cfg
-                subPath: haproxy.cfg
-            volumes:
-            - name: letsencrypt-haproxy-config
-              configMap:
-                name: letsencrypt-haproxy-config
 
 # Deploy letsencrypt "gcp" mode
 # This mode is for dev and staging clusters.

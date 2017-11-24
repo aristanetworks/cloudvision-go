@@ -76,20 +76,18 @@
             timeout client 50000ms
             timeout client-fin 50000ms
             timeout server 50000ms
+
+          listen stats
+            bind 127.0.0.1:1234
+            mode http
             stats enable
-            stats uri /haproxyStats
+            stats uri /
+            stats refresh 5s
 
-          frontend httpfrontend
+          listen registryfrontend
             # Frontend bound on private network interface on port 443
-            bind {{ lookup('ip_by_prefix', private_ip_prefix, hostvars[groups.registry[0]]) }}:443 ssl crt /etc/letsencrypt/live/registry/cert-combined.pem
-
-            acl host_registry hdr(host) registry.{{ k8s_infra_domain }}
-            use_backend http_backend_registry if host_registry
-
-          backend http_backend_registry
-            balance roundrobin
-            option httpclose
-            option forwardfor
+            bind {{ lookup('ip_by_prefix', private_ip_prefix, hostvars[groups.registry[0]]) }}:443
+            mode tcp
             server registry 127.0.0.1:5000
 
 - name: deploy registry statefulset
@@ -124,17 +122,21 @@
               env:
               - name: REGISTRY_HTTP_ADDR
                 value: 127.0.0.1:5000
+              - name: REGISTRY_HTTP_TLS_CERTIFICATE
+                value: /etc/letsencrypt/live/registry.{{ k8s_infra_domain }}/fullchain.pem
+              - name: REGISTRY_HTTP_TLS_KEY
+                value: /etc/letsencrypt/live/registry.{{ k8s_infra_domain }}/privkey.pem
               volumeMounts:
               - name: data
                 mountPath: /var/lib/registry
+              - name: lecert-registry
+                mountPath: /etc/letsencrypt/live/registry.{{ k8s_infra_domain }}
               securityContext:
                 runAsUser: 1000
                 fsGroup: 1000
             - name: haproxy
               image: haproxy:1.7.9
               volumeMounts:
-              - name: lecert-registry
-                mountPath: /etc/letsencrypt/live/registry
               - name: haproxy-docker-registry-config
                 mountPath: /usr/local/etc/haproxy/haproxy.cfg
                 subPath: haproxy.cfg

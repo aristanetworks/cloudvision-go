@@ -26,19 +26,24 @@ for d in $DOMAINS;
   else
     cat <<EOF > "/etc/nginx/sites-enabled/$d.conf"
 server {
-listen 80;
-listen [::]:80;
+  listen 80;
+  listen [::]:80;
 
-server_name $d;
+  server_name $d;
 
-location /.ping {
-  add_header Content-Type text/plain;
-  return 200 "pong";
-}
+  location ^~ /.well-known/acme-challenge/ {
+    default_type "text/plain";
+    root /var/www/letsencrypt;
+  }
 
-location / {
-  return 302 https://www.arista.com/;
-}
+  location /.ping {
+    add_header Content-Type text/plain;
+    return 200 "pong";
+  }
+
+  location / {
+    return 302 https://www.arista.com/;
+  }
 }
 EOF
 
@@ -50,19 +55,21 @@ function publish {
   local NAME
   for d in /etc/letsencrypt/live/*; do
     NAME=$(basename "$d")
+    cat "$d/fullchain.pem" "$d/privkey.pem" > "$d/cert-combined.pem"
     echo "Publishing letsencrypt cert $NAME"
 
     echo "apiVersion: v1
-  kind: Secret
-  metadata:
+kind: Secret
+metadata:
   name: lecert-${NAME}
-  type: Opaque
-  data:
+type: Opaque
+data:
   cert.pem: $(base64 -w 0 < "$d/cert.pem")
   chain.pem: $(base64 -w 0 < "$d/chain.pem")
   fullchain.pem: $(base64 -w 0 < "$d/fullchain.pem")
   privkey.pem: $(base64 -w 0 < "$d/privkey.pem")
-  " | kubectl apply -f -
+  cert-combined.pem: $(base64 -w 0 < "$d/cert-combined.pem")
+" | kubectl apply -f -
 
     echo "Published letsencrypt cert $NAME"
   done
@@ -78,7 +85,7 @@ do
   if [ -d "/etc/letsencrypt/live/$d" ]; then
     echo "SKIPPING: $d certificate already present"
   else
-    certbot --nginx --agree-tos -n -m ops-dev@arista.com -d "$d"
+    certbot certonly --agree-tos -n -m ops-dev@arista.com --webroot -w /var/www/letsencrypt/ -d "$d"
   fi
   publish
 done;
