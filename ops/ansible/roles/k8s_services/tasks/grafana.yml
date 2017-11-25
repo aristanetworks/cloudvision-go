@@ -48,7 +48,7 @@
           spec:
             containers:
               - name: grafana
-                image: registry.docker.sjc.aristanetworks.com:5000/k8s/grafana
+                image: {{ registry_hostname }}k8s/grafana
                 imagePullPolicy: Always
                 env:
                   - name: GF_AUTH_ANONYMOUS_ENABLED

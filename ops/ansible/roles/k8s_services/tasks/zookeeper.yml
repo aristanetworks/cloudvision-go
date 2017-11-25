@@ -135,7 +135,7 @@
               zookeeper: server
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-zookeeper
+              image: {{ registry_hostname }}aeris/k8s-zookeeper
               imagePullPolicy: Always
               ports:
               - containerPort: 2181
@@ -239,7 +239,7 @@
           spec:
             containers:
             - name: prometheus
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/zk-prom
+              image: {{ registry_hostname }}k8s/zk-prom
               imagePullPolicy: Always
               args:
                 - /usr/bin/zookeeper_exporter

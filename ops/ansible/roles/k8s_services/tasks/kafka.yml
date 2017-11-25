@@ -158,7 +158,7 @@
           spec:
             containers:
             - name: kafka-broker
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-kafka
+              image: {{ registry_hostname }}aeris/k8s-kafka
               imagePullPolicy: Always
               env:
                 - name: NODENAME
@@ -237,7 +237,7 @@
           spec:
             containers:
               - name: kafkaui
-                image: registry.docker.sjc.aristanetworks.com:5000/aeris/kafka-manager
+                image: {{ registry_hostname }}aeris/kafka-manager
                 imagePullPolicy: Always
                 env:
                   - name: ZK_HOSTS

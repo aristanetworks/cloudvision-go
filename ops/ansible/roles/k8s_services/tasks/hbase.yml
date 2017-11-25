@@ -81,7 +81,7 @@
           spec:
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hbase
+              image: {{ registry_hostname }}aeris/k8s-hbase
               imagePullPolicy: Always
               args: ["./bin/hbase", "master", "start"]
               ports:
@@ -160,7 +160,7 @@
           spec:
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hbase
+              image: {{ registry_hostname }}aeris/k8s-hbase
               imagePullPolicy: Always
               args: [ "./bin/hbase", "regionserver", "start" ]
               ports:

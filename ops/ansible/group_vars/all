@@ -2,6 +2,8 @@
 
 cluster_name: "{{ inventory_dir | basename }}"
 
+registry_hostname: "{% if cluster_name in ['dev', 'staging'] %}registry.docker.sjc.aristanetworks.com:5000/{% else %}registry.{{ k8s_infra_domain }}/{% endif %}"
+
 allowed_ips:
   # Santa Clara HQ
   - "162.210.128.0/22"

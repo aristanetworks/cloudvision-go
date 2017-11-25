@@ -319,7 +319,7 @@
           spec:
             containers:
             - name: gcp-letsencrypt
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/gcp-letsencrypt
+              image: {{ registry_hostname }}k8s/gcp-letsencrypt
             securityContext:
               runAsUser: 1000
               fsGroup: 1000

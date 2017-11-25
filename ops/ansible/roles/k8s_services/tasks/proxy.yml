@@ -142,7 +142,7 @@
       {% endif %}
             containers:
             - name: proxy2
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy2
+              image: {{ registry_hostname }}k8s/proxy2
               imagePullPolicy: Always
               args:
                 - -backend
@@ -383,7 +383,7 @@
             hostNetwork: true
             containers:
             - name: proxy
-              image: registry.docker.sjc.aristanetworks.com:5000/k8s/proxy
+              image: {{ registry_hostname }}k8s/proxy
               imagePullPolicy: Always
               env:
                 - name: KUBERNETES_SERVICE_HOST

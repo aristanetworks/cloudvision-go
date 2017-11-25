@@ -77,7 +77,7 @@
           spec:
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              image: {{ registry_hostname }}aeris/k8s-hadoop
               imagePullPolicy: Always
               args: ["./bin/hdfs", "journalnode"]
               env:
@@ -166,7 +166,7 @@
           spec:
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              image: {{ registry_hostname }}aeris/k8s-hadoop
               imagePullPolicy: Always
               args: ["./bin/hdfs", "namenode"]
               env:
@@ -186,7 +186,7 @@
                 subPath: logs
                 mountPath: /logs
             - name: zkfc
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              image: {{ registry_hostname }}aeris/k8s-hadoop
               imagePullPolicy: Always
               args: ["./bin/hdfs", "zkfc"]
               env:
@@ -276,7 +276,7 @@
           spec:
             containers:
             - name: server
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+              image: {{ registry_hostname }}aeris/k8s-hadoop
               imagePullPolicy: Always
               args: ["./bin/hdfs", "datanode", "-Ddfs.datanode.data.dir={% set comma = joiner(",") %}{% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] %}{{ comma() }}file:///data{{ loop.index }}{% endfor %}"]
               env:

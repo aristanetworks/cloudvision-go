@@ -19,7 +19,7 @@
         restartPolicy: Never
         containers:
         - name: aerisinit
-          image: registry.docker.sjc.aristanetworks.com:5000/aeris-cli
+          image: {{ registry_hostname }}aeris-cli
           imagePullPolicy: Always
           args:
             - init
@@ -68,7 +68,7 @@
           spec:
             containers:
             - name: recorder
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris-recorder
+              image: {{ registry_hostname }}aeris-recorder
               imagePullPolicy: Always
               ports:
               - containerPort: 6060
@@ -121,7 +121,7 @@
           spec:
             containers:
             - name: dispatcher
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris-dispatcher
+              image: {{ registry_hostname }}aeris-dispatcher
               imagePullPolicy: Always
               ports:
                 - containerPort: 6060
@@ -214,7 +214,7 @@
           spec:
             containers:
             - name: apiserver
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris-apiserver
+              image: {{ registry_hostname }}aeris-apiserver
               imagePullPolicy: Always
               env:
                 - name: POD_NAME
@@ -301,7 +301,7 @@
           spec:
             containers:
             - name: ingest
-              image: registry.docker.sjc.aristanetworks.com:5000/aeris-ingest
+              image: {{ registry_hostname }}aeris-ingest
               imagePullPolicy: Always
               args:
                 - -port

@@ -20,14 +20,14 @@
     command
     kubectl run zkfc-format
     --attach --rm --restart=Never --record=true
-    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --image={{ registry_hostname }}aeris/k8s-hadoop
     --overrides
     '{ "apiVersion": "v1", "spec":
       {
         "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
         "containers": [ {
           "name": "zkfc-format",
-          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
           "imagePullPolicy": "Always",
           "env": [ {"name": "HADOOP_LOGFILE", "value": "zkfcformat.log" } ],
           "args": ["./bin/hdfs", "zkfc", "-Ddfs.ha.namenode.id=nn0", "-formatZK", "-force"],
@@ -48,14 +48,14 @@
     command
     kubectl run namenode-format
     --attach --rm --restart=Never --record=true
-    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --image={{ registry_hostname }}aeris/k8s-hadoop
     --overrides
     '{ "apiVersion": "v1", "spec":
       {
         "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
         "containers": [ {
           "name": "namenode-format",
-          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
           "imagePullPolicy": "Always",
           "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodeformat.log" } ],
           "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn0", "-format", "-force"],
@@ -82,14 +82,14 @@
     command
     kubectl run namenode-bootstrap
     --attach --rm --restart=Never --record=true
-    --image=registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop
+    --image={{ registry_hostname }}aeris/k8s-hadoop
     --overrides
     '{ "apiVersion": "v1", "spec":
       {
         "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[1] }}" },
         "containers": [ {
           "name": "namenode-bootstrap",
-          "image": "registry.docker.sjc.aristanetworks.com:5000/aeris/k8s-hadoop",
+          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
           "imagePullPolicy": "Always",
           "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodebootstrap.log" } ],
           "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn1", "-bootstrapStandby"],
