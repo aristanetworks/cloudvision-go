@@ -25,6 +25,14 @@
     '{ "apiVersion": "v1", "spec":
       {
         "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
+        "tolerations": [
+            {
+                "effect": "NoSchedule",
+                "key": "type",
+                "operator": "Equal",
+                "value": "critical"
+            }
+        ],
         "containers": [ {
           "name": "zkfc-format",
           "image": "{{ registry_hostname }}aeris/k8s-hadoop",

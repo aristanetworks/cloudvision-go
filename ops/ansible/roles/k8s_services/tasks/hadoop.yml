@@ -164,6 +164,11 @@
               app: hadoop
               hadoop: namenode
           spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
             containers:
             - name: server
               image: {{ registry_hostname }}aeris/k8s-hadoop
