@@ -79,6 +79,11 @@
               app: hbase
               hbase: master
           spec:
+            tolerations:
+            - key: "type"
+              operator: "Equal"
+              value: "critical"
+              effect: "NoSchedule"
             containers:
             - name: server
               image: {{ registry_hostname }}aeris/k8s-hbase
