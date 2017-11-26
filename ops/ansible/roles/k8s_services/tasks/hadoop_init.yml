@@ -14,112 +14,166 @@
     prompt: "Namenode Format will destroy ALL the cluster data. Please enter the code '{{format_code.stdout}}' to validate the action. Press Ctrl+c and then \"a\" to abort"
   register: user_input
 
+# TODO(maybe): Improve this when vpn access is possible and
+# "kubectl logs" works from the laptop
+# Maybe move back to "command" so we have a blocking process.
+
 - name: Format zkfc
   when: "user_input.user_input == format_code.stdout"
-  local_action: >
-    command
-    kubectl run zkfc-format
-    --attach --rm --restart=Never --record=true
-    --image={{ registry_hostname }}aeris/k8s-hadoop
-    --overrides
-    '{ "apiVersion": "v1", "spec":
-      {
-        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
-        "tolerations": [
-            {
-                "effect": "NoSchedule",
-                "key": "type",
-                "operator": "Equal",
-                "value": "critical"
-            }
-        ],
-        "containers": [ {
-          "name": "zkfc-format",
-          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
-          "imagePullPolicy": "Always",
-          "env": [ {"name": "HADOOP_LOGFILE", "value": "zkfcformat.log" } ],
-          "args": ["./bin/hdfs", "zkfc", "-Ddfs.ha.namenode.id=nn0", "-formatZK", "-force"],
-          "volumeMounts": [
-            { "mountPath": "/logs", "name": "logs" } ] } ],
-        "volumes": [
-          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs" } } ] } }'
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: zkfc-format
+      spec:
+        restartPolicy: Never
+        nodeSelector:
+          kubernetes.io/hostname: "{{ groups.namenodes[0] }}"
+        tolerations:
+        - effect: NoSchedule
+          key: type
+          operator: Equal
+          value: critical
+        containers:
+        - name: zkfc-format
+          image: {{ registry_hostname }}aeris/k8s-hadoop
+          imagePullPolicy: Always
+          env:
+          - name: HADOOP_LOGFILE
+            value: zkfcformat.log
+          args:
+          - ./bin/hdfs
+          - zkfc
+          - -Ddfs.ha.namenode.id=nn0
+          - -formatZK
+          - -force
+          volumeMounts:
+          - name: logs
+            mountPath: /logs
+        volumes:
+        - name: logs
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs"
   register: formatzkfc
 
 - name: Check output of the format zkfc
   when: "user_input.user_input == format_code.stdout"
   pause:
-    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nBootstrap standby result:\nSTDOUT: {{ formatzkfc.stdout }}\nSTDERR: {{ formatzkfc.stderr }}"
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f zkfc-format'. If logs does not work you can find the pod using 'kubectl get po -a'"
 
 - name: Format namenode
   when: "user_input.user_input == format_code.stdout"
-  local_action: >
-    command
-    kubectl run namenode-format
-    --attach --rm --restart=Never --record=true
-    --image={{ registry_hostname }}aeris/k8s-hadoop
-    --overrides
-    '{ "apiVersion": "v1", "spec":
-      {
-        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[0] }}" },
-        "containers": [ {
-          "name": "namenode-format",
-          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
-          "imagePullPolicy": "Always",
-          "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodeformat.log" } ],
-          "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn0", "-format", "-force"],
-          "volumeMounts": [
-            { "mountPath": "/logs", "name": "logs" },
-            { "mountPath": "/data1", "name": "data1" },
-            { "mountPath": "/data2", "name": "data2" }
-            ] } ],
-        "volumes": [
-          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs" } },
-          { "name": "data1", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/data" } },
-          { "name": "data2", "hostPath": { "path": "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}/data" } }
-        ] } }'
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: namenode-format
+      spec:
+        restartPolicy: Never
+        nodeSelector:
+          kubernetes.io/hostname: "{{ groups.namenodes[0] }}"
+        tolerations:
+        - effect: NoSchedule
+          key: type
+          operator: Equal
+          value: critical
+        containers:
+        - name: namenode-format
+          image: {{ registry_hostname }}aeris/k8s-hadoop
+          imagePullPolicy: Always
+          env:
+          - name: HADOOP_LOGFILE
+            value: namenodeformat.log
+          args:
+          - ./bin/hdfs
+          - namenode
+          - -Ddfs.ha.namenode.id=nn0
+          - -format
+          - -force
+          volumeMounts:
+          - name: logs
+            mountPath: /logs
+          - name: data1
+            mountPath: /data1
+          - name: data2
+            mountPath: /data2
+        volumes:
+        - name: logs
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/logs"
+        - name: data1
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][0] }}/data"
+        - name: data2
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[0]]['hadoop_namenode_dirs'][1] }}/data"
   register: namenodeformat
 
-- name: Check output of the namenode format init phase
+- name: Check output of the namenode format
   when: "user_input.user_input == format_code.stdout"
   pause:
-    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nNamenode format result:\nSTDOUT: {{ namenodeformat.stdout }}\nSTDERR: {{ namenodeformat.stderr }}"
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f namenode-format'. If logs does not work you can find the pod using 'kubectl get po -a'"
 
 - name: Bootstrap standby
   when: "user_input.user_input == format_code.stdout"
-  local_action: >
-    command
-    kubectl run namenode-bootstrap
-    --attach --rm --restart=Never --record=true
-    --image={{ registry_hostname }}aeris/k8s-hadoop
-    --overrides
-    '{ "apiVersion": "v1", "spec":
-      {
-        "nodeSelector": { "kubernetes.io/hostname": "{{ groups.namenodes[1] }}" },
-        "containers": [ {
-          "name": "namenode-bootstrap",
-          "image": "{{ registry_hostname }}aeris/k8s-hadoop",
-          "imagePullPolicy": "Always",
-          "env": [ {"name": "HADOOP_LOGFILE", "value": "namenodebootstrap.log" } ],
-          "args": ["./bin/hdfs", "namenode", "-Ddfs.ha.namenode.id=nn1", "-bootstrapStandby"],
-          "volumeMounts": [
-            { "mountPath": "/logs", "name": "logs" },
-            { "mountPath": "/data1", "name": "data1" },
-            { "mountPath": "/data2", "name": "data2" }
-            ] } ],
-        "volumes": [
-          { "name": "logs", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/logs" } },
-          { "name": "data1", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/data" } },
-          { "name": "data2", "hostPath": { "path": "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][1] }}/data" } }
-        ] } }'
-
-
-
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: namenode-bootstrap
+      spec:
+        restartPolicy: Never
+        nodeSelector:
+          kubernetes.io/hostname: "{{ groups.namenodes[1] }}"
+        tolerations:
+        - effect: NoSchedule
+          key: type
+          operator: Equal
+          value: critical
+        containers:
+        - name: namenode-bootstrap
+          image: {{ registry_hostname }}aeris/k8s-hadoop
+          imagePullPolicy: Always
+          env:
+          - name: HADOOP_LOGFILE
+            value: namenodebootstrap.log
+          args:
+          - ./bin/hdfs
+          - namenode
+          - -Ddfs.ha.namenode.id=nn1
+          - -bootstrapStandby
+          volumeMounts:
+          - name: logs
+            mountPath: /logs
+          - name: data1
+            mountPath: /data1
+          - name: data2
+            mountPath: /data2
+        volumes:
+        - name: logs
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/logs"
+        - name: data1
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][0] }}/data"
+        - name: data2
+          hostPath:
+            path: "{{ hostvars[groups.namenodes[1]]['hadoop_namenode_dirs'][1] }}/data"
   register: bootstrapstandby
 
 - name: Check output of the bootstrap standby
   when: "user_input.user_input == format_code.stdout"
   pause:
-    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nBootstrap standby result:\nSTDOUT: {{ bootstrapstandby.stdout }}\nSTDERR: {{ bootstrapstandby.stderr }}"
+    prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f namenode-bootstrap'. If logs does not work you can find the pod using 'kubectl get po -a'"
 
 - pause:
     prompt: "Namenode format has been skipped (or you entered the wrong code). Press ENTER to resume. Press Ctrl+c and then \"a\" to abort"
