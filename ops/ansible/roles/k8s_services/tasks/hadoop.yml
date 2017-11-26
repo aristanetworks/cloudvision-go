@@ -283,7 +283,13 @@
             - name: server
               image: {{ registry_hostname }}aeris/k8s-hadoop
               imagePullPolicy: Always
-              args: ["./bin/hdfs", "datanode", "-Ddfs.datanode.data.dir={% set comma = joiner(",") %}{% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] %}{{ comma() }}file:///data{{ loop.index }}{% endfor %}"]
+              args:
+              - ./bin/hdfs
+              - datanode
+              - -Ddfs.datanode.data.dir={% set comma = joiner(",") %}{% for item in hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] %}{{ comma() }}file:///data{{ loop.index }}{% endfor %}
+
+              - -Ddfs.datanode.failed.volumes.tolerated={% if (hostvars[groups.datanodes[0]]['hadoop_datanode_dirs'] | length) > 3 %}3{% else %}1{% endif %}
+
               env:
               - name: HADOOP_LOGFILE
                 value: "datanode.log"
