@@ -18,6 +18,7 @@
     - motd
     - coreos-config
     - data_folders
+    - etc_hosts
 
 - hosts: cvpbs
   roles:

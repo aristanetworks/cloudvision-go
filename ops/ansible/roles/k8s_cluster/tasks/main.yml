@@ -7,8 +7,6 @@
 - include_tasks: iptables.yml
   when: firewall == True
 
-- import_tasks: init_etc_hosts.yml
-
 - import_tasks: data_folders.yml
 
 - name: Create directories
