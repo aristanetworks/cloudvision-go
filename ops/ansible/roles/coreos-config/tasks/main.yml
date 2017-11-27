@@ -132,7 +132,7 @@
 
 - name: Get ip address of all the etcd2 nodes
   set_fact:
-    etcd2_ips: "[{% for host in groups.etcd2 %}'{{ lookup('dig', host) }}',{% endfor %}]"
+    etcd2_ips: "[{% for host in groups.etcd2 %}'{% if 'ansible_host' in hostvars[host] %}{{ lookup('dig', hostvars[host]['ansible_host']) }}{% else %}{{ lookup('dig', host) }}{% endif %}',{% endfor %}]"
 
 - name: Disable etcd2 on non-etcd2 nodes
   become: True
