@@ -68,6 +68,10 @@
   roles:
     - kafka
 
+- hosts: letsencrypt
+  roles:
+    - letsencrypt
+
 - hosts: localhost
   roles:
     - k8s_services

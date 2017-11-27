@@ -69,7 +69,7 @@
         persistentVolumeReclaimPolicy: Retain
         storageClassName: letsencrypt-data
         local:
-          path: /data2/letsencrypt-data
+          path: {{ hostvars[groups.letsencrypt[0]]["letsencrypt_data_dir"] }}
 
 - name: deploy letsencrypt certbot script
   when: letsencrypt_mode == "automatic"
