@@ -72,6 +72,10 @@
   roles:
     - letsencrypt
 
+- hosts: openvpn
+  roles:
+    - openvpn
+
 - hosts: localhost
   roles:
     - k8s_services

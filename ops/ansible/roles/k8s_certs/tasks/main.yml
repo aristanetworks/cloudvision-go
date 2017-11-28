@@ -1,6 +1,14 @@
 
 ---
 
+- name: Check if openvpn certs already present
+  stat:
+    path: "{{ inventory_dir}}/files/openvpn/dh2048.pem"
+  register: openvpn_certs_done
+
+- import_tasks: openvpn_certs.yml
+  when: not openvpn_certs_done.stat.exists
+
 - name: Check if etcd certs already present
   stat:
     path: "{{ inventory_dir}}/files/etcd/client.pem"

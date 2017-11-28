@@ -1,0 +1,109 @@
+# Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+# Subject to Arista Networks, Inc.'s EULA.
+# FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+---
+
+- name: Deploy openvpn config
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    state: apply
+    insecure: true
+    inline_data: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: openvpn-config
+      data:
+        server.conf: |
+          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+          # Arista Networks, Inc. Confidential and Proprietary.
+          # Subject to Arista Networks, Inc.'s EULA.
+          # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
+
+          port 1194
+          proto udp
+          dev tun
+          ca /etc/openvpn/certs/ca.pem
+          cert /etc/openvpn/certs/openvpn.pem
+          key /etc/openvpn/certs/openvpn-key.pem  # This file should be kept secret
+          dh /etc/openvpn/certs/dh2048.pem
+          topology subnet
+          server {{ vpn_subnet | ipaddr('network') }} {{ vpn_subnet | ipaddr('netmask') }}
+          # Route for private k8s flannel k8s
+          push "route {{ cluster_cidr | ipaddr('network') }} {{ cluster_cidr | ipaddr('netmask') }}"
+          # Route for host private network
+      {% set els = private_ip_prefix.strip('.').split('.') %}
+          push "route {{ private_ip_prefix.strip('.') }}{% for e in els %}.0{% endfor %} {% set e = [255] * (4-(els|length)) %}{{ e | join('.') }}.{% set e = [0] * (els|length) %}{{ e | join('.') }}"
+          duplicate-cn
+          keepalive 10 120
+          tls-auth /etc/openvpn/certs/ta.key 0 # This file is secret
+          key-direction 0
+          cipher AES-256-CBC
+          auth SHA256
+          tls-version-min 1.2
+          comp-lzo
+          user nobody
+          group nogroup
+          persist-key
+          persist-tun
+          status openvpn-status.log
+          verb 3
+
+- name: Deploy openvpn daemonset
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: apply
+    inline_data: |
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: openvpn
+      spec:
+        selector:
+          matchLabels:
+            app: openvpn
+        template:
+          metadata:
+            labels:
+              app: openvpn
+          spec:
+            nodeSelector:
+              kubernetes.io/hostname: {{ groups.openvpn[0] }}
+            hostNetwork: true
+            containers:
+            - name: openvpn
+              image: aristanetworks/openvpn
+              imagePullPolicy: Always
+              args:
+              - --config
+              - /etc/openvpn/server.conf
+              securityContext:
+                capabilities:
+                  add:
+                  - NET_ADMIN
+              # ports:
+              #   - name: tun
+              #     containerPort: 1194
+              #     hostPort: 1194
+              #     protocol: UDP
+              volumeMounts:
+              - name: certs
+                mountPath: /etc/openvpn/certs
+              - name: openvpn-config
+                mountPath: /etc/openvpn/server.conf
+                subPath: server.conf
+              - name: tun
+                mountPath: /dev/net/tun
+            volumes:
+              - name: certs
+                hostPath:
+                  path: /etc/openvpn/certs
+              - name: openvpn-config
+                configMap:
+                  name: openvpn-config
+              - name: tun
+                hostPath:
+                  path: /dev/net/tun

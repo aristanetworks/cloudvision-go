@@ -1,0 +1,28 @@
+
+---
+
+# TODO: All this could probably be in a secret
+- name: create openvpn configuration directory
+  become: True
+  file:
+    path: "/etc/openvpn/certs"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: install openvpn certificates
+  become: True
+  copy:
+    src: "{{ inventory_dir }}/files/openvpn/{{ item }}"
+    dest: /etc/openvpn/certs/{{ item }}
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - ca.pem
+    - openvpn.pem
+    - openvpn-key.pem
+    - dh2048.pem
+    - ta.key
+  register: openvpn_certs

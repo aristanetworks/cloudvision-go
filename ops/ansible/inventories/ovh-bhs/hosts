@@ -150,6 +150,9 @@ ns545236.ip-144-217-181.net
 [letsencrypt]
 ns545237.ip-144-217-181.net
 
+[openvpn]
+ns545238.ip-144-217-181.net
+
 # The following group lists all the hostnames which should be put in /etc/hosts file of
 # each host
 [etc_hosts]

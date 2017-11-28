@@ -6,14 +6,15 @@
 * **ETCD2**: ETCD2 instances are NOT managed by ansible. They are managed manually. The role defined on ansible is just a basic role to have the etcd2 config correctly setup on the host running etcd2 on reinstall/restart/ansible reapply.
 
 
-# Install ansible + cfssl
+# Install ansible + cfssl + openvpn
 
 Ansible 2.4 minimun is required.
 
 ```sh
-brew install ansible
+brew install ansible openvpn
 # Optionally, if needed:
 brew link --force ansible
+# Be sure to have /usr/local/sbin/ in your PATH for openvpn
 
 # Install PyYAML as well (needed to deploy k8s services)
 pip install PyYAML

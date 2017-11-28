@@ -141,3 +141,16 @@
     enabled: no
     name: etcd2.service
   when: ansible_default_ipv4["address"] not in etcd2_ips
+
+- name: gather facts for openvpn server host
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups.openvpn }}"
+
+# TODO: Switch to ansible net_static_route when the module works for linux
+# https://github.com/ansible/ansible/issues/32050
+- name: install openvpn routes on all the hosts
+  become: True
+  shell: ip route show {{ vpn_subnet }} | grep {{ vpn_subnet }} || ip route add {{ vpn_subnet }} via {{ lookup('ip_by_prefix', private_ip_prefix, hostvars[groups.openvpn[0]]) }}
+  when: "'openvpn' in groups and inventory_hostname != groups.openvpn[0]"

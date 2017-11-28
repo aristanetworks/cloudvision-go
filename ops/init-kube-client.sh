@@ -50,6 +50,44 @@ initcluster() {
 	kubectl config set-context "$CLUSTER" \
 		--cluster="$CLUSTER" \
 		--user="$CLUSTER"
+
+	if [ ! -f "$ROOTDIR/ansible/inventories/$CLUSTER/files/openvpn/ta.key" ]; then
+		echo "No VPN to configure for this cluster"
+		return
+	fi
+
+	echo "Configuring VPN for this cluster"
+	# Generates the client.conf for the vpn
+	mkdir -p "$HOME/.openvpn/certs/$CLUSTER"
+	for f in ca.pem ta.key client-key.pem client.pem ;
+	do
+		ansible-vault \
+			--vault-password-file "$ROOTDIR/ansible/.pass.$CLUSTER" \
+			--output="$HOME/.openvpn/certs/$CLUSTER/${f}" \
+			decrypt \
+			"$ROOTDIR/ansible/inventories/$CLUSTER/files/openvpn/${f}"
+	done
+	cat > "$HOME/.openvpn/$CLUSTER-client.conf" <<EOF
+client
+dev tun
+proto udp
+remote ns545238.ip-144-217-181.net 1194
+persist-key
+persist-tun
+ca $HOME/.openvpn/certs/$CLUSTER/ca.pem
+cert $HOME/.openvpn/certs/$CLUSTER/client.pem
+key $HOME/.openvpn/certs/$CLUSTER/client-key.pem
+tls-auth $HOME/.openvpn/certs/$CLUSTER/ta.key 1
+key-direction 1
+remote-cert-tls server
+cipher AES-256-CBC
+tls-version-min 1.2
+auth SHA256
+comp-lzo
+verb 3
+EOF
+
+	echo "VPN configured for this cluster. Conf file path is $HOME/.openvpn/$CLUSTER-client.conf"
 }
 
 for c in $clusters; do

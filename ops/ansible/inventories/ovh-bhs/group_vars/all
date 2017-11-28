@@ -28,3 +28,5 @@ public_ip_prefix: 144.217.
 private_iface: eno4
 
 aeris_topic_version: 1
+
+vpn_subnet: 172.19.0.0/24
