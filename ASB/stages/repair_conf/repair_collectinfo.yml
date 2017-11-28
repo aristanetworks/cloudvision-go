@@ -1,7 +1,12 @@
 ---
-- name: "Collect SMART data on each disk"
+- name: "Find SCSI disks from ansible devices"
   set_fact:
-      disks: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
+    disks: "{{ disks | default([])  + [ item ] }}"
+  when: item | match("sd.*")
+  with_items: "{{ ansible_devices.keys() }}"
+
+- fail: msg="Could not find any disks."
+  when: disks is not defined or disks | length == 0
 
 - name: "Collect SMART records for each disk for given repair status"
   shell: "smartctl -a /dev/{{item}} >> /root/SMART_{{STATUS}}_{{ansible_hostname}}_{{item}}"

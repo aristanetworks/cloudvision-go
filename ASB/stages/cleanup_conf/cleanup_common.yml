@@ -13,7 +13,16 @@
 #    block devices like loop0, md125 etc
 #  - use the force flag to handle the scenario where the
 #      long test from previous cleanup phase are still active
+- name: "Find SCSI disks from ansible devices"
+  set_fact:
+    disks: "{{ disks | default([])  + [ item ] }}"
+  when: item | match("sd.*")
+  with_items: "{{ ansible_devices.keys() }}"
+
+- fail: msg="Could not find any disks."
+  when: disks is not defined or disks | length == 0
+
 - name: "Trigger long SMART selftests for each disk."
   shell: "smartctl -t long -t force /dev/{{ item }}"
-  with_items: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
+  with_items: "{{ disks }}"
 ...

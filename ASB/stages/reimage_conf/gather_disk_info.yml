@@ -1,8 +1,13 @@
 ---
 # Gather the relevant disk info for use by reimage tasks.
-- name: "Get the list of available disks on this machine."
+- name: "Find SCSI disks from ansible devices"
   set_fact:
-     disks: "{{ ansible_devices.keys() | map('regex_search', 'sd.*') | select('string') | list }}"
+    disks: "{{ disks | default([])  + [ item ] }}"
+  when: item | match("sd.*")
+  with_items: "{{ ansible_devices.keys() }}"
+
+- fail: msg="Could not find any disks."
+  when: disks is not defined or disks | length == 0
 
 - name: "Get the model for each disk."
   set_fact:
