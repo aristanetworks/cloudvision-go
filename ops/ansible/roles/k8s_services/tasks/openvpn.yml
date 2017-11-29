@@ -33,9 +33,14 @@
           server {{ vpn_subnet | ipaddr('network') }} {{ vpn_subnet | ipaddr('netmask') }}
           # Route for private k8s flannel k8s
           push "route {{ cluster_cidr | ipaddr('network') }} {{ cluster_cidr | ipaddr('netmask') }}"
+          # Route for private k8s services
+          push "route {{ service_cluster_ip_range | ipaddr('network') }} {{ service_cluster_ip_range | ipaddr('netmask') }}"
           # Route for host private network
       {% set els = private_ip_prefix.strip('.').split('.') %}
           push "route {{ private_ip_prefix.strip('.') }}{% for e in els %}.0{% endfor %} {% set e = [255] * (4-(els|length)) %}{{ e | join('.') }}.{% set e = [0] * (els|length) %}{{ e | join('.') }}"
+          push "dhcp-option DNS {{ cluster_dns }}"
+          push "dhcp-option DOMAIN-SEARCH svc.internal.{{ k8s_domain }}"
+          push "dhcp-option DOMAIN-SEARCH internal.{{ k8s_domain }}"
           duplicate-cn
           keepalive 10 120
           tls-auth /etc/openvpn/certs/ta.key 0 # This file is secret
