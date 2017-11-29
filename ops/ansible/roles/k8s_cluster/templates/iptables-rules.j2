@@ -1,32 +1,34 @@
 *filter
-:INPUT DROP [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
 
-# Accept all loopback (local) traffic:
--A INPUT -i lo -j ACCEPT
+# :INPUT DROP [0:0]
+# :FORWARD DROP [0:0]
+# :OUTPUT ACCEPT [0:0]
 
-# Accept all traffic on the local network from other members of
-# our CoreOS cluster:
-# TODO: Accept traffic only on the private network and block the public network
-# -A INPUT -i ETH1 -p tcp -s {# {{ lookup('dig', item) }} #} -j ACCEPT
-{% for item in (groups.k8s_masters + groups.k8s_workers + groups.etcd2) %}
--A INPUT -p tcp -s {{ lookup('dig', item) }} -j ACCEPT
--A INPUT -p udp -s {{ lookup('dig', item) }} -j ACCEPT
-{% endfor %}
+# # Accept all loopback (local) traffic:
+# -A INPUT -i lo -j ACCEPT
 
-# Accept all TCP/IP traffic to SSH and HTTPS ports
-{% for r in allowed_ips %}
-# Arista trusted IPs
--A INPUT -p tcp -m tcp -s {{ r }} --dport 22 -j ACCEPT
-{% endfor %}
-# TODO: Open 443 only on proxy servers
-# -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+# # Accept all traffic on the local network from other members of
+# # our CoreOS cluster:
+# # TODO: Accept traffic only on the private network and block the public network
+# # -A INPUT -i ETH1 -p tcp -s {# {{ lookup('dig', item) }} #} -j ACCEPT
+# {% for item in (groups.k8s_masters + groups.k8s_workers + groups.etcd2) %}
+# -A INPUT -p tcp -s {{ lookup('dig', item) }} -j ACCEPT
+# -A INPUT -p udp -s {{ lookup('dig', item) }} -j ACCEPT
+# {% endfor %}
 
-# Accept pings:
-{% for r in allowed_ips %}
--A INPUT -p icmp -m icmp --icmp-type 0 -s {{ r }} -j ACCEPT
--A INPUT -p icmp -m icmp --icmp-type 3 -s {{ r }} -j ACCEPT
--A INPUT -p icmp -m icmp --icmp-type 11 -s {{ r }} -j ACCEPT
-{% endfor %}
+# # Accept all TCP/IP traffic to SSH and HTTPS ports
+# {% for r in allowed_ips %}
+# # Arista trusted IPs
+# -A INPUT -p tcp -m tcp -s {{ r }} --dport 22 -j ACCEPT
+# {% endfor %}
+# # TODO: Open 443 only on proxy servers
+# # -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+
+# # Accept pings:
+# {% for r in allowed_ips %}
+# -A INPUT -p icmp -m icmp --icmp-type 0 -s {{ r }} -j ACCEPT
+# -A INPUT -p icmp -m icmp --icmp-type 3 -s {{ r }} -j ACCEPT
+# -A INPUT -p icmp -m icmp --icmp-type 11 -s {{ r }} -j ACCEPT
+# {% endfor %}
+
 COMMIT
