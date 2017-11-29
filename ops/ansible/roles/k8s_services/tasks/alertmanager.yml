@@ -67,21 +67,21 @@
     insecure: true
     state: present
     inline_data: |
+      #jinja2: block_start_string: '[%', block_end_string: '%]', variable_start_string: '[[', variable_end_string: ']]'
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: alertmanager
       data:
         config.yml: |
-
           global:
             # The smarthost and SMTP sender used for mail notifications.
-            smtp_smarthost: '{{ smtp_server }}:25'
+            smtp_smarthost: '[[ smtp_server ]]:25'
             smtp_from: 'alertmanager@arista.com'
             # smtp_auth_username: 'alertmanager'
             # smtp_auth_password: '1234'
             # Slack API URL
-            slack_api_url: '{{ slack_api_url }}'
+            slack_api_url: '[[ slack_api_url ]]'
 
           # The directory from which notification templates are read.
           # templates:
@@ -137,10 +137,11 @@
           receivers:
           - name: email-alert
             email_configs:
-            - to: '{{cluster_name}}-alert@arista.com'
+            - to: '[[cluster_name]]-alert@arista.com'
           - name: slack-notifications
             slack_configs:
-            - channel: '#{{cluster_name}}-alert'
+            - channel: '#[[cluster_name]]-alert'
+              text: 'Instances: {{ range .Alerts }}{{ .Labels.instance }} {{ end }}'
 
 - name: deploy alertmanager server
   kubernetes:
