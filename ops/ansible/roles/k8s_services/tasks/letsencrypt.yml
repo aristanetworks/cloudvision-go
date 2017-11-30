@@ -240,8 +240,6 @@
           metadata:
             labels:
               app: letsencrypt
-            annotations:
-              prometheus.io/scrape: 'true'
           spec:
             tolerations:
             - key: "type"
