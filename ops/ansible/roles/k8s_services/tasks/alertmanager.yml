@@ -65,7 +65,7 @@
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
-    state: present
+    state: apply
     inline_data: |
       #jinja2: block_start_string: '[%', block_end_string: '%]', variable_start_string: '[[', variable_end_string: ']]'
       apiVersion: v1
@@ -110,7 +110,7 @@
             repeat_interval: 3h
 
             # A default receiver
-            receiver: email-alert
+            receiver: slack-notifications
 
             # All the above attributes are inherited by all child routes and can
             # overwritten on each.
@@ -119,7 +119,7 @@
             routes:
             - match:
                 severity: critical
-              receiver: email-alert
+              receiver: slack-notifications
 
           # Inhibition rules allow to mute a set of alerts given that another alert is
           # firing.
@@ -135,9 +135,11 @@
 
 
           receivers:
+      [% if smtp_server %]
           - name: email-alert
             email_configs:
             - to: '[[cluster_name]]-alert@arista.com'
+      [% endif %]
           - name: slack-notifications
             slack_configs:
             - channel: '#[[cluster_name]]-alert'
