@@ -4,7 +4,6 @@ ExecStart=/opt/bin/kubelet-{{ k8s_version }} \
   --node-ip={{ lookup('ip_by_prefix', private_ip_prefix) }} \
   --anonymous-auth=false \
   --client-ca-file=/etc/kubernetes/ssl/ca.pem \
-  --require-kubeconfig=true \
   --kubeconfig=/etc/kubernetes/{{ kubeconfig }}.yaml \
 {% if 'k8s_masters' in group_names %}
   --register-schedulable=false \
