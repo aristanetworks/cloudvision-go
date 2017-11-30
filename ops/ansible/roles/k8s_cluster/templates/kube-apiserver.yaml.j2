@@ -24,6 +24,7 @@ spec:
     - --client-ca-file=/etc/kubernetes/ssl/ca.pem
     - --kubelet-client-certificate=/etc/kubernetes/ssl/apiserver.pem
     - --kubelet-client-key=/etc/kubernetes/ssl/apiserver-key.pem
+    - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
     - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --runtime-config=batch/v2alpha1
     - --storage-backend
