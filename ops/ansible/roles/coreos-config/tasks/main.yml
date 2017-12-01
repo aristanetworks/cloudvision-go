@@ -147,6 +147,7 @@
   delegate_to: "{{ item }}"
   delegate_facts: True
   with_items: "{{ groups.openvpn }}"
+  when: "'openvpn' in groups"
 
 # TODO: Switch to ansible net_static_route when the module works for linux
 # https://github.com/ansible/ansible/issues/32050
