@@ -78,6 +78,7 @@
             # The smarthost and SMTP sender used for mail notifications.
             smtp_smarthost: '[[ smtp_server ]]:25'
             smtp_from: 'alertmanager@arista.com'
+            smtp_require_tls: false
             # smtp_auth_username: 'alertmanager'
             # smtp_auth_password: '1234'
             # Slack API URL
