@@ -330,4 +330,4 @@
             volumes:
               - name: lecert-ingest
                 secret:
-                  secretName: lecert-ingest.{{ k8s_domain }}
+                  secretName: lecert-ingest.{{ letsencrypt_domain }}

@@ -9,6 +9,7 @@ flannel_kube: true
 
 k8s_version: 1.8.1
 k8s_kubelet_md5: 64a0b5653030d087d249a92d83f7dde1
+letsencrypt_domain: dev.corp.arista.io
 k8s_domain: dev.corp.arista.io
 k8s_infra_domain: dev-infra.corp.arista.io
 

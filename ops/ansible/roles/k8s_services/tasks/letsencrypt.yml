@@ -255,7 +255,7 @@
               env:
                 - name: DOMAINS
                   value: >
-                    ingest.{{ k8s_domain }}
+                    ingest.{{ letsencrypt_domain }}
                     registry.{{ k8s_infra_domain }}
               ports:
               - containerPort: 80
