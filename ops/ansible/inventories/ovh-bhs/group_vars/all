@@ -19,7 +19,6 @@ cni_sha1: d595d3ded6499a64e8dac02466e2f5f2ce257c9f
 cluster_dns: 192.168.0.10
 cluster_cidr: 10.0.0.0/8
 service_cluster_ip_range: 192.168.0.0/16
-allow_privileged: true
 
 letsencrypt_mode: automatic
 
