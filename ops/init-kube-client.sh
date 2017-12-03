@@ -37,7 +37,7 @@ initcluster() {
 			SERVER=https://master.${CLUSTER}-infra.corp.arista.io
 			;;
 		*)
-			SERVER=https://127.0.0.1:8240
+			SERVER=https://master.${CLUSTER}-infra.prod.arista.io
 			;;
 	esac
 	kubectl config set-cluster "$CLUSTER" \
