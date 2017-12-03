@@ -65,6 +65,12 @@
           kubernetes.io/cluster-service: "true"
           addonmanager.kubernetes.io/mode: Reconcile
 
+- name: gather facts for etc hosts items for dns
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups.etc_hosts }}"
+
 - name: deploy dns deployment
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -106,6 +112,12 @@
               configMap:
                 name: kube-dns
                 optional: true
+            hostAliases:
+      {% for h in groups.etc_hosts %}
+            - ip: {{ lookup('ip_by_prefix', hostvars[h]['private_ip_prefix'], hostvars[h]) }}
+              hostnames:
+              - {{ h }}
+      {% endfor %}
             containers:
             - name: kubedns
               image: gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.5
