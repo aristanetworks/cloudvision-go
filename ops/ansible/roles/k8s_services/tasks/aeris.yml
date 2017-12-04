@@ -24,7 +24,7 @@
           args:
             - init
             - --storage
-            - hbase
+            - {{ aeris_storage_driver }}
             - --storageoption
             - table=aeris
             - --storageoption
@@ -76,7 +76,7 @@
                 - -kafkaaddrs
                 - kafka:9092
                 - -storage
-                - hbase
+                - {{ aeris_storage_driver }}
                 - -storageoption
                 - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
                 - -storageoption
@@ -130,7 +130,7 @@
                 - -kafkaaddrs
                 - kafka:9092
                 - -storage
-                - hbase
+                - {{ aeris_storage_driver }}
                 - -storageoption
                 - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
                 - -storageoption
@@ -231,7 +231,7 @@
                 - -kafkaaddrs
                 - kafka:9092
                 - -storage
-                - hbase
+                - {{ aeris_storage_driver }}
                 - -storageoption
                 - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
                 - -storageoption
@@ -311,7 +311,7 @@
                 - -todb
                 - todb_v{{ aeris_topic_version }}
                 - -storage
-                - hbase
+                - {{ aeris_storage_driver }}
                 - -storageoption
                 - zkquorum=zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181
                 - -storageoption
