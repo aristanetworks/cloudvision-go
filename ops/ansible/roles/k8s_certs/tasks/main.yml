@@ -1,7 +1,7 @@
 
 ---
 
-- name: Check if openvpn certs already present
+- name: check if openvpn certs already present
   stat:
     path: "{{ inventory_dir}}/files/openvpn/dh2048.pem"
   register: openvpn_certs_done
@@ -9,7 +9,7 @@
 - import_tasks: openvpn_certs.yml
   when: not openvpn_certs_done.stat.exists
 
-- name: Check if etcd certs already present
+- name: check if etcd certs already present
   stat:
     path: "{{ inventory_dir}}/files/etcd/client.pem"
   register: etcd_certs_done
@@ -17,10 +17,18 @@
 - import_tasks: etcd_certs.yml
   when: not etcd_certs_done.stat.exists
 
-- name: Check if k8s certs already present
+- name: check if k8s certs already present
   stat:
     path: "{{ inventory_dir}}/files/k8s/worker.pem"
   register: k8s_certs_done
 
 - import_tasks: k8s_certs.yml
   when: not k8s_certs_done.stat.exists
+
+- name: check if aeris certs already present
+  stat:
+    path: "{{ inventory_dir}}/files/aeris/ca.pem"
+  register: aeris_certs_done
+
+- import_tasks: aeris_certs.yml
+  when: not aeris_certs_done.stat.exists
