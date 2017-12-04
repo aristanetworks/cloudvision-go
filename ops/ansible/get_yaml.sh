@@ -19,6 +19,7 @@ fi
 
 DISPLAY_K8S_YAML="$2" ansible-playbook \
 	-i "inventories/$CLUSTER/hosts" \
+	--vault-password-file ".pass.$CLUSTER" \
 	-l localhost \
 	--start-at-task \
 	"$2" \
