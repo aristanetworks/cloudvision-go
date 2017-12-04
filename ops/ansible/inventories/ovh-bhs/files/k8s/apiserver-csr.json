@@ -7,7 +7,7 @@
     "192.168.0.1",
     "kubernetes",
     "kubernetes.default",
-    "kubernetes.default.internal.arista.io"
+    "kubernetes.default.internal.ovh-bhs.prod.arista.io"
   ],
   "key": {
     "algo": "ecdsa",
