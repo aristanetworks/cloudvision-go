@@ -334,6 +334,9 @@
                 - -v=8
                 - -monitor
                 - 0.0.0.0:6060
+      {% if aeris_multi_tenancy %}
+                - cert=/etc/certs/ingest/fullchain.pem,/etc/certs/ingest/privkey.pem,/etc/certs/aeris/ca.pem,/etc/certs/aeris/ca-key.pem
+      {% endif %}
               ports:
                 - containerPort: 9910
                   name: ingest
@@ -341,8 +344,15 @@
                   name: metrics
               volumeMounts:
                 - name: lecert-ingest
-                  mountPath: /etc/letsencrypt/live/ingest
+                  mountPath: /etc/certs/ingest
+                - name: aeriscacert
+                  mountPath: /etc/certs/aeris
             volumes:
               - name: lecert-ingest
                 secret:
                   secretName: lecert-ingest.{{ letsencrypt_domain }}
+      {% if aeris_multi_tenancy %}
+              - name: aeriscacert
+                secret:
+                  secretName: aeriscacert
+      {% endif %}

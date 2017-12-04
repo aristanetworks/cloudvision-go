@@ -27,3 +27,4 @@ public_ip_prefix: 172.30.190.
 
 aeris_topic_version: 1
 aeris_storage_driver: hbase
+aeris_multi_tenancy: false

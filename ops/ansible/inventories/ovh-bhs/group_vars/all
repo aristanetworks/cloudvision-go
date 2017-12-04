@@ -29,5 +29,6 @@ private_iface: eno4
 
 aeris_topic_version: 1
 aeris_storage_driver: hbasenano
+aeris_multi_tenancy: true
 
 vpn_subnet: 172.19.0.0/24
