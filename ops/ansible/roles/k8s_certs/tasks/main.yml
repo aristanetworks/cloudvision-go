@@ -5,9 +5,10 @@
   stat:
     path: "{{ inventory_dir}}/files/openvpn/dh2048.pem"
   register: openvpn_certs_done
+  when: "'openvpn' in groups"
 
 - import_tasks: openvpn_certs.yml
-  when: not openvpn_certs_done.stat.exists
+  when: "'openvpn' in groups and not openvpn_certs_done.stat.exists"
 
 - name: check if etcd certs already present
   stat:
