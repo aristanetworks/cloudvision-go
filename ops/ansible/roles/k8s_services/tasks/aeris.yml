@@ -43,6 +43,21 @@
   pause:
     prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f aerisinit'"
 
+- name: deploy ca.pem secret used by the aeris components for multi-tenancy
+  kubernetes:
+    api_endpoint: 127.0.0.1:8001
+    insecure: true
+    state: present
+    inline_data: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aeriscacert
+      type: Opaque
+      data:
+        ca.pem: {{ lookup('file', inventory_dir+"/files/aeris/ca.pem") | b64encode }}
+        ca-key.pem: {{ lookup('file', inventory_dir+"/files/aeris/ca-key.pem") | b64encode }}
+
 - name: deploy recorder
   kubernetes:
     api_endpoint: 127.0.0.1:8001
