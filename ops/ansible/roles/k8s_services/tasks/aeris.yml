@@ -5,7 +5,7 @@
 
 ---
 
-- name: Init DB schema
+- name: init DB schema
   when: "lookup('env', 'AERIS_INITDBSCHEMA') == 'yes'"
   kubernetes:
     api_endpoint: 127.0.0.1:8001
@@ -38,7 +38,7 @@
             - --storageoption
             - TTL=2147483647
 
-- name: Check output of the aeris schema init phase
+- name: check output of the aeris schema init phase
   when: "lookup('env', 'AERIS_INITDBSCHEMA') == 'yes'"
   pause:
     prompt: "Press Enter to resume. Press Ctrl+c and then \"a\" to abort.\nPlease check the output of the init using the command: 'kubectl logs -f aerisinit'"
