@@ -267,7 +267,7 @@
             {{- $name := split $addr.hostname "-" }}
             {{- $name := index $name 0 }}
             {{- if eq $statefulset.metadata.name $name }}
-            acl host_{{$addr.hostname}}_{{$statefulset.spec.serviceName}} hdr(host) {{$addr.hostname}}.{{$statefulset.spec.serviceName}}[[ k8s_domain ]]
+            acl host_{{$addr.hostname}}_{{$statefulset.spec.serviceName}} hdr(host) {{$addr.hostname}}.{{$statefulset.spec.serviceName}}.[[ k8s_domain ]]
             use_backend http_backend_{{$addr.hostname}}_{{$statefulset.spec.serviceName}} if host_{{$addr.hostname}}_{{$statefulset.spec.serviceName}}
             {{- end }}
             {{- end }}
