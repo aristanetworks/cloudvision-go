@@ -161,3 +161,7 @@ master.ovh-bhs-infra.prod.arista.io
 1.etcd.ovh-bhs-infra.prod.arista.io
 2.etcd.ovh-bhs-infra.prod.arista.io
 registry.ovh-bhs-infra.prod.arista.io
+
+# Proxies for public services
+[ingest]
+ns545238.ip-144-217-181.net
