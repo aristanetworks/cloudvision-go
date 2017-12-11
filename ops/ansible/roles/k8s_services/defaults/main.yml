@@ -1,11 +1,4 @@
-# Explicitely list services exposed by public and private proxies
+# Explicitely list services exposed by public proxies
 services:
-  public:
-    ingest: grpc
-  private:
-    ingest: grpc
-    grafana: http
-    prometheus: http
-    registry: http
-    kafkaui: http
-    geiger: http
+  grpc:
+  - ingest

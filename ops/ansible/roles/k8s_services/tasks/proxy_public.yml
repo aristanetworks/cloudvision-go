@@ -5,9 +5,9 @@
 
 ---
 
-# https proxy. Exposes port 443 only.
-- name: Add nghttpx public and private https config
-  with_dict: "{{ services }}"
+# Add config for public grpc service
+- name: Add haproxy config to expose public grpc services
+  with_items: "{{ services.grpc }}"
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     state: apply
@@ -17,57 +17,67 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: nghttpx-conf-https-[[ item.key ]]
+        name: haproxy-conf-public-grpc-[[ item ]]s
       data:
-        nghttpx.conf.tmpl: |
-          # Copyright (c) 2017 Arista Networks, Inc.  All rights reserved.
+        haproxy.toml: |
+          [template]
+          src = "haproxy.cfg.tmpl"
+          dest = "/etc/haproxy/haproxy.cfg"
+          keys = [
+            "/services/default",
+            "/endpoints/default",
+          ]
+
+          check_cmd = "/usr/sbin/haproxy -c -f {{ .src }}"
+          reload_cmd = "haproxy -f /etc/haproxy/haproxy.cfg -p /var/run/haproxy.pid -D -sf $(cat /var/run/haproxy.pid)"
+
+        haproxy.cfg.tmpl: |
+          # Copyright (c) 2015 Arista Networks, Inc.  All rights reserved.
           # Arista Networks, Inc. Confidential and Proprietary.
           # Subject to Arista Networks, Inc.'s EULA.
           # FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-          no-via=yes
-          add-x-forwarded-for=yes
-          server-name=Arista
+          global
+            daemon
+            pidfile /var/run/haproxy.pid
+            maxconn 128000
 
-          # frontend HTTPS
-          # TODO: Bind to the correct interface
-          frontend=*,443
+          defaults
+            mode tcp
+            timeout connect 5000ms
+            timeout client 50000ms
+            timeout client-fin 50000ms
+            timeout server 50000ms
+            timeout tunnel 1h    # timeout to use with WebSocket and CONNECT
 
-          # frontend HTTP for nghttpx api access
-          # Must ALWAYS be a unix socket local to the pod. NEVER expose.
-          # Disabled for now
-          # frontend=unix:/var/sharepod/nghttpxapi/socket.sock,80;no-tls;api
+          listen stats
+            bind *:1234
+            mode http
+            stats enable
+            stats uri /
+            stats refresh 5s
 
-          # Let's use ingest cert for now as default cert
-          # TODO: Change to www as default cert probably
-          private-key-file=/etc/letsencrypt/live/ingest/privkey.pem
-          certificate-file=/etc/letsencrypt/live/ingest/fullchain.pem
-
-          # Catch-all backend
-          ###################
-          backend=127.0.0.1,8080
-
-          # TODO
-          # Must define a HTTP/1.1 service answering Let's Encrypt challenges: '<host>,<port>'
-
-          # Exposed GRPC and HTTP services
-          ################################
-      [% for name in item.value %]
-          # Service [[name]]
-          {{- if exists "/endpoints/default/[[name]]"}}
-          subcert=/etc/letsencrypt/live/[[name]]/privkey.pem:/etc/letsencrypt/live/[[name]]/fullchain.pem
-              {{- range $i, $subset := (json (getv "/endpoints/default/[[name]]")).subsets }}
-              {{- range $j, $addr := $subset.addresses }}
-              {{- range $k, $port := $subset.ports }}
-          backend={{$addr.ip}},{{.port}};[[name]].[[k8s_domain]][% if item.value[name] == "grpc" %];proto=h2[% endif %]
-              {{- end }}
-              {{- end }}
-              {{- end }}
+          # GRPC Service [[item]]
+          #########################
+          {{- if exists "/endpoints/default/[[item]]"}}
+          listen tcp_[[item]]
+            bind *:443
+            mode tcp
+            timeout connect  4000
+            timeout client   180000
+            timeout server   180000
+            {{- $endpoints := print "/endpoints/default/[[item]]" }}
+            {{- range $i, $subset := (json (getv $endpoints)).subsets }}
+            {{- range $j, $addr := $subset.addresses }}
+            {{- range $k, $port := $subset.ports }}
+            server tcp_[[item]]{{ print $i "_" $j "_" $k }} {{$addr.ip}}:{{.port}}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           {{- end }}
-      [% endfor %]
 
-- name: deploy public and private proxy2 daemonset for https
-  with_dict: "{{ services }}"
+- name: deploy public proxy daemonset for grpc services
+  with_items: "{{ services.grpc }}"
   kubernetes:
     api_endpoint: 127.0.0.1:8001
     insecure: true
@@ -76,29 +86,26 @@
       apiVersion: extensions/v1beta1
       kind: DaemonSet
       metadata:
-        name: proxy2-{{ item.key }}
+        name: proxy-grpc-{{ item }}
       spec:
         selector:
           matchLabels:
-            app: proxy2-{{ item.key }}
+            app: proxy-grpc-{{ item }}
         template:
           metadata:
-            name: proxy2-{{ item.key }}
+            name: proxy-grpc-{{ item }}
             # annotations:
-            #   TODO: enable some kind of metric to monitor nghttpx
+            #   TODO: enable metrics
             #   prometheus.io/scrape: "true"
             #   prometheus.io/port: "9201"
             labels:
-              app: proxy2-{{ item.key }}
+              app: proxy-grpc-{{ item }}
           spec:
             nodeSelector:
-              proxy: {{ item.key }}
-      {% if item.key == "public" or cluster_name in ['dev', 'staging'] %}
-            hostNetwork: true
-      {% endif %}
+              proxy: grpc-{{ item }}
             containers:
-            - name: proxy2
-              image: {{ registry_hostname }}k8s/proxy2
+            - name: proxy
+              image: aristanetworks/haproxy-confd
               imagePullPolicy: Always
               args:
                 - -backend
@@ -106,29 +113,14 @@
               ports:
                 - name: https
                   containerPort: 443
+                  hostPort: 443
+                - name: haproxy-stats
+                  containerPort: 1234
               volumeMounts:
-              - name: nghttpx-conf-https-{{ item.key }}
+              - name: haproxy-conf-public-grpc-{{ item }}
                 mountPath: /etc/confd/templates/nghttpx.conf.tmpl
                 subPath: nghttpx.conf.tmpl
-      {% for name in item.value %}
-              - name: lecert-{{ name }}
-                mountPath: /etc/letsencrypt/live/{{ name }}
-      {% endfor %}
-            - name: catchall-service
-              image: nginx:1.13.5
-              volumeMounts:
-              - name: nginx-catchall-config
-                mountPath: /etc/nginx/nginx.conf
-                subPath: nginx.conf
             volumes:
-            - name: nginx-catchall-config
+            - name: haproxy-conf-public-grpc-{{ item }}
               configMap:
-                name: nginx-catchall-config
-            - name: nghttpx-conf-https-{{ item.key }}
-              configMap:
-                name: nghttpx-conf-https-{{ item.key }}
-      {% for name in item.value %}
-            - name: lecert-{{ name }}
-              secret:
-                secretName: lecert-{{ name }}.{{ k8s_domain }}
-      {% endfor %}
+                name: haproxy-conf-public-grpc-{{ item }}
