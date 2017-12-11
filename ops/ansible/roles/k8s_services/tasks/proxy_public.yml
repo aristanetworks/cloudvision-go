@@ -17,7 +17,7 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: haproxy-conf-public-grpc-[[ item ]]s
+        name: haproxy-conf-public-grpc-[[ item ]]
       data:
         haproxy.toml: |
           [template]
@@ -70,7 +70,7 @@
             {{- range $i, $subset := (json (getv $endpoints)).subsets }}
             {{- range $j, $addr := $subset.addresses }}
             {{- range $k, $port := $subset.ports }}
-            server tcp_[[item]]{{ print $i "_" $j "_" $k }} {{$addr.ip}}:{{.port}}
+            server tcp_[[item]]_{{ print $i "_" $j "_" $k }} {{$addr.ip}}:{{.port}}
             {{- end }}
             {{- end }}
             {{- end }}
@@ -110,6 +110,9 @@
               args:
                 - -backend
                 - kubernetes
+                - -watch
+                - "true"
+                - -logtostderr
               ports:
                 - name: https
                   containerPort: 443
@@ -118,8 +121,11 @@
                   containerPort: 1234
               volumeMounts:
               - name: haproxy-conf-public-grpc-{{ item }}
-                mountPath: /etc/confd/templates/nghttpx.conf.tmpl
-                subPath: nghttpx.conf.tmpl
+                mountPath: /etc/confd/templates/haproxy.cfg.tmpl
+                subPath: haproxy.cfg.tmpl
+              - name: haproxy-conf-public-grpc-{{ item }}
+                mountPath: /etc/confd/conf.d/haproxy.toml
+                subPath: haproxy.toml
             volumes:
             - name: haproxy-conf-public-grpc-{{ item }}
               configMap:

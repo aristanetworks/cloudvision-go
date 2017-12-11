@@ -165,3 +165,8 @@ registry.ovh-bhs-infra.prod.arista.io
 # Proxies for public services
 [ingest]
 ns545238.ip-144-217-181.net
+
+# The letsencrypt proxies should run on all the hosts where a public facing service
+# is deployed. This group will aggregate all the hosts
+[letsencryptproxy:children]
+ingest
