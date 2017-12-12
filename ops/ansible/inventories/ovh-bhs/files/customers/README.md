@@ -33,6 +33,6 @@ openssl req -new -key private.pem -out private.csr
 ```
 
 This will generate a file `enroll.crt` which will be sent to the customer.
-The customer will use this file to bootstrap TerminAttr, by adding the flag `--autocert=true --ingestauth=certs,enroll.crt,<private.pem> enroll.crt` to the TerminAttr command.
+The customer will use this file to bootstrap TerminAttr, by adding the flag `--autocert=true --ingestauth=certs,enroll.crt,<private.pem>` to the TerminAttr command.
 
 Those certs should be in `/persist/secure` (ToBeValidated) on the switch
