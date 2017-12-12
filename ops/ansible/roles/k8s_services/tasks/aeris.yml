@@ -335,7 +335,8 @@
                 - -monitor
                 - 0.0.0.0:6060
       {% if aeris_multi_tenancy %}
-                - cert=/etc/certs/ingest/fullchain.pem,/etc/certs/ingest/privkey.pem,/etc/certs/aeris/ca.pem,/etc/certs/aeris/ca-key.pem
+                - -ingestauth
+                - certs,/etc/certs/ingest/fullchain.pem,/etc/certs/ingest/privkey.pem,/etc/certs/aeris/ca.pem,/etc/certs/aeris/ca-key.pem
       {% endif %}
               ports:
                 - containerPort: 9910
