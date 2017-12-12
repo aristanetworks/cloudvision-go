@@ -15,6 +15,6 @@
 qworker_stages:
    reimage_healthcheck: milkyway
    core: milkyway
-   core_verify: default
+   core_verify: milkyway
    resync_running: milkyway
    cleanup: milkyway

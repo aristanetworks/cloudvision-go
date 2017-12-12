@@ -1,0 +1,10 @@
+---
+# ADD CORE VERIFICATION TASKS HERE
+
+name: "Start ntp daemon"
+  systemd:
+    name: ntpd
+    state: started
+    enabled: True
+...
+
