@@ -52,8 +52,13 @@
     - scylla-debuginfo-{{SCYLLA_VERSION}}
   when: "BUG_SCYLLA_REPO | int == 0"
 
-- name: "Install Telegraf"
+- name: "Install Telegraf (prod)"
   yum: name=telegraf-qubit-scylla state=present
+  when: CLUSTER_NAME == "prod"
+
+- name: "Install Telegraf (dev)"
+  yum: name=telegraf-qubit-scylla-dev state=present
+  when: CLUSTER_NAME == "dev"
 
 - name: "Select Oracle JDK"
   alternatives: link=/usr/bin/java name=java path=/usr/java/jdk{{JDK_VER_DIR}}/bin/java
