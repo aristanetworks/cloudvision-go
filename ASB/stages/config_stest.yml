@@ -25,15 +25,28 @@
     src: 92-Stest-nproc.conf
     dest: /etc/security/limits.d/93-Stest-nproc.conf
 
-- name: "Customize inotify instances and watches"
-  become: True
-  copy:
-    src: Stest.conf
-    dest: /etc/sysctl.d/Stest.conf
+# ----------------------------
+# Customize inotify parameters
+# ----------------------------
 
-- name: "Update sysctl"
-  become: True
-  command: sysctl --system
+# Bump up this limit to make stests not hit BUG42769/BUG89834 and friends.
+- name: "Set inotify max user instances"
+  sysctl:
+     name: fs.inotify.max_user_instances
+     value: 32768
+     state: present
+     sysctl_file: "/etc/sysctl.d/Stest.conf"
+
+# Bump up this to make stests not hit BUG136042
+- name: "Set inotify max user watchers"
+  sysctl:
+     name: fs.inotify.max_user_watchers
+     value: 524288
+     state: present
+     sysctl_file: "/etc/sysctl.d/Stest.conf"
+     reload: yes
+
+# ----------------------------
 
 - name: "Add docker to rc.local"
   lineinfile:

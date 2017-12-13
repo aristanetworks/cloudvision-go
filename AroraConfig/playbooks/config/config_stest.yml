@@ -1,0 +1,18 @@
+# Change inotify parameters
+# NOTE: These are also included in the ASB config step
+# Bump up this limit to make stests not hit BUG42769/BUG89834 and friends.
+- name: "Set inotify max user instances"
+  sysctl:
+     name: fs.inotify.max_user_instances
+     value: 32768
+     state: present
+     sysctl_file: "/etc/sysctl.d/Stest.conf"
+
+# Bump up this to make stests not hit BUG136042
+- name: "Set inotify max user watchers"
+  sysctl:
+     name: fs.inotify.max_user_watchers
+     value: 524288
+     state: present
+     sysctl_file: "/etc/sysctl.d/Stest.conf"
+     reload: yes

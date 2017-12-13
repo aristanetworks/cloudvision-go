@@ -1,0 +1,17 @@
+# Copyright (c) 2016 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
+
+---
+- name: "Update configuration settings"
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+   # Change settings only relevant for build server types
+   - include: config/config_build.yml
+     when: ROLE_NAME is defined and ROLE_NAME == "build"
+
+   # Change settings only relevant for stest server types
+   - include: config/config_stest.yml
+     when: ROLE_NAME is defined and ROLE_NAME == "stest"
+...
