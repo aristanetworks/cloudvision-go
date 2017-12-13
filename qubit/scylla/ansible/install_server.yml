@@ -1,11 +1,27 @@
 ---
+
+# Perform Scylla install on the server node
+#
+# 1. Setup appropriate entries in inventories/addnode.inv or inventories/addnode-dev.inv
+#    depending on the cluster
+#
+# 2. Run the following command
+#
+# Example:
+#
+# Prod cluster:
+# runner ./install_server.yaml inventories/addnode.inv ./secret 'SCYLLA_REPO_URL="http://url_to_scylla_repo"'
+#
+# Dev cluster:
+# runner ./install_server.yaml inventories/addnode-dev.inv ./secret 'SCYLLA_REPO_URL="http://url_to_scylla_repo"'
+#
 - name: "Install Scylla server on node(s)"
   hosts: scylla_nodes
   become: yes
   become_user: root
   serial: 50
   roles:
-    - { role: server_setup_scyllaroot } 
+    - { role: server_setup_scyllaroot }
     - { role: server_installer }
     - { role: server_configurator }
     - { role: server_starter }

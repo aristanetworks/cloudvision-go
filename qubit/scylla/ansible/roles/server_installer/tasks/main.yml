@@ -27,6 +27,22 @@
 - name: "Uninstall ABRT package due to conflicts with Scylla"
   yum: name=abrt state=absent
 
+- name: "Fetch the scylla repo"
+  get_url:
+        url: "{{ SCYLLA_REPO_URL }}"
+        dest: /etc/yum.repos.d/scylla.repo
+  when: "BUG_SCYLLA_REPO | int == 1"
+
+- name: "Install the scylla software"
+  command: yum install scylla* -y
+  when: "BUG_SCYLLA_REPO | int == 1"
+
+- name: "Remove the scylla repo"
+  file:
+    path: /etc/yum.repos.d/scylla.repo
+    state: absent
+  when: "BUG_SCYLLA_REPO | int == 1"
+
 # Use ToolsV2 repo instead of Scylla's public repo
 # Ansible yum module does not support --disableexcludes
 - name: "Install Scylla"
@@ -34,6 +50,7 @@
   with_items:
     - scylla-{{SCYLLA_VERSION}}
     - scylla-debuginfo-{{SCYLLA_VERSION}}
+  when: "BUG_SCYLLA_REPO | int == 0"
 
 - name: "Install Telegraf"
   yum: name=telegraf-qubit-scylla state=present
