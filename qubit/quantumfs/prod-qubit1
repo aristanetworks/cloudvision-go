@@ -1,0 +1,18 @@
+{
+    "cluster":
+    {
+    "nodes":[
+             "ce101",
+             "ce114",
+             "ce118"
+            ],
+    "keyspace":"qubit1",
+    "timeout":3
+    },
+    "adapter":
+    {
+        "ttlrefreshtime" : "24h",
+        "ttlrefreshvalue": "192h",
+        "ttldefaultvalue": "192h"
+    }
+}

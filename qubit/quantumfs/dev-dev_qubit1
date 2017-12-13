@@ -1,0 +1,18 @@
+{
+    "cluster":
+    {
+    "nodes":[
+             "li101",
+             "li102",
+             "li103"
+            ],
+    "keyspace":"dev_qubit1",
+    "timeout":3
+    },
+    "adapter":
+    {
+        "ttlrefreshtime" : "24h",
+        "ttlrefreshvalue": "192h",
+        "ttldefaultvalue": "192h"
+    }
+}

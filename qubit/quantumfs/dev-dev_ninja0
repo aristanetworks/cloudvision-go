@@ -1,0 +1,18 @@
+{
+    "cluster":
+    {
+    "nodes":[
+             "li101",
+             "li102",
+             "li103"
+            ],
+    "keyspace":"dev_ninja0",
+    "timeout":3
+    },
+    "adapter":
+    {
+        "ttlrefreshtime" : "0",
+        "ttlrefreshvalue": "0",
+        "ttldefaultvalue": "0"
+    }
+}
