@@ -42,12 +42,17 @@ func (l *loopback) Stop() {
 }
 
 func (l *loopback) Write(notif types.Notification) error {
-	l.ch <- notif
+	if l.ch != nil {
+		l.ch <- notif
+	}
 	return nil
 }
 
 func (l *loopback) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) error {
+	if l.ch == nil {
+		return nil
+	}
 	notifs := NotificationsForInstantiateChild(ts, child, attrDef, k)
 	for _, n := range notifs {
 		l.ch <- n

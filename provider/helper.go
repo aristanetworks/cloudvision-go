@@ -20,31 +20,40 @@ import (
 // instantiating a child
 func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key) []types.Notification {
-	notifs := make([]types.Notification, 2)
+	var notifs []types.Notification
 	def := child.GetDef()
 	if def.IsDirectory() {
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
 		// directory's attributes, which are internal.
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(),
-			[]key.Key{}, nil, child)
+		notifs = make([]types.Notification, 2)
+		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), []key.Key{}, nil,
+			child)
 	} else {
 		p := child.Path()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
-		for attrName := range def.Attrs {
+		var deletePaths []path.Path
+		for _, i := range def.AttrsOrderByID {
+			attrName := def.AttributesByID[i].Name
 			v, _ := child.GetAttribute(attrName)
 			attrKey := key.New(attrName)
 			if _, ok := v.(types.Collection); ok {
 				// Transform any collection into a pointer.
-				initialAttrs[attrKey] = types.Pointer{
-					Pointer: path.Append(p, attrName).String(),
-				}
+				childPath := path.Append(p, attrName)
+				initialAttrs[attrKey] = types.Pointer{Pointer: childPath.String()}
+				deletePaths = append(deletePaths, childPath)
 			} else {
 				initialAttrs[attrKey] = v
 			}
 		}
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(),
-			nil, initialAttrs, child)
+		notifs = make([]types.Notification, 2+len(deletePaths))
+		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), nil, initialAttrs,
+			child)
+		for i, deletePath := range deletePaths {
+			// Leave the first 2 notifications as they are since they're swapped later depending on
+			// which mode we're in.
+			notifs[i+2] = types.NewNotification(ts, deletePath, []key.Key{}, nil)
+		}
 	}
 	parent := child.Parent()
 	attrName := attrDef.Name
@@ -119,7 +128,8 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 	// afterRecurseNotifs are notifs that should be added after the
 	// recursive call
 	var afterRecurseNotifs []types.Notification
-	for _, attr := range def.Attrs {
+	for _, i := range def.AttrsOrderByID {
+		attr := def.AttributesByID[i]
 		if !attr.IsInstantiating {
 			if attr.IsColl {
 				afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
