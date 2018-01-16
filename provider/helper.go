@@ -69,8 +69,8 @@ func NotificationsForDeleteChild(ts time.Time, child types.Entity, attrDef *type
 	k key.Key) ([]types.Notification, error) {
 	parent := child.Parent()
 	if parent == nil {
-		return nil, fmt.Errorf("Can'ts generate notifications. Entity %q has nil parent",
-			child.Path())
+		return nil, fmt.Errorf("Can't generate notifications: %s",
+			NewErrParentIsNil(child.PathComponents()))
 	}
 
 	path := parent.Path()

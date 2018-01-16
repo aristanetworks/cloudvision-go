@@ -98,6 +98,12 @@ type ErrParentNotFound struct {
 	parentPath path.Path
 }
 
+// ErrParentIsNil comes from InstantiateChild when the child's
+// parent is nil.
+type ErrParentIsNil struct {
+	childPath path.Path
+}
+
 // NewErrParentNotFound creates a new ErrParentNotFound
 func NewErrParentNotFound(childPath, parentPath path.Path) error {
 	return &ErrParentNotFound{
@@ -106,13 +112,28 @@ func NewErrParentNotFound(childPath, parentPath path.Path) error {
 	}
 }
 
+// NewErrParentIsNil creates a new ErrParentIsNil.
+func NewErrParentIsNil(childPath path.Path) error {
+	return &ErrParentIsNil{childPath: childPath}
+}
+
 func (e *ErrParentNotFound) Error() string {
 	return fmt.Sprintf("Parent of %s (%s) not found", e.childPath, e.parentPath)
+}
+
+func (e *ErrParentIsNil) Error() string {
+	return fmt.Sprintf("Parent of %s is nil", e.childPath)
 }
 
 // IsParentNotFound tells you if an error is a ErrParentNotFound
 func IsParentNotFound(err error) bool {
 	_, ok := err.(*ErrParentNotFound)
+	return ok
+}
+
+// IsParentNil tells you if an error is an ErrParentIsNil.
+func IsParentNil(err error) bool {
+	_, ok := err.(*ErrParentIsNil)
 	return ok
 }
 
