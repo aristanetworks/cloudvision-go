@@ -12,6 +12,7 @@ import (
 	"arista/types"
 
 	"github.com/aristanetworks/goarista/key"
+	"github.com/aristanetworks/goarista/path"
 )
 
 // NotificationsForInstantiateChild this is a helper method for
@@ -25,21 +26,25 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 		// If we just created a directory, just send one notification
 		// to delete-all the new directory, instead of sending the
 		// directory's attributes, which are internal.
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), []key.Key{}, nil, child)
+		notifs[0] = types.NewNotifWithEntity(ts, child.PathComponents(),
+			[]key.Key{}, nil, child)
 	} else {
-		path := child.Path()
+		p := child.PathComponents()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
 		for attrName := range def.Attrs {
 			v, _ := child.GetAttribute(attrName)
 			attrKey := key.New(attrName)
 			if _, ok := v.(types.Collection); ok {
 				// Transform any collection into a pointer.
-				initialAttrs[attrKey] = types.Pointer{Pointer: path + "/" + attrName}
+				initialAttrs[attrKey] = types.Pointer{
+					Pointer: path.Append(p, attrName).String(),
+				}
 			} else {
 				initialAttrs[attrKey] = v
 			}
 		}
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), nil, initialAttrs, child)
+		notifs[0] = types.NewNotifWithEntity(ts, child.PathComponents(),
+			nil, initialAttrs, child)
 	}
 	parent := child.Parent()
 	attrName := attrDef.Name
@@ -49,11 +54,11 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 	} else { // Collection
 		// The path to notify on is the path of the entity + "/" + the
 		// collection name, *except* if we're adding an entry to a directory.
-		path := parent.Path()
+		p := parent.PathComponents()
 		if !parent.GetDef().IsDirectory() {
-			path += "/" + attrName
+			p = path.Append(p, attrName)
 		}
-		notifs[1] = types.NewNotificationWithEntity(ts, path, nil,
+		notifs[1] = types.NewNotifWithEntity(ts, p, nil,
 			map[key.Key]interface{}{k: child.Ptr()}, parent)
 	}
 	// In "AgentMode" the ordering of the two notifications should be switched
@@ -73,10 +78,10 @@ func NotificationsForDeleteChild(ts time.Time, child types.Entity, attrDef *type
 			NewErrParentIsNil(child.PathComponents()))
 	}
 
-	path := parent.Path()
+	p := parent.PathComponents()
 	if attrDef.IsColl {
 		// Use path to collection
-		path += "/" + attrDef.Name
+		p = path.Append(p, attrDef.Name)
 	} else {
 		// Key is attribute name
 		k = key.New(attrDef.Name)
@@ -85,16 +90,16 @@ func NotificationsForDeleteChild(ts time.Time, child types.Entity, attrDef *type
 	notifs, err := recursiveEntityDeleteNotification(nil, child, child.GetDef(), ts)
 	if err != nil {
 		return notifs, fmt.Errorf("Error recursively deleting entities with"+
-			" notifications under %q: %s",
-			child.Path(), err)
+			" notifications under %s: %s",
+			child.PathComponents(), err)
 	}
 
 	// Zero out the child's attributes.
-	notifs = append(notifs, types.NewNotificationWithEntity(ts, child.Path(),
+	notifs = append(notifs, types.NewNotifWithEntity(ts, child.PathComponents(),
 		[]key.Key{}, nil, child))
 
 	// Finally remove this entity from its parent's attribute or collection
-	notifs = append(notifs, types.NewNotificationWithEntity(ts, path, []key.Key{k}, nil, parent))
+	notifs = append(notifs, types.NewNotifWithEntity(ts, p, []key.Key{k}, nil, parent))
 
 	return notifs, nil
 }
@@ -107,7 +112,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 	if !def.TypeFlags.IsEntity {
 		// Should be impossible, as it would imply something wrong with the schema
 		panic(fmt.Sprintf("Found an entity %#v at path %s with isEntity=false in typeDef: %#v",
-			e, e.Path(), def))
+			e, e.PathComponents(), def))
 	}
 
 	var childEntities []types.Entity
@@ -117,14 +122,14 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 	for _, attr := range def.Attrs {
 		if !attr.IsInstantiating {
 			if attr.IsColl {
-				afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
-					e.Path()+"/"+attr.Name, []key.Key{}, nil, e))
+				afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotifWithEntity(ts,
+					path.Append(e.PathComponents(), attr.Name), []key.Key{}, nil, e))
 			}
 			continue
 		}
 		if attr.IsColl {
-			afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
-				e.Path()+"/"+attr.Name, []key.Key{}, nil, e))
+			afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotifWithEntity(ts,
+				path.Append(e.PathComponents(), attr.Name), []key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
 			children.ForEach(func(k key.Key, child interface{}) error {
 				childEntities = append(childEntities, child.(types.Entity))
@@ -136,18 +141,18 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 	}
 	// For every child entity we found, we recursively call ourselves to look
 	// for more child entities that need to be deleted, and then call
-	// types.NewNotificationWithEntity to send notification regarding those deleted entities
+	// types.NewNotifWithEntity to send notification regarding those deleted entities
 	for _, childEntity := range childEntities {
 		var err error
 		notifs, err = recursiveEntityDeleteNotification(notifs, childEntity,
 			childEntity.GetDef(), ts)
 		if err != nil {
 			return notifs, fmt.Errorf("Error recursively deleting entities with"+
-				"notifications under %q: %s",
-				childEntity.Path(), err)
+				"notifications under %s: %s",
+				childEntity.PathComponents(), err)
 		}
-		notifs = append(notifs, types.NewNotificationWithEntity(ts,
-			childEntity.Path(), []key.Key{}, nil, childEntity))
+		notifs = append(notifs, types.NewNotifWithEntity(ts,
+			childEntity.PathComponents(), []key.Key{}, nil, childEntity))
 	}
 	return append(notifs, afterRecurseNotifs...), nil
 }
@@ -161,6 +166,6 @@ func NotificationsForCollectionCount(ts time.Time, collName string, count uint32
 		return nil
 	}
 
-	return types.NewNotificationWithEntity(ts, parent.Path()+"/_counts", nil,
-		map[key.Key]interface{}{key.New(collName): count}, parent)
+	return types.NewNotifWithEntity(ts, path.Append(parent.PathComponents(), "_counts"),
+		nil, map[key.Key]interface{}{key.New(collName): count}, parent)
 }

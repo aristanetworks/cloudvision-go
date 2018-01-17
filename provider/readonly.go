@@ -19,17 +19,17 @@ type ReadOnly struct{}
 
 // Write always fails.
 func (ro ReadOnly) Write(notif types.Notification) error {
-	return fmt.Errorf("cannot write to %s: path is read-only", notif.Path())
+	return fmt.Errorf("cannot write to %s: path is read-only", notif.PathElements())
 }
 
 // InstantiateChild always fails.
 func (ro ReadOnly) InstantiateChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key, ctorArgs map[string]interface{}) error {
-	return fmt.Errorf("cannot instantiate %s: parent entity is read-only", child.Path())
+	return fmt.Errorf("cannot instantiate %s: parent entity is read-only", child.PathComponents())
 }
 
 // DeleteChild always fails.
 func (ro ReadOnly) DeleteChild(ts time.Time, child types.Entity, attrDef *types.AttrDef,
 	k key.Key) error {
-	return fmt.Errorf("cannot delete %s: parent entity is read-only", child.Path())
+	return fmt.Errorf("cannot delete %s: parent entity is read-only", child.PathComponents())
 }
