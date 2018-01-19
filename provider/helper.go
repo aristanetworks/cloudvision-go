@@ -90,7 +90,7 @@ func NotificationsForDeleteChild(ts time.Time, child types.Entity, attrDef *type
 	notifs, err := recursiveEntityDeleteNotification(nil, child, child.GetDef(), ts)
 	if err != nil {
 		return notifs, fmt.Errorf("Error recursively deleting entities with"+
-			" notifications under %s: %s",
+			" notifications under %q: %s",
 			child.PathComponents(), err)
 	}
 
@@ -148,7 +148,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 			childEntity.GetDef(), ts)
 		if err != nil {
 			return notifs, fmt.Errorf("Error recursively deleting entities with"+
-				"notifications under %s: %s",
+				"notifications under %q: %s",
 				childEntity.PathComponents(), err)
 		}
 		notifs = append(notifs, types.NewNotifWithEntity(ts,
