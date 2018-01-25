@@ -19,7 +19,7 @@ type ReadOnly struct{}
 
 // Write always fails.
 func (ro ReadOnly) Write(notif types.Notification) error {
-	return fmt.Errorf("cannot write to %s: path is read-only", notif.PathElements())
+	return fmt.Errorf("cannot write to %s: path is read-only", notif.Path())
 }
 
 // InstantiateChild always fails.
