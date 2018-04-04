@@ -30,16 +30,11 @@ func (l *loopback) Run(s *schema.Schema, root types.Entity, notif chan<- types.N
 	if l.ch == nil {
 		l.ch = notif
 	}
-	return
 }
 
-func (l *loopback) WaitForNotification() {
-	return
-}
+func (l *loopback) WaitForNotification() {}
 
-func (l *loopback) Stop() {
-	return
-}
+func (l *loopback) Stop() {}
 
 func (l *loopback) Write(notif types.Notification) error {
 	if l.ch != nil {
