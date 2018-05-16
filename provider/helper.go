@@ -47,8 +47,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 			}
 		}
 		notifs = make([]types.Notification, 2+len(deletePaths))
-		notifs[0] = types.NewNotificationWithEntity(ts, child.Path(), nil, initialAttrs,
-			child)
+		notifs[0] = types.NewNotificationWithEntity(ts, p, nil, initialAttrs, child)
 		for i, deletePath := range deletePaths {
 			// Leave the first 2 notifications as they are since they're swapped later depending on
 			// which mode we're in.
@@ -58,8 +57,8 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 	parent := child.Parent()
 	attrName := attrDef.Name
 	if k == nil { // Regular attribute
-		notifs[1] = types.NewUpdates(parent,
-			map[key.Key]interface{}{key.New(attrName): child.Ptr()})
+		notifs[1] = types.NewNotificationWithEntity(ts, parent.Path(), nil,
+			map[key.Key]interface{}{key.New(attrName): child.Ptr()}, parent)
 	} else { // Collection
 		// The path to notify on is the path of the entity + "/" + the
 		// collection name, *except* if we're adding an entry to a directory.
