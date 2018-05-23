@@ -13,7 +13,6 @@ import (
 	"arista/types"
 
 	"github.com/aristanetworks/goarista/key"
-	"github.com/aristanetworks/goarista/path"
 )
 
 // Mode is a enum that determines what mode the provider is currently in,
@@ -94,18 +93,18 @@ type EntityExistor interface {
 // ErrParentNotFound comes from InstantiateChild when the child's
 // parent is unknown.
 type ErrParentNotFound struct {
-	childPath  path.Path
-	parentPath path.Path
+	childPath  key.Path
+	parentPath key.Path
 }
 
 // ErrParentIsNil comes from InstantiateChild when the child's
 // parent is nil.
 type ErrParentIsNil struct {
-	childPath path.Path
+	childPath key.Path
 }
 
 // NewErrParentNotFound creates a new ErrParentNotFound
-func NewErrParentNotFound(childPath, parentPath path.Path) error {
+func NewErrParentNotFound(childPath, parentPath key.Path) error {
 	return &ErrParentNotFound{
 		childPath:  childPath,
 		parentPath: parentPath,
@@ -113,7 +112,7 @@ func NewErrParentNotFound(childPath, parentPath path.Path) error {
 }
 
 // NewErrParentIsNil creates a new ErrParentIsNil.
-func NewErrParentIsNil(childPath path.Path) error {
+func NewErrParentIsNil(childPath key.Path) error {
 	return &ErrParentIsNil{childPath: childPath}
 }
 

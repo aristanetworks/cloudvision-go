@@ -32,7 +32,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 	} else {
 		p := child.Path()
 		initialAttrs := make(map[key.Key]interface{}, len(def.Attrs))
-		var deletePaths []path.Path
+		var deletePaths []key.Path
 		for _, i := range def.AttrsOrderByID {
 			attrName := def.AttributesByID[i].Name
 			v, _ := child.GetAttribute(attrName)
@@ -169,7 +169,7 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 
 // NotificationsForCollectionCount is a helper method for Providers to use to
 // generate the notifications associated with collection counts.
-func NotificationsForCollectionCount(ts time.Time, collPath path.Path, count uint32,
+func NotificationsForCollectionCount(ts time.Time, collPath key.Path, count uint32,
 	parent types.Entity) types.Notification {
 	if GetMode() != StreamingMode || parent.GetDef().IsDirectory() {
 		return nil
