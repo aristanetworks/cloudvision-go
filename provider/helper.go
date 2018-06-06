@@ -40,7 +40,7 @@ func NotificationsForInstantiateChild(ts time.Time, child types.Entity, attrDef 
 			if _, ok := v.(types.Collection); ok {
 				// Transform any collection into a pointer.
 				childPath := path.Append(p, attrName)
-				initialAttrs[attrKey] = types.NewPointer(childPath)
+				initialAttrs[attrKey] = key.NewPointer(childPath)
 				deletePaths = append(deletePaths, childPath)
 			} else {
 				initialAttrs[attrKey] = v
