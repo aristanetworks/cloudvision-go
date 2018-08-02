@@ -5,10 +5,14 @@
 
 package device
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"os"
+)
 
 // Creator is a function that when called returns a new instance of a Device
-type Creator = func(string) (Device, error)
+type Creator = func(io.Reader) (Device, error)
 
 var deviceMap = map[string]Creator{}
 
@@ -23,8 +27,19 @@ func RegisterDevice(name string, creator Creator) error {
 
 // CreateDevice returns a device from the registry
 func CreateDevice(name, config string) (Device, error) {
-	if creator, ok := deviceMap[name]; ok {
-		return creator(config)
+	creator, ok := deviceMap[name]
+
+	if ok {
+		if config == "" {
+			return creator(nil)
+		}
+
+		f, err := os.Open(config)
+		defer f.Close()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to open config file %s: %s", config, err)
+		}
+		return creator(f)
 	}
 	return nil, fmt.Errorf("Device %s doesn't exist", name)
 }

@@ -9,6 +9,7 @@ import (
 	"arista/device"
 	"arista/provider"
 	"arista/provider/providers"
+	"io"
 	"os/exec"
 )
 
@@ -24,7 +25,7 @@ type darwinDevice struct {
 }
 
 // NewDarwinDevice gives a representation of device provider for our laptop
-func NewDarwinDevice(config string) (device.Device, error) {
+func NewDarwinDevice(configFile io.Reader) (device.Device, error) {
 	profiler := exec.Command("system_profiler", "SPHardwareDataType")
 	awk := exec.Command("awk", "/Serial/ {print $4}")
 	pipe, err := profiler.StdoutPipe()
