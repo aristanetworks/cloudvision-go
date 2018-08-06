@@ -17,12 +17,8 @@ type Creator = func(io.Reader) (Device, error)
 var deviceMap = map[string]Creator{}
 
 // RegisterDevice registers a function that can create a new Device given by the name
-func RegisterDevice(name string, creator Creator) error {
-	if _, ok := deviceMap[name]; ok {
-		return fmt.Errorf("Device %s is already registered", name)
-	}
+func RegisterDevice(name string, creator Creator) {
 	deviceMap[name] = creator
-	return nil
 }
 
 // CreateDevice returns a device from the registry
