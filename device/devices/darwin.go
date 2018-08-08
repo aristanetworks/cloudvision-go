@@ -9,23 +9,21 @@ import (
 	"arista/device"
 	"arista/provider"
 	"arista/provider/providers"
-	"io"
 	"os/exec"
 )
 
 func init() {
-	device.RegisterDevice("darwin", NewDarwinDevice)
+	device.RegisterDevice("darwin", NewDarwinDevice, make(map[string]device.Option))
 }
 
 type darwinDevice struct {
-	name     string
 	isAlive  bool
 	deviceID string
 	provider provider.Provider
 }
 
-// NewDarwinDevice gives a representation of device provider for our laptop
-func NewDarwinDevice(configFile io.Reader) (device.Device, error) {
+// NewDarwinDevice instantiates a Mac device.
+func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	profiler := exec.Command("system_profiler", "SPHardwareDataType")
 	awk := exec.Command("awk", "/Serial/ {print $4}")
 	pipe, err := profiler.StdoutPipe()
@@ -45,15 +43,10 @@ func NewDarwinDevice(configFile io.Reader) (device.Device, error) {
 		return nil, err
 	}
 	device := darwinDevice{}
-	device.name = "MacBook"
 	device.isAlive = true
 	device.deviceID = string(out)
 	device.provider = providers.NewDarwinProvider()
 	return &device, nil
-}
-
-func (d *darwinDevice) Name() string {
-	return d.name
 }
 
 func (d *darwinDevice) CheckAlive() bool {

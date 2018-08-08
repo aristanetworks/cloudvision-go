@@ -6,8 +6,8 @@
 package devices
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -21,27 +21,35 @@ import (
 	"arista/provider"
 
 	"github.com/aristanetworks/glog"
-	yaml "gopkg.in/yaml.v2"
 )
 
-func init() {
-	device.RegisterDevice("cvp", NewCvp)
-}
+var options map[string]device.Option
 
-type cvpConfig struct {
-	procfsPeriod time.Duration `yaml:"procfsperiod"`
-	systemID     string        `yaml:"systemid"`
+func init() {
+	// Set options
+	options = map[string]device.Option{
+		"procfsPeriod": device.Option{
+			Description: "Interval at which to collect various stats " +
+				"from /proc (0 to disable)",
+			Default:  "15s",
+			Required: false,
+		},
+		"systemID": device.Option{
+			Description: "Device system ID override",
+			Default:     "",
+			Required:    false,
+		},
+	}
+
+	// Register
+	device.RegisterDevice("cvp", NewCvp, options)
 }
 
 type cvpDevice struct {
-	name            string
+	procfsPeriod    time.Duration
 	systemID        string
 	kernelProvider  provider.Provider
 	versionProvider provider.Provider
-}
-
-func (c *cvpDevice) Name() string {
-	return c.name
 }
 
 func (c *cvpDevice) CheckAlive() bool {
@@ -58,6 +66,10 @@ func (c *cvpDevice) Providers() []provider.Provider {
 		c.versionProvider,
 	}
 	return provs
+}
+
+func (c *cvpDevice) Options() map[string]device.Option {
+	return options
 }
 
 // getSerialNumber returns the UUID of the CVP node
@@ -80,41 +92,61 @@ func getSerialNumber() (string, error) {
 	return "", err
 }
 
-// NewCvp returns a cvp device
-func NewCvp(yamlConfig io.Reader) (device.Device, error) {
+func getProcfsPeriod(opt map[string]string) (time.Duration, error) {
+	pp, ok := opt["procfsPeriod"]
+	if !ok {
+		return time.Duration(0), errors.New("No option procfsPeriod")
+	}
+	ppd, err := time.ParseDuration(pp)
+	if err != nil {
+		return time.Duration(0), err
+	}
+	return ppd, nil
+}
+
+func getSystemID(opt map[string]string) (string, error) {
+	sys, ok := opt["systemID"]
+	if !ok {
+		return "", errors.New("No option systemID")
+	}
+	if sys == "" {
+		sn, err := getSerialNumber()
+		if err != nil {
+			return "", err
+		}
+		sys = sn
+	}
+	return sys, nil
+}
+
+// NewCvp returns a cvp device.
+func NewCvp(opt map[string]string) (device.Device, error) {
 	// Create pidfile for cvpi
 	procPid := os.Getpid()
 	file, err := os.Create("/var/run/cvpi/monitor.pid")
 	if err != nil {
-		glog.Fatalf("Unable to create process pid file under /var/run/cvpi/")
+		return nil, errors.New("Unable to create process pid file under /var/run/cvpi/")
 	}
 	fmt.Fprintf(file, strconv.Itoa(procPid))
 	file.Close()
 
-	config := &cvpConfig{
-		procfsPeriod: 15 * time.Second,
+	cvp := &cvpDevice{}
+
+	// Extract config
+	pp, err := getProcfsPeriod(opt)
+	if err != nil {
+		return nil, err
 	}
-	if yamlConfig != nil {
-		parser := yaml.NewDecoder(yamlConfig)
-		parser.SetStrict(true)
-		err := parser.Decode(config)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse config file: %s", err)
-		}
+	sys, err := getSystemID(opt)
+	glog.Infof("SystemID set to serial number: %s", sys)
+	if err != nil {
+		return nil, err
 	}
-	cvp := &cvpDevice{
-		name:            "CvpMonitor",
-		kernelProvider:  kernel.New(config.procfsPeriod),
-		versionProvider: agent.NewVersionProvider(),
-	}
-	if config.systemID == "" {
-		serialNumber, err := getSerialNumber()
-		if err != nil {
-			glog.Fatalf("Unable to get serial number: %s", err)
-		}
-		glog.Infof("SystemID set to serial number: %s", serialNumber)
-		config.systemID = serialNumber
-	}
-	cvp.systemID = config.systemID
+
+	cvp.procfsPeriod = pp
+	cvp.systemID = sys
+	cvp.kernelProvider = kernel.New(pp)
+	cvp.versionProvider = agent.NewVersionProvider()
+
 	return cvp, nil
 }
