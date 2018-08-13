@@ -10,6 +10,7 @@ import (
 	"arista/provider"
 	"arista/provider/providers"
 	"os/exec"
+	"strings"
 )
 
 func init() {
@@ -44,7 +45,7 @@ func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	}
 	device := darwinDevice{}
 	device.isAlive = true
-	device.deviceID = string(out)
+	device.deviceID = strings.TrimSuffix(string(out), "\n")
 	device.provider = providers.NewDarwinProvider()
 	return &device, nil
 }
