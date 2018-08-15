@@ -23,11 +23,9 @@ import (
 	"github.com/aristanetworks/glog"
 )
 
-var options map[string]device.Option
-
 func init() {
 	// Set options
-	options = map[string]device.Option{
+	options := map[string]device.Option{
 		"procfsPeriod": device.Option{
 			Description: "Interval at which to collect various stats " +
 				"from /proc (0 to disable)",
@@ -66,10 +64,6 @@ func (c *cvpDevice) Providers() []provider.Provider {
 		c.versionProvider,
 	}
 	return provs
-}
-
-func (c *cvpDevice) Options() map[string]device.Option {
-	return options
 }
 
 // getSerialNumber returns the UUID of the CVP node

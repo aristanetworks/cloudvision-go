@@ -10,7 +10,6 @@ import (
 	"arista/provider"
 	"arista/schema"
 	"arista/types"
-	"arista/version"
 	"fmt"
 	"os"
 	"time"
@@ -83,35 +82,4 @@ func NewDarwinProvider() provider.Provider {
 		done:   make(chan struct{}),
 		period: time.Second * 10,
 	}
-}
-
-type agentVersion struct {
-	provider.ReadOnly
-	ready chan struct{}
-}
-
-// NewVersionProvider returns a read-only provider that exposes our code version.
-func NewVersionProvider() provider.Provider {
-	return agentVersion{ready: make(chan struct{})}
-}
-
-func (p agentVersion) Run(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	versionType := types.NewEntityType("::Eos::TerminAttrVersion")
-	versionType.AddAttribute("version", types.StringType)
-	versionType.AddAttribute("syncComplete", types.UnixTimeType)
-	data := map[string]interface{}{"version": version.Version}
-	_, err := entity.MakeDirsWithAttributes(root, path.New("Eos", "TerminAttr"),
-		nil, versionType, data)
-	if err != nil {
-		panic(fmt.Errorf("Failed to create /Eos/TerminAttr: %s", err))
-	}
-	close(p.ready)
-}
-
-func (p agentVersion) WaitForNotification() {
-	<-p.ready
-}
-
-func (p agentVersion) Stop() {
-	// Nothing to do.
 }
