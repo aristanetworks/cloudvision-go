@@ -50,12 +50,12 @@ type cvpDevice struct {
 	versionProvider provider.Provider
 }
 
-func (c *cvpDevice) CheckAlive() bool {
-	return true
+func (c *cvpDevice) CheckAlive() (bool, error) {
+	return true, nil
 }
 
-func (c *cvpDevice) DeviceID() string {
-	return c.systemID
+func (c *cvpDevice) DeviceID() (string, error) {
+	return c.systemID, nil
 }
 
 func (c *cvpDevice) Providers() []provider.Provider {

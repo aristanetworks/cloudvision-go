@@ -25,12 +25,12 @@ var TestDeviceOptions = map[string]Option{
 	},
 }
 
-func (td TestDevice) CheckAlive() bool {
-	return true
+func (td TestDevice) CheckAlive() (bool, error) {
+	return true, nil
 }
 
-func (td TestDevice) DeviceID() string {
-	return "0a0a.0a0a.0a0a"
+func (td TestDevice) DeviceID() (string, error) {
+	return "0a0a.0a0a.0a0a", nil
 }
 
 func (td TestDevice) Providers() []provider.Provider {

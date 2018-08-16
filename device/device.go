@@ -22,8 +22,8 @@ type Option struct {
 
 // A Device knows how to interact with a specific device.
 type Device interface {
-	CheckAlive() bool
-	DeviceID() string
+	CheckAlive() (bool, error)
+	DeviceID() (string, error)
 	Providers() []provider.Provider
 }
 

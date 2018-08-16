@@ -50,12 +50,12 @@ func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	return &device, nil
 }
 
-func (d *darwinDevice) CheckAlive() bool {
-	return d.isAlive
+func (d *darwinDevice) CheckAlive() (bool, error) {
+	return d.isAlive, nil
 }
 
-func (d *darwinDevice) DeviceID() string {
-	return d.deviceID
+func (d *darwinDevice) DeviceID() (string, error) {
+	return d.deviceID, nil
 }
 
 func (d *darwinDevice) Providers() []provider.Provider {
