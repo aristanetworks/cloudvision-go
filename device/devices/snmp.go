@@ -11,8 +11,8 @@ import (
 	"arista/provider/providers"
 	"errors"
 	"net"
-
-	"github.com/soniah/gosnmp"
+	"strconv"
+	"time"
 )
 
 func init() {
@@ -29,6 +29,10 @@ func init() {
 			Description: "SNMP community string",
 			Required:    true,
 		},
+		"pollInterval": device.Option{
+			Description: "Polling interval, in seconds",
+			Default:     "20",
+		},
 	}
 
 	device.RegisterDevice("snmp", newSnmp, options)
@@ -37,6 +41,7 @@ func init() {
 type snmp struct {
 	address      string
 	community    string
+	pollInterval time.Duration
 	systemID     string
 	snmpProvider provider.Provider
 }
@@ -46,7 +51,7 @@ type snmp struct {
 func (s *snmp) CheckAlive() (bool, error) {
 	// Grab the device uptime. We don't actually need the uptime, though--we're
 	// just checking whether anyone's home.
-	_, err := providers.SNMPGetByOID("1.3.6.1.2.1.1.3.0")
+	_, err := providers.SNMPCheckAlive()
 	if err != nil {
 		return false, err
 	}
@@ -57,8 +62,7 @@ func (s *snmp) DeviceID() (string, error) {
 	if s.systemID != "" {
 		return s.systemID, nil
 	}
-
-	systemID, err := providers.SNMPGetByOID(".1.3.6.1.2.1.47.1.1.1.1.11.1")
+	systemID, err := providers.SNMPDeviceID()
 	if err != nil {
 		return "", err
 	}
@@ -98,6 +102,18 @@ func getCommunity(options map[string]string) (string, error) {
 	return comm, nil
 }
 
+func getPollInterval(options map[string]string) (time.Duration, error) {
+	interval, ok := options["pollInterval"]
+	if !ok {
+		return 0, errors.New("No option 'pollInterval'")
+	}
+	intv, err := strconv.ParseInt(interval, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return time.Duration(intv) * time.Second, nil
+}
+
 // XXX_jcr: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
@@ -115,15 +131,12 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, err
 	}
 
-	gosnmp.Default.Target = s.address
-	gosnmp.Default.Community = s.community
-
-	s.snmpProvider = providers.NewSNMPProvider()
-
-	err = providers.SNMPNetworkInit()
+	s.pollInterval, err = getPollInterval(options)
 	if err != nil {
 		return nil, err
 	}
+
+	s.snmpProvider = providers.NewSNMPProvider(s.address, s.community, s.pollInterval)
 
 	return s, nil
 }
