@@ -52,7 +52,13 @@ func (p *gnmiProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, p.cfg)
-	go gnmi.Subscribe(ctx, p.client, gnmi.SplitPaths(p.paths), respChan, errChan)
+
+	subscribeOptions := &gnmi.SubscribeOptions{
+		Mode:       "stream",
+		StreamMode: "target_defined",
+		Paths:      gnmi.SplitPaths(p.paths),
+	}
+	go gnmi.Subscribe(ctx, p.client, subscribeOptions, respChan, errChan)
 	close(p.ready)
 	for {
 		select {
