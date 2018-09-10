@@ -50,6 +50,7 @@ func snmpNetworkInit() error {
 	return err
 }
 
+// SNMPGetByOID returns the value at oid.
 func SNMPGetByOID(oid string) (string, error) {
 	oids := []string{oid}
 	err := snmpNetworkInit()
@@ -78,10 +79,12 @@ func SNMPGetByOID(oid string) (string, error) {
 	return "", errors.New("How did we get here?")
 }
 
+// SNMPDeviceID returns the device ID
 func SNMPDeviceID() (string, error) {
 	return SNMPGetByOID(".1.3.6.1.2.1.47.1.1.1.1.11.1")
 }
 
+// SNMPCheckAlive checks if device is still alive if poll interval has passed.
 func SNMPCheckAlive() (bool, error) {
 	if time.Since(lastAlive) < pollInt {
 		return true, nil
@@ -257,6 +260,8 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 	}
 }
 
+// NewSNMPProvider returns a new SNMP provider for device at address using community value for
+// authentication and pollInterval for rate limiting requests such as keepalive.
 func NewSNMPProvider(address string, community string,
 	pollInterval time.Duration) provider.Provider {
 	gosnmp.Default.Target = address
