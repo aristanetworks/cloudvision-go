@@ -9,9 +9,7 @@ import (
 	"arista/provider"
 )
 
-type TestDevice struct {
-}
-
+// TestDeviceOptions is a set of test options
 var TestDeviceOptions = map[string]Option{
 	"a": Option{
 		Description: "option a is a required option",
@@ -25,23 +23,26 @@ var TestDeviceOptions = map[string]Option{
 	},
 }
 
-func (td TestDevice) CheckAlive() (bool, error) {
+type testDevice struct{}
+
+func (td testDevice) CheckAlive() (bool, error) {
 	return true, nil
 }
 
-func (td TestDevice) DeviceID() (string, error) {
+func (td testDevice) DeviceID() (string, error) {
 	return "0a0a.0a0a.0a0a", nil
 }
 
-func (td TestDevice) Providers() []provider.Provider {
+func (td testDevice) Providers() []provider.Provider {
 	return nil
 }
 
 // NewTestDevice returns a dummy device for testing.
 func NewTestDevice(map[string]string) (Device, error) {
-	return TestDevice{}, nil
+	return testDevice{}, nil
 }
 
+// TestDeviceConfig is a map of test config options.
 var TestDeviceConfig = map[string]string{
 	"a": "abc",
 	"b": "stuff",

@@ -42,6 +42,7 @@ type deviceInfo struct {
 var deviceMap = map[string]deviceInfo{}
 var deviceInUse *deviceInfo
 
+// Name returns the name of the current device in use if any.
 func Name() string {
 	if deviceInUse == nil {
 		return ""
