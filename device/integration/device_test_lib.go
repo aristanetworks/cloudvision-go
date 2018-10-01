@@ -19,7 +19,11 @@ func createDevice(name string, config map[string]string, pluginDir string) error
 	if err != nil {
 		return err
 	}
-	_, err = device.CreateDevice(name, config)
+	err = device.SetDeviceInUse(name)
+	if err != nil {
+		return err
+	}
+	_, err = device.CreateDevice(config)
 	if err != nil {
 		return err
 	}

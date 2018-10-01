@@ -97,24 +97,33 @@ func RegisterDevice(name string, creator Creator, options map[string]Option) {
 	}
 }
 
-// CreateDevice takes a device name and config map, sanitizes the
-// provided config, and returns a device from the registry initialized
-// with the sanitized config.
-func CreateDevice(name string, config map[string]string) (Device, error) {
+// SetDeviceInUse sets the current device in use. This is separated from CreateDevice so that
+// we can print out help messages using -help of a specific device if we fail to correctly
+// configure the device.
+func SetDeviceInUse(name string) error {
 	di, ok := deviceMap[name]
 	if !ok {
-		return nil, fmt.Errorf("Device %s doesn't exist", name)
+		return fmt.Errorf("Device %s doesn't exist", name)
 	}
 
-	// Set device in use
 	deviceInUse = &di
+	return nil
+}
 
-	sanitizedConfig, err := sanitizedOptions(&di, config)
+// CreateDevice takes a config map, sanitizes the provided config, and
+// returns a device from the current device in use initialized with the sanitized config.
+func CreateDevice(config map[string]string) (Device, error) {
+
+	if deviceInUse == nil {
+		return nil, errors.New("No device in use")
+	}
+
+	sanitizedConfig, err := sanitizedOptions(deviceInUse, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return di.creator(sanitizedConfig)
+	return deviceInUse.creator(sanitizedConfig)
 }
 
 // DeleteDevice clears the registry of any created devices.
