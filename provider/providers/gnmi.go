@@ -10,15 +10,9 @@ import (
 	"arista/schema"
 	"arista/types"
 	"context"
-	"math"
-	"time"
-
-	apiserver "arista/aeris/apiserver/client"
 
 	"github.com/aristanetworks/glog"
 	"github.com/aristanetworks/goarista/gnmi"
-	"github.com/aristanetworks/goarista/key"
-	"github.com/aristanetworks/goarista/path"
 
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
@@ -74,66 +68,13 @@ func (p *gnmiProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.
 					glog.Errorf("gNMI sync failed")
 				}
 			case *pb.SubscribeResponse_Update:
-				emitNotif(resp.Update, ch)
+				GNMIEmitNotif(resp.Update, ch)
 			}
 		case err := <-errChan:
 			glog.Errorf("Error from gNMI connection: %v", err)
 			return
 		}
 	}
-}
-
-func emitNotif(notif *pb.Notification, ch chan<- types.Notification) {
-	transformer := apiserver.NewPathPointerCreator(true)
-	for _, update := range convertNotif(notif) {
-		for _, notif := range transformer.Transform(update) {
-			ch <- types.NewNotification(
-				notif.Timestamp(), notif.Path(), notif.Deletes(), notif.Updates())
-		}
-	}
-}
-
-// convertPath returns all but the last element of the gNMI path as aeris path, and
-// the last element as the update key
-func convertPath(gnmiPath []*pb.PathElem) (key.Path, key.Key) {
-	aerisPath := key.Path{}
-	for _, elm := range gnmiPath {
-		aerisPath = path.Append(aerisPath, key.New(elm.Name))
-		if len(elm.Key) > 0 {
-			keyMap := map[string]interface{}{}
-			for k, v := range elm.Key {
-				keyMap[k] = v
-			}
-			aerisPath = path.Append(aerisPath, keyMap)
-		}
-	}
-	if len(aerisPath) == 0 {
-		return aerisPath, nil
-	}
-	return aerisPath[:len(aerisPath)-1], aerisPath[len(aerisPath)-1]
-}
-
-func convertNotif(notif *pb.Notification) []types.Notification {
-
-	var ret []types.Notification
-
-	gnmiPath := []*pb.PathElem{&pb.PathElem{Name: "OpenConfig"}}
-	if notif.Prefix != nil {
-		gnmiPath = append(gnmiPath, notif.Prefix.Elem...)
-	}
-	for _, update := range notif.Update {
-		gnmiUpdatePath := append(gnmiPath, update.Path.Elem...)
-		aerisUpdatePath, updateKey := convertPath(gnmiUpdatePath)
-		ret = append(ret, types.NewNotification(time.Now(), aerisUpdatePath, nil,
-			map[key.Key]interface{}{updateKey: Unmarshal(update.Val)}))
-	}
-	for _, delete := range notif.Delete {
-		gnmiDeletePath := append(gnmiPath, delete.Elem...)
-		aerisDeletePath, deleteKey := convertPath(gnmiDeletePath)
-		ret = append(ret,
-			types.NewNotification(time.Now(), aerisDeletePath, []key.Key{deleteKey}, nil))
-	}
-	return ret
 }
 
 // NewGNMIProvider returns a read-only gNMI provider.
@@ -144,42 +85,5 @@ func NewGNMIProvider(client pb.GNMIClient, cfg *gnmi.Config, paths []string) pro
 		client: client,
 		cfg:    cfg,
 		paths:  paths,
-	}
-}
-
-// Unmarshal will return an interface representing the supplied value.
-func Unmarshal(val *pb.TypedValue) interface{} {
-	switch v := val.GetValue().(type) {
-	case *pb.TypedValue_StringVal:
-		return v.StringVal
-	case *pb.TypedValue_JsonIetfVal:
-		return v.JsonIetfVal
-	case *pb.TypedValue_JsonVal:
-		return v.JsonVal
-	case *pb.TypedValue_IntVal:
-		return v.IntVal
-	case *pb.TypedValue_UintVal:
-		return v.UintVal
-	case *pb.TypedValue_BoolVal:
-		return v.BoolVal
-	case *pb.TypedValue_BytesVal:
-		return gnmi.StrVal(val)
-	case *pb.TypedValue_DecimalVal:
-		d := v.DecimalVal
-		return float64(d.Digits) / math.Pow(10, float64(d.Precision))
-	case *pb.TypedValue_FloatVal:
-		return v.FloatVal
-	case *pb.TypedValue_LeaflistVal:
-		ret := []interface{}{}
-		for _, val := range v.LeaflistVal.Element {
-			ret = append(ret, Unmarshal(val))
-		}
-		return ret
-	case *pb.TypedValue_AsciiVal:
-		return v.AsciiVal
-	case *pb.TypedValue_AnyVal:
-		return v.AnyVal.String()
-	default:
-		panic(v)
 	}
 }

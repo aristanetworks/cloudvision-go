@@ -6,18 +6,19 @@
 package providers
 
 import (
-	"arista/entity"
+	"arista/gopenconfig/eos"
+	"arista/gopenconfig/eos/converter"
+	"arista/gopenconfig/model/node"
 	"arista/provider"
 	"arista/schema"
 	"arista/types"
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/aristanetworks/glog"
-	"github.com/aristanetworks/goarista/key"
-	"github.com/aristanetworks/goarista/path"
 	"github.com/soniah/gosnmp"
 )
 
@@ -25,7 +26,9 @@ type snmp struct {
 	provider.ReadOnly
 	ready          chan struct{}
 	done           chan struct{}
-	root           types.Entity
+	errc           chan error
+	ctx            context.Context
+	cancel         context.CancelFunc
 	interfaceIndex map[string]string
 	address        string
 	community      string
@@ -112,60 +115,34 @@ func oidIndex(oid string) (string, string, error) {
 	return oid[:finalDotPos], oid[(finalDotPos + 1):], nil
 }
 
-// Check a path for an entity and return it if it exists.
-func getEntityAtPath(root types.Entity, path key.Path) *types.Entity {
-	cwd := entity.NewCwd(root, "").ChangeDirExact(path)
-	if cwd == nil {
-		return nil
+// Return the OpenConfig interface status string corresponding
+// to the SNMP interface status.
+func ifStatus(status int) string {
+	switch uint32(status) {
+	case eos.IntfOperUp().EnumValue():
+		return converter.IntfOperStatusUp
+	case eos.IntfOperDown().EnumValue():
+		return converter.IntfOperStatusDown
+	case eos.IntfOperTesting().EnumValue():
+		return converter.IntfOperStatusTesting
+	case eos.IntfOperUnknown().EnumValue():
+		return converter.IntfOperStatusUnknown
+	case eos.IntfOperDormant().EnumValue():
+		return converter.IntfOperStatusDormant
+	case eos.IntfOperNotPresent().EnumValue():
+		return converter.IntfOperStatusNotPresent
+	case eos.IntfOperLowerLayerDown().EnumValue():
+		return converter.IntfOperStatusLowerLayerDown
 	}
-	ent := cwd.GetEntity()
-
-	return &ent
+	return ""
 }
 
-// Update the given attribute inside the state entity for the specified interface.
-func updateIntfStateAttr(root types.Entity, intfName string, attr string, val interface{}) error {
-	// Create state and counters types
-	intfStateCountersType := types.NewEntityType("::OpenConfig::interface::state::counters")
-	intfStateCountersType.AddAttribute("in-octets", types.U64Type)
-	intfStateCountersType.AddAttribute("out-octets", types.U64Type)
-	intfStateType := types.NewEntityType("::OpenConfig::interface::state")
-	intfStateType.AddAttribute("admin-status", types.S64Type) // XXX_jcr: convert to enum?
-	intfStateType.AddAttribute("oper-status", types.S64Type)
-	intfStateType.AddAttribute("counters", intfStateCountersType)
-
-	// Look for the entity. If it doesn't exist, create it and instantiate
-	// the counters entity inside it.
-	path := path.New("OpenConfig", "interfaces", intfName, "state")
-	ent := getEntityAtPath(root, path)
-	if ent == nil {
-		e, err := entity.MakeDirsWithAttributes(root, path, nil, intfStateType,
-			map[string]interface{}{attr: val})
-		if err != nil {
-			return err
-		}
-		err = e.SetAttribute("counters", map[string]interface{}{"name": "counters"})
-		return err
-	}
-
-	err := (*ent).SetAttribute(attr, val)
-	return err
+func intfPath(intfName string, elems ...interface{}) node.Path {
+	p := []interface{}{"interfaces", "interface", intfName}
+	return node.NewPath(append(p, elems...)...)
 }
 
-// Update the given attribute inside the counters entity for the specified interface.
-func updateIntfCountersAttr(root types.Entity, intfName string, attr string,
-	val interface{}) error {
-	path := path.New("OpenConfig", "interfaces", intfName, "state", "counters")
-
-	ent := getEntityAtPath(root, path)
-	if ent == nil {
-		return fmt.Errorf("Unable to create entity")
-	}
-
-	err := (*ent).SetAttribute(attr, val)
-	return err
-}
-
+// Given an incoming PDU, update the appropriate interface state.
 func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) error {
 	ifDescr := ".1.3.6.1.2.1.2.2.1.2"
 	ifAdminStatus := ".1.3.6.1.2.1.2.2.1.7"
@@ -190,15 +167,20 @@ func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) error {
 	err = nil
 	switch baseOid {
 	case ifDescr:
-		err = updateIntfStateAttr(s.root, intfName, "name", string(pdu.Value.([]byte)))
+		err = OpenConfigUpdateLeaf(s.ctx, intfPath(intfName, "state"),
+			"name", string(pdu.Value.([]byte)))
 	case ifAdminStatus:
-		err = updateIntfStateAttr(s.root, intfName, "admin-status", int64(pdu.Value.(int)))
+		err = OpenConfigUpdateLeaf(s.ctx, intfPath(intfName, "state"),
+			"admin-status", ifStatus(pdu.Value.(int)))
 	case ifOperStatus:
-		err = updateIntfStateAttr(s.root, intfName, "oper-status", int64(pdu.Value.(int)))
+		err = OpenConfigUpdateLeaf(s.ctx, intfPath(intfName, "state"),
+			"oper-status", ifStatus(pdu.Value.(int)))
 	case ifInOctets:
-		err = updateIntfCountersAttr(s.root, intfName, "in-octets", uint64(pdu.Value.(uint)))
+		err = OpenConfigUpdateLeaf(s.ctx, intfPath(intfName, "state", "counters"),
+			"in-octets", uint64(pdu.Value.(uint)))
 	case ifOutOctets:
-		err = updateIntfCountersAttr(s.root, intfName, "out-octets", uint64(pdu.Value.(uint)))
+		err = OpenConfigUpdateLeaf(s.ctx, intfPath(intfName, "state", "counters"),
+			"out-octets", uint64(pdu.Value.(uint)))
 	}
 	// default: ignore update
 	return err
@@ -218,36 +200,49 @@ func (s *snmp) updateSystemConfig() error {
 		return err
 	}
 
-	systemConfigType := types.NewEntityType("::OpenConfig::system::config")
-	systemConfigType.AddAttribute("hostname", types.StringType)
-	data := map[string]interface{}{"hostname": hostname}
-	_, err = entity.MakeDirsWithAttributes(s.root,
-		path.New("OpenConfig", "system", "config"), nil, systemConfigType, data)
+	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "config"),
+		"hostname", hostname)
+}
+
+func (s *snmp) init(ch chan<- types.Notification) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cancel = cancel
+
+	// Do SNMP networking setup.
+	err := snmpNetworkInit()
+	if err != nil {
+		return fmt.Errorf("Error connecting to device: %v", err)
+	}
+
+	// Set up notifying data tree.
+	s.ctx, err = OpenConfigNotifyingTree(ctx, ch, s.errc)
 	if err != nil {
 		return err
 	}
+
+	close(s.ready)
+
 	return nil
 }
 
 func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	s.root = root
-
-	err := snmpNetworkInit()
+	// Do necessary setup.
+	err := s.init(ch)
 	if err != nil {
-		glog.Infof("Failed to connect to device: %s", err)
+		glog.Infof("Error in initialization: %v", err)
 		return
 	}
-	close(s.ready)
 
 	// Do periodic state updates
 	tick := time.NewTicker(pollInt)
 	defer tick.Stop()
+	defer s.cancel()
 	for {
 		select {
 		case <-tick.C:
 			err = s.updateSystemConfig()
 			if err != nil {
-				glog.Infof("Failure in updateSystemConfig: %s", err)
+				glog.Errorf("Failure in updateSystemConfig: %v", err)
 				return
 			}
 			err = s.updateInterfaces()
@@ -256,12 +251,16 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 			}
 		case <-s.done:
 			return
+		case err := <-s.errc:
+			glog.Errorf("Failure in gNMI stream: %v", err)
+			return
 		}
 	}
 }
 
-// NewSNMPProvider returns a new SNMP provider for device at address using community value for
-// authentication and pollInterval for rate limiting requests such as keepalive.
+// NewSNMPProvider returns a new SNMP provider for the device at 'address'
+// using a community value for authentication and pollInterval for rate
+// limiting requests.
 func NewSNMPProvider(address string, community string,
 	pollInterval time.Duration) provider.Provider {
 	gosnmp.Default.Target = address
@@ -270,6 +269,7 @@ func NewSNMPProvider(address string, community string,
 	return &snmp{
 		ready:          make(chan struct{}),
 		done:           make(chan struct{}),
+		errc:           make(chan error),
 		interfaceIndex: make(map[string]string),
 		address:        address,
 		community:      community,

@@ -6,13 +6,17 @@
 package providers
 
 import (
+	"arista/gopenconfig/model/node"
+	"arista/test/notiftest"
 	"arista/types"
 	"arista/util"
+	"context"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/aristanetworks/goarista/key"
+	"github.com/aristanetworks/goarista/path"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
@@ -208,7 +212,7 @@ func TestConvertNotif(t *testing.T) {
 				nil,
 				[]string{"val"}),
 			aerisNotifs: []types.Notification{types.NewNotification(
-				time.Now(),
+				ts42,
 				util.StringsToPath([]string{"OpenConfig", "prefix", "simple"}),
 				nil,
 				map[key.Key]interface{}{key.New("update"): "val"})},
@@ -220,7 +224,7 @@ func TestConvertNotif(t *testing.T) {
 				[][]string{[]string{"simple", "delete"}},
 				nil),
 			aerisNotifs: []types.Notification{types.NewNotification(
-				time.Now(),
+				ts42,
 				util.StringsToPath([]string{"OpenConfig", "prefix", "simple"}),
 				[]key.Key{key.New("delete")},
 				nil)},
@@ -244,6 +248,99 @@ func TestConvertNotif(t *testing.T) {
 						tc.aerisNotifs[i].Deletes(), tc.aerisNotifs[i].Deletes(),
 						notif.Deletes(), notif.Deletes())
 				}
+			}
+		})
+	}
+}
+
+// Wait for a particular notification on the notif channel.
+func waitForMatchingNotif(t *testing.T, ch chan types.Notification,
+	expectedNotif types.Notification, timeout time.Duration) {
+	to := time.After(timeout)
+	for {
+		select {
+		case notif := <-ch:
+			if notiftest.Diff(expectedNotif, notif) == "" {
+				return
+			}
+		case <-to:
+			t.Fatalf("Timed out waiting for expected notif: %v", expectedNotif)
+		}
+	}
+}
+
+var ts42 = time.Unix(0, 42)
+
+func TestTreeUpdateNotif(t *testing.T) {
+	// Set up notifying data tree.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch := make(chan types.Notification)
+	errc := make(chan error)
+	ctx, err := OpenConfigNotifyingTree(ctx, ch, errc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for name, tc := range map[string]struct {
+		notif      types.Notification
+		treeOp     func() error
+		shouldFail bool
+	}{
+		"hostname": {
+			treeOp: func() error {
+				return OpenConfigUpdateLeaf(ctx,
+					node.NewPath("system", "config"), "hostname", "xyz")
+			},
+			notif: types.NewNotification(
+				ts42,
+				path.New("OpenConfig", "system", "config"),
+				nil,
+				map[key.Key]interface{}{key.New("hostname"): "xyz"}),
+		},
+		"interface name": {
+			treeOp: func() error {
+				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state"),
+					"name", "intf123")
+			},
+			notif: types.NewNotification(
+				ts42,
+				path.New("OpenConfig", "interfaces", "interface",
+					map[string]interface{}{"name": "intf123"}, "state"),
+				nil,
+				map[key.Key]interface{}{key.New("name"): "intf123"}),
+		},
+		"interface counters": {
+			treeOp: func() error {
+				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state", "counters"),
+					"in-octets", uint64(1234))
+			},
+			notif: types.NewNotification(
+				ts42,
+				path.New("OpenConfig", "interfaces", "interface",
+					map[string]interface{}{"name": "intf123"}, "state", "counters"),
+				nil,
+				map[key.Key]interface{}{key.New("in-octets"): uint64(1234)}),
+		},
+		"bogus path": {
+			treeOp: func() error {
+				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state", "bogus"),
+					"whatever", 12)
+			},
+			notif:      nil,
+			shouldFail: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := tc.treeOp()
+			if err != nil && !tc.shouldFail {
+				t.Fatal(err)
+			}
+			if err == nil && tc.shouldFail {
+				t.Fatalf("Expected failure in test case %v", name)
+			}
+			if !tc.shouldFail {
+				waitForMatchingNotif(t, ch, tc.notif, time.Second*10)
 			}
 		})
 	}
