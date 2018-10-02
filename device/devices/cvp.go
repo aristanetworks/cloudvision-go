@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"arista/agent"
 	"arista/device"
 	"arista/kernel"
 	"arista/provider"
@@ -44,10 +43,9 @@ func init() {
 }
 
 type cvpDevice struct {
-	procfsPeriod    time.Duration
-	systemID        string
-	kernelProvider  provider.Provider
-	versionProvider provider.Provider
+	procfsPeriod   time.Duration
+	systemID       string
+	kernelProvider provider.Provider
 }
 
 func (c *cvpDevice) CheckAlive() (bool, error) {
@@ -61,7 +59,6 @@ func (c *cvpDevice) DeviceID() (string, error) {
 func (c *cvpDevice) Providers() []provider.Provider {
 	provs := []provider.Provider{
 		c.kernelProvider,
-		c.versionProvider,
 	}
 	return provs
 }
@@ -140,7 +137,6 @@ func NewCvp(opt map[string]string) (device.Device, error) {
 	cvp.procfsPeriod = pp
 	cvp.systemID = sys
 	cvp.kernelProvider = kernel.New(pp)
-	cvp.versionProvider = agent.NewVersionProvider()
 
 	return cvp, nil
 }
