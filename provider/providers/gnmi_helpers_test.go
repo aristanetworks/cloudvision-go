@@ -290,11 +290,11 @@ func TestTreeUpdateNotif(t *testing.T) {
 		"hostname": {
 			treeOp: func() error {
 				return OpenConfigUpdateLeaf(ctx,
-					node.NewPath("system", "config"), "hostname", "xyz")
+					node.NewPath("system", "state"), "hostname", "xyz")
 			},
 			notif: types.NewNotification(
 				ts42,
-				path.New("OpenConfig", "system", "config"),
+				path.New("OpenConfig", "system", "state"),
 				nil,
 				map[key.Key]interface{}{key.New("hostname"): "xyz"}),
 		},

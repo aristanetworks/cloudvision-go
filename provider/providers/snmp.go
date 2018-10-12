@@ -330,13 +330,13 @@ func (s *snmp) updateInterfaces() error {
 	return gosnmp.Default.Walk(snmpIfXTable, intfWalk)
 }
 
-func (s *snmp) updateSystemConfig() error {
+func (s *snmp) updateSystemState() error {
 	hostname, err := SNMPGetByOID(snmpHostname)
 	if err != nil {
 		return err
 	}
 
-	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "config"),
+	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
 		"hostname", hostname)
 }
 
@@ -376,9 +376,9 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 	for {
 		select {
 		case <-tick.C:
-			err = s.updateSystemConfig()
+			err = s.updateSystemState()
 			if err != nil {
-				glog.Errorf("Failure in updateSystemConfig: %v", err)
+				glog.Errorf("Failure in updateSystemState: %v", err)
 				return
 			}
 			err = s.updateInterfaces()
