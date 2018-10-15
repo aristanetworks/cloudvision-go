@@ -8,11 +8,14 @@ package providers
 import (
 	"arista/gopenconfig/eos"
 	"arista/gopenconfig/eos/converter"
+	"arista/gopenconfig/eos/mapping"
 	"arista/gopenconfig/model/node"
 	"arista/provider"
 	"arista/schema"
 	"arista/types"
+	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -24,14 +27,15 @@ import (
 
 type snmp struct {
 	provider.ReadOnly
-	ready          chan struct{}
-	done           chan struct{}
-	errc           chan error
-	ctx            context.Context
-	cancel         context.CancelFunc
-	interfaceIndex map[string]string
-	address        string
-	community      string
+	ready            chan struct{}
+	done             chan struct{}
+	errc             chan error
+	ctx              context.Context
+	cancel           context.CancelFunc
+	interfaceIndex   map[string]string
+	lldpLocPortIndex map[string]string
+	address          string
+	community        string
 }
 
 // Has read/write interface been established?
@@ -210,29 +214,52 @@ func intfPath(intfName string, elems ...interface{}) node.Path {
 }
 
 const (
-	snmpEntPhysicalSerialNum = ".1.3.6.1.2.1.47.1.1.1.1.11.1"
-	snmpHostname             = ".1.3.6.1.2.1.1.5.0"
-	snmpIfTable              = ".1.3.6.1.2.1.2.2"
-	snmpIfXTable             = ".1.3.6.1.2.1.31.1.1"
-	snmpIfDescr              = ".1.3.6.1.2.1.2.2.1.2"
-	snmpIfType               = ".1.3.6.1.2.1.2.2.1.3"
-	snmpIfMtu                = ".1.3.6.1.2.1.2.2.1.4"
-	snmpIfAdminStatus        = ".1.3.6.1.2.1.2.2.1.7"
-	snmpIfOperStatus         = ".1.3.6.1.2.1.2.2.1.8"
-	snmpIfInOctets           = ".1.3.6.1.2.1.2.2.1.10"
-	snmpIfInUcastPkts        = ".1.3.6.1.2.1.2.2.1.11"
-	snmpIfInMulticastPkts    = ".1.3.6.1.2.1.31.1.1.1.2"
-	snmpIfInBroadcastPkts    = ".1.3.6.1.2.1.31.1.1.1.3"
-	snmpIfInDiscards         = ".1.3.6.1.2.1.2.2.1.13"
-	snmpIfInErrors           = ".1.3.6.1.2.1.2.2.1.14"
-	snmpIfInUnknownProtos    = ".1.3.6.1.2.1.2.2.1.15"
-	snmpIfOutOctets          = ".1.3.6.1.2.1.2.2.1.16"
-	snmpIfOutUcastPkts       = ".1.3.6.1.2.1.2.2.1.17"
-	snmpIfOutMulticastPkts   = ".1.3.6.1.2.1.31.1.1.1.4"
-	snmpIfOutBroadcastPkts   = ".1.3.6.1.2.1.31.1.1.1.5"
-	snmpIfOutDiscards        = ".1.3.6.1.2.1.2.2.1.19"
-	snmpIfOutErrors          = ".1.3.6.1.2.1.2.2.1.20"
-	snmpSysUpTime            = ".1.3.6.1.2.1.1.3.0"
+	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11.1"
+	snmpHostname                     = ".1.3.6.1.2.1.1.5.0"
+	snmpIfTable                      = ".1.3.6.1.2.1.2.2"
+	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
+	snmpIfDescr                      = ".1.3.6.1.2.1.2.2.1.2"
+	snmpIfType                       = ".1.3.6.1.2.1.2.2.1.3"
+	snmpIfMtu                        = ".1.3.6.1.2.1.2.2.1.4"
+	snmpIfAdminStatus                = ".1.3.6.1.2.1.2.2.1.7"
+	snmpIfOperStatus                 = ".1.3.6.1.2.1.2.2.1.8"
+	snmpIfInOctets                   = ".1.3.6.1.2.1.2.2.1.10"
+	snmpIfInUcastPkts                = ".1.3.6.1.2.1.2.2.1.11"
+	snmpIfInMulticastPkts            = ".1.3.6.1.2.1.31.1.1.1.2"
+	snmpIfInBroadcastPkts            = ".1.3.6.1.2.1.31.1.1.1.3"
+	snmpIfInDiscards                 = ".1.3.6.1.2.1.2.2.1.13"
+	snmpIfInErrors                   = ".1.3.6.1.2.1.2.2.1.14"
+	snmpIfInUnknownProtos            = ".1.3.6.1.2.1.2.2.1.15"
+	snmpIfOutOctets                  = ".1.3.6.1.2.1.2.2.1.16"
+	snmpIfOutUcastPkts               = ".1.3.6.1.2.1.2.2.1.17"
+	snmpIfOutMulticastPkts           = ".1.3.6.1.2.1.31.1.1.1.4"
+	snmpIfOutBroadcastPkts           = ".1.3.6.1.2.1.31.1.1.1.5"
+	snmpIfOutDiscards                = ".1.3.6.1.2.1.2.2.1.19"
+	snmpIfOutErrors                  = ".1.3.6.1.2.1.2.2.1.20"
+	snmpLldpLocalSystemData          = ".1.0.8802.1.1.2.1.3"
+	snmpLldpLocPortTable             = ".1.0.8802.1.1.2.1.3.7"
+	snmpLldpRemTable                 = ".1.0.8802.1.1.2.1.4.1"
+	snmpLldpStatistics               = ".1.0.8802.1.1.2.1.2"
+	snmpLldpStatsTxPortTable         = ".1.0.8802.1.1.2.1.2.6"
+	snmpLldpStatsRxPortTable         = ".1.0.8802.1.1.2.1.2.7"
+	snmpLldpLocChassisID             = ".1.0.8802.1.1.2.1.3.2.0"
+	snmpLldpLocChassisIDSubtype      = ".1.0.8802.1.1.2.1.3.1.0"
+	snmpLldpLocSysName               = ".1.0.8802.1.1.2.1.3.3.0"
+	snmpLldpLocSysDesc               = ".1.0.8802.1.1.2.1.3.4.0"
+	snmpLldpLocPortID                = ".1.0.8802.1.1.2.1.3.7.1.3"
+	snmpLldpRemPortID                = ".1.0.8802.1.1.2.1.4.1.1.7"
+	snmpLldpRemPortIDSubtype         = ".1.0.8802.1.1.2.1.4.1.1.6"
+	snmpLldpRemChassisID             = ".1.0.8802.1.1.2.1.4.1.1.5"
+	snmpLldpRemChassisIDSubtype      = ".1.0.8802.1.1.2.1.4.1.1.4"
+	snmpLldpRemSysName               = ".1.0.8802.1.1.2.1.4.1.1.9"
+	snmpLldpRemSysDesc               = ".1.0.8802.1.1.2.1.4.1.1.10"
+	snmpLldpStatsTxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.6.1.2"
+	snmpLldpStatsRxPortFramesDiscard = ".1.0.8802.1.1.2.1.2.7.1.2"
+	snmpLldpStatsRxPortFramesErrors  = ".1.0.8802.1.1.2.1.2.7.1.3"
+	snmpLldpStatsRxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.7.1.4"
+	snmpLldpStatsRxPortTLVsDiscard   = ".1.0.8802.1.1.2.1.2.7.1.5"
+	snmpLldpStatsRxPortTLVsUnrecog   = ".1.0.8802.1.1.2.1.2.7.1.6"
+	snmpSysUpTime                    = ".1.3.6.1.2.1.1.3.0"
 )
 
 // Given an incoming PDU, update the appropriate interface state.
@@ -340,6 +367,207 @@ func (s *snmp) updateSystemState() error {
 		"hostname", hostname)
 }
 
+// Return the OpenConfig chassis ID type string corresponding to the
+// SNMP chassis ID type value.
+func lldpChassisIDType(id int) string {
+	switch uint32(id) {
+	case eos.LLDPChassisIDChassisComponent().EnumValue():
+		return mapping.ChassisIDTypeChassisComponent
+	case eos.LLDPChassisIDInterfaceAlias().EnumValue():
+		return mapping.ChassisIDTypeInterfaceAlias
+	case eos.LLDPChassisIDPortComponent().EnumValue():
+		return mapping.ChassisIDTypePortComponent
+	case eos.LLDPChassisIDMacAddress().EnumValue():
+		return mapping.ChassisIDTypeMACAddress
+	case eos.LLDPChassisIDNetworkAddress().EnumValue():
+		return mapping.ChassisIDTypeNetworkAddress
+	case eos.LLDPChassisIDInterfaceName().EnumValue():
+		return mapping.ChassisIDTypeInterfaceName
+	case eos.LLDPChassisIDLocal().EnumValue():
+		return mapping.ChassisIDTypeLocal
+	}
+	return ""
+}
+
+// Return the OpenConfig port ID type string corresponding to the
+// SNMP port ID type value.
+func lldpPortIDType(id int) string {
+	switch uint32(id) {
+	case eos.LLDPPidInterfaceAlias().EnumValue():
+		return mapping.PortIDTypeInterfaceAlias
+	case eos.LLDPPidPortComponent().EnumValue():
+		return mapping.PortIDTypePortComponent
+	case eos.LLDPPidMacAddress().EnumValue():
+		return mapping.PortIDTypeMACAddress
+	case eos.LLDPPidNetworkAddress().EnumValue():
+		return mapping.PortIDTypeNetworkAddress
+	case eos.LLDPPidInterfaceName().EnumValue():
+		return mapping.PortIDTypeInterfaceName
+	case eos.LLDPPidAgentCircuitID().EnumValue():
+		return mapping.PortIDTypeAgentCircuitID
+	case eos.LLDPPidLocal().EnumValue():
+		return mapping.PortIDTypeLocal
+	}
+	return ""
+}
+
+// There are three kinds of LLDP data: local general (non-port-specific),
+// local per-port (comes with a local interface index), and remote
+// (comes with a local interface index and remote port ID).
+// processLldpOid extracts the relevant indices (if present) and returns
+// them along with the true base OID.
+func processLldpOid(oid string) (locIndex, remoteID,
+	baseOid string, err error) {
+	baseOid = oid
+	if strings.HasPrefix(oid, snmpLldpStatsTxPortTable) ||
+		strings.HasPrefix(oid, snmpLldpStatsRxPortTable) ||
+		strings.HasPrefix(oid, snmpLldpLocPortTable) {
+		baseOid, locIndex, err = oidIndex(oid)
+		return
+	} else if strings.HasPrefix(oid, snmpLldpRemTable) {
+		baseOid, remoteID, err = oidIndex(oid)
+		if err != nil {
+			return
+		}
+		baseOid, locIndex, err = oidIndex(baseOid)
+		if err != nil {
+			return
+		}
+		baseOid, _, err = oidIndex(baseOid) // remove lldpRemTimeMark
+		return
+	}
+	return
+}
+
+// LLDP paths of interest.
+func lldpStatePath() node.Path {
+	return node.NewPath("lldp", "state")
+}
+func lldpIntfStatePath(intfName string) node.Path {
+	return node.NewPath("lldp", "interfaces", "interface", intfName, "state")
+}
+func lldpIntfCountersPath(intfName string) node.Path {
+	return node.NewPath("lldp", "interfaces", "interface", intfName, "state", "counters")
+}
+func lldpNeighborStatePath(intfName string, id string) node.Path {
+	return node.NewPath("lldp", "interfaces", "interface", intfName,
+		"neighbors", "neighbor", id, "state")
+}
+
+// Return MAC address from hex byte string.
+func macFromBytes(s []byte) string {
+	// XXX_jcr: hex assumption is only right for MAC
+	var t bytes.Buffer
+	for i := 0; i < len(s); i++ {
+		if i != 0 {
+			t.WriteString(":")
+		}
+		t.WriteString(hex.EncodeToString(s[i : i+1]))
+	}
+	return t.String()
+}
+
+func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) error {
+	// Split OID into parts.
+	locIndex, remoteID, baseOid, err := processLldpOid(pdu.Name)
+	if err != nil {
+		return err
+	}
+
+	// If we haven't yet seen this local interface, add it to our list.
+	intfName := ""
+	var ok bool
+	if locIndex != "" {
+		intfName, ok = s.lldpLocPortIndex[locIndex]
+		if !ok {
+			if baseOid != snmpLldpLocPortID {
+				return nil
+			}
+			intfName = string(pdu.Value.([]byte))
+			s.lldpLocPortIndex[locIndex] = intfName
+		}
+	}
+
+	// If we haven't yet seen this remote system, add its ID.
+	if remoteID != "" {
+		if err := OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName,
+			remoteID), "id", remoteID); err != nil {
+			return err
+		}
+	}
+
+	err = nil
+	switch baseOid {
+	case snmpLldpLocChassisID:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
+			"chassis-id", macFromBytes(pdu.Value.([]byte)))
+	case snmpLldpLocChassisIDSubtype:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
+			"chassis-id-type", lldpChassisIDType(pdu.Value.(int)))
+	case snmpLldpLocSysName:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
+			"system-name", string(pdu.Value.([]byte)))
+	case snmpLldpLocSysDesc:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
+			"system-description", string(pdu.Value.([]byte)))
+	case snmpLldpLocPortID:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfStatePath(intfName),
+			"name", intfName)
+	case snmpLldpStatsTxPortFramesTotal:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"frame-out", uint64(pdu.Value.(uint)))
+	case snmpLldpStatsRxPortFramesDiscard:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"frame-discard", uint64(pdu.Value.(uint)))
+	case snmpLldpStatsRxPortFramesErrors:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"frame-error-in", uint64(pdu.Value.(uint)))
+	case snmpLldpStatsRxPortFramesTotal:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"frame-in", uint64(pdu.Value.(uint)))
+	case snmpLldpStatsRxPortTLVsDiscard:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"tlv-discard", uint64(pdu.Value.(uint)))
+	case snmpLldpStatsRxPortTLVsUnrecog:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
+			"tlv-unknown", uint64(pdu.Value.(uint)))
+	case snmpLldpRemPortID:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"port-id", string(pdu.Value.([]byte)))
+	case snmpLldpRemPortIDSubtype:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"port-id-type", lldpPortIDType(pdu.Value.(int)))
+	case snmpLldpRemChassisID:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"chassis-id", macFromBytes(pdu.Value.([]byte)))
+	case snmpLldpRemChassisIDSubtype:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"chassis-id-type", lldpChassisIDType(pdu.Value.(int)))
+	case snmpLldpRemSysName:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"system-name", string(pdu.Value.([]byte)))
+	case snmpLldpRemSysDesc:
+		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
+			"system-description", string(pdu.Value.([]byte)))
+	}
+	return err
+}
+
+func (s *snmp) updateLLDP() error {
+	walker := func(data gosnmp.SnmpPDU) error {
+		return s.handleLldpPDU(data)
+	}
+	if err := gosnmp.Default.Walk(snmpLldpLocalSystemData, walker); err != nil {
+		return err
+	}
+
+	if err := gosnmp.Default.Walk(snmpLldpRemTable, walker); err != nil {
+		return err
+	}
+
+	return gosnmp.Default.Walk(snmpLldpStatistics, walker)
+}
+
 func (s *snmp) init(ch chan<- types.Notification) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
@@ -376,14 +604,15 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 	for {
 		select {
 		case <-tick.C:
-			err = s.updateSystemState()
-			if err != nil {
-				glog.Errorf("Failure in updateSystemState: %v", err)
+			if err := s.updateSystemState(); err != nil {
+				glog.Infof("Failure in updateSystemState: %v", err)
 				return
 			}
-			err = s.updateInterfaces()
-			if err != nil {
+			if err := s.updateInterfaces(); err != nil {
 				glog.Infof("Failure in updateInterfaces: %s", err)
+			}
+			if err := s.updateLLDP(); err != nil {
+				glog.Infof("Failure in updateLLDP: %v", err)
 			}
 		case <-s.done:
 			return
@@ -401,13 +630,15 @@ func NewSNMPProvider(address string, community string,
 	pollInterval time.Duration) provider.Provider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
+	gosnmp.Default.Timeout = 30 * time.Second
 	pollInt = pollInterval
 	return &snmp{
-		ready:          make(chan struct{}),
-		done:           make(chan struct{}),
-		errc:           make(chan error),
-		interfaceIndex: make(map[string]string),
-		address:        address,
-		community:      community,
+		ready:            make(chan struct{}),
+		done:             make(chan struct{}),
+		errc:             make(chan error),
+		interfaceIndex:   make(map[string]string),
+		lldpLocPortIndex: make(map[string]string),
+		address:          address,
+		community:        community,
 	}
 }
