@@ -97,10 +97,10 @@ func RegisterDevice(name string, creator Creator, options map[string]Option) {
 	}
 }
 
-// SetDeviceInUse sets the current device in use. This is separated from CreateDevice so that
+// setDeviceInUse sets the current device in use. This is separated from CreateDevice so that
 // we can print out help messages using -help of a specific device if we fail to correctly
 // configure the device.
-func SetDeviceInUse(name string) error {
+func setDeviceInUse(name string) error {
 	di, ok := deviceMap[name]
 	if !ok {
 		return fmt.Errorf("Device %s doesn't exist", name)
@@ -110,9 +110,9 @@ func SetDeviceInUse(name string) error {
 	return nil
 }
 
-// CreateDevice takes a config map, sanitizes the provided config, and
+// Create takes a config map, sanitizes the provided config, and
 // returns a device from the current device in use initialized with the sanitized config.
-func CreateDevice(config map[string]string) (Device, error) {
+func Create(config map[string]string) (Device, error) {
 
 	if deviceInUse == nil {
 		return nil, errors.New("No device in use")
@@ -124,6 +124,24 @@ func CreateDevice(config map[string]string) (Device, error) {
 	}
 
 	return deviceInUse.creator(sanitizedConfig)
+}
+
+// Init takes relevant information about a device and does initial setup for that device.
+func Init(pluginDir, deviceName string, creator *Creator,
+	deviceOpt map[string]Option) error {
+
+	if creator != nil {
+		RegisterDevice(deviceName, *creator, deviceOpt)
+	}
+	err := loadPlugins(pluginDir)
+	if err != nil {
+		return fmt.Errorf("Failure in device.loadPlugins: %v", err)
+	}
+	err = setDeviceInUse(deviceName)
+	if err != nil {
+		return fmt.Errorf("Failure in device.setDeviceInUse: %s", err)
+	}
+	return nil
 }
 
 // DeleteDevice clears the registry of any created devices.

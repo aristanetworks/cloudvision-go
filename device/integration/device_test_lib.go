@@ -14,22 +14,6 @@ func init() {
 	device.RegisterDevice("test", device.NewTestDevice, device.TestDeviceOptions)
 }
 
-func createDevice(name string, config map[string]string, pluginDir string) error {
-	err := device.LoadPlugins(pluginDir)
-	if err != nil {
-		return err
-	}
-	err = device.SetDeviceInUse(name)
-	if err != nil {
-		return err
-	}
-	_, err = device.CreateDevice(config)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // XXX_jcr: The device test runner (RunDeviceTest) has to be outside the
 // device package because packages imported by Collector (such as device)
 // cannot import package testing in files that aren't named *_test.go,
@@ -39,10 +23,16 @@ func createDevice(name string, config map[string]string, pluginDir string) error
 // RunDeviceTest creates a device and fails on an unepected error.
 func RunDeviceTest(t *testing.T, deviceName string,
 	deviceConfig map[string]string, pluginDir string, shouldPass bool) {
-	err := createDevice(deviceName, deviceConfig, pluginDir)
+
+	err := device.Init(pluginDir, deviceName, nil, nil)
 	if err != nil && shouldPass {
-		t.Fatalf("Unexpected error creating device: %s", err)
+		t.Fatalf("Unexpected error in device.Init: %s", err)
 	}
+	_, err = device.Create(deviceConfig)
+	if err != nil && shouldPass {
+		t.Fatalf("Unexpected error in device.Create: %s", err)
+	}
+
 	if err == nil && !shouldPass {
 		t.Fatal("Expected error but got none")
 	}

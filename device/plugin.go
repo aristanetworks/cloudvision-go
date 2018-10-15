@@ -11,8 +11,8 @@ import (
 	"plugin"
 )
 
-// LoadPlugins loads all the plugin files present in the given directory.
-func LoadPlugins(pluginDir string) error {
+// loadPlugins loads all the plugin files present in the given directory.
+func loadPlugins(pluginDir string) error {
 	if pluginDir == "" {
 		return nil
 	}
