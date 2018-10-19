@@ -215,7 +215,7 @@ func intfPath(intfName string, elems ...interface{}) node.Path {
 
 const (
 	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11.1"
-	snmpHostname                     = ".1.3.6.1.2.1.1.5.0"
+	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
 	snmpIfTable                      = ".1.3.6.1.2.1.2.2"
 	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
 	snmpIfDescr                      = ".1.3.6.1.2.1.2.2.1.2"
@@ -358,13 +358,20 @@ func (s *snmp) updateInterfaces() error {
 }
 
 func (s *snmp) updateSystemState() error {
-	hostname, err := SNMPGetByOID(snmpHostname)
+	sysName, err := SNMPGetByOID(snmpSysName)
 	if err != nil {
 		return err
 	}
+	hostname := strings.Split(sysName, ".")[0]
+	domainName := strings.Join(strings.Split(sysName, ".")[1:], ".")
 
-	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
+	err = OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
 		"hostname", hostname)
+	if err != nil {
+		return err
+	}
+	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
+		"domain-name", domainName)
 }
 
 // Return the OpenConfig chassis ID type string corresponding to the
