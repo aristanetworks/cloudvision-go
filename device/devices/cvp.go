@@ -45,7 +45,7 @@ func init() {
 type cvpDevice struct {
 	procfsPeriod   time.Duration
 	systemID       string
-	kernelProvider provider.Provider
+	kernelProvider provider.EOSProvider
 }
 
 func (c *cvpDevice) CheckAlive() (bool, error) {

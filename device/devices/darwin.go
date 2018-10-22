@@ -20,7 +20,7 @@ func init() {
 type darwinDevice struct {
 	isAlive  bool
 	deviceID string
-	provider provider.Provider
+	provider provider.EOSProvider
 }
 
 // NewDarwinDevice instantiates a Mac device.

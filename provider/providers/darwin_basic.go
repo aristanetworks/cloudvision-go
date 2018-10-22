@@ -10,6 +10,7 @@ import (
 	"arista/provider"
 	"arista/schema"
 	"arista/types"
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -26,6 +27,9 @@ type darwinProvider struct {
 
 	// Sampling period
 	period time.Duration
+
+	root   types.Entity
+	isInit bool
 }
 
 func (p *darwinProvider) WaitForNotification() {
@@ -59,8 +63,16 @@ func setSystemConfig(root types.Entity) types.Entity {
 	return systemConfig
 }
 
-func (p *darwinProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	setSystemConfig(root)
+func (p *darwinProvider) Init(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
+	p.root = root
+	p.isInit = true
+}
+
+func (p *darwinProvider) Run(ctx context.Context) error {
+	if !p.isInit {
+		return fmt.Errorf("provider is uninitialized")
+	}
+	setSystemConfig(p.root)
 	close(p.ready)
 	tick := time.NewTicker(p.period)
 	defer tick.Stop()
@@ -68,15 +80,15 @@ func (p *darwinProvider) Run(s *schema.Schema, root types.Entity, ch chan<- type
 		select {
 		case <-tick.C:
 			p.updateStats()
-		case <-p.done:
-			return
+		case <-ctx.Done():
+			return nil
 		}
 	}
 }
 
 // NewDarwinProvider returns a read-only basic darwin provider that pushes data
 // following the OpenConfig convention
-func NewDarwinProvider() provider.Provider {
+func NewDarwinProvider() provider.EOSProvider {
 	return &darwinProvider{
 		ready:  make(chan struct{}),
 		done:   make(chan struct{}),

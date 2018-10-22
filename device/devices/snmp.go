@@ -43,7 +43,7 @@ type snmp struct {
 	community    string
 	pollInterval time.Duration
 	systemID     string
-	snmpProvider provider.Provider
+	snmpProvider provider.EOSProvider
 }
 
 // XXX_jcr: For now, we return an error rather than just returning false. We

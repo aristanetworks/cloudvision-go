@@ -41,7 +41,7 @@ func init() {
 }
 
 type openconfigDevice struct {
-	gNMIProvider provider.Provider
+	gNMIProvider provider.EOSProvider
 	gNMIClient   pb.GNMIClient
 	config       *gnmi.Config
 }

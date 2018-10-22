@@ -10,6 +10,7 @@ import (
 	"arista/schema"
 	"arista/types"
 	"context"
+	"fmt"
 
 	"github.com/aristanetworks/glog"
 	"github.com/aristanetworks/goarista/gnmi"
@@ -21,30 +22,30 @@ type gnmiProvider struct {
 	provider.ReadOnly
 	// Closed when we're done initialization
 	ready chan struct{}
-	// Closed when we want to stop Run()
-	done chan struct{}
 
-	client   pb.GNMIClient
-	cfg      *gnmi.Config
-	paths    []string
-	typeDefs *schema.Schema
+	client pb.GNMIClient
+	cfg    *gnmi.Config
+	paths  []string
+
+	channel chan<- types.Notification
+	isInit  bool
 }
 
 func (p *gnmiProvider) WaitForNotification() {
 	<-p.ready
 }
 
-func (p *gnmiProvider) Stop() {
-	<-p.ready
-	close(p.done)
+func (p *gnmiProvider) Init(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
+	p.channel = ch
+	p.isInit = true
 }
 
-func (p *gnmiProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	p.typeDefs = s
+func (p *gnmiProvider) Run(ctx context.Context) error {
+	if !p.isInit {
+		return fmt.Errorf("provider is uninitialized")
+	}
 	respChan := make(chan *pb.SubscribeResponse)
 	errChan := make(chan error)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	ctx = gnmi.NewContext(ctx, p.cfg)
 
 	subscribeOptions := &gnmi.SubscribeOptions{
@@ -56,8 +57,8 @@ func (p *gnmiProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.
 	close(p.ready)
 	for {
 		select {
-		case <-p.done:
-			return
+		case <-ctx.Done():
+			return nil
 		case response := <-respChan:
 			switch resp := response.Response.(type) {
 			case *pb.SubscribeResponse_Error:
@@ -68,20 +69,18 @@ func (p *gnmiProvider) Run(s *schema.Schema, root types.Entity, ch chan<- types.
 					glog.Errorf("gNMI sync failed")
 				}
 			case *pb.SubscribeResponse_Update:
-				GNMIEmitNotif(resp.Update, ch)
+				GNMIEmitNotif(resp.Update, p.channel)
 			}
 		case err := <-errChan:
-			glog.Errorf("Error from gNMI connection: %v", err)
-			return
+			return fmt.Errorf("Error from gNMI connection: %v", err)
 		}
 	}
 }
 
 // NewGNMIProvider returns a read-only gNMI provider.
-func NewGNMIProvider(client pb.GNMIClient, cfg *gnmi.Config, paths []string) provider.Provider {
+func NewGNMIProvider(client pb.GNMIClient, cfg *gnmi.Config, paths []string) provider.EOSProvider {
 	return &gnmiProvider{
 		ready:  make(chan struct{}),
-		done:   make(chan struct{}),
 		client: client,
 		cfg:    cfg,
 		paths:  paths,

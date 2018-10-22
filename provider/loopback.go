@@ -6,6 +6,8 @@
 package provider
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"arista/schema"
@@ -15,26 +17,33 @@ import (
 )
 
 type loopback struct {
-	ch chan<- types.Notification
+	ch     chan<- types.Notification
+	isInit bool
 }
 
 // NewLoopback returns a new loopback provider that accepts updates and simply
 // reflects them back into the given channel.  If this provider is to be used
 // with an Agent (i.e. pass it to an Agent's WithProvider() option) then just
 // pass nil as the channel instead.
-func NewLoopback(notif chan<- types.Notification) Provider {
+func NewLoopback(notif chan<- types.Notification) EOSProvider {
 	return &loopback{ch: notif}
 }
 
-func (l *loopback) Run(s *schema.Schema, root types.Entity, notif chan<- types.Notification) {
+func (l *loopback) Init(s *schema.Schema, root types.Entity, notif chan<- types.Notification) {
 	if l.ch == nil {
 		l.ch = notif
 	}
+	l.isInit = true
+}
+
+func (l *loopback) Run(ctx context.Context) error {
+	if !l.isInit {
+		return fmt.Errorf("provider is uninitialized")
+	}
+	return nil
 }
 
 func (l *loopback) WaitForNotification() {}
-
-func (l *loopback) Stop() {}
 
 func (l *loopback) Write(notif types.Notification) error {
 	if l.ch != nil {

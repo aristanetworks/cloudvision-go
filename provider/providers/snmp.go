@@ -41,6 +41,9 @@ type snmp struct {
 	address          string
 	community        string
 	lock             sync.Mutex // gosnmp can't handle parallel gets
+
+	isInit bool
+	ch     chan<- types.Notification
 }
 
 // Has read/write interface been established?
@@ -722,10 +725,10 @@ func (s *snmp) init(ch chan<- types.Notification) error {
 	return nil
 }
 
-func (s *snmp) handleErrors() {
+func (s *snmp) handleErrors(ctx context.Context) {
 	for {
 		select {
-		case <-s.done:
+		case <-ctx.Done():
 			return
 		case err := <-s.errc:
 			// XXX_jcr: We should probably return for some errors.
@@ -738,12 +741,16 @@ func (s *snmp) handleErrors() {
 	}
 }
 
-func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Notification) {
+func (s *snmp) Init(schema *schema.Schema, root types.Entity, ch chan<- types.Notification) {
+	s.isInit = true
+	s.ch = ch
+}
+
+func (s *snmp) Run(ctx context.Context) error {
 	// Do necessary setup.
-	err := s.init(ch)
+	err := s.init(s.ch)
 	if err != nil {
-		glog.Infof("Error in initialization: %v", err)
-		return
+		return fmt.Errorf("Error in initialization: %v", err)
 	}
 
 	// Do periodic state updates.
@@ -756,14 +763,16 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 		s.updateLldp, s.errc)
 
 	// Watch for errors.
-	s.handleErrors()
+	s.handleErrors(ctx)
+	s.Stop()
+	return nil
 }
 
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration) provider.Provider {
+	pollInt time.Duration) provider.EOSProvider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
 	pollInterval = pollInt
