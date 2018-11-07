@@ -12,8 +12,6 @@ import (
 	"arista/gopenconfig/event/router"
 	"arista/gopenconfig/gnmi/server"
 	"arista/gopenconfig/model"
-	"arista/gopenconfig/model/base"
-	"arista/gopenconfig/model/node"
 	"arista/gopenconfig/model/notifier"
 	"arista/gopenconfig/modules"
 	"arista/gopenconfig/yang"
@@ -29,6 +27,7 @@ import (
 	"github.com/aristanetworks/goarista/key"
 	"github.com/aristanetworks/goarista/path"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -148,6 +147,7 @@ func doDatastoresSetup(ctx context.Context) (context.Context,
 	n := notifier.New()
 	go n.Run(ctx)
 	runningConfig.RootNode().SetNotifier(n)
+	runningConfig.RootNode().Metadata().AddField("ReadOnlyWritable", true)
 	datastores := model.NewDatastores()
 	ctx = context.WithValue(ctx, model.DatastoresKey, datastores)
 	yangErrs := model.PopulateDataModel(ms, runningConfig, yang.DefaultModules...)
@@ -265,13 +265,65 @@ func subscribeAll(stream *subscribeStream) {
 	}
 }
 
-// gNMIStreamUpdates takes a data tree and channel of types.Notifications
-// and streams all changes to the tree into the channel.
-func gNMIStreamUpdates(ctx context.Context, datastores model.Datastores,
-	ch chan<- types.Notification, errc chan error) (context.Context, error) {
+// GNMIServer creates a new OpenConfig tree and returns a
+// gnmi.GNMIServer that operates on that tree.
+func GNMIServer(ctx context.Context, ch chan<- types.Notification,
+	errc chan error) (context.Context, gnmi.GNMIServer, error) {
+	ctx, datastores, err := openConfigSetUpDatastores(ctx)
+	if err != nil {
+		return ctx, nil, fmt.Errorf("Error setting up data tree: %v", err)
+	}
+	ctx, server := gNMIServer(ctx, datastores)
+	ctx, err = gNMIStreamUpdates(ctx, server, ch, errc)
+	if err != nil {
+		return ctx, nil, fmt.Errorf("Errorf setting up notif stream: %v", err)
+	}
+	return ctx, server, nil
+}
+
+type gnmiclient struct {
+	s gnmi.GNMIServer
+}
+
+// GNMIClient takes a gnmi.GNMIServer and returns a gnmi.GNMIClient
+// that will translate client Sets to server Sets without doing any
+// RPC.
+func GNMIClient(s gnmi.GNMIServer) gnmi.GNMIClient {
+	return &gnmiclient{s: s}
+}
+
+func (g *gnmiclient) Capabilities(ctx context.Context, in *gnmi.CapabilityRequest,
+	opts ...grpc.CallOption) (*gnmi.CapabilityResponse, error) {
+	return g.s.Capabilities(ctx, in)
+}
+
+func (g *gnmiclient) Get(ctx context.Context, in *gnmi.GetRequest,
+	opts ...grpc.CallOption) (*gnmi.GetResponse, error) {
+	return g.s.Get(ctx, in)
+}
+
+func (g *gnmiclient) Set(ctx context.Context, in *gnmi.SetRequest,
+	opts ...grpc.CallOption) (*gnmi.SetResponse, error) {
+	return g.s.Set(ctx, in)
+}
+
+func (g *gnmiclient) Subscribe(ctx context.Context,
+	opts ...grpc.CallOption) (gnmi.GNMI_SubscribeClient, error) {
+	panic("not implemented")
+}
+
+func gNMIServer(ctx context.Context, datastores model.Datastores) (context.Context,
+	gnmi.GNMIServer) {
 	ms, _ := modules.FromContext(ctx)
 	server, aaa := newServerWithStore(datastores, ms)
 	ctx = aaa.TagConn(ctx, nil)
+	return ctx, server
+}
+
+// gNMIStreamUpdates takes a data tree and channel of types.Notifications
+// and streams all changes to the tree into the channel.
+func gNMIStreamUpdates(ctx context.Context, server gnmi.GNMIServer,
+	ch chan<- types.Notification, errc chan error) (context.Context, error) {
 	// Set up stream
 	stream := &subscribeStream{
 		req:  make(chan *gnmi.SubscribeRequest),
@@ -290,70 +342,158 @@ func gNMIStreamUpdates(ctx context.Context, datastores model.Datastores,
 	return ctx, nil
 }
 
-// Return the tree root from ctx.
-func treeRoot(ctx context.Context) node.Node {
-	return model.GetRootYANGNode(ctx)
-}
-
-// Lock the YANG tree.
-func treeLock(ctx context.Context) {
-	models := model.DatastoresFromCtx(ctx)
-	ds := models.Datastore(model.DSRunning)
-	model.LockDatastore(ds)
-}
-
-// Unlock the YANG tree.
-func treeUnlock(ctx context.Context) {
-	models := model.DatastoresFromCtx(ctx)
-	ds := models.Datastore(model.DSRunning)
-	model.UnlockDatastore(ds)
-}
-
-// OpenConfigNotifyingTree sets up an OpenConfig data tree and a
-// gNMI server for streaming out updates to the tree (converted to
-// types.Notifications).
-func OpenConfigNotifyingTree(ctx context.Context, ch chan<- types.Notification,
-	errc chan error) (context.Context, error) {
-	ctx, datastores, err := openConfigSetUpDatastores(ctx)
+// GNMIPath returns a gnmi.Path given a set of elements.
+func GNMIPath(element ...string) *gnmi.Path {
+	p, err := agnmi.ParseGNMIElements(element)
 	if err != nil {
-		return ctx, fmt.Errorf("Error setting up data tree: %v", err)
+		panic(fmt.Sprintf("Unable to parse GNMI elements: %v", element))
 	}
-
-	ctx, err = gNMIStreamUpdates(ctx, datastores, ch, errc)
-	if err != nil {
-		return ctx, fmt.Errorf("Errorf setting up notif stream: %v", err)
-	}
-	return ctx, nil
+	p.Element = nil
+	return p
 }
 
-// Given a container, setLeaf sets the leaf specified by attr.
-func setLeaf(ctr base.Container, attr string, val interface{}) error {
-	if ctr == nil {
-		return fmt.Errorf("container does not exist")
-	}
-	leaf := ctr.Leaf(attr)
-	if leaf == nil {
-		return fmt.Errorf("failed creating leaf %v", attr)
-	}
-	return leaf.Set(val)
+// gNMI TypedValues: Everything is converted to a JsonVal for now
+// because those code paths are more mature in the gopenconfig code.
+func jsonValue(v interface{}) *gnmi.TypedValue {
+	vb := []byte(fmt.Sprintf(`"%v"`, v))
+	return &gnmi.TypedValue{Value: &gnmi.TypedValue_JsonVal{JsonVal: vb}}
 }
 
-// XXX_jcr: Need to add delete APIs as well.
+// GNMIStrval returns a gnmi.TypedValue from a string.
+func GNMIStrval(s string) *gnmi.TypedValue {
+	return jsonValue(s)
+}
 
-// OpenConfigUpdateLeaf creates a container at the specified path and
-// updates the indicated leaf.
-func OpenConfigUpdateLeaf(ctx context.Context, path node.Path, leafName string,
-	val interface{}) error {
-	root := treeRoot(ctx)
-	treeLock(ctx)
-	defer treeUnlock(ctx)
-	n, err := model.CreateNodes(root, path)
+// GNMIUintval returns a gnmi.TypedValue from a uint64.
+func GNMIUintval(u uint64) *gnmi.TypedValue {
+	return jsonValue(u)
+}
+
+// GNMIIntval returns a gnmi.TypedValue from an int64.
+func GNMIIntval(i int64) *gnmi.TypedValue {
+	return jsonValue(i)
+}
+
+// GNMIBoolval returns a gnmi.TypedValue from a bool.
+func GNMIBoolval(b bool) *gnmi.TypedValue {
+	return jsonValue(b)
+}
+
+// GNMIUpdate creates a gNMI.Update.
+func GNMIUpdate(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
+	return &gnmi.Update{
+		Path: path,
+		Val:  val,
+	}
+}
+
+// A PollFn polls a target device and returns a gNMI SetRequest.
+type PollFn func() (*gnmi.SetRequest, error)
+
+func openConfigPollOnce(ctx context.Context, client gnmi.GNMIClient,
+	poller PollFn) error {
+	setreq, err := poller()
 	if err != nil {
 		return err
 	}
-	c, ok := n.(base.Container)
-	if !ok {
-		return fmt.Errorf("Provided path %v is not a container", path)
+	if setreq != nil {
+		_, err = client.Set(ctx, setreq)
 	}
-	return setLeaf(c, leafName, val)
+	return err
+}
+
+// OpenConfigPollForever takes a polling function that performs a
+// complete update of some part of the OpenConfig tree and calls it
+// at the specified interval.
+func OpenConfigPollForever(ctx context.Context, client gnmi.GNMIClient,
+	interval time.Duration, poller PollFn, errc chan error) {
+
+	// Poll immediately.
+	if err := openConfigPollOnce(ctx, client, poller); err != nil {
+		errc <- err
+	}
+
+	// Poll at intervals forever.
+	tick := time.NewTicker(interval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-tick.C:
+			if err := openConfigPollOnce(ctx, client, poller); err != nil {
+				errc <- err
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// Helpers for creating gNMI paths for places of interest in the
+// OpenConfig tree.
+func listWithKey(listName, keyName, key string) string {
+	return fmt.Sprintf("%s[%s=%s]", listName, keyName, key)
+}
+
+// Interface paths of interest:
+
+// GNMIIntfPath returns an interface path.
+func GNMIIntfPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+		leafName)
+}
+
+// GNMIIntfConfigPath returns an interface config path.
+func GNMIIntfConfigPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+		"config", leafName)
+}
+
+// GNMIIntfStatePath returns an interface state path.
+func GNMIIntfStatePath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+		"state", leafName)
+}
+
+// GNMIIntfStateCountersPath returns an interface state counters path.
+func GNMIIntfStateCountersPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+		"state", "counters", leafName)
+}
+
+// LLDP paths of interest:
+
+// GNMILldpStatePath returns an LLDP state path.
+func GNMILldpStatePath(leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "state", leafName)
+}
+
+// GNMILldpIntfPath returns an LLDP interface path.
+func GNMILldpIntfPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+		intfName), leafName)
+}
+
+// GNMILldpIntfConfigPath returns an LLDP interface config path.
+func GNMILldpIntfConfigPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+		intfName), "config", leafName)
+}
+
+// GNMILldpIntfStatePath returns an LLDP interface state path.
+func GNMILldpIntfStatePath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+		intfName), "state", leafName)
+}
+
+// GNMILldpIntfCountersPath returns an LLDP interface counters path.
+func GNMILldpIntfCountersPath(intfName, leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+		intfName), "state", "counters", leafName)
+}
+
+// GNMILldpNeighborStatePath returns an LLDP neighbor state path.
+func GNMILldpNeighborStatePath(intfName, id, leafName string) *gnmi.Path {
+	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+		intfName), "neighbors", listWithKey("neighbor", "id", id),
+		"state", leafName)
 }

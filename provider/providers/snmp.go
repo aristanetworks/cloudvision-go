@@ -9,7 +9,6 @@ import (
 	"arista/gopenconfig/eos"
 	"arista/gopenconfig/eos/converter"
 	"arista/gopenconfig/eos/mapping"
-	"arista/gopenconfig/model/node"
 	"arista/provider"
 	"arista/schema"
 	"arista/types"
@@ -18,10 +17,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aristanetworks/glog"
+	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"
 )
 
@@ -32,10 +34,13 @@ type snmp struct {
 	errc             chan error
 	ctx              context.Context
 	cancel           context.CancelFunc
+	server           gnmi.GNMIServer
+	client           gnmi.GNMIClient
 	interfaceIndex   map[string]string
 	lldpLocPortIndex map[string]string
 	address          string
 	community        string
+	lock             sync.Mutex // gosnmp can't handle parallel gets
 }
 
 // Has read/write interface been established?
@@ -44,7 +49,7 @@ var connected bool
 // Time we last heard back from target
 var lastAlive time.Time
 
-var pollInt time.Duration
+var pollInterval time.Duration
 
 func snmpNetworkInit() error {
 	if connected {
@@ -93,7 +98,7 @@ func SNMPDeviceID() (string, error) {
 
 // SNMPCheckAlive checks if device is still alive if poll interval has passed.
 func SNMPCheckAlive() (bool, error) {
-	if time.Since(lastAlive) < pollInt {
+	if time.Since(lastAlive) < pollInterval {
 		return true, nil
 	}
 	_, err := SNMPGetByOID(snmpSysUpTime)
@@ -208,11 +213,6 @@ func ifStatus(status int) string {
 	return ""
 }
 
-func intfPath(intfName string, elems ...interface{}) node.Path {
-	p := []interface{}{"interfaces", "interface", intfName}
-	return node.NewPath(append(p, elems...)...)
-}
-
 const (
 	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11.1"
 	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
@@ -262,116 +262,227 @@ const (
 	snmpSysUpTime                    = ".1.3.6.1.2.1.1.3.0"
 )
 
+// Less typing:
+func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
+	return GNMIUpdate(path, val)
+}
+
+// toInt64 converts an interface to a int64.
+func toInt64(valIntf interface{}) (int64, error) {
+	var val int64
+	switch t := valIntf.(type) {
+	case int:
+		val = int64(t)
+	case int8:
+		val = int64(t)
+	case int16:
+		val = int64(t)
+	case int32:
+		val = int64(t)
+	case int64:
+		val = t
+	case uint:
+		val = int64(t)
+	case uint8:
+		val = int64(t)
+	case uint16:
+		val = int64(t)
+	case uint32:
+		val = int64(t)
+	case uint64:
+		if t > math.MaxInt64 {
+			return 0, fmt.Errorf("could not convert to int64, %d larger than max of %d",
+				t, uint64(math.MaxInt64))
+		}
+		val = int64(t)
+	default:
+		return 0, fmt.Errorf("update contained value of unexpected type %T", valIntf)
+	}
+	return val, nil
+}
+
+// toUint64 converts an interface to a uint64.
+func toUint64(valIntf interface{}) (uint64, error) {
+	var val uint64
+	switch t := valIntf.(type) {
+	case int, int8, int16, int32, int64:
+		v, e := toInt64(t)
+		if e != nil {
+			return 0, e
+		}
+		if v < 0 {
+			return 0, fmt.Errorf("value %d cannot be converted to uint as it is negative", v)
+		}
+		val = uint64(v)
+	case uint:
+		val = uint64(t)
+	case uint8:
+		val = uint64(t)
+	case uint16:
+		val = uint64(t)
+	case uint32:
+		val = uint64(t)
+	case uint64:
+		val = t
+	default:
+		return 0, fmt.Errorf("update contained value of unexpected type %T", valIntf)
+	}
+	return val, nil
+}
+
+func strval(s interface{}) *gnmi.TypedValue {
+	t, ok := s.(string)
+	if ok {
+		return GNMIStrval(t)
+	}
+	u, ok := s.([]byte)
+	if ok {
+		return GNMIStrval(string(u))
+	}
+	glog.Fatalf("Unexpected type in strval: %T", s)
+	return nil
+}
+func uintval(u interface{}) *gnmi.TypedValue {
+	if v, err := toUint64(u); err == nil {
+		return GNMIUintval(v)
+	}
+	return nil
+}
+
 // Given an incoming PDU, update the appropriate interface state.
-func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) error {
+func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
 	baseOid, index, err := oidIndex(pdu.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	intfName, ok := s.interfaceIndex[index]
 	if !ok && baseOid != snmpIfDescr {
-		return nil
+		return nil, nil
 	} else if !ok && baseOid == snmpIfDescr {
 		intfName = string(pdu.Value.([]byte))
 		s.interfaceIndex[index] = intfName
 	}
 
-	statePath := intfPath(intfName, "state")
-	countersPath := intfPath(intfName, "state", "counters")
-
-	err = nil
+	var u *gnmi.Update
 	switch baseOid {
 	case snmpIfDescr:
-		err = OpenConfigUpdateLeaf(s.ctx, statePath, "name",
-			string(pdu.Value.([]byte)))
+		u = update(GNMIIntfStatePath(intfName, "name"),
+			strval(pdu.Value))
 	case snmpIfType:
-		err = OpenConfigUpdateLeaf(s.ctx, statePath, "type",
-			ifType(pdu.Value.(int)))
+		u = update(GNMIIntfStatePath(intfName, "type"),
+			strval(ifType(pdu.Value.(int))))
 	case snmpIfMtu:
-		err = OpenConfigUpdateLeaf(s.ctx, statePath, "mtu",
-			uint16(pdu.Value.(int)))
+		u = update(GNMIIntfStatePath(intfName, "mtu"),
+			uintval(pdu.Value))
 	case snmpIfAdminStatus:
-		err = OpenConfigUpdateLeaf(s.ctx, statePath, "admin-status",
-			ifStatus(pdu.Value.(int)))
+		u = update(GNMIIntfStatePath(intfName, "admin-status"),
+			strval(ifStatus(pdu.Value.(int))))
 	case snmpIfOperStatus:
-		err = OpenConfigUpdateLeaf(s.ctx, statePath, "oper-status",
-			ifStatus(pdu.Value.(int)))
+		u = update(GNMIIntfStatePath(intfName, "oper-status"),
+			strval(ifStatus(pdu.Value.(int))))
 	case snmpIfInOctets:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-octets",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-octets"),
+			uintval(pdu.Value))
 	case snmpIfInUcastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-unicast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-unicast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfInMulticastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-multicast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-multicast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfInBroadcastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-broadcast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-broadcast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfInDiscards:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-discards",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-discards"),
+			uintval(pdu.Value))
 	case snmpIfInErrors:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-errors",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-errors"),
+			uintval(pdu.Value))
 	case snmpIfInUnknownProtos:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "in-unknown-protos",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "in-unknown-protos"),
+			uintval(pdu.Value))
 	case snmpIfOutOctets:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-octets",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-octets"),
+			uintval(pdu.Value))
 	case snmpIfOutUcastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-unicast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-unicast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfOutMulticastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-multicast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-multicast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfOutBroadcastPkts:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-broadcast-pkts",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-broadcast-pkts"),
+			uintval(pdu.Value))
 	case snmpIfOutDiscards:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-discards",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-discards"),
+			uintval(pdu.Value))
 	case snmpIfOutErrors:
-		err = OpenConfigUpdateLeaf(s.ctx, countersPath, "out-errors",
-			uint64(pdu.Value.(uint)))
+		u = update(GNMIIntfStateCountersPath(intfName, "out-errors"),
+			uintval(pdu.Value))
+	default:
+		// default: ignore update
+		return nil, nil
 	}
-	// default: ignore update
-	return err
+
+	updates := []*gnmi.Update{u}
+	// When we get a name, add name, config/name, state/name.
+	if baseOid == snmpIfDescr {
+		updates = append(updates,
+			update(GNMIIntfPath(intfName, "name"), strval(intfName)),
+			update(GNMIIntfConfigPath(intfName, "name"), strval(intfName)))
+	}
+	return updates, nil
 }
 
-func (s *snmp) updateInterfaces() error {
-	// XXX_jcr: We still need to add code for understanding deletes.
+func (s *snmp) updateInterfaces() (*gnmi.SetRequest, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	setReq := new(gnmi.SetRequest)
+	updates := make([]*gnmi.Update, 0)
 	intfWalk := func(data gosnmp.SnmpPDU) error {
-		return s.handleInterfacePDU(data)
+		u, err := s.handleInterfacePDU(data)
+		if err != nil {
+			return err
+		}
+		updates = append(updates, u...)
+		return nil
 	}
 
 	// ifTable
 	if err := gosnmp.Default.Walk(snmpIfTable, intfWalk); err != nil {
-		return err
+		return nil, err
 	}
 
 	// ifXTable
-	return gosnmp.Default.Walk(snmpIfXTable, intfWalk)
+	if err := gosnmp.Default.Walk(snmpIfXTable, intfWalk); err != nil {
+		return nil, err
+	}
+
+	setReq.Delete = []*gnmi.Path{GNMIPath("interfaces", "interface")}
+	setReq.Replace = updates
+	return setReq, nil
 }
 
-func (s *snmp) updateSystemState() error {
+func (s *snmp) updateSystemState() (*gnmi.SetRequest, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	setReq := new(gnmi.SetRequest)
 	sysName, err := SNMPGetByOID(snmpSysName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hostname := strings.Split(sysName, ".")[0]
 	domainName := strings.Join(strings.Split(sysName, ".")[1:], ".")
 
-	err = OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
-		"hostname", hostname)
-	if err != nil {
-		return err
-	}
-	return OpenConfigUpdateLeaf(s.ctx, node.NewPath("system", "state"),
-		"domain-name", domainName)
+	hn := update(GNMIPath("system", "state", "hostname"), strval(hostname))
+	dn := update(GNMIPath("system", "state", "domain-name"),
+		strval(domainName))
+	setReq.Replace = []*gnmi.Update{hn, dn}
+
+	return setReq, nil
 }
 
 // Return the OpenConfig chassis ID type string corresponding to the
@@ -446,21 +557,6 @@ func processLldpOid(oid string) (locIndex, remoteID,
 	return
 }
 
-// LLDP paths of interest.
-func lldpStatePath() node.Path {
-	return node.NewPath("lldp", "state")
-}
-func lldpIntfStatePath(intfName string) node.Path {
-	return node.NewPath("lldp", "interfaces", "interface", intfName, "state")
-}
-func lldpIntfCountersPath(intfName string) node.Path {
-	return node.NewPath("lldp", "interfaces", "interface", intfName, "state", "counters")
-}
-func lldpNeighborStatePath(intfName string, id string) node.Path {
-	return node.NewPath("lldp", "interfaces", "interface", intfName,
-		"neighbors", "neighbor", id, "state")
-}
-
 // Return MAC address from hex byte string.
 func macFromBytes(s []byte) string {
 	// XXX_jcr: hex assumption is only right for MAC
@@ -474,21 +570,24 @@ func macFromBytes(s []byte) string {
 	return t.String()
 }
 
-func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) error {
+func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// Split OID into parts.
 	locIndex, remoteID, baseOid, err := processLldpOid(pdu.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// If we haven't yet seen this local interface, add it to our list.
 	intfName := ""
+	updates := make([]*gnmi.Update, 0)
 	var ok bool
 	if locIndex != "" {
 		intfName, ok = s.lldpLocPortIndex[locIndex]
 		if !ok {
+			// If we have the port ID, add it to the port index map.
+			// Otherwise we can't do anything and should return.
 			if baseOid != snmpLldpLocPortID {
-				return nil
+				return nil, nil
 			}
 			intfName = string(pdu.Value.([]byte))
 			s.lldpLocPortIndex[locIndex] = intfName
@@ -497,82 +596,107 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) error {
 
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
-		if err := OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName,
-			remoteID), "id", remoteID); err != nil {
-			return err
-		}
+		updates = append(updates,
+			update(GNMILldpNeighborStatePath(intfName, remoteID, "id"),
+				strval(remoteID)))
 	}
 
-	err = nil
+	var u *gnmi.Update
 	switch baseOid {
-	case snmpLldpLocChassisID:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
-			"chassis-id", macFromBytes(pdu.Value.([]byte)))
-	case snmpLldpLocChassisIDSubtype:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
-			"chassis-id-type", lldpChassisIDType(pdu.Value.(int)))
-	case snmpLldpLocSysName:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
-			"system-name", string(pdu.Value.([]byte)))
-	case snmpLldpLocSysDesc:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpStatePath(),
-			"system-description", string(pdu.Value.([]byte)))
 	case snmpLldpLocPortID:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfStatePath(intfName),
-			"name", intfName)
+		updates = append(updates,
+			update(GNMILldpIntfConfigPath(intfName, "name"),
+				strval(intfName)),
+			update(GNMILldpIntfPath(intfName, "name"),
+				strval(intfName)),
+			update(GNMILldpIntfStatePath(intfName, "name"),
+				strval(intfName)))
+	case snmpLldpLocChassisID:
+		u = update(GNMILldpStatePath("chassis-id"),
+			strval(macFromBytes(pdu.Value.([]byte))))
+	case snmpLldpLocChassisIDSubtype:
+		u = update(GNMILldpStatePath("chassis-id-type"),
+			strval(lldpChassisIDType(pdu.Value.(int))))
+	case snmpLldpLocSysName:
+		u = update(GNMILldpStatePath("system-name"),
+			strval(pdu.Value))
+	case snmpLldpLocSysDesc:
+		u = update(GNMILldpStatePath("system-description"),
+			strval(pdu.Value))
 	case snmpLldpStatsTxPortFramesTotal:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"frame-out", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "frame-out"),
+			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesDiscard:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"frame-discard", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "frame-discard"),
+			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesErrors:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"frame-error-in", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "frame-error-in"),
+			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesTotal:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"frame-in", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "frame-in"),
+			uintval(pdu.Value))
 	case snmpLldpStatsRxPortTLVsDiscard:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"tlv-discard", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "tlv-discard"),
+			uintval(pdu.Value))
 	case snmpLldpStatsRxPortTLVsUnrecog:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpIntfCountersPath(intfName),
-			"tlv-unknown", uint64(pdu.Value.(uint)))
+		u = update(GNMILldpIntfCountersPath(intfName, "tlv-unknown"),
+			uintval(pdu.Value))
 	case snmpLldpRemPortID:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"port-id", string(pdu.Value.([]byte)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "port-id"),
+			strval(pdu.Value))
 	case snmpLldpRemPortIDSubtype:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"port-id-type", lldpPortIDType(pdu.Value.(int)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "port-id-type"),
+			strval(lldpPortIDType(pdu.Value.(int))))
 	case snmpLldpRemChassisID:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"chassis-id", macFromBytes(pdu.Value.([]byte)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "chassis-id"),
+			strval(macFromBytes(pdu.Value.([]byte))))
 	case snmpLldpRemChassisIDSubtype:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"chassis-id-type", lldpChassisIDType(pdu.Value.(int)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
+			strval(lldpChassisIDType(pdu.Value.(int))))
 	case snmpLldpRemSysName:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"system-name", string(pdu.Value.([]byte)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "system-name"),
+			strval(pdu.Value))
 	case snmpLldpRemSysDesc:
-		err = OpenConfigUpdateLeaf(s.ctx, lldpNeighborStatePath(intfName, remoteID),
-			"system-description", string(pdu.Value.([]byte)))
+		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "system-description"),
+			strval(pdu.Value))
 	}
-	return err
+	if u != nil {
+		updates = append(updates, u)
+	}
+	return updates, nil
 }
 
-func (s *snmp) updateLLDP() error {
-	walker := func(data gosnmp.SnmpPDU) error {
-		return s.handleLldpPDU(data)
+func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	setReq := new(gnmi.SetRequest)
+	updates := make([]*gnmi.Update, 0)
+	updater := func(data gosnmp.SnmpPDU) error {
+		u, err := s.handleLldpPDU(data)
+		if err != nil {
+			return err
+		}
+		if u != nil {
+			updates = append(updates, u...)
+		}
+		return nil
 	}
-	if err := gosnmp.Default.Walk(snmpLldpLocalSystemData, walker); err != nil {
-		return err
+	if err := gosnmp.Default.Walk(snmpLldpLocalSystemData, updater); err != nil {
+		return nil, err
 	}
 
-	if err := gosnmp.Default.Walk(snmpLldpRemTable, walker); err != nil {
-		return err
+	if err := gosnmp.Default.Walk(snmpLldpRemTable, updater); err != nil {
+		return nil, err
 	}
 
-	return gosnmp.Default.Walk(snmpLldpStatistics, walker)
+	if err := gosnmp.Default.Walk(snmpLldpStatistics, updater); err != nil {
+		return nil, err
+	}
+
+	setReq.Delete = []*gnmi.Path{GNMIPath("lldp")}
+	setReq.Replace = updates
+	return setReq, nil
 }
 
 func (s *snmp) init(ch chan<- types.Notification) error {
@@ -585,15 +709,33 @@ func (s *snmp) init(ch chan<- types.Notification) error {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
 
-	// Set up notifying data tree.
-	s.ctx, err = OpenConfigNotifyingTree(ctx, ch, s.errc)
+	// Set up client and server. XXX_jcr: Once we switch over to the
+	// GNMIProvider interface we'll be passed a gNMIClient.
+	s.ctx, s.server, err = GNMIServer(ctx, ch, s.errc)
 	if err != nil {
 		return err
 	}
+	s.client = GNMIClient(s.server)
 
 	close(s.ready)
 
 	return nil
+}
+
+func (s *snmp) handleErrors() {
+	for {
+		select {
+		case <-s.done:
+			return
+		case err := <-s.errc:
+			// XXX_jcr: We should probably return for some errors.
+			// Others we can't return from. For example, an LLDP poll
+			// may fail if it takes place after an interface change that
+			// hasn't yet showed up in an interface poll, since LLDP
+			// interfaces also have to be present in interfaces/interface.
+			glog.Errorf("Failure in gNMI stream: %v", err)
+		}
+	}
 }
 
 func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Notification) {
@@ -604,41 +746,28 @@ func (s *snmp) Run(schema *schema.Schema, root types.Entity, ch chan<- types.Not
 		return
 	}
 
-	// Do periodic state updates
-	tick := time.NewTicker(pollInt)
-	defer tick.Stop()
+	// Do periodic state updates.
 	defer s.cancel()
-	for {
-		select {
-		case <-tick.C:
-			if err := s.updateSystemState(); err != nil {
-				glog.Infof("Failure in updateSystemState: %v", err)
-				return
-			}
-			if err := s.updateInterfaces(); err != nil {
-				glog.Infof("Failure in updateInterfaces: %s", err)
-			}
-			if err := s.updateLLDP(); err != nil {
-				glog.Infof("Failure in updateLLDP: %v", err)
-			}
-		case <-s.done:
-			return
-		case err := <-s.errc:
-			glog.Errorf("Failure in gNMI stream: %v", err)
-			return
-		}
-	}
+	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+		s.updateSystemState, s.errc)
+	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+		s.updateInterfaces, s.errc)
+	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+		s.updateLldp, s.errc)
+
+	// Watch for errors.
+	s.handleErrors()
 }
 
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInterval time.Duration) provider.Provider {
+	pollInt time.Duration) provider.Provider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
-	gosnmp.Default.Timeout = 30 * time.Second
-	pollInt = pollInterval
+	pollInterval = pollInt
+	gosnmp.Default.Timeout = 2 * pollInterval
 	return &snmp{
 		ready:            make(chan struct{}),
 		done:             make(chan struct{}),

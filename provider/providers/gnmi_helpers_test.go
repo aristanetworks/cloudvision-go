@@ -6,12 +6,12 @@
 package providers
 
 import (
-	"arista/gopenconfig/model/node"
 	"arista/test/notiftest"
 	"arista/types"
 	"arista/util"
 	"context"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,23 +19,23 @@ import (
 	"github.com/aristanetworks/goarista/path"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
-func makeUpdate(path []string, val string) *pb.Update {
-	ret := &pb.Update{}
+func makeUpdate(path []string, val string) *gnmi.Update {
+	ret := &gnmi.Update{}
 	ret.Path = makePath(path)
-	ret.Val = &pb.TypedValue{
-		Value: &pb.TypedValue_StringVal{StringVal: val}}
+	ret.Val = &gnmi.TypedValue{
+		Value: &gnmi.TypedValue_StringVal{StringVal: val}}
 
 	return ret
 }
 
 // Make the vals to strings to make things easier. We have other test for marshaling
 func makeGNMINotif(prefix []string,
-	updates, deletes [][]string, updateVals []string) *pb.Notification {
+	updates, deletes [][]string, updateVals []string) *gnmi.Notification {
 
-	ret := &pb.Notification{Update: []*pb.Update{}, Delete: []*pb.Path{}}
+	ret := &gnmi.Notification{Update: []*gnmi.Update{}, Delete: []*gnmi.Path{}}
 	ret.Prefix = makePath(prefix)
 	for i, update := range updates {
 		ret.Update = append(ret.Update, makeUpdate(update, updateVals[i]))
@@ -47,7 +47,7 @@ func makeGNMINotif(prefix []string,
 }
 
 func TestUnmarshal(t *testing.T) {
-	anyBytes, err := proto.Marshal(&pb.ModelData{Name: "foobar"})
+	anyBytes, err := proto.Marshal(&gnmi.ModelData{Name: "foobar"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,74 +55,74 @@ func TestUnmarshal(t *testing.T) {
 	anyString := proto.CompactTextString(anyMessage)
 
 	for name, tc := range map[string]struct {
-		val *pb.TypedValue
+		val *gnmi.TypedValue
 		exp interface{}
 	}{
 		"StringVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_StringVal{StringVal: "foobar"}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_StringVal{StringVal: "foobar"}},
 			exp: "foobar",
 		},
 		"IntVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_IntVal{IntVal: -42}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_IntVal{IntVal: -42}},
 			exp: int64(-42),
 		},
 		"UintVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_UintVal{UintVal: 42}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_UintVal{UintVal: 42}},
 			exp: uint64(42),
 		},
 		"BoolVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_BoolVal{BoolVal: true}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_BoolVal{BoolVal: true}},
 			exp: true,
 		},
 		"BytesVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_BytesVal{BytesVal: []byte{0xde, 0xad}}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_BytesVal{BytesVal: []byte{0xde, 0xad}}},
 			exp: "3q0=",
 		},
 		"FloatVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_FloatVal{FloatVal: 3.14}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_FloatVal{FloatVal: 3.14}},
 			exp: float32(3.14),
 		},
 		"DecimalVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_DecimalVal{
-					DecimalVal: &pb.Decimal64{Digits: 314, Precision: 2},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_DecimalVal{
+					DecimalVal: &gnmi.Decimal64{Digits: 314, Precision: 2},
 				}},
 			exp: float64(3.14),
 		},
 		"LeafListVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_LeaflistVal{
-					LeaflistVal: &pb.ScalarArray{Element: []*pb.TypedValue{
-						&pb.TypedValue{Value: &pb.TypedValue_BoolVal{BoolVal: true}},
-						&pb.TypedValue{Value: &pb.TypedValue_AsciiVal{AsciiVal: "foobar"}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_LeaflistVal{
+					LeaflistVal: &gnmi.ScalarArray{Element: []*gnmi.TypedValue{
+						&gnmi.TypedValue{Value: &gnmi.TypedValue_BoolVal{BoolVal: true}},
+						&gnmi.TypedValue{Value: &gnmi.TypedValue_AsciiVal{AsciiVal: "foobar"}},
 					}},
 				}},
 			exp: []interface{}{true, "foobar"},
 		},
 		"AnyVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_AnyVal{AnyVal: anyMessage}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_AnyVal{AnyVal: anyMessage}},
 			exp: anyString,
 		},
 		"JsonVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_JsonVal{JsonVal: []byte(`{"foo":"bar"}`)}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_JsonVal{JsonVal: []byte(`{"foo":"bar"}`)}},
 			exp: []byte(`{"foo":"bar"}`),
 		},
 		"JsonIetfVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_JsonIetfVal{JsonIetfVal: []byte(`{"foo":"bar"}`)}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_JsonIetfVal{JsonIetfVal: []byte(`{"foo":"bar"}`)}},
 			exp: []byte(`{"foo":"bar"}`),
 		},
 		"AsciiVal": {
-			val: &pb.TypedValue{
-				Value: &pb.TypedValue_AsciiVal{AsciiVal: "foobar"}},
+			val: &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_AsciiVal{AsciiVal: "foobar"}},
 			exp: "foobar",
 		},
 	} {
@@ -137,36 +137,36 @@ func TestUnmarshal(t *testing.T) {
 
 func TestConvertPath(t *testing.T) {
 	for name, tc := range map[string]struct {
-		gnmiPath  []*pb.PathElem
+		gnmiPath  []*gnmi.PathElem
 		aerisPath key.Path
 		updateKey key.Key
 	}{
 		"Empty path": {
-			gnmiPath:  []*pb.PathElem{},
+			gnmiPath:  []*gnmi.PathElem{},
 			aerisPath: key.Path{},
 			updateKey: nil,
 		},
 		"Simple one path": {
-			gnmiPath:  []*pb.PathElem{&pb.PathElem{Name: "simple"}},
+			gnmiPath:  []*gnmi.PathElem{&gnmi.PathElem{Name: "simple"}},
 			aerisPath: key.Path{},
 			updateKey: key.New("simple"),
 		},
 		"Simple two path": {
-			gnmiPath: []*pb.PathElem{&pb.PathElem{Name: "simple"},
-				&pb.PathElem{Name: "update"}},
+			gnmiPath: []*gnmi.PathElem{&gnmi.PathElem{Name: "simple"},
+				&gnmi.PathElem{Name: "update"}},
 			aerisPath: util.StringsToPath([]string{"simple"}),
 			updateKey: key.New("update"),
 		},
 		"Path with update at the end": {
-			gnmiPath: []*pb.PathElem{&pb.PathElem{Name: "simple"},
-				&pb.PathElem{Name: "update", Key: map[string]string{"a": "x", "b": "y"}}},
+			gnmiPath: []*gnmi.PathElem{&gnmi.PathElem{Name: "simple"},
+				&gnmi.PathElem{Name: "update", Key: map[string]string{"a": "x", "b": "y"}}},
 			aerisPath: util.StringsToPath([]string{"simple", "update"}),
 			updateKey: key.New(map[string]interface{}{"a": "x", "b": "y"}),
 		},
 		"Path with update at the middle": {
-			gnmiPath: []*pb.PathElem{&pb.PathElem{Name: "simple"},
-				&pb.PathElem{Name: "update", Key: map[string]string{"a": "x", "b": "y"}},
-				&pb.PathElem{Name: "end"}},
+			gnmiPath: []*gnmi.PathElem{&gnmi.PathElem{Name: "simple"},
+				&gnmi.PathElem{Name: "update", Key: map[string]string{"a": "x", "b": "y"}},
+				&gnmi.PathElem{Name: "end"}},
 			aerisPath: key.Path{key.New("simple"),
 				key.New("update"), key.New(map[string]interface{}{"a": "x", "b": "y"})},
 			updateKey: key.New("end"),
@@ -187,10 +187,10 @@ func TestConvertPath(t *testing.T) {
 	}
 }
 
-func makePath(path []string) *pb.Path {
-	ret := &pb.Path{Elem: []*pb.PathElem{}}
+func makePath(path []string) *gnmi.Path {
+	ret := &gnmi.Path{Elem: []*gnmi.PathElem{}}
 	for _, comp := range path {
-		pathElem := &pb.PathElem{Name: comp}
+		pathElem := &gnmi.PathElem{Name: comp}
 		ret.Elem = append(ret.Elem, pathElem)
 	}
 	return ret
@@ -198,11 +198,11 @@ func makePath(path []string) *pb.Path {
 
 func TestConvertNotif(t *testing.T) {
 	for name, tc := range map[string]struct {
-		gnmiNotif   *pb.Notification
+		gnmiNotif   *gnmi.Notification
 		aerisNotifs []types.Notification
 	}{
 		"Empty notification": {
-			gnmiNotif:   &pb.Notification{},
+			gnmiNotif:   &gnmi.Notification{},
 			aerisNotifs: nil,
 		},
 		"Notification with Update": {
@@ -253,95 +253,401 @@ func TestConvertNotif(t *testing.T) {
 	}
 }
 
-// Wait for a particular notification on the notif channel.
-func waitForMatchingNotif(t *testing.T, ch chan types.Notification,
-	expectedNotif types.Notification, timeout time.Duration) {
-	to := time.After(timeout)
+var ts42 = time.Unix(0, 42)
+
+// The code that translates gNMI notifs to types.Notifications doesn't
+// have a way of communication that it got a SyncResponse. So this just
+// issues a SetRequest and then waits until 0.5s has passed without
+// receiving another update before deciding we've synced.
+func waitForSync(ctx context.Context, t *testing.T, client gnmi.GNMIClient,
+	ch chan types.Notification) {
+	_, _ = client.Set(ctx,
+		&gnmi.SetRequest{
+			Delete: []*gnmi.Path{
+				GNMIPath("interfaces", "interface"),
+			},
+		})
+	var to <-chan time.Time
 	for {
 		select {
-		case notif := <-ch:
-			if notiftest.Diff(expectedNotif, notif) == "" {
-				return
-			}
+		case <-ch:
+			to = time.After(500 * time.Millisecond)
 		case <-to:
-			t.Fatalf("Timed out waiting for expected notif: %v", expectedNotif)
+			return
+			//t.Fatal("Timed out waiting for sync")
 		}
 	}
 }
 
-var ts42 = time.Unix(0, 42)
+func isPtr(notif types.Notification) bool {
+	for _, v := range notif.Updates() {
+		if _, ok := v.(key.Pointer); ok {
+			return true
+		}
+	}
+	return false
+}
 
-func TestTreeUpdateNotif(t *testing.T) {
-	// Set up notifying data tree.
+func checkNotifs(t *testing.T, ch chan types.Notification,
+	expected []types.Notification, timeout time.Duration) {
+	to := time.After(timeout)
+	for len(expected) > 0 {
+		select {
+		case got := <-ch:
+			if isPtr(got) {
+				continue
+			}
+			le := len(expected)
+			for i, want := range expected {
+				if notiftest.Diff(want, got) == "" {
+					expected = append(expected[:i], expected[i+1:]...)
+					break
+				}
+				if i == le-1 {
+					t.Fatalf("Notif didn't match any expected: %v (expected=%v)",
+						got, expected)
+				}
+			}
+		case <-to:
+			t.Fatalf("Timed out waiting for expected notifs: %v", expected)
+		}
+	}
+}
+
+// Check that SetRequests handed to the GNMIClient produce the
+// expected types.Notifications.
+func TestSetRequestNotifications(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ch := make(chan types.Notification)
 	errc := make(chan error)
-	ctx, err := OpenConfigNotifyingTree(ctx, ch, errc)
+	ctx, srv, err := GNMIServer(ctx, ch, errc)
 	if err != nil {
 		t.Fatal(err)
 	}
+	client := GNMIClient(srv)
 
-	for name, tc := range map[string]struct {
-		notif      types.Notification
-		treeOp     func() error
+	waitForSync(ctx, t, client, ch)
+
+	for _, tc := range []struct {
+		desc       string
+		setReq     *gnmi.SetRequest
+		notifs     []types.Notification
 		shouldFail bool
 	}{
-		"hostname": {
-			treeOp: func() error {
-				return OpenConfigUpdateLeaf(ctx,
-					node.NewPath("system", "state"), "hostname", "xyz")
+		{
+			desc: "hostname",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMIPath("system", "state", "hostname"),
+						GNMIStrval("xyz")),
+				},
 			},
-			notif: types.NewNotification(
-				ts42,
-				path.New("OpenConfig", "system", "state"),
-				nil,
-				map[key.Key]interface{}{key.New("hostname"): "xyz"}),
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "system", "state"),
+					nil,
+					map[key.Key]interface{}{key.New("hostname"): "xyz"}),
+			},
 		},
-		"interface name": {
-			treeOp: func() error {
-				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state"),
-					"name", "intf123")
+		{
+			desc: "interface",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMIIntfConfigPath("intf123", "name"),
+						GNMIStrval("intf123")),
+					GNMIUpdate(GNMIIntfPath("intf123", "name"),
+						GNMIStrval("intf123")),
+					GNMIUpdate(GNMIIntfConfigPath("intf456", "name"),
+						GNMIStrval("intf456")),
+					GNMIUpdate(GNMIIntfPath("intf456", "name"),
+						GNMIStrval("intf456")),
+				},
 			},
-			notif: types.NewNotification(
-				ts42,
-				path.New("OpenConfig", "interfaces", "interface",
-					map[string]interface{}{"name": "intf123"}, "state"),
-				nil,
-				map[key.Key]interface{}{key.New("name"): "intf123"}),
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf123"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}, "config"),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf123"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf456"}),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf456"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf456"}, "config"),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf456"}),
+			},
 		},
-		"interface counters": {
-			treeOp: func() error {
-				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state", "counters"),
-					"in-octets", uint64(1234))
+		{
+			desc: "interface counters",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMIIntfStateCountersPath("intf123", "in-octets"),
+						GNMIUintval(uint64(1234))),
+				},
 			},
-			notif: types.NewNotification(
-				ts42,
-				path.New("OpenConfig", "interfaces", "interface",
-					map[string]interface{}{"name": "intf123"}, "state", "counters"),
-				nil,
-				map[key.Key]interface{}{key.New("in-octets"): uint64(1234)}),
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}, "state", "counters"),
+					nil,
+					map[key.Key]interface{}{key.New("in-octets"): uint64(1234)}),
+			},
 		},
-		"bogus path": {
-			treeOp: func() error {
-				return OpenConfigUpdateLeaf(ctx, intfPath("intf123", "state", "bogus"),
-					"whatever", 12)
+		{
+			desc: "lldp local interface",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMILldpIntfPath("intf123", "name"),
+						GNMIStrval("intf123")),
+					GNMIUpdate(GNMILldpIntfConfigPath("intf123", "name"),
+						GNMIStrval("intf123")),
+				},
 			},
-			notif:      nil,
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf123"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}, "config"),
+					nil,
+					map[key.Key]interface{}{key.New("name"): "intf123"}),
+			},
+		},
+		{
+			desc: "lldp neighbor",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMILldpNeighborStatePath("intf123", "1",
+						"id"), GNMIStrval("1")),
+					GNMIUpdate(GNMILldpNeighborStatePath("intf123", "1",
+						"chassis-id"), GNMIStrval("whatever")),
+				},
+			},
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp", "interfaces",
+						"interface", map[string]interface{}{"name": "intf123"},
+						"neighbors", "neighbor", map[string]interface{}{"id": "1"}),
+					nil,
+					map[key.Key]interface{}{key.New("id"): "1"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp", "interfaces",
+						"interface", map[string]interface{}{"name": "intf123"},
+						"neighbors", "neighbor", map[string]interface{}{"id": "1"}, "state"),
+					nil,
+					map[key.Key]interface{}{key.New("id"): "1"}),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp", "interfaces",
+						"interface", map[string]interface{}{"name": "intf123"},
+						"neighbors", "neighbor", map[string]interface{}{"id": "1"},
+						"state"),
+					nil,
+					map[key.Key]interface{}{key.New("chassis-id"): "whatever"}),
+			},
+		},
+		{
+			desc: "interface delete",
+			setReq: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{
+					GNMIPath("interfaces", "interface"),
+				},
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMIIntfConfigPath("intf123", "name"),
+						GNMIStrval("intf123")),
+					GNMIUpdate(GNMIIntfPath("intf123", "name"),
+						GNMIStrval("intf123")),
+				},
+			},
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface"),
+					path.New(map[string]interface{}{"name": "intf456"}),
+					nil),
+			},
+		},
+		{
+			// check that we don't get updates in the above case
+			desc: "another interface delete",
+			setReq: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{
+					GNMIPath("interfaces", "interface"),
+					GNMIPath("lldp", "interfaces"),
+				},
+			},
+			notifs: []types.Notification{
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface",
+						map[string]interface{}{"name": "intf123"}, "state"),
+					path.New("counters"),
+					nil),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "interfaces", "interface"),
+					path.New(map[string]interface{}{"name": "intf123"}),
+					nil),
+				types.NewNotification(
+					ts42,
+					path.New("OpenConfig", "lldp"),
+					path.New("interfaces"),
+					nil),
+			},
+		},
+		{
+			desc: "bogus path",
+			setReq: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					GNMIUpdate(GNMIIntfStatePath("intf123", "bogus"),
+						GNMIUintval(uint64(12))),
+				},
+			},
+			notifs:     nil,
 			shouldFail: true,
 		},
 	} {
-		t.Run(name, func(t *testing.T) {
-			err := tc.treeOp()
+		t.Run(tc.desc, func(t *testing.T) {
+			_, err := client.Set(ctx, tc.setReq)
 			if err != nil && !tc.shouldFail {
 				t.Fatal(err)
 			}
 			if err == nil && tc.shouldFail {
-				t.Fatalf("Expected failure in test case %v", name)
+				t.Fatalf("Expected failure in test case %v", tc.desc)
 			}
 			if !tc.shouldFail {
-				waitForMatchingNotif(t, ch, tc.notif, time.Second*10)
+				checkNotifs(t, ch, tc.notifs, time.Second*5)
 			}
 		})
 	}
+}
+
+var inOctets uint64
+var inMcastPkts = uint64(42)
+var wg sync.WaitGroup
+
+const npoll uint64 = 3
+
+// Toy poller that just increments the in-octets interface counter
+// and leaves the in-multicast-pkts counter. It will poll three times
+// and then give up.
+func testPoller() (*gnmi.SetRequest, error) {
+	ifName := "intf123"
+	inOctets++
+	if inOctets > npoll {
+		return nil, nil
+	}
+	setreq := &gnmi.SetRequest{
+		Delete: []*gnmi.Path{
+			GNMIPath("interfaces", "interface"),
+		},
+		Replace: []*gnmi.Update{
+			GNMIUpdate(GNMIIntfPath(ifName, "name"), GNMIStrval(ifName)),
+			GNMIUpdate(GNMIIntfConfigPath(ifName, "name"), GNMIStrval(ifName)),
+			GNMIUpdate(GNMIIntfStatePath(ifName, "name"), GNMIStrval(ifName)),
+			GNMIUpdate(GNMIIntfStateCountersPath(ifName, "in-octets"),
+				GNMIUintval(inOctets)),
+			GNMIUpdate(GNMIIntfStateCountersPath(ifName, "in-multicast-pkts"),
+				GNMIUintval(inMcastPkts)),
+		},
+	}
+	if inOctets == npoll {
+		wg.Done()
+	}
+	return setreq, nil
+}
+
+// Test the poller API.
+func TestOpenConfigPollForever(t *testing.T) {
+	// Set up.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch := make(chan types.Notification)
+	errc := make(chan error)
+	ctx, srv, err := GNMIServer(ctx, ch, errc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := GNMIClient(srv)
+
+	// Clear queued notifs.
+	waitForSync(ctx, t, client, ch)
+
+	wg.Add(1)
+	// Run poller 3 times.
+	go OpenConfigPollForever(ctx, client, 100*time.Millisecond, testPoller, errc)
+
+	wg.Wait() // Wait for the poller to poll 3x.
+
+	// Check that we see the notifications we expect to see, and
+	// nothing else.
+	expected := []types.Notification{
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}),
+			nil,
+			map[key.Key]interface{}{key.New("name"): "intf123"}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "config"),
+			nil,
+			map[key.Key]interface{}{key.New("name"): "intf123"}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "state"),
+			nil,
+			map[key.Key]interface{}{key.New("name"): "intf123"}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "state", "counters"),
+			nil,
+			map[key.Key]interface{}{key.New("in-octets"): uint64(1)}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "state", "counters"),
+			nil,
+			map[key.Key]interface{}{key.New("in-multicast-pkts"): uint64(42)}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "state", "counters"),
+			nil,
+			map[key.Key]interface{}{key.New("in-octets"): uint64(2)}),
+		types.NewNotification(
+			ts42,
+			path.New("OpenConfig", "interfaces", "interface",
+				map[string]interface{}{"name": "intf123"}, "state", "counters"),
+			nil,
+			map[key.Key]interface{}{key.New("in-octets"): uint64(3)}),
+	}
+
+	checkNotifs(t, ch, expected, 2*time.Second)
 }
