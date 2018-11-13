@@ -10,8 +10,6 @@ import (
 	"arista/gopenconfig/eos/converter"
 	"arista/gopenconfig/eos/mapping"
 	"arista/provider"
-	"arista/schema"
-	"arista/types"
 	"bytes"
 	"context"
 	"encoding/hex"
@@ -29,21 +27,15 @@ import (
 
 type snmp struct {
 	provider.ReadOnly
-	ready            chan struct{}
-	done             chan struct{}
 	errc             chan error
 	ctx              context.Context
-	cancel           context.CancelFunc
-	server           gnmi.GNMIServer
 	client           gnmi.GNMIClient
 	interfaceIndex   map[string]string
 	lldpLocPortIndex map[string]string
 	address          string
 	community        string
 	lock             sync.Mutex // gosnmp can't handle parallel gets
-
-	isInit bool
-	ch     chan<- types.Notification
+	initialized      bool
 }
 
 // Has read/write interface been established?
@@ -108,14 +100,8 @@ func SNMPCheckAlive() (bool, error) {
 	return true, err
 }
 
-func (s *snmp) WaitForNotification() {
-	<-s.ready
-}
-
-func (s *snmp) Stop() {
-	<-s.ready
+func (s *snmp) stop() {
 	gosnmp.Default.Conn.Close()
-	close(s.done)
 }
 
 // return base OID, index
@@ -702,27 +688,24 @@ func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-func (s *snmp) init(ch chan<- types.Notification) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	s.cancel = cancel
-
+func (s *snmp) init() error {
 	// Do SNMP networking setup.
 	err := snmpNetworkInit()
 	if err != nil {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
 
-	// Set up client and server. XXX_jcr: Once we switch over to the
-	// GNMIProvider interface we'll be passed a gNMIClient.
-	s.ctx, s.server, err = GNMIServer(ctx, ch, s.errc)
-	if err != nil {
-		return err
-	}
-	s.client = GNMIClient(s.server)
-
-	close(s.ready)
-
 	return nil
+}
+
+func (s *snmp) InitGNMI(client gnmi.GNMIClient) {
+	s.client = client
+	err := s.init()
+	if err != nil {
+		glog.Errorf("Error in initialization: %v", err)
+		return
+	}
+	s.initialized = true
 }
 
 func (s *snmp) handleErrors(ctx context.Context) {
@@ -741,30 +724,23 @@ func (s *snmp) handleErrors(ctx context.Context) {
 	}
 }
 
-func (s *snmp) Init(schema *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	s.isInit = true
-	s.ch = ch
-}
-
 func (s *snmp) Run(ctx context.Context) error {
-	// Do necessary setup.
-	err := s.init(s.ch)
-	if err != nil {
-		return fmt.Errorf("Error in initialization: %v", err)
+	if !s.initialized {
+		return fmt.Errorf("SNMP provider is uninitialized")
 	}
 
 	// Do periodic state updates.
-	defer s.cancel()
-	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+	go OpenConfigPollForever(ctx, s.client, pollInterval,
 		s.updateSystemState, s.errc)
-	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+	go OpenConfigPollForever(ctx, s.client, pollInterval,
 		s.updateInterfaces, s.errc)
-	go OpenConfigPollForever(s.ctx, s.client, pollInterval,
+	go OpenConfigPollForever(ctx, s.client, pollInterval,
 		s.updateLldp, s.errc)
 
 	// Watch for errors.
 	s.handleErrors(ctx)
-	s.Stop()
+
+	s.stop()
 	return nil
 }
 
@@ -772,14 +748,12 @@ func (s *snmp) Run(ctx context.Context) error {
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration) provider.EOSProvider {
+	pollInt time.Duration) provider.GNMIProvider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
 	pollInterval = pollInt
 	gosnmp.Default.Timeout = 2 * pollInterval
 	return &snmp{
-		ready:            make(chan struct{}),
-		done:             make(chan struct{}),
 		errc:             make(chan error),
 		interfaceIndex:   make(map[string]string),
 		lldpLocPortIndex: make(map[string]string),

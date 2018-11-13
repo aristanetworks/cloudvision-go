@@ -7,69 +7,66 @@ package providers
 
 import (
 	"arista/provider"
-	"arista/schema"
-	"arista/types"
 	"context"
 	"fmt"
 
 	"github.com/aristanetworks/glog"
-	"github.com/aristanetworks/goarista/gnmi"
+	agnmi "github.com/aristanetworks/goarista/gnmi"
 
-	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
 type gnmiProvider struct {
 	provider.ReadOnly
-	// Closed when we're done initialization
-	ready chan struct{}
-
-	client pb.GNMIClient
-	cfg    *gnmi.Config
-	paths  []string
-
-	channel chan<- types.Notification
-	isInit  bool
+	cfg         *agnmi.Config
+	paths       []string
+	inClient    gnmi.GNMIClient
+	outClient   gnmi.GNMIClient
+	initialized bool
 }
 
-func (p *gnmiProvider) WaitForNotification() {
-	<-p.ready
-}
-
-func (p *gnmiProvider) Init(s *schema.Schema, root types.Entity, ch chan<- types.Notification) {
-	p.channel = ch
-	p.isInit = true
+func (p *gnmiProvider) InitGNMI(client gnmi.GNMIClient) {
+	p.outClient = client
+	p.initialized = true
 }
 
 func (p *gnmiProvider) Run(ctx context.Context) error {
-	if !p.isInit {
+	if !p.initialized {
 		return fmt.Errorf("provider is uninitialized")
 	}
-	respChan := make(chan *pb.SubscribeResponse)
+	respChan := make(chan *gnmi.SubscribeResponse)
 	errChan := make(chan error)
-	ctx = gnmi.NewContext(ctx, p.cfg)
+	ctx = agnmi.NewContext(ctx, p.cfg)
 
-	subscribeOptions := &gnmi.SubscribeOptions{
+	subscribeOptions := &agnmi.SubscribeOptions{
 		Mode:       "stream",
 		StreamMode: "target_defined",
-		Paths:      gnmi.SplitPaths(p.paths),
+		Paths:      agnmi.SplitPaths(p.paths),
 	}
-	go gnmi.Subscribe(ctx, p.client, subscribeOptions, respChan, errChan)
-	close(p.ready)
+	go agnmi.Subscribe(ctx, p.inClient, subscribeOptions, respChan, errChan)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case response := <-respChan:
 			switch resp := response.Response.(type) {
-			case *pb.SubscribeResponse_Error:
+			case *gnmi.SubscribeResponse_Error:
 				// Not sure if this is recoverable so it doesn't return and hope things get better
 				glog.Errorf("gNMI SubscribeResponse Error: %v", resp.Error.Message)
-			case *pb.SubscribeResponse_SyncResponse:
+			case *gnmi.SubscribeResponse_SyncResponse:
 				if !resp.SyncResponse {
 					glog.Errorf("gNMI sync failed")
 				}
-			case *pb.SubscribeResponse_Update:
-				GNMIEmitNotif(resp.Update, p.channel)
+			case *gnmi.SubscribeResponse_Update:
+				setreq := &gnmi.SetRequest{
+					Prefix: resp.Update.Prefix,
+					Update: resp.Update.Update,
+					Delete: resp.Update.Delete,
+				}
+				_, err := p.outClient.Set(ctx, setreq)
+				if err != nil {
+					return err
+				}
 			}
 		case err := <-errChan:
 			return fmt.Errorf("Error from gNMI connection: %v", err)
@@ -78,11 +75,11 @@ func (p *gnmiProvider) Run(ctx context.Context) error {
 }
 
 // NewGNMIProvider returns a read-only gNMI provider.
-func NewGNMIProvider(client pb.GNMIClient, cfg *gnmi.Config, paths []string) provider.EOSProvider {
+func NewGNMIProvider(client gnmi.GNMIClient, cfg *agnmi.Config,
+	paths []string) provider.GNMIProvider {
 	return &gnmiProvider{
-		ready:  make(chan struct{}),
-		client: client,
-		cfg:    cfg,
-		paths:  paths,
+		inClient: client,
+		cfg:      cfg,
+		paths:    paths,
 	}
 }
