@@ -61,3 +61,7 @@ func (d *darwinDevice) DeviceID() (string, error) {
 func (d *darwinDevice) Providers() []provider.Provider {
 	return []provider.Provider{d.provider}
 }
+
+func (d *darwinDevice) Type() device.Type {
+	return device.Target
+}

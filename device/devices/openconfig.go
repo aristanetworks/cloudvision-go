@@ -46,6 +46,10 @@ type openconfigDevice struct {
 	config       *gnmi.Config
 }
 
+func (o *openconfigDevice) Type() device.Type {
+	return device.Target
+}
+
 func (o *openconfigDevice) CheckAlive() (bool, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

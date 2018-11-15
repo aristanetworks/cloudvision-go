@@ -28,7 +28,7 @@ func RunDeviceTest(t *testing.T, deviceName string,
 	if err != nil && shouldPass {
 		t.Fatalf("Unexpected error in device.Init: %s", err)
 	}
-	_, err = device.Create(deviceConfig)
+	_, err = device.CreateManager(deviceConfig)
 	if err != nil && shouldPass {
 		t.Fatalf("Unexpected error in device.Create: %s", err)
 	}
@@ -36,5 +36,5 @@ func RunDeviceTest(t *testing.T, deviceName string,
 	if err == nil && !shouldPass {
 		t.Fatal("Expected error but got none")
 	}
-	device.DeleteDevice()
+	device.Delete()
 }

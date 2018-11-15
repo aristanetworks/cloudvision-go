@@ -20,11 +20,31 @@ type Option struct {
 	Required    bool
 }
 
+// The Type is used to distinguish between a normal device and a management system.
+type Type int
+
+const (
+	// Target is an ordinary device streaming to CloudVision.
+	Target Type = 0
+	// ManagementSystem is a system managing other devices which itself shouldn't be
+	// treated an actual streaming device in CloudVision.
+	ManagementSystem Type = 1
+)
+
 // A Device knows how to interact with a specific device.
 type Device interface {
+	Type() Type
 	CheckAlive() (bool, error)
 	DeviceID() (string, error)
 	Providers() []provider.Provider
+}
+
+// String converts a device Type enum to it's string value.
+func (t Type) String() string {
+	return map[Type]string{
+		Target:           "target",
+		ManagementSystem: "managementSystem",
+	}[t]
 }
 
 // Creator returns a new instance of a Device.
@@ -40,34 +60,32 @@ type deviceInfo struct {
 }
 
 var deviceMap = map[string]deviceInfo{}
-var deviceInUse *deviceInfo
 
-// Name returns the name of the current device in use if any.
-func Name() string {
-	if deviceInUse == nil {
+// ManagerName returns the name of the current manager in use if any.
+func ManagerName() string {
+	if managerInUse == nil {
 		return ""
 	}
-	return (*deviceInUse).name
+	return (*managerInUse).name
 }
 
 // sanitizedOptions takes the map of device option keys and values
 // passed in at the command line and checks it against the device's
 // exported list of accepted options, returning an error if there
 // are inappropriate or missing options.
-func sanitizedOptions(device *deviceInfo,
-	config map[string]string) (map[string]string, error) {
-	if device == nil {
+func sanitizedOptions(manager *managerInfo, config map[string]string) (map[string]string, error) {
+	if manager == nil {
 		return nil, fmt.Errorf("Nil deviceInfo")
 	}
 
-	options := device.options
+	options := manager.options
 	sopt := make(map[string]string)
 
 	// Check whether the user gave us bad options.
 	for k, v := range config {
 		_, ok := options[k]
 		if !ok {
-			return nil, fmt.Errorf("Bad option '%s' for device '%s'", k, device.name)
+			return nil, fmt.Errorf("Bad option '%s' for manager '%s'", k, manager.name)
 		}
 		sopt[k] = v
 	}
@@ -106,24 +124,28 @@ func setDeviceInUse(name string) error {
 		return fmt.Errorf("Device %s doesn't exist", name)
 	}
 
-	deviceInUse = &di
+	managerInUse = &managerInfo{
+		name:    di.name,
+		options: di.options,
+		creator: transformCreator(di.creator),
+	}
 	return nil
 }
 
-// Create takes a config map, sanitizes the provided config, and
-// returns a device from the current device in use initialized with the sanitized config.
-func Create(config map[string]string) (Device, error) {
+// CreateManager takes a config map, sanitizes the provided config, and
+// returns a manager from the current manager in use initialized with the sanitized config.
+func CreateManager(config map[string]string) (Manager, error) {
 
-	if deviceInUse == nil {
-		return nil, errors.New("No device in use")
+	if managerInUse == nil {
+		return nil, errors.New("No manager in use")
 	}
 
-	sanitizedConfig, err := sanitizedOptions(deviceInUse, config)
+	sanitizedConfig, err := sanitizedOptions(managerInUse, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return deviceInUse.creator(sanitizedConfig)
+	return managerInUse.creator(sanitizedConfig)
 }
 
 // Init takes relevant information about a device and does initial setup for that device.
@@ -144,9 +166,9 @@ func Init(pluginDir, deviceName string, creator *Creator,
 	return nil
 }
 
-// DeleteDevice clears the registry of any created devices.
-func DeleteDevice() {
-	deviceInUse = nil
+// Delete clears the manager currently in use.
+func Delete() {
+	managerInUse = nil
 }
 
 // UnregisterDevice removes a device from the registry.
@@ -155,10 +177,10 @@ func UnregisterDevice(name string) {
 }
 
 // Create map of option key to description.
-func helpDesc(devInfo deviceInfo) map[string]string {
+func helpDesc(options map[string]Option) map[string]string {
 	hd := make(map[string]string)
 
-	for k, v := range devInfo.options {
+	for k, v := range options {
 		desc := v.Description
 		// Add default if there's a non-empty one.
 		if v.Default != "" {
@@ -169,25 +191,25 @@ func helpDesc(devInfo deviceInfo) map[string]string {
 	return hd
 }
 
-// Return deviceInUse's help string.
-func help(deviceInUse deviceInfo) string {
+// Return managerInUse's help string.
+func help(options map[string]Option, name string) string {
 	b := new(bytes.Buffer)
-	hd := helpDesc(deviceInUse)
+	hd := helpDesc(options)
 	// Don't print out device separator if the device has no options.
 	if len(hd) == 0 {
 		return ""
 	}
-	flag.FormatOptions(b, "Help options for device "+deviceInUse.name+":", hd)
+	flag.FormatOptions(b, "Help options for device/manager "+name+":", hd)
 	return b.String()
 }
 
 // AddHelp adds the deviceInUse's options to flag.Usage.
 func AddHelp() error {
-	if deviceInUse == nil {
-		return errors.New("No device in use")
+	if managerInUse == nil {
+		return errors.New("No manager in use")
 	}
 
-	h := help(*deviceInUse)
+	h := help(managerInUse.options, managerInUse.name)
 	flag.AddHelp("", h)
 	return nil
 }

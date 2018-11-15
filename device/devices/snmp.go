@@ -46,6 +46,10 @@ type snmp struct {
 	snmpProvider provider.GNMIProvider
 }
 
+func (s *snmp) Type() device.Type {
+	return device.Target
+}
+
 // XXX_jcr: For now, we return an error rather than just returning false. We
 // may want to rethink that in the future.
 func (s *snmp) CheckAlive() (bool, error) {

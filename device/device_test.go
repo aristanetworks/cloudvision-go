@@ -25,7 +25,11 @@ type optionsTestCase struct {
 }
 
 func runOptionsTest(t *testing.T, testCase optionsTestCase) {
-	sanitized, err := sanitizedOptions(&testCase.devInfo, testCase.config)
+	sanitized, err := sanitizedOptions(&managerInfo{
+		name:    testCase.devInfo.name,
+		options: testCase.devInfo.options,
+		creator: transformCreator(testCase.devInfo.creator),
+	}, testCase.config)
 	if testCase.shouldPass && err != nil {
 		t.Fatalf("Error sanitizing options in test %s", testCase.description)
 	}
@@ -97,13 +101,13 @@ func TestOptions(t *testing.T) {
 	runOptionsTests(t, testCases)
 }
 
-var h1 = `Help options for device test:
+var h1 = `Help options for device/manager test:
   a
 	option a is a required option
   b
 	option b is not required (default stuff)` + "\n"
 
-var h2 = `Help options for device anothertest:
+var h2 = `Help options for device/manager anothertest:
   x
 	Sets something or other. (default true)
   y
@@ -142,7 +146,7 @@ type helpTestCase struct {
 }
 
 func runHelpTest(t *testing.T, testCase helpTestCase) {
-	dh := help(testCase.devInfo)
+	dh := help(testCase.devInfo.options, testCase.devInfo.name)
 	if dh != testCase.expectedHelpString {
 		t.Fatalf("In test %s, generated help string did not match expected:\n%s\n%s",
 			testCase.description, dh, testCase.expectedHelpString)

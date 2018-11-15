@@ -52,6 +52,10 @@ func (c *cvpDevice) CheckAlive() (bool, error) {
 	return true, nil
 }
 
+func (c *cvpDevice) Type() device.Type {
+	return device.ManagementSystem
+}
+
 func (c *cvpDevice) DeviceID() (string, error) {
 	return c.systemID, nil
 }
