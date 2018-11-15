@@ -321,7 +321,7 @@ func TestSetRequestNotifications(t *testing.T) {
 	defer cancel()
 	ch := make(chan types.Notification)
 	errc := make(chan error)
-	ctx, srv, err := GNMIServer(ctx, ch, errc)
+	ctx, srv, err := GNMIServer(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -587,7 +587,7 @@ func TestOpenConfigPollForever(t *testing.T) {
 	defer cancel()
 	ch := make(chan types.Notification)
 	errc := make(chan error)
-	ctx, srv, err := GNMIServer(ctx, ch, errc)
+	ctx, srv, err := GNMIServer(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
 	if err != nil {
 		t.Fatal(err)
 	}

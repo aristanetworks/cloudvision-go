@@ -25,6 +25,7 @@ type gnmieos struct {
 	ready       chan struct{}
 	initialized bool
 	notifChan   chan<- types.Notification
+	yangPaths   []string
 }
 
 func (g *gnmieos) Init(s *schema.Schema, root types.Entity,
@@ -39,7 +40,7 @@ func (g *gnmieos) Run(ctx context.Context) error {
 	}
 
 	var err error
-	ctx, g.server, err = GNMIServer(ctx, g.notifChan, g.errc)
+	ctx, g.server, err = GNMIServer(ctx, g.notifChan, g.errc, g.yangPaths)
 	if err != nil {
 		glog.Errorf("Error in creating GNMIServer: %v", err)
 	}
@@ -57,10 +58,11 @@ func (g *gnmieos) WaitForNotification() {
 
 // NewGNMIEOSProvider takes in a GNMIProvider and returns the same
 // provider, converted to an EOSProvider
-func NewGNMIEOSProvider(gp provider.GNMIProvider) provider.EOSProvider {
+func NewGNMIEOSProvider(gp provider.GNMIProvider, yangPaths []string) provider.EOSProvider {
 	return &gnmieos{
-		prov:  gp,
-		errc:  make(chan error),
-		ready: make(chan struct{}),
+		prov:      gp,
+		errc:      make(chan error),
+		ready:     make(chan struct{}),
+		yangPaths: yangPaths,
 	}
 }

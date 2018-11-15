@@ -124,12 +124,10 @@ func GNMIEmitNotif(notif *gnmi.Notification, ch chan<- types.Notification) {
 	}
 }
 
-// XXX_jcr: Pass in a module list?
-func doYANGModuleSetup(ctx context.Context) (context.Context, error) {
+func doYANGModuleSetup(ctx context.Context, yangPaths []string) (context.Context, error) {
 	yangModules := modules.New()
-	yangRoot := []string{"../../gopenconfig/yang/github.com"}
 
-	if err := yangModules.AddRootPath(yangRoot...); err != nil {
+	if err := yangModules.AddRootPath(yangPaths...); err != nil {
 		return ctx, fmt.Errorf("error adding YANG directories: %s", err)
 	}
 
@@ -160,9 +158,9 @@ func doDatastoresSetup(ctx context.Context) (context.Context,
 
 // openConfigSetUpDatastores sets up an OpenConfig tree using the
 // default modules.
-func openConfigSetUpDatastores(ctx context.Context) (context.Context,
+func openConfigSetUpDatastores(ctx context.Context, yangPaths []string) (context.Context,
 	model.Datastores, error) {
-	ctx, err := doYANGModuleSetup(ctx)
+	ctx, err := doYANGModuleSetup(ctx, yangPaths)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -268,8 +266,8 @@ func subscribeAll(stream *subscribeStream) {
 // GNMIServer creates a new OpenConfig tree and returns a
 // gnmi.GNMIServer that operates on that tree.
 func GNMIServer(ctx context.Context, ch chan<- types.Notification,
-	errc chan error) (context.Context, gnmi.GNMIServer, error) {
-	ctx, datastores, err := openConfigSetUpDatastores(ctx)
+	errc chan error, yangPaths []string) (context.Context, gnmi.GNMIServer, error) {
+	ctx, datastores, err := openConfigSetUpDatastores(ctx, yangPaths)
 	if err != nil {
 		return ctx, nil, fmt.Errorf("Error setting up data tree: %v", err)
 	}
