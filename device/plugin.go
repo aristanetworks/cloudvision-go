@@ -6,24 +6,30 @@
 package device
 
 import (
-	"io/ioutil"
-	"path"
+	"fmt"
+	"os"
+	"path/filepath"
 	"plugin"
 )
 
-// loadPlugins loads all the plugin files present in the given directory.
+// loadPlugins recursively loads all the plugin files with the suffix .so,
+// starting at the given directory.
 func loadPlugins(pluginDir string) error {
 	if pluginDir == "" {
 		return nil
 	}
-	pluginFiles, err := ioutil.ReadDir(pluginDir)
-	if err != nil {
-		return err
-	}
-	for _, file := range pluginFiles {
-		if _, err = plugin.Open(path.Join(pluginDir, file.Name())); err != nil {
-			return err
+	return filepath.Walk(pluginDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("Failed to access path %s: %s", path, err)
 		}
-	}
-	return nil
+		if info == nil || info.IsDir() {
+			return nil
+		}
+		if !info.IsDir() && filepath.Ext(path) == ".so" {
+			if _, err = plugin.Open(path); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
