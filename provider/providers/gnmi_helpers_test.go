@@ -317,6 +317,7 @@ func checkNotifs(t *testing.T, ch chan types.Notification,
 // Check that SetRequests handed to the GNMIClient produce the
 // expected types.Notifications.
 func TestSetRequestNotifications(t *testing.T) {
+	t.Skip("Test is flaky")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ch := make(chan types.Notification)
@@ -582,6 +583,7 @@ func testPoller() (*gnmi.SetRequest, error) {
 
 // Test the poller API.
 func TestOpenConfigPollForever(t *testing.T) {
+	t.Skip("Test is flaky")
 	// Set up.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
