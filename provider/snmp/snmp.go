@@ -3,17 +3,17 @@
 // Subject to Arista Networks, Inc.'s EULA.
 // FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-package providers
+package snmp
 
 import (
 	"arista/provider"
+	pgnmi "arista/provider/gnmi"
 	"arista/provider/openconfig"
 	"bytes"
 	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -54,8 +54,8 @@ func snmpNetworkInit() error {
 	return err
 }
 
-// SNMPGetByOID returns the value at oid.
-func SNMPGetByOID(oid string) (string, error) {
+// GetByOID returns the value at oid.
+func GetByOID(oid string) (string, error) {
 	oids := []string{oid}
 	err := snmpNetworkInit()
 	if err != nil {
@@ -83,17 +83,17 @@ func SNMPGetByOID(oid string) (string, error) {
 	return "", errors.New("How did we get here?")
 }
 
-// SNMPDeviceID returns the device ID
-func SNMPDeviceID() (string, error) {
-	return SNMPGetByOID(snmpEntPhysicalSerialNum)
+// DeviceID returns the device ID
+func DeviceID() (string, error) {
+	return GetByOID(snmpEntPhysicalSerialNum)
 }
 
-// SNMPCheckAlive checks if device is still alive if poll interval has passed.
-func SNMPCheckAlive() (bool, error) {
+// CheckAlive checks if device is still alive if poll interval has passed.
+func CheckAlive() (bool, error) {
 	if time.Since(lastAlive) < pollInterval {
 		return true, nil
 	}
-	_, err := SNMPGetByOID(snmpSysUpTime)
+	_, err := GetByOID(snmpSysUpTime)
 	return true, err
 }
 
@@ -161,87 +161,24 @@ const (
 
 // Less typing:
 func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
-	return GNMIUpdate(path, val)
-}
-
-// toInt64 converts an interface to a int64.
-func toInt64(valIntf interface{}) (int64, error) {
-	var val int64
-	switch t := valIntf.(type) {
-	case int:
-		val = int64(t)
-	case int8:
-		val = int64(t)
-	case int16:
-		val = int64(t)
-	case int32:
-		val = int64(t)
-	case int64:
-		val = t
-	case uint:
-		val = int64(t)
-	case uint8:
-		val = int64(t)
-	case uint16:
-		val = int64(t)
-	case uint32:
-		val = int64(t)
-	case uint64:
-		if t > math.MaxInt64 {
-			return 0, fmt.Errorf("could not convert to int64, %d larger than max of %d",
-				t, uint64(math.MaxInt64))
-		}
-		val = int64(t)
-	default:
-		return 0, fmt.Errorf("update contained value of unexpected type %T", valIntf)
-	}
-	return val, nil
-}
-
-// toUint64 converts an interface to a uint64.
-func toUint64(valIntf interface{}) (uint64, error) {
-	var val uint64
-	switch t := valIntf.(type) {
-	case int, int8, int16, int32, int64:
-		v, e := toInt64(t)
-		if e != nil {
-			return 0, e
-		}
-		if v < 0 {
-			return 0, fmt.Errorf("value %d cannot be converted to uint as it is negative", v)
-		}
-		val = uint64(v)
-	case uint:
-		val = uint64(t)
-	case uint8:
-		val = uint64(t)
-	case uint16:
-		val = uint64(t)
-	case uint32:
-		val = uint64(t)
-	case uint64:
-		val = t
-	default:
-		return 0, fmt.Errorf("update contained value of unexpected type %T", valIntf)
-	}
-	return val, nil
+	return pgnmi.Update(path, val)
 }
 
 func strval(s interface{}) *gnmi.TypedValue {
 	t, ok := s.(string)
 	if ok {
-		return GNMIStrval(t)
+		return pgnmi.Strval(t)
 	}
 	u, ok := s.([]byte)
 	if ok {
-		return GNMIStrval(string(u))
+		return pgnmi.Strval(string(u))
 	}
 	glog.Fatalf("Unexpected type in strval: %T", s)
 	return nil
 }
 func uintval(u interface{}) *gnmi.TypedValue {
-	if v, err := toUint64(u); err == nil {
-		return GNMIUintval(v)
+	if v, err := provider.ToUint64(u); err == nil {
+		return pgnmi.Uintval(v)
 	}
 	return nil
 }
@@ -265,58 +202,58 @@ func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	var u *gnmi.Update
 	switch baseOid {
 	case snmpIfDescr:
-		u = update(GNMIIntfStatePath(intfName, "name"),
+		u = update(pgnmi.IntfStatePath(intfName, "name"),
 			strval(pdu.Value))
 	case snmpIfType:
-		u = update(GNMIIntfStatePath(intfName, "type"),
+		u = update(pgnmi.IntfStatePath(intfName, "type"),
 			strval(openconfig.InterfaceType(pdu.Value.(int))))
 	case snmpIfMtu:
-		u = update(GNMIIntfStatePath(intfName, "mtu"),
+		u = update(pgnmi.IntfStatePath(intfName, "mtu"),
 			uintval(pdu.Value))
 	case snmpIfAdminStatus:
-		u = update(GNMIIntfStatePath(intfName, "admin-status"),
+		u = update(pgnmi.IntfStatePath(intfName, "admin-status"),
 			strval(openconfig.IntfAdminStatus(pdu.Value.(int))))
 	case snmpIfOperStatus:
-		u = update(GNMIIntfStatePath(intfName, "oper-status"),
+		u = update(pgnmi.IntfStatePath(intfName, "oper-status"),
 			strval(openconfig.IntfOperStatus(pdu.Value.(int))))
 	case snmpIfInOctets:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-octets"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-octets"),
 			uintval(pdu.Value))
 	case snmpIfInUcastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-unicast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-unicast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfInMulticastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-multicast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-multicast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfInBroadcastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-broadcast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-broadcast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfInDiscards:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-discards"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-discards"),
 			uintval(pdu.Value))
 	case snmpIfInErrors:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-errors"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-errors"),
 			uintval(pdu.Value))
 	case snmpIfInUnknownProtos:
-		u = update(GNMIIntfStateCountersPath(intfName, "in-unknown-protos"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "in-unknown-protos"),
 			uintval(pdu.Value))
 	case snmpIfOutOctets:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-octets"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-octets"),
 			uintval(pdu.Value))
 	case snmpIfOutUcastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-unicast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-unicast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfOutMulticastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-multicast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-multicast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfOutBroadcastPkts:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-broadcast-pkts"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-broadcast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfOutDiscards:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-discards"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-discards"),
 			uintval(pdu.Value))
 	case snmpIfOutErrors:
-		u = update(GNMIIntfStateCountersPath(intfName, "out-errors"),
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-errors"),
 			uintval(pdu.Value))
 	default:
 		// default: ignore update
@@ -327,8 +264,8 @@ func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// When we get a name, add name, config/name, state/name.
 	if baseOid == snmpIfDescr {
 		updates = append(updates,
-			update(GNMIIntfPath(intfName, "name"), strval(intfName)),
-			update(GNMIIntfConfigPath(intfName, "name"), strval(intfName)))
+			update(pgnmi.IntfPath(intfName, "name"), strval(intfName)),
+			update(pgnmi.IntfConfigPath(intfName, "name"), strval(intfName)))
 	}
 	return updates, nil
 }
@@ -358,7 +295,7 @@ func (s *snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 		return nil, err
 	}
 
-	setReq.Delete = []*gnmi.Path{GNMIPath("interfaces", "interface")}
+	setReq.Delete = []*gnmi.Path{pgnmi.Path("interfaces", "interface")}
 	setReq.Replace = updates
 	return setReq, nil
 }
@@ -367,15 +304,15 @@ func (s *snmp) updateSystemState() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	setReq := new(gnmi.SetRequest)
-	sysName, err := SNMPGetByOID(snmpSysName)
+	sysName, err := GetByOID(snmpSysName)
 	if err != nil {
 		return nil, err
 	}
 	hostname := strings.Split(sysName, ".")[0]
 	domainName := strings.Join(strings.Split(sysName, ".")[1:], ".")
 
-	hn := update(GNMIPath("system", "state", "hostname"), strval(hostname))
-	dn := update(GNMIPath("system", "state", "domain-name"),
+	hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
+	dn := update(pgnmi.Path("system", "state", "domain-name"),
 		strval(domainName))
 	setReq.Replace = []*gnmi.Update{hn, dn}
 
@@ -450,7 +387,7 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
 		updates = append(updates,
-			update(GNMILldpNeighborStatePath(intfName, remoteID, "id"),
+			update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
 				strval(remoteID)))
 	}
 
@@ -458,59 +395,59 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	switch baseOid {
 	case snmpLldpLocPortID:
 		updates = append(updates,
-			update(GNMILldpIntfConfigPath(intfName, "name"),
+			update(pgnmi.LldpIntfConfigPath(intfName, "name"),
 				strval(intfName)),
-			update(GNMILldpIntfPath(intfName, "name"),
+			update(pgnmi.LldpIntfPath(intfName, "name"),
 				strval(intfName)),
-			update(GNMILldpIntfStatePath(intfName, "name"),
+			update(pgnmi.LldpIntfStatePath(intfName, "name"),
 				strval(intfName)))
 	case snmpLldpLocChassisID:
-		u = update(GNMILldpStatePath("chassis-id"),
+		u = update(pgnmi.LldpStatePath("chassis-id"),
 			strval(macFromBytes(pdu.Value.([]byte))))
 	case snmpLldpLocChassisIDSubtype:
-		u = update(GNMILldpStatePath("chassis-id-type"),
+		u = update(pgnmi.LldpStatePath("chassis-id-type"),
 			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
 	case snmpLldpLocSysName:
-		u = update(GNMILldpStatePath("system-name"),
+		u = update(pgnmi.LldpStatePath("system-name"),
 			strval(pdu.Value))
 	case snmpLldpLocSysDesc:
-		u = update(GNMILldpStatePath("system-description"),
+		u = update(pgnmi.LldpStatePath("system-description"),
 			strval(pdu.Value))
 	case snmpLldpStatsTxPortFramesTotal:
-		u = update(GNMILldpIntfCountersPath(intfName, "frame-out"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-out"),
 			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesDiscard:
-		u = update(GNMILldpIntfCountersPath(intfName, "frame-discard"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-discard"),
 			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesErrors:
-		u = update(GNMILldpIntfCountersPath(intfName, "frame-error-in"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-error-in"),
 			uintval(pdu.Value))
 	case snmpLldpStatsRxPortFramesTotal:
-		u = update(GNMILldpIntfCountersPath(intfName, "frame-in"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-in"),
 			uintval(pdu.Value))
 	case snmpLldpStatsRxPortTLVsDiscard:
-		u = update(GNMILldpIntfCountersPath(intfName, "tlv-discard"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "tlv-discard"),
 			uintval(pdu.Value))
 	case snmpLldpStatsRxPortTLVsUnrecog:
-		u = update(GNMILldpIntfCountersPath(intfName, "tlv-unknown"),
+		u = update(pgnmi.LldpIntfCountersPath(intfName, "tlv-unknown"),
 			uintval(pdu.Value))
 	case snmpLldpRemPortID:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "port-id"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id"),
 			strval(pdu.Value))
 	case snmpLldpRemPortIDSubtype:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "port-id-type"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id-type"),
 			strval(openconfig.LLDPPortIDType(pdu.Value.(int))))
 	case snmpLldpRemChassisID:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "chassis-id"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id"),
 			strval(macFromBytes(pdu.Value.([]byte))))
 	case snmpLldpRemChassisIDSubtype:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
 			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
 	case snmpLldpRemSysName:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "system-name"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "system-name"),
 			strval(pdu.Value))
 	case snmpLldpRemSysDesc:
-		u = update(GNMILldpNeighborStatePath(intfName, remoteID, "system-description"),
+		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "system-description"),
 			strval(pdu.Value))
 	}
 	if u != nil {
@@ -547,7 +484,7 @@ func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
 		return nil, err
 	}
 
-	setReq.Delete = []*gnmi.Path{GNMIPath("lldp")}
+	setReq.Delete = []*gnmi.Path{pgnmi.Path("lldp")}
 	setReq.Replace = updates
 	return setReq, nil
 }
@@ -594,11 +531,11 @@ func (s *snmp) Run(ctx context.Context) error {
 	}
 
 	// Do periodic state updates.
-	go OpenConfigPollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, pollInterval,
 		s.updateSystemState, s.errc)
-	go OpenConfigPollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, pollInterval,
 		s.updateInterfaces, s.errc)
-	go OpenConfigPollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, pollInterval,
 		s.updateLldp, s.errc)
 
 	// Watch for errors.

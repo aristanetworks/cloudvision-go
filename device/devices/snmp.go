@@ -8,7 +8,7 @@ package devices
 import (
 	"arista/device"
 	"arista/provider"
-	"arista/provider/providers"
+	psnmp "arista/provider/snmp"
 	"errors"
 	"net"
 	"strconv"
@@ -55,7 +55,7 @@ func (s *snmp) Type() device.Type {
 func (s *snmp) CheckAlive() (bool, error) {
 	// Grab the device uptime. We don't actually need the uptime, though--we're
 	// just checking whether anyone's home.
-	_, err := providers.SNMPCheckAlive()
+	_, err := psnmp.CheckAlive()
 	if err != nil {
 		return false, err
 	}
@@ -66,7 +66,7 @@ func (s *snmp) DeviceID() (string, error) {
 	if s.systemID != "" {
 		return s.systemID, nil
 	}
-	systemID, err := providers.SNMPDeviceID()
+	systemID, err := psnmp.DeviceID()
 	if err != nil {
 		return "", err
 	}
@@ -140,7 +140,7 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, err
 	}
 
-	s.snmpProvider = providers.NewSNMPProvider(s.address, s.community, s.pollInterval)
+	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.community, s.pollInterval)
 
 	return s, nil
 }

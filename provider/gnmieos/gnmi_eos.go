@@ -3,10 +3,11 @@
 // Subject to Arista Networks, Inc.'s EULA.
 // FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-package providers
+package gnmieos
 
 import (
 	"arista/provider"
+	pgnmi "arista/provider/gnmi"
 	"arista/schema"
 	"arista/types"
 	"context"
@@ -40,12 +41,12 @@ func (g *gnmieos) Run(ctx context.Context) error {
 	}
 
 	var err error
-	ctx, g.server, err = GNMIServer(ctx, g.notifChan, g.errc, g.yangPaths)
+	ctx, g.server, err = pgnmi.Server(ctx, g.notifChan, g.errc, g.yangPaths)
 	if err != nil {
 		glog.Errorf("Error in creating GNMIServer: %v", err)
 	}
 
-	g.client = GNMIClient(g.server)
+	g.client = pgnmi.Client(g.server)
 	g.prov.InitGNMI(g.client)
 	close(g.ready)
 	err = g.prov.Run(ctx)
@@ -58,7 +59,8 @@ func (g *gnmieos) WaitForNotification() {
 
 // NewGNMIEOSProvider takes in a GNMIProvider and returns the same
 // provider, converted to an EOSProvider
-func NewGNMIEOSProvider(gp provider.GNMIProvider, yangPaths []string) provider.EOSProvider {
+func NewGNMIEOSProvider(gp provider.GNMIProvider,
+	yangPaths []string) provider.EOSProvider {
 	return &gnmieos{
 		prov:      gp,
 		errc:      make(chan error),

@@ -3,7 +3,7 @@
 // Subject to Arista Networks, Inc.'s EULA.
 // FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-package providers
+package gnmi
 
 import (
 	"arista/test/notiftest"
@@ -264,7 +264,7 @@ func waitForSync(ctx context.Context, t *testing.T, client gnmi.GNMIClient,
 	_, _ = client.Set(ctx,
 		&gnmi.SetRequest{
 			Delete: []*gnmi.Path{
-				GNMIPath("interfaces", "interface"),
+				Path("interfaces", "interface"),
 			},
 		})
 	var to <-chan time.Time
@@ -314,18 +314,18 @@ func checkNotifs(t *testing.T, ch chan types.Notification,
 	}
 }
 
-// Check that SetRequests handed to the GNMIClient produce the
+// Check that SetRequests handed to the Client produce the
 // expected types.Notifications.
 func TestSetRequestNotifications(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ch := make(chan types.Notification)
 	errc := make(chan error)
-	ctx, srv, err := GNMIServer(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
+	ctx, srv, err := Server(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := GNMIClient(srv)
+	client := Client(srv)
 
 	waitForSync(ctx, t, client, ch)
 
@@ -339,8 +339,7 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "hostname",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMIPath("system", "state", "hostname"),
-						GNMIStrval("xyz")),
+					Update(Path("system", "state", "hostname"), Strval("xyz")),
 				},
 			},
 			notifs: []types.Notification{
@@ -355,14 +354,13 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "interface",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMIIntfConfigPath("intf123", "name"),
-						GNMIStrval("intf123")),
-					GNMIUpdate(GNMIIntfPath("intf123", "name"),
-						GNMIStrval("intf123")),
-					GNMIUpdate(GNMIIntfConfigPath("intf456", "name"),
-						GNMIStrval("intf456")),
-					GNMIUpdate(GNMIIntfPath("intf456", "name"),
-						GNMIStrval("intf456")),
+					Update(IntfConfigPath("intf123", "name"), Strval("intf123")),
+					Update(IntfPath("intf123", "name"),
+						Strval("intf123")),
+					Update(IntfConfigPath("intf456", "name"),
+						Strval("intf456")),
+					Update(IntfPath("intf456", "name"),
+						Strval("intf456")),
 				},
 			},
 			notifs: []types.Notification{
@@ -396,8 +394,8 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "interface counters",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMIIntfStateCountersPath("intf123", "in-octets"),
-						GNMIUintval(uint64(1234))),
+					Update(IntfStateCountersPath("intf123", "in-octets"),
+						Uintval(uint64(1234))),
 				},
 			},
 			notifs: []types.Notification{
@@ -413,10 +411,10 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "lldp local interface",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMILldpIntfPath("intf123", "name"),
-						GNMIStrval("intf123")),
-					GNMIUpdate(GNMILldpIntfConfigPath("intf123", "name"),
-						GNMIStrval("intf123")),
+					Update(LldpIntfPath("intf123", "name"),
+						Strval("intf123")),
+					Update(LldpIntfConfigPath("intf123", "name"),
+						Strval("intf123")),
 				},
 			},
 			notifs: []types.Notification{
@@ -438,10 +436,10 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "lldp neighbor",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMILldpNeighborStatePath("intf123", "1",
-						"id"), GNMIStrval("1")),
-					GNMIUpdate(GNMILldpNeighborStatePath("intf123", "1",
-						"chassis-id"), GNMIStrval("whatever")),
+					Update(LldpNeighborStatePath("intf123", "1",
+						"id"), Strval("1")),
+					Update(LldpNeighborStatePath("intf123", "1",
+						"chassis-id"), Strval("whatever")),
 				},
 			},
 			notifs: []types.Notification{
@@ -473,13 +471,13 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "interface delete",
 			setReq: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{
-					GNMIPath("interfaces", "interface"),
+					Path("interfaces", "interface"),
 				},
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMIIntfConfigPath("intf123", "name"),
-						GNMIStrval("intf123")),
-					GNMIUpdate(GNMIIntfPath("intf123", "name"),
-						GNMIStrval("intf123")),
+					Update(IntfConfigPath("intf123", "name"),
+						Strval("intf123")),
+					Update(IntfPath("intf123", "name"),
+						Strval("intf123")),
 				},
 			},
 			notifs: []types.Notification{
@@ -495,8 +493,8 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "another interface delete",
 			setReq: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{
-					GNMIPath("interfaces", "interface"),
-					GNMIPath("lldp", "interfaces"),
+					Path("interfaces", "interface"),
+					Path("lldp", "interfaces"),
 				},
 			},
 			notifs: []types.Notification{
@@ -522,8 +520,8 @@ func TestSetRequestNotifications(t *testing.T) {
 			desc: "bogus path",
 			setReq: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
-					GNMIUpdate(GNMIIntfStatePath("intf123", "bogus"),
-						GNMIUintval(uint64(12))),
+					Update(IntfStatePath("intf123", "bogus"),
+						Uintval(uint64(12))),
 				},
 			},
 			notifs:     nil,
@@ -562,16 +560,16 @@ func testPoller() (*gnmi.SetRequest, error) {
 	}
 	setreq := &gnmi.SetRequest{
 		Delete: []*gnmi.Path{
-			GNMIPath("interfaces", "interface"),
+			Path("interfaces", "interface"),
 		},
 		Replace: []*gnmi.Update{
-			GNMIUpdate(GNMIIntfPath(ifName, "name"), GNMIStrval(ifName)),
-			GNMIUpdate(GNMIIntfConfigPath(ifName, "name"), GNMIStrval(ifName)),
-			GNMIUpdate(GNMIIntfStatePath(ifName, "name"), GNMIStrval(ifName)),
-			GNMIUpdate(GNMIIntfStateCountersPath(ifName, "in-octets"),
-				GNMIUintval(inOctets)),
-			GNMIUpdate(GNMIIntfStateCountersPath(ifName, "in-multicast-pkts"),
-				GNMIUintval(inMcastPkts)),
+			Update(IntfPath(ifName, "name"), Strval(ifName)),
+			Update(IntfConfigPath(ifName, "name"), Strval(ifName)),
+			Update(IntfStatePath(ifName, "name"), Strval(ifName)),
+			Update(IntfStateCountersPath(ifName, "in-octets"),
+				Uintval(inOctets)),
+			Update(IntfStateCountersPath(ifName, "in-multicast-pkts"),
+				Uintval(inMcastPkts)),
 		},
 	}
 	if inOctets == npoll {
@@ -581,24 +579,24 @@ func testPoller() (*gnmi.SetRequest, error) {
 }
 
 // Test the poller API.
-func TestOpenConfigPollForever(t *testing.T) {
+func TestPollForever(t *testing.T) {
 	// Set up.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ch := make(chan types.Notification)
 	errc := make(chan error)
-	ctx, srv, err := GNMIServer(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
+	ctx, srv, err := Server(ctx, ch, errc, []string{"../../gopenconfig/yang/github.com"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := GNMIClient(srv)
+	client := Client(srv)
 
 	// Clear queued notifs.
 	waitForSync(ctx, t, client, ch)
 
 	wg.Add(1)
 	// Run poller 3 times.
-	go OpenConfigPollForever(ctx, client, 100*time.Millisecond, testPoller, errc)
+	go PollForever(ctx, client, 100*time.Millisecond, testPoller, errc)
 
 	wg.Wait() // Wait for the poller to poll 3x.
 

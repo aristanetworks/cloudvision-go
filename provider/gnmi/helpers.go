@@ -3,7 +3,7 @@
 // Subject to Arista Networks, Inc.'s EULA.
 // FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-package providers
+package gnmi
 
 import (
 	aaagrpc "arista/aaa/grpc"
@@ -111,10 +111,10 @@ func convertNotif(notif *gnmi.Notification) []types.Notification {
 	return ret
 }
 
-// GNMIEmitNotif converts a gNMI notification into a series of
+// EmitNotif converts a gNMI notification into a series of
 // types.Notifications and puts those on the provided notif channel,
 // adding any necessary pointer path notifications.
-func GNMIEmitNotif(notif *gnmi.Notification, ch chan<- types.Notification) {
+func EmitNotif(notif *gnmi.Notification, ch chan<- types.Notification) {
 	transformer := apiserver.NewPathPointerCreator(true)
 	for _, update := range convertNotif(notif) {
 		for _, notif := range transformer.Transform(update) {
@@ -186,7 +186,7 @@ func (f *subscribeStream) Send(resp *gnmi.SubscribeResponse) error {
 		case *gnmi.SubscribeResponse_Error:
 			glog.Errorf("gNMI SubscribeResponse error: %v", r.Error.Message)
 		case *gnmi.SubscribeResponse_Update:
-			GNMIEmitNotif(r.Update, f.resp)
+			EmitNotif(r.Update, f.resp)
 		case *gnmi.SubscribeResponse_SyncResponse:
 			if !r.SyncResponse {
 				glog.Errorf("gNMI sync failed")
@@ -263,9 +263,9 @@ func subscribeAll(stream *subscribeStream) {
 	}
 }
 
-// GNMIServer creates a new OpenConfig tree and returns a
+// Server creates a new OpenConfig tree and returns a
 // gnmi.GNMIServer that operates on that tree.
-func GNMIServer(ctx context.Context, ch chan<- types.Notification,
+func Server(ctx context.Context, ch chan<- types.Notification,
 	errc chan error, yangPaths []string) (context.Context, gnmi.GNMIServer, error) {
 	ctx, datastores, err := openConfigSetUpDatastores(ctx, yangPaths)
 	if err != nil {
@@ -283,10 +283,10 @@ type gnmiclient struct {
 	s gnmi.GNMIServer
 }
 
-// GNMIClient takes a gnmi.GNMIServer and returns a gnmi.GNMIClient
+// Client takes a gnmi.GNMIServer and returns a gnmi.GNMIClient
 // that will translate client Sets to server Sets without doing any
 // RPC.
-func GNMIClient(s gnmi.GNMIServer) gnmi.GNMIClient {
+func Client(s gnmi.GNMIServer) gnmi.GNMIClient {
 	return &gnmiclient{s: s}
 }
 
@@ -340,8 +340,8 @@ func gNMIStreamUpdates(ctx context.Context, server gnmi.GNMIServer,
 	return ctx, nil
 }
 
-// GNMIPath returns a gnmi.Path given a set of elements.
-func GNMIPath(element ...string) *gnmi.Path {
+// Path returns a gnmi.Path given a set of elements.
+func Path(element ...string) *gnmi.Path {
 	p, err := agnmi.ParseGNMIElements(element)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to parse GNMI elements: %v", element))
@@ -357,28 +357,28 @@ func jsonValue(v interface{}) *gnmi.TypedValue {
 	return &gnmi.TypedValue{Value: &gnmi.TypedValue_JsonVal{JsonVal: vb}}
 }
 
-// GNMIStrval returns a gnmi.TypedValue from a string.
-func GNMIStrval(s string) *gnmi.TypedValue {
+// Strval returns a gnmi.TypedValue from a string.
+func Strval(s string) *gnmi.TypedValue {
 	return jsonValue(s)
 }
 
-// GNMIUintval returns a gnmi.TypedValue from a uint64.
-func GNMIUintval(u uint64) *gnmi.TypedValue {
+// Uintval returns a gnmi.TypedValue from a uint64.
+func Uintval(u uint64) *gnmi.TypedValue {
 	return jsonValue(u)
 }
 
-// GNMIIntval returns a gnmi.TypedValue from an int64.
-func GNMIIntval(i int64) *gnmi.TypedValue {
+// Intval returns a gnmi.TypedValue from an int64.
+func Intval(i int64) *gnmi.TypedValue {
 	return jsonValue(i)
 }
 
-// GNMIBoolval returns a gnmi.TypedValue from a bool.
-func GNMIBoolval(b bool) *gnmi.TypedValue {
+// Boolval returns a gnmi.TypedValue from a bool.
+func Boolval(b bool) *gnmi.TypedValue {
 	return jsonValue(b)
 }
 
-// GNMIUpdate creates a gNMI.Update.
-func GNMIUpdate(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
+// Update creates a gNMI.Update.
+func Update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	return &gnmi.Update{
 		Path: path,
 		Val:  val,
@@ -388,7 +388,7 @@ func GNMIUpdate(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 // A PollFn polls a target device and returns a gNMI SetRequest.
 type PollFn func() (*gnmi.SetRequest, error)
 
-func openConfigPollOnce(ctx context.Context, client gnmi.GNMIClient,
+func pollOnce(ctx context.Context, client gnmi.GNMIClient,
 	poller PollFn) error {
 	setreq, err := poller()
 	if err != nil {
@@ -400,14 +400,14 @@ func openConfigPollOnce(ctx context.Context, client gnmi.GNMIClient,
 	return err
 }
 
-// OpenConfigPollForever takes a polling function that performs a
+// PollForever takes a polling function that performs a
 // complete update of some part of the OpenConfig tree and calls it
 // at the specified interval.
-func OpenConfigPollForever(ctx context.Context, client gnmi.GNMIClient,
+func PollForever(ctx context.Context, client gnmi.GNMIClient,
 	interval time.Duration, poller PollFn, errc chan error) {
 
 	// Poll immediately.
-	if err := openConfigPollOnce(ctx, client, poller); err != nil {
+	if err := pollOnce(ctx, client, poller); err != nil {
 		errc <- err
 	}
 
@@ -417,7 +417,7 @@ func OpenConfigPollForever(ctx context.Context, client gnmi.GNMIClient,
 	for {
 		select {
 		case <-tick.C:
-			if err := openConfigPollOnce(ctx, client, poller); err != nil {
+			if err := pollOnce(ctx, client, poller); err != nil {
 				errc <- err
 			}
 		case <-ctx.Done():
@@ -434,64 +434,64 @@ func listWithKey(listName, keyName, key string) string {
 
 // Interface paths of interest:
 
-// GNMIIntfPath returns an interface path.
-func GNMIIntfPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+// IntfPath returns an interface path.
+func IntfPath(intfName, leafName string) *gnmi.Path {
+	return Path("interfaces", listWithKey("interface", "name", intfName),
 		leafName)
 }
 
-// GNMIIntfConfigPath returns an interface config path.
-func GNMIIntfConfigPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+// IntfConfigPath returns an interface config path.
+func IntfConfigPath(intfName, leafName string) *gnmi.Path {
+	return Path("interfaces", listWithKey("interface", "name", intfName),
 		"config", leafName)
 }
 
-// GNMIIntfStatePath returns an interface state path.
-func GNMIIntfStatePath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+// IntfStatePath returns an interface state path.
+func IntfStatePath(intfName, leafName string) *gnmi.Path {
+	return Path("interfaces", listWithKey("interface", "name", intfName),
 		"state", leafName)
 }
 
-// GNMIIntfStateCountersPath returns an interface state counters path.
-func GNMIIntfStateCountersPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("interfaces", listWithKey("interface", "name", intfName),
+// IntfStateCountersPath returns an interface state counters path.
+func IntfStateCountersPath(intfName, leafName string) *gnmi.Path {
+	return Path("interfaces", listWithKey("interface", "name", intfName),
 		"state", "counters", leafName)
 }
 
 // LLDP paths of interest:
 
-// GNMILldpStatePath returns an LLDP state path.
-func GNMILldpStatePath(leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "state", leafName)
+// LldpStatePath returns an LLDP state path.
+func LldpStatePath(leafName string) *gnmi.Path {
+	return Path("lldp", "state", leafName)
 }
 
-// GNMILldpIntfPath returns an LLDP interface path.
-func GNMILldpIntfPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+// LldpIntfPath returns an LLDP interface path.
+func LldpIntfPath(intfName, leafName string) *gnmi.Path {
+	return Path("lldp", "interfaces", listWithKey("interface", "name",
 		intfName), leafName)
 }
 
-// GNMILldpIntfConfigPath returns an LLDP interface config path.
-func GNMILldpIntfConfigPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+// LldpIntfConfigPath returns an LLDP interface config path.
+func LldpIntfConfigPath(intfName, leafName string) *gnmi.Path {
+	return Path("lldp", "interfaces", listWithKey("interface", "name",
 		intfName), "config", leafName)
 }
 
-// GNMILldpIntfStatePath returns an LLDP interface state path.
-func GNMILldpIntfStatePath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+// LldpIntfStatePath returns an LLDP interface state path.
+func LldpIntfStatePath(intfName, leafName string) *gnmi.Path {
+	return Path("lldp", "interfaces", listWithKey("interface", "name",
 		intfName), "state", leafName)
 }
 
-// GNMILldpIntfCountersPath returns an LLDP interface counters path.
-func GNMILldpIntfCountersPath(intfName, leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+// LldpIntfCountersPath returns an LLDP interface counters path.
+func LldpIntfCountersPath(intfName, leafName string) *gnmi.Path {
+	return Path("lldp", "interfaces", listWithKey("interface", "name",
 		intfName), "state", "counters", leafName)
 }
 
-// GNMILldpNeighborStatePath returns an LLDP neighbor state path.
-func GNMILldpNeighborStatePath(intfName, id, leafName string) *gnmi.Path {
-	return GNMIPath("lldp", "interfaces", listWithKey("interface", "name",
+// LldpNeighborStatePath returns an LLDP neighbor state path.
+func LldpNeighborStatePath(intfName, id, leafName string) *gnmi.Path {
+	return Path("lldp", "interfaces", listWithKey("interface", "name",
 		intfName), "neighbors", listWithKey("neighbor", "id", id),
 		"state", leafName)
 }

@@ -8,7 +8,7 @@ package devices
 import (
 	"arista/device"
 	"arista/provider"
-	"arista/provider/providers"
+	pdarwin "arista/provider/darwin"
 	"os/exec"
 	"strings"
 )
@@ -46,7 +46,7 @@ func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	device := darwinDevice{}
 	device.isAlive = true
 	device.deviceID = strings.TrimSuffix(string(out), "\n")
-	device.provider = providers.NewDarwinProvider()
+	device.provider = pdarwin.NewDarwinProvider()
 	return &device, nil
 }
 

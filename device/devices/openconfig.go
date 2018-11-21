@@ -8,7 +8,7 @@ package devices
 import (
 	"arista/device"
 	"arista/provider"
-	"arista/provider/providers"
+	pgnmi "arista/provider/gnmi"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -84,7 +84,7 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 		return "", fmt.Errorf("Unable to get request to %v: %v", livenessPath, err)
 	}
 	var config map[string]string
-	val := providers.Unmarshal(resp.Notification[0].Update[0].Val)
+	val := pgnmi.Unmarshal(resp.Notification[0].Update[0].Val)
 	err = json.Unmarshal(val.([]byte), &config)
 	if err != nil {
 		return "", err
@@ -109,7 +109,7 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 	openconfig.gNMIClient = client
 	openconfig.config = config
 
-	openconfig.gNMIProvider = providers.NewGNMIProvider(client, config, gNMIPaths)
+	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, gNMIPaths)
 
 	return openconfig, nil
 }
