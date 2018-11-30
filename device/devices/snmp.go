@@ -53,9 +53,7 @@ func (s *snmp) Type() device.Type {
 // XXX_jcr: For now, we return an error rather than just returning false. We
 // may want to rethink that in the future.
 func (s *snmp) CheckAlive() (bool, error) {
-	// Grab the device uptime. We don't actually need the uptime, though--we're
-	// just checking whether anyone's home.
-	_, err := psnmp.CheckAlive()
+	_, err := s.snmpProvider.(*psnmp.Snmp).CheckAlive()
 	if err != nil {
 		return false, err
 	}
@@ -66,7 +64,7 @@ func (s *snmp) DeviceID() (string, error) {
 	if s.systemID != "" {
 		return s.systemID, nil
 	}
-	systemID, err := psnmp.DeviceID()
+	systemID, err := s.snmpProvider.(*psnmp.Snmp).DeviceID()
 	if err != nil {
 		return "", err
 	}

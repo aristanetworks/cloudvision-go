@@ -23,84 +23,6 @@ import (
 	"github.com/soniah/gosnmp"
 )
 
-type snmp struct {
-	errc             chan error
-	ctx              context.Context
-	client           gnmi.GNMIClient
-	interfaceIndex   map[string]string
-	lldpLocPortIndex map[string]string
-	address          string
-	community        string
-	lock             sync.Mutex // gosnmp can't handle parallel gets
-	initialized      bool
-}
-
-// Has read/write interface been established?
-var connected bool
-
-// Time we last heard back from target
-var lastAlive time.Time
-
-var pollInterval time.Duration
-
-func snmpNetworkInit() error {
-	if connected {
-		return nil
-	}
-	err := gosnmp.Default.Connect()
-	if err == nil {
-		connected = true
-	}
-	return err
-}
-
-// GetByOID returns the value at oid.
-func GetByOID(oid string) (string, error) {
-	oids := []string{oid}
-	err := snmpNetworkInit()
-	if err != nil {
-		return "", err
-	}
-
-	// Ask for object
-	result, err := gosnmp.Default.Get(oids)
-	if err != nil {
-		return "", err
-	}
-
-	lastAlive = time.Now()
-
-	// Retrieve it from results
-	for _, v := range result.Variables {
-		switch v.Type {
-		case gosnmp.OctetString:
-			return string(v.Value.([]byte)), nil
-		default:
-			return gosnmp.ToBigInt(v.Value).String(), nil
-		}
-	}
-
-	return "", errors.New("How did we get here?")
-}
-
-// DeviceID returns the device ID
-func DeviceID() (string, error) {
-	return GetByOID(snmpEntPhysicalSerialNum)
-}
-
-// CheckAlive checks if device is still alive if poll interval has passed.
-func CheckAlive() (bool, error) {
-	if time.Since(lastAlive) < pollInterval {
-		return true, nil
-	}
-	_, err := GetByOID(snmpSysUpTime)
-	return true, err
-}
-
-func (s *snmp) stop() {
-	gosnmp.Default.Conn.Close()
-}
-
 // return base OID, index
 func oidIndex(oid string) (string, string, error) {
 	finalDotPos := strings.LastIndex(oid, ".")
@@ -183,8 +105,105 @@ func uintval(u interface{}) *gnmi.TypedValue {
 	return nil
 }
 
+// Snmp contains everything needed to implement an SNMP provider.
+type Snmp struct {
+	errc   chan error
+	client gnmi.GNMIClient
+
+	// interfaceIndex is a map of SNMP interface index -> name.
+	interfaceIndex map[string]string
+
+	// lldpLocPortIndex is a map of lldpLocPortNum -> lldpLocPortId.
+	lldpLocPortIndex map[string]string
+
+	// lldpRemoteID is a map of remote system ID -> true. It's used to
+	// remember which remote IDs we've already seen in a given round of polling.
+	lldpRemoteID map[string]bool
+
+	address   string
+	community string
+
+	// gosnmp can't handle parallel gets.
+	lock sync.Mutex
+
+	pollInterval time.Duration
+	lastAlive    time.Time
+	initialized  bool
+
+	// Alternative Walk() and Get() for mock testing.
+	getter func([]string) (*gosnmp.SnmpPacket, error)
+	walker func(string, gosnmp.WalkFunc) error
+}
+
+func (s *Snmp) snmpNetworkInit() error {
+	if s.initialized {
+		return nil
+	}
+	return gosnmp.Default.Connect()
+}
+
+func (s *Snmp) getByOID(oids []string) (*gosnmp.SnmpPacket, error) {
+	if s.getter == nil {
+		return nil, errors.New("SNMP getter not set")
+	}
+	pkt, err := s.getter(oids)
+	if err != nil {
+		s.lastAlive = time.Now()
+	}
+	return pkt, err
+}
+
+// getStringByOID does a Get on the specified OID, an octet string, and
+// returns the result as a string.
+func (s *Snmp) getStringByOID(oid string) (string, error) {
+	pkt, err := s.getByOID([]string{oid})
+	if err != nil {
+		return "", err
+	}
+	if len(pkt.Variables) == 0 {
+		return "", fmt.Errorf("No variables in SNMP packet for OID %s", oid)
+	}
+	v := pkt.Variables[0]
+	if v.Type != gosnmp.OctetString {
+		return "", fmt.Errorf("PDU type for OID %s is not octet string", oid)
+	}
+	return string(v.Value.([]byte)), nil
+}
+
+func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
+	if s.walker == nil {
+		return errors.New("SNMP walker not set")
+	}
+	err := s.walker(rootOid, walkFn)
+	if err != nil {
+		s.lastAlive = time.Now()
+	}
+	return err
+}
+
+// DeviceID returns the device ID.
+func (s *Snmp) DeviceID() (string, error) {
+	return s.getStringByOID(snmpEntPhysicalSerialNum)
+}
+
+// CheckAlive checks if device is still alive if poll interval has passed.
+func (s *Snmp) CheckAlive() (bool, error) {
+	if time.Since(s.lastAlive) < s.pollInterval {
+		return true, nil
+	}
+	_, err := s.getByOID([]string{snmpSysUpTime})
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (s *Snmp) stop() {
+	gosnmp.Default.Conn.Close()
+}
+
 // Given an incoming PDU, update the appropriate interface state.
-func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
+func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
 	baseOid, index, err := oidIndex(pdu.Name)
@@ -270,8 +289,9 @@ func (s *snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	return updates, nil
 }
 
-func (s *snmp) updateInterfaces() (*gnmi.SetRequest, error) {
+func (s *Snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
+	s.interfaceIndex = make(map[string]string)
 	defer s.lock.Unlock()
 
 	setReq := new(gnmi.SetRequest)
@@ -286,12 +306,12 @@ func (s *snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 	}
 
 	// ifTable
-	if err := gosnmp.Default.Walk(snmpIfTable, intfWalk); err != nil {
+	if err := s.walk(snmpIfTable, intfWalk); err != nil {
 		return nil, err
 	}
 
 	// ifXTable
-	if err := gosnmp.Default.Walk(snmpIfXTable, intfWalk); err != nil {
+	if err := s.walk(snmpIfXTable, intfWalk); err != nil {
 		return nil, err
 	}
 
@@ -300,11 +320,11 @@ func (s *snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-func (s *snmp) updateSystemState() (*gnmi.SetRequest, error) {
+func (s *Snmp) updateSystemState() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	setReq := new(gnmi.SetRequest)
-	sysName, err := GetByOID(snmpSysName)
+	sysName, err := s.getStringByOID(snmpSysName)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +380,7 @@ func macFromBytes(s []byte) string {
 	return t.String()
 }
 
-func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
+func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	// Split OID into parts.
 	locIndex, remoteID, baseOid, err := processLldpOid(pdu.Name)
 	if err != nil {
@@ -374,8 +394,6 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	if locIndex != "" {
 		intfName, ok = s.lldpLocPortIndex[locIndex]
 		if !ok {
-			// If we have the port ID, add it to the port index map.
-			// Otherwise we can't do anything and should return.
 			if baseOid != snmpLldpLocPortID {
 				return nil, nil
 			}
@@ -386,9 +404,12 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
-		updates = append(updates,
-			update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
-				strval(remoteID)))
+		if _, ok = s.lldpRemoteID[remoteID]; !ok {
+			updates = append(updates,
+				update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
+					strval(remoteID)))
+			s.lldpRemoteID[remoteID] = true
+		}
 	}
 
 	var u *gnmi.Update
@@ -456,10 +477,11 @@ func (s *snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	return updates, nil
 }
 
-func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
+func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	s.lldpRemoteID = make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
 	updater := func(data gosnmp.SnmpPDU) error {
@@ -472,15 +494,15 @@ func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
 		}
 		return nil
 	}
-	if err := gosnmp.Default.Walk(snmpLldpLocalSystemData, updater); err != nil {
+	if err := s.walk(snmpLldpLocalSystemData, updater); err != nil {
 		return nil, err
 	}
 
-	if err := gosnmp.Default.Walk(snmpLldpRemTable, updater); err != nil {
+	if err := s.walk(snmpLldpRemTable, updater); err != nil {
 		return nil, err
 	}
 
-	if err := gosnmp.Default.Walk(snmpLldpStatistics, updater); err != nil {
+	if err := s.walk(snmpLldpStatistics, updater); err != nil {
 		return nil, err
 	}
 
@@ -489,27 +511,13 @@ func (s *snmp) updateLldp() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-func (s *snmp) init() error {
-	// Do SNMP networking setup.
-	err := snmpNetworkInit()
-	if err != nil {
-		return fmt.Errorf("Error connecting to device: %v", err)
-	}
-
-	return nil
-}
-
-func (s *snmp) InitGNMI(client gnmi.GNMIClient) {
+// InitGNMI initializes the Snmp provider with a gNMI client.
+func (s *Snmp) InitGNMI(client gnmi.GNMIClient) {
 	s.client = client
-	err := s.init()
-	if err != nil {
-		glog.Errorf("Error in initialization: %v", err)
-		return
-	}
 	s.initialized = true
 }
 
-func (s *snmp) handleErrors(ctx context.Context) {
+func (s *Snmp) handleErrors(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -525,17 +533,18 @@ func (s *snmp) handleErrors(ctx context.Context) {
 	}
 }
 
-func (s *snmp) Run(ctx context.Context) error {
+// Run sets the Snmp provider running and returns only on error.
+func (s *Snmp) Run(ctx context.Context) error {
 	if !s.initialized {
 		return fmt.Errorf("SNMP provider is uninitialized")
 	}
 
 	// Do periodic state updates.
-	go pgnmi.PollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
 		s.updateSystemState, s.errc)
-	go pgnmi.PollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
 		s.updateInterfaces, s.errc)
-	go pgnmi.PollForever(ctx, s.client, pollInterval,
+	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
 		s.updateLldp, s.errc)
 
 	// Watch for errors.
@@ -552,13 +561,19 @@ func NewSNMPProvider(address string, community string,
 	pollInt time.Duration) provider.GNMIProvider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
-	pollInterval = pollInt
-	gosnmp.Default.Timeout = 2 * pollInterval
-	return &snmp{
+	gosnmp.Default.Timeout = 2 * pollInt
+	s := &Snmp{
 		errc:             make(chan error),
 		interfaceIndex:   make(map[string]string),
 		lldpLocPortIndex: make(map[string]string),
 		address:          address,
 		community:        community,
+		pollInterval:     pollInt,
+		getter:           gosnmp.Default.Get,
+		walker:           gosnmp.Default.BulkWalk,
 	}
+	if err := s.snmpNetworkInit(); err != nil {
+		glog.Errorf("Error connecting to device: %v", err)
+	}
+	return s
 }
