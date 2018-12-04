@@ -23,6 +23,7 @@ import (
 // to test, the mocked SNMP responses for the poller, and the gNMI
 // SetRequest we expect the poller to return.
 type pollTestCase struct {
+	name      string
 	pollFn    func() (*gnmi.SetRequest, error)
 	responses map[string][]gosnmp.SnmpPDU //OID -> PDUs
 	expected  *gnmi.SetRequest
@@ -192,6 +193,20 @@ var basicLldpStatisticsResponse = `
 .1.0.8802.1.1.2.1.2.7.1.2.454 = Counter32: 0
 `
 
+// Include another interface, Ethernet3/3, that's inactive.
+var inactiveIntfLldpLocalSystemDataResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
+.1.0.8802.1.1.2.1.3.2.0 = Hex-STRING: 00 1C 73 03 13 36
+.1.0.8802.1.1.2.1.3.3.0 = STRING: device123.sjc.aristanetworks.com
+.1.0.8802.1.1.2.1.3.4.0 = STRING: Arista Networks EOS version x.y.z
+.1.0.8802.1.1.2.1.3.7.1.2.1 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.2 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.3.1 = STRING: Management1/1
+.1.0.8802.1.1.2.1.3.7.1.3.451 = STRING: Ethernet3/1
+.1.0.8802.1.1.2.1.3.7.1.3.452 = STRING: Ethernet3/2
+.1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
+`
+
 func parsePDU(line string) (oid, pduTypeString, value string) {
 	t := strings.Split(line, " = ")
 	if len(t) < 2 {
@@ -248,10 +263,12 @@ func TestSnmp(t *testing.T) {
 	s := &Snmp{
 		errc:             make(chan error),
 		interfaceIndex:   make(map[string]string),
+		interfaceName:    make(map[string]bool),
 		lldpLocPortIndex: make(map[string]string),
 	}
-	for name, tc := range map[string]pollTestCase{
-		"updateSystemStateBasic": {
+	for _, tc := range []pollTestCase{
+		{
+			name:   "updateSystemStateBasic",
 			pollFn: s.updateSystemState,
 			responses: map[string][]gosnmp.SnmpPDU{
 				snmpSysName: []gosnmp.SnmpPDU{
@@ -266,7 +283,8 @@ func TestSnmp(t *testing.T) {
 				},
 			},
 		},
-		"updateInterfacesBasic": {
+		{
+			name:   "updateInterfacesBasic",
 			pollFn: s.updateInterfaces,
 			responses: map[string][]gosnmp.SnmpPDU{
 				snmpIfTable:  pdusFromString(basicIfTableResponse),
@@ -324,7 +342,8 @@ func TestSnmp(t *testing.T) {
 				},
 			},
 		},
-		"updateLldpBasic": {
+		{
+			name:   "updateLldpBasic",
 			pollFn: s.updateLldp,
 			responses: map[string][]gosnmp.SnmpPDU{
 				snmpLldpLocalSystemData: pdusFromString(basicLldpLocalSystemDataResponse),
@@ -410,8 +429,41 @@ func TestSnmp(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "updateLldpOmitInactiveIntfs",
+			pollFn: s.updateLldp,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpLldpLocalSystemData: pdusFromString(inactiveIntfLldpLocalSystemDataResponse),
+				snmpLldpRemTable:        []gosnmp.SnmpPDU{},
+				snmpLldpStatistics:      []gosnmp.SnmpPDU{},
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.LldpStatePath("chassis-id-type"),
+						strval(openconfig.LLDPChassisIDType(4))),
+					update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
+					update(pgnmi.LldpStatePath("system-name"),
+						strval("device123.sjc.aristanetworks.com")),
+					update(pgnmi.LldpStatePath("system-description"),
+						strval("Arista Networks EOS version x.y.z")),
+					update(pgnmi.LldpIntfConfigPath("Management1/1", "name"),
+						strval("Management1/1")),
+					update(pgnmi.LldpIntfPath("Management1/1", "name"),
+						strval("Management1/1")),
+					update(pgnmi.LldpIntfStatePath("Management1/1", "name"),
+						strval("Management1/1")),
+					update(pgnmi.LldpIntfConfigPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.LldpIntfPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.LldpIntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.LldpIntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.LldpIntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.LldpIntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+				},
+			},
+		},
 	} {
-		t.Run(name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			mockPoll(t, s, tc)
 		})
 	}

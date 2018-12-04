@@ -113,6 +113,11 @@ type Snmp struct {
 	// interfaceIndex is a map of SNMP interface index -> name.
 	interfaceIndex map[string]string
 
+	// interfaceName is a map of interface name (as discovered in ifTable) -> true.
+	// It's used so that we don't include inactive interfaces we see in
+	// snmpLldpLocPortTable.
+	interfaceName map[string]bool
+
 	// lldpLocPortIndex is a map of lldpLocPortNum -> lldpLocPortId.
 	lldpLocPortIndex map[string]string
 
@@ -216,6 +221,7 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	} else if !ok && baseOid == snmpIfDescr {
 		intfName = string(pdu.Value.([]byte))
 		s.interfaceIndex[index] = intfName
+		s.interfaceName[intfName] = true
 	}
 
 	var u *gnmi.Update
@@ -291,7 +297,10 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 
 func (s *Snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
+	// Clear interface index and name maps for each new poll. It should be
+	// protected by the lock, because updateLldp needs it, too. :(
 	s.interfaceIndex = make(map[string]string)
+	s.interfaceName = make(map[string]bool)
 	defer s.lock.Unlock()
 
 	setReq := new(gnmi.SetRequest)
@@ -394,10 +403,16 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	if locIndex != "" {
 		intfName, ok = s.lldpLocPortIndex[locIndex]
 		if !ok {
+			// If we have the port ID AND this interface is in the interfaceIndex,
+			// add it to the port index map. Otherwise we can't do anything and
+			// should return.
 			if baseOid != snmpLldpLocPortID {
 				return nil, nil
 			}
 			intfName = string(pdu.Value.([]byte))
+			if _, ok = s.interfaceName[intfName]; !ok {
+				return nil, nil
+			}
 			s.lldpLocPortIndex[locIndex] = intfName
 		}
 	}
@@ -565,6 +580,7 @@ func NewSNMPProvider(address string, community string,
 	s := &Snmp{
 		errc:             make(chan error),
 		interfaceIndex:   make(map[string]string),
+		interfaceName:    make(map[string]bool),
 		lldpLocPortIndex: make(map[string]string),
 		address:          address,
 		community:        community,
