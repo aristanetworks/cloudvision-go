@@ -11,7 +11,7 @@ import (
 )
 
 // A Provider "owns" some states on a target device streams out notifications on any
-// changes to those tates.
+// changes to those states.
 type Provider interface {
 
 	// Run() kicks off the provider.  This method does not return until ctx
