@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	device.RegisterDevice("test", device.NewTestDevice, device.TestDeviceOptions)
+	device.Register("test", device.NewTestDevice, device.TestDeviceOptions)
 }
 
 // XXX_jcr: The device test runner (RunDeviceTest) has to be outside the
@@ -20,7 +20,7 @@ func init() {
 // but if it's named *_test.go it can't export symbols. This is also why
 // there's both a device/device_test.go and device/test/device_test.go.
 
-// RunDeviceTest creates a device and fails on an unepected error.
+// RunDeviceTest creates a device and fails on an unexpected error.
 func RunDeviceTest(t *testing.T, deviceName string,
 	deviceConfig map[string]string, pluginDir string, shouldPass bool) {
 
@@ -28,7 +28,7 @@ func RunDeviceTest(t *testing.T, deviceName string,
 	if err != nil && shouldPass {
 		t.Fatalf("Unexpected error in device.Init: %s", err)
 	}
-	_, err = device.CreateManager(deviceConfig)
+	_, err = device.Create(deviceConfig)
 	if err != nil && shouldPass {
 		t.Fatalf("Unexpected error in device.Create: %s", err)
 	}

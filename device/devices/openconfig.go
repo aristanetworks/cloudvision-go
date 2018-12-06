@@ -37,7 +37,7 @@ func init() {
 	}
 
 	// Register
-	device.RegisterDevice("openconfig", newOpenConfig, options)
+	device.Register("openconfig", newOpenConfig, options)
 }
 
 type openconfigDevice struct {

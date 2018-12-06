@@ -16,6 +16,12 @@ var testDeviceInfo = deviceInfo{
 	options: TestDeviceOptions,
 }
 
+var testManagerInfo = managerInfo{
+	name:    "test",
+	creator: NewTestManager,
+	options: TestDeviceOptions,
+}
+
 type optionsTestCase struct {
 	description    string
 	devInfo        deviceInfo
@@ -25,11 +31,8 @@ type optionsTestCase struct {
 }
 
 func runOptionsTest(t *testing.T, testCase optionsTestCase) {
-	sanitized, err := sanitizedOptions(&managerInfo{
-		name:    testCase.devInfo.name,
-		options: testCase.devInfo.options,
-		creator: transformCreator(testCase.devInfo.creator),
-	}, testCase.config)
+	sanitized, err := sanitizedOptions(testCase.devInfo.options,
+		testCase.config)
 	if testCase.shouldPass && err != nil {
 		t.Fatalf("Error sanitizing options in test %s", testCase.description)
 	}
@@ -101,19 +104,25 @@ func TestOptions(t *testing.T) {
 	runOptionsTests(t, testCases)
 }
 
-var h1 = `Help options for device/manager test:
+var h1 = `Help options for device 'test':
   a
 	option a is a required option
   b
 	option b is not required (default stuff)` + "\n"
 
-var h2 = `Help options for device/manager anothertest:
+var h2 = `Help options for device 'anothertest':
   x
 	Sets something or other. (default true)
   y
 	Pointless but required.
   zzzz
 	Put the device to sleep. (default false)` + "\n"
+
+var h3 = `Help options for manager 'test':
+  a
+	option a is a required option
+  b
+	option b is not required (default stuff)` + "\n"
 
 var altOpt = map[string]Option{
 	"x": Option{
@@ -141,15 +150,21 @@ var anotherDeviceInfo = deviceInfo{
 
 type helpTestCase struct {
 	description        string
-	devInfo            deviceInfo
+	devInfo            *deviceInfo
+	mgrInfo            *managerInfo
 	expectedHelpString string
 }
 
 func runHelpTest(t *testing.T, testCase helpTestCase) {
-	dh := help(testCase.devInfo.options, testCase.devInfo.name)
-	if dh != testCase.expectedHelpString {
+	h := ""
+	if testCase.devInfo != nil {
+		h = help(testCase.devInfo.options, "device", testCase.devInfo.name)
+	} else {
+		h = help(testCase.mgrInfo.options, "manager", testCase.mgrInfo.name)
+	}
+	if h != testCase.expectedHelpString {
 		t.Fatalf("In test %s, generated help string did not match expected:\n%s\n%s",
-			testCase.description, dh, testCase.expectedHelpString)
+			testCase.description, h, testCase.expectedHelpString)
 	}
 }
 
@@ -163,13 +178,18 @@ func TestHelp(t *testing.T) {
 	testCases := []helpTestCase{
 		{
 			description:        "TestDevice",
-			devInfo:            testDeviceInfo,
+			devInfo:            &testDeviceInfo,
 			expectedHelpString: h1,
 		},
 		{
 			description:        "anotherTestDevice",
-			devInfo:            anotherDeviceInfo,
+			devInfo:            &anotherDeviceInfo,
 			expectedHelpString: h2,
+		},
+		{
+			description:        "TestManager",
+			mgrInfo:            &testManagerInfo,
+			expectedHelpString: h3,
 		},
 	}
 	runHelpTests(t, testCases)

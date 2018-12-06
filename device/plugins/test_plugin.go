@@ -12,7 +12,7 @@ import (
 var testPluginName = "test"
 
 func init() {
-	device.RegisterDevice(testPluginName, device.NewTestDevice,
+	device.Register(testPluginName, device.NewTestDevice,
 		device.TestDeviceOptions)
 }
 

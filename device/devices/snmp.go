@@ -35,7 +35,7 @@ func init() {
 		},
 	}
 
-	device.RegisterDevice("snmp", newSnmp, options)
+	device.Register("snmp", newSnmp, options)
 }
 
 type snmp struct {

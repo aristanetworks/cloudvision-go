@@ -39,7 +39,7 @@ func init() {
 	}
 
 	// Register
-	device.RegisterDevice("cvp", NewCvp, options)
+	device.Register("cvp", NewCvp, options)
 }
 
 type cvpDevice struct {

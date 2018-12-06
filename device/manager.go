@@ -6,6 +6,8 @@
 package device
 
 import (
+	"arista/flag"
+	"errors"
 	"fmt"
 )
 
@@ -19,8 +21,8 @@ type Manager interface {
 type ManagerCreator = func(map[string]string) (Manager, error)
 
 // managerInfo contains all the information about a device manager that's
-// knowable before it's instantiated: its name, its factory function,
-// and the options it supports.
+// knowable before it's instantiated: its name, its factory function, and
+// the options it supports.
 type managerInfo struct {
 	name    string
 	options map[string]Option
@@ -30,7 +32,22 @@ type managerInfo struct {
 var managerMap = map[string]managerInfo{}
 var managerInUse *managerInfo
 
-// InitManager takes relevant information about a manager and does initial setup for that manager.
+// setManagerInUse sets the current manager in use. This is separated
+// from CreateManager so that we can print out help messages using
+// -help of a specific manager if we fail to correctly configure the
+// manager.
+func setManagerInUse(name string) error {
+	manager, ok := managerMap[name]
+	if !ok {
+		return fmt.Errorf("Manager %s doesn't exist", name)
+	}
+
+	managerInUse = &manager
+	return nil
+}
+
+// InitManager takes relevant information about a manager and does initial
+// setup for that manager.
 func InitManager(pluginDir, name string, creator *ManagerCreator,
 	managerOpt map[string]Option) error {
 	if creator != nil {
@@ -47,8 +64,25 @@ func InitManager(pluginDir, name string, creator *ManagerCreator,
 	return nil
 }
 
-// RegisterManager registers a function that can create a new Manager
-// of the given name.
+// CreateManager takes a config map, sanitizes the provided config, and
+// returns a manager from the current manager in use initialized with the
+// sanitized config.
+func CreateManager(config map[string]string) (Manager, error) {
+
+	if managerInUse == nil {
+		return nil, errors.New("No manager or device in use")
+	}
+
+	sanitizedConfig, err := sanitizedOptions(managerInUse.options, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return managerInUse.creator(sanitizedConfig)
+}
+
+// RegisterManager registers a function that can create a new Manager of
+// the given name.
 func RegisterManager(name string, creator ManagerCreator, options map[string]Option) {
 	managerMap[name] = managerInfo{
 		creator: creator,
@@ -57,50 +91,29 @@ func RegisterManager(name string, creator ManagerCreator, options map[string]Opt
 	}
 }
 
-// setManagerInUse sets the current manager in use. This is separated from CreateManager so that
-// we can print out help messages using -help of a specific manager if we fail to correctly
-// configure the manager.
-func setManagerInUse(name string) error {
-	manager, ok := managerMap[name]
-	if !ok {
-		return fmt.Errorf("Manager %s doesn't exist", name)
-	}
-
-	managerInUse = &manager
-	return nil
-}
-
 // UnregisterManager removes a manager from the registry.
 func UnregisterManager(name string) {
 	delete(managerMap, name)
 }
 
-type basicManager struct {
-	device Device
+// ManagerName returns the name of the current manager in use if any.
+func ManagerName() string {
+	if managerInUse == nil {
+		return ""
+	}
+	return (*managerInUse).name
 }
 
-func (m *basicManager) Manage(inventory Inventory) error {
-	id, err := m.device.DeviceID()
-	if err != nil {
-		return err
+// Delete clears the manager currently in use.
+func Delete() {
+	managerInUse = nil
+}
+
+// AddManagerHelp adds the appropriate manager options to flag.Usage.
+func AddManagerHelp() error {
+	if managerInUse == nil {
+		return errors.New("No manager in use")
 	}
-	err = inventory.Add(id, m.device)
-	if err != nil {
-		return fmt.Errorf("Error in adding device: %s", err)
-	}
+	flag.AddHelp("", help(managerInUse.options, "manager", managerInUse.name))
 	return nil
-}
-
-func newBasicManager(device Device) *basicManager {
-	return &basicManager{device: device}
-}
-
-func transformCreator(creator Creator) ManagerCreator {
-	return func(options map[string]string) (Manager, error) {
-		dev, err := creator(options)
-		if err != nil {
-			return nil, err
-		}
-		return newBasicManager(dev), nil
-	}
 }

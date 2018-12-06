@@ -66,6 +66,6 @@ func (td testManager) Manage(inventory Inventory) error {
 }
 
 // NewTestManager returns a dummy manager for testing.
-func NewTestManager() Manager {
-	return testManager{}
+func NewTestManager(map[string]string) (Manager, error) {
+	return testManager{}, nil
 }

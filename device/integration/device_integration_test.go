@@ -25,13 +25,8 @@ func TestDevice(t *testing.T) {
 // package"). The plugin also has to be outside the test package
 // because plugins have to be in a "main" package.
 
-// Test creating an adapter with basic plugin
+// Test creating a device with a basic plugin.
 func TestPlugin(t *testing.T) {
-	device.UnregisterDevice(testPluginName)
-	// Adapter should fail with no pluginDir provided to make sure that there
-	// is no built-in device registered with the same name
-	RunDeviceTest(t, testPluginName, device.TestDeviceConfig, "", false)
-	// After checking that no built-in device with the same name is registered,
-	// now we can check if the plugin is actually registered
+	device.Unregister(testPluginName)
 	RunDeviceTest(t, testPluginName, device.TestDeviceConfig, pluginDir, true)
 }

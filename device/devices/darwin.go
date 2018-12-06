@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	device.RegisterDevice("darwin", NewDarwinDevice, make(map[string]device.Option))
+	device.Register("darwin", NewDarwinDevice, make(map[string]device.Option))
 }
 
 type darwinDevice struct {
