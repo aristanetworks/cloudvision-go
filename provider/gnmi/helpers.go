@@ -340,6 +340,37 @@ func gNMIStreamUpdates(ctx context.Context, server gnmi.GNMIServer,
 	return ctx, nil
 }
 
+// TestClient is a pass-through gNMI client for testing.
+type TestClient struct {
+	Out chan *gnmi.SetRequest
+}
+
+// Capabilities is not implemented.
+func (g *TestClient) Capabilities(ctx context.Context, in *gnmi.CapabilityRequest,
+	opts ...grpc.CallOption) (*gnmi.CapabilityResponse, error) {
+	panic("not implemented")
+}
+
+// Get is not implemented.
+func (g *TestClient) Get(ctx context.Context, in *gnmi.GetRequest,
+	opts ...grpc.CallOption) (*gnmi.GetResponse, error) {
+	panic("not implemented")
+}
+
+// Set pipes the specified SetRequest out to the TestClient's
+// SetRequest channel.
+func (g *TestClient) Set(ctx context.Context, in *gnmi.SetRequest,
+	opts ...grpc.CallOption) (*gnmi.SetResponse, error) {
+	g.Out <- in
+	return nil, nil
+}
+
+// Subscribe is not implemented.
+func (g *TestClient) Subscribe(ctx context.Context,
+	opts ...grpc.CallOption) (gnmi.GNMI_SubscribeClient, error) {
+	panic("not implemented")
+}
+
 // Path returns a gnmi.Path given a set of elements.
 func Path(element ...string) *gnmi.Path {
 	p, err := agnmi.ParseGNMIElements(element)
@@ -428,7 +459,9 @@ func PollForever(ctx context.Context, client gnmi.GNMIClient,
 
 // Helpers for creating gNMI paths for places of interest in the
 // OpenConfig tree.
-func listWithKey(listName, keyName, key string) string {
+
+// ListWithKey formats a gNMI keyed list and key as a string.
+func ListWithKey(listName, keyName, key string) string {
 	return fmt.Sprintf("%s[%s=%s]", listName, keyName, key)
 }
 
@@ -436,25 +469,25 @@ func listWithKey(listName, keyName, key string) string {
 
 // IntfPath returns an interface path.
 func IntfPath(intfName, leafName string) *gnmi.Path {
-	return Path("interfaces", listWithKey("interface", "name", intfName),
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
 		leafName)
 }
 
 // IntfConfigPath returns an interface config path.
 func IntfConfigPath(intfName, leafName string) *gnmi.Path {
-	return Path("interfaces", listWithKey("interface", "name", intfName),
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
 		"config", leafName)
 }
 
 // IntfStatePath returns an interface state path.
 func IntfStatePath(intfName, leafName string) *gnmi.Path {
-	return Path("interfaces", listWithKey("interface", "name", intfName),
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
 		"state", leafName)
 }
 
 // IntfStateCountersPath returns an interface state counters path.
 func IntfStateCountersPath(intfName, leafName string) *gnmi.Path {
-	return Path("interfaces", listWithKey("interface", "name", intfName),
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
 		"state", "counters", leafName)
 }
 
@@ -467,31 +500,31 @@ func LldpStatePath(leafName string) *gnmi.Path {
 
 // LldpIntfPath returns an LLDP interface path.
 func LldpIntfPath(intfName, leafName string) *gnmi.Path {
-	return Path("lldp", "interfaces", listWithKey("interface", "name",
+	return Path("lldp", "interfaces", ListWithKey("interface", "name",
 		intfName), leafName)
 }
 
 // LldpIntfConfigPath returns an LLDP interface config path.
 func LldpIntfConfigPath(intfName, leafName string) *gnmi.Path {
-	return Path("lldp", "interfaces", listWithKey("interface", "name",
+	return Path("lldp", "interfaces", ListWithKey("interface", "name",
 		intfName), "config", leafName)
 }
 
 // LldpIntfStatePath returns an LLDP interface state path.
 func LldpIntfStatePath(intfName, leafName string) *gnmi.Path {
-	return Path("lldp", "interfaces", listWithKey("interface", "name",
+	return Path("lldp", "interfaces", ListWithKey("interface", "name",
 		intfName), "state", leafName)
 }
 
 // LldpIntfCountersPath returns an LLDP interface counters path.
 func LldpIntfCountersPath(intfName, leafName string) *gnmi.Path {
-	return Path("lldp", "interfaces", listWithKey("interface", "name",
+	return Path("lldp", "interfaces", ListWithKey("interface", "name",
 		intfName), "state", "counters", leafName)
 }
 
 // LldpNeighborStatePath returns an LLDP neighbor state path.
 func LldpNeighborStatePath(intfName, id, leafName string) *gnmi.Path {
-	return Path("lldp", "interfaces", listWithKey("interface", "name",
-		intfName), "neighbors", listWithKey("neighbor", "id", id),
+	return Path("lldp", "interfaces", ListWithKey("interface", "name",
+		intfName), "neighbors", ListWithKey("neighbor", "id", id),
 		"state", leafName)
 }

@@ -9,6 +9,9 @@ import (
 	"arista/flag"
 	"bytes"
 	"fmt"
+	"net"
+	"strconv"
+	"time"
 )
 
 // Option defines a command-line option accepted by a device.
@@ -75,4 +78,53 @@ func help(options map[string]Option, optionType, name string) string {
 	}
 	flag.FormatOptions(b, "Help options for "+optionType+" '"+name+"':", hd)
 	return b.String()
+}
+
+// GetStringOption returns the option specified by optionName as a
+// string.
+func GetStringOption(optionName string,
+	options map[string]string) (string, error) {
+	o, ok := options[optionName]
+	if !ok {
+		return "", fmt.Errorf("No option '%s'", optionName)
+	}
+	return o, nil
+}
+
+// GetAddressOption returns the option specified by optionName as a
+// validated IP address or hostname.
+func GetAddressOption(optionName string,
+	options map[string]string) (string, error) {
+	addr, ok := options[optionName]
+	if !ok {
+		return "", fmt.Errorf("No option '%s'", optionName)
+	}
+
+	// Validate IP
+	ip := net.ParseIP(addr)
+	if ip != nil {
+		return ip.String(), nil
+	}
+
+	// Try for hostname if it's not an IP
+	addrs, err := net.LookupIP(addr)
+	if err != nil {
+		return "", err
+	}
+	return addrs[0].String(), nil
+}
+
+// GetDurationOption returns the option specified by optionName as a
+// time.Duration.
+func GetDurationOption(optionName string,
+	options map[string]string) (time.Duration, error) {
+	o, ok := options[optionName]
+	if !ok {
+		return 0, fmt.Errorf("No option '%s'", optionName)
+	}
+	dur, err := strconv.ParseInt(o, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return time.Duration(dur) * time.Second, nil
 }

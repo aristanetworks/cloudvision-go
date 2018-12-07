@@ -9,9 +9,6 @@ import (
 	"arista/device"
 	"arista/provider"
 	psnmp "arista/provider/snmp"
-	"errors"
-	"net"
-	"strconv"
 	"time"
 )
 
@@ -76,46 +73,6 @@ func (s *snmp) Providers() ([]provider.Provider, error) {
 	return []provider.Provider{s.snmpProvider}, nil
 }
 
-func getAddress(options map[string]string) (string, error) {
-	addr, ok := options["address"]
-	if !ok {
-		return "", errors.New("No option 'address'")
-	}
-
-	// Validate IP
-	ip := net.ParseIP(addr)
-	if ip != nil {
-		return ip.String(), nil
-	}
-
-	// Try for hostname if it's not an IP
-	addrs, err := net.LookupIP(addr)
-	if err != nil {
-		return "", err
-	}
-	return addrs[0].String(), nil
-}
-
-func getCommunity(options map[string]string) (string, error) {
-	comm, ok := options["community"]
-	if !ok {
-		return "", errors.New("No option 'community'")
-	}
-	return comm, nil
-}
-
-func getPollInterval(options map[string]string) (time.Duration, error) {
-	interval, ok := options["pollInterval"]
-	if !ok {
-		return 0, errors.New("No option 'pollInterval'")
-	}
-	intv, err := strconv.ParseInt(interval, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(intv) * time.Second, nil
-}
-
 // XXX_jcr: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
@@ -123,17 +80,17 @@ func newSnmp(options map[string]string) (device.Device, error) {
 	s := &snmp{}
 	var err error
 
-	s.address, err = getAddress(options)
+	s.address, err = device.GetAddressOption("address", options)
 	if err != nil {
 		return nil, err
 	}
 
-	s.community, err = getCommunity(options)
+	s.community, err = device.GetStringOption("community", options)
 	if err != nil {
 		return nil, err
 	}
 
-	s.pollInterval, err = getPollInterval(options)
+	s.pollInterval, err = device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, err
 	}
