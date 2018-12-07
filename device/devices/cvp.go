@@ -60,11 +60,11 @@ func (c *cvpDevice) DeviceID() (string, error) {
 	return c.systemID, nil
 }
 
-func (c *cvpDevice) Providers() []provider.Provider {
+func (c *cvpDevice) Providers() ([]provider.Provider, error) {
 	provs := []provider.Provider{
 		c.kernelProvider,
 	}
-	return provs
+	return provs, nil
 }
 
 // getSerialNumber returns the UUID of the CVP node

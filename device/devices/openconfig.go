@@ -63,8 +63,8 @@ func (o *openconfigDevice) CheckAlive() (bool, error) {
 	return err == nil && resp != nil && len(resp.Notification) > 0, nil
 }
 
-func (o *openconfigDevice) Providers() []provider.Provider {
-	return []provider.Provider{o.gNMIProvider}
+func (o *openconfigDevice) Providers() ([]provider.Provider, error) {
+	return []provider.Provider{o.gNMIProvider}, nil
 }
 
 func (o *openconfigDevice) DeviceID() (string, error) {

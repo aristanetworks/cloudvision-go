@@ -58,8 +58,8 @@ func (d *darwinDevice) DeviceID() (string, error) {
 	return d.deviceID, nil
 }
 
-func (d *darwinDevice) Providers() []provider.Provider {
-	return []provider.Provider{d.provider}
+func (d *darwinDevice) Providers() ([]provider.Provider, error) {
+	return []provider.Provider{d.provider}, nil
 }
 
 func (d *darwinDevice) Type() device.Type {

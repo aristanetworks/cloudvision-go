@@ -72,8 +72,8 @@ func (s *snmp) DeviceID() (string, error) {
 	return s.systemID, nil
 }
 
-func (s *snmp) Providers() []provider.Provider {
-	return []provider.Provider{s.snmpProvider}
+func (s *snmp) Providers() ([]provider.Provider, error) {
+	return []provider.Provider{s.snmpProvider}, nil
 }
 
 func getAddress(options map[string]string) (string, error) {

@@ -28,7 +28,7 @@ type Device interface {
 	Type() Type
 	CheckAlive() (bool, error)
 	DeviceID() (string, error)
-	Providers() []provider.Provider
+	Providers() ([]provider.Provider, error)
 }
 
 // String converts a device Type enum to its string value.

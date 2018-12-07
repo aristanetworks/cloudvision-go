@@ -36,8 +36,8 @@ func (td testDevice) DeviceID() (string, error) {
 	return TestDeviceID, nil
 }
 
-func (td testDevice) Providers() []provider.Provider {
-	return nil
+func (td testDevice) Providers() ([]provider.Provider, error) {
+	return nil, nil
 }
 
 func (td testDevice) Type() Type {
