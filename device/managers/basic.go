@@ -3,15 +3,21 @@
 // Subject to Arista Networks, Inc.'s EULA.
 // FOR INTERNAL USE ONLY. NOT FOR DISTRIBUTION.
 
-package device
+package managers
 
-import "fmt"
+import (
+	"arista/device"
+	"fmt"
+)
+
+// There's no need to register this manager, as we should never need to
+// create it dynamically.
 
 type basicManager struct {
-	device Device
+	device device.Device
 }
 
-func (m *basicManager) Manage(inventory Inventory) error {
+func (m *basicManager) Manage(inventory device.Inventory) error {
 	id, err := m.device.DeviceID()
 	if err != nil {
 		return err
@@ -24,6 +30,6 @@ func (m *basicManager) Manage(inventory Inventory) error {
 }
 
 // NewBasicManager creates a simple manager around a given device.
-func NewBasicManager(device Device) Manager {
-	return &basicManager{device: device}
+func NewBasicManager(d device.Device) device.Manager {
+	return &basicManager{device: d}
 }
