@@ -9,4 +9,5 @@ package device
 type Inventory interface {
 	Add(key string, device Device) error
 	Delete(key string) error
+	Get(key string) (Device, bool)
 }
