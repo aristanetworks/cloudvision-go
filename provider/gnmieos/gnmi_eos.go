@@ -13,25 +13,22 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
 type gnmieos struct {
 	provider.ReadOnly
 	prov        provider.GNMIProvider
-	errc        chan error
-	server      gnmi.GNMIServer
-	client      gnmi.GNMIClient
-	ready       chan struct{}
-	initialized bool
 	notifChan   chan<- types.Notification
-	yangPaths   []string
+	gnmiChan    chan *gnmi.Notification
+	initialized bool
+	ready       chan struct{}
 }
 
 func (g *gnmieos) Init(s *schema.Schema, root types.Entity,
 	notification chan<- types.Notification) {
 	g.notifChan = notification
+	g.gnmiChan = make(chan *gnmi.Notification)
 	g.initialized = true
 }
 
@@ -40,16 +37,15 @@ func (g *gnmieos) Run(ctx context.Context) error {
 		return fmt.Errorf("Provider is uninitialized")
 	}
 
-	var err error
-	ctx, g.server, err = pgnmi.Server(ctx, g.notifChan, g.errc, g.yangPaths)
-	if err != nil {
-		glog.Errorf("Error in creating GNMIServer: %v", err)
-	}
-
-	g.client = pgnmi.Client(g.server)
-	g.prov.InitGNMI(g.client)
+	g.prov.InitGNMI(g.gnmiChan)
 	close(g.ready)
-	err = g.prov.Run(ctx)
+	go func() {
+		for {
+			notif := <-g.gnmiChan
+			pgnmi.EmitNotif(notif, g.notifChan)
+		}
+	}()
+	err := g.prov.Run(ctx)
 	return err
 }
 
@@ -59,12 +55,9 @@ func (g *gnmieos) WaitForNotification() {
 
 // NewGNMIEOSProvider takes in a GNMIProvider and returns the same
 // provider, converted to an EOSProvider
-func NewGNMIEOSProvider(gp provider.GNMIProvider,
-	yangPaths []string) provider.EOSProvider {
+func NewGNMIEOSProvider(gp provider.GNMIProvider) provider.EOSProvider {
 	return &gnmieos{
-		prov:      gp,
-		errc:      make(chan error),
-		ready:     make(chan struct{}),
-		yangPaths: yangPaths,
+		prov:  gp,
+		ready: make(chan struct{}),
 	}
 }

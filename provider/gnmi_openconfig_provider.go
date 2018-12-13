@@ -9,10 +9,10 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
-// A GNMIProvider emits gNMI notifications.
-type GNMIProvider interface {
+// A GNMIOpenConfigProvider interacts with a GNMI client.
+type GNMIOpenConfigProvider interface {
 	Provider
 
 	// InitGNMI initializes the provider by a given gnmi notification channel.
-	InitGNMI(chan<- *gnmi.Notification)
+	InitGNMIOpenConfig(client gnmi.GNMIClient)
 }

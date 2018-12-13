@@ -526,8 +526,8 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-// InitGNMI initializes the Snmp provider with a gNMI client.
-func (s *Snmp) InitGNMI(client gnmi.GNMIClient) {
+// InitGNMIOpenConfig initializes the Snmp provider with a gNMI client.
+func (s *Snmp) InitGNMIOpenConfig(client gnmi.GNMIClient) {
 	s.client = client
 	s.initialized = true
 }
@@ -573,7 +573,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration) provider.GNMIProvider {
+	pollInt time.Duration) provider.GNMIOpenConfigProvider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
 	gosnmp.Default.Timeout = 2 * pollInt
