@@ -27,8 +27,8 @@ func init() {
 			Required:    true,
 		},
 		"pollInterval": device.Option{
-			Description: "Polling interval, in seconds",
-			Default:     "20",
+			Description: "Polling interval, with unit suffix (s/m/h)",
+			Default:     "20s",
 		},
 	}
 

@@ -8,26 +8,32 @@ package managers
 import (
 	"arista/device"
 	"arista/device/devices"
+	"arista/mwm/apiclient"
 	pmojo "arista/provider/mojo"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
 
 func init() {
 	options := map[string]device.Option{
-		"apiurl": device.Option{
-			Description: "MWM API endpoint",
+		"address": device.Option{
+			Description: "MWM address",
 			Required:    true,
 		},
-		"pollInterval": device.Option{
-			Description: "Polling interval, in seconds",
-			Default:     "30",
+		"authTimeout": device.Option{
+			Description: "MWM authentication timeout, with unit suffix (s/m/h)",
+			Default:     "1h",
 		},
-		"jsessionid": device.Option{
-			Description: "JSESSIONID cookie (temporary; for testing until we have an API key)",
+		"pollInterval": device.Option{
+			Description: "Polling interval, with unit suffix (s/m/h)",
+			Default:     "30s",
+		},
+		"username": device.Option{
+			Description: "MWM username",
+			Required:    true,
+		},
+		"password": device.Option{
+			Description: "MWM password",
 			Required:    true,
 		},
 	}
@@ -35,23 +41,20 @@ func init() {
 }
 
 type mwm struct {
-	jsessionid       string
-	apiURL           string
-	pollInterval     time.Duration
+	address          string
+	authTimeout      time.Duration
 	client           *http.Client
+	deviceUpdateChan map[string]chan *apiclient.ManagedDevice
 	inventory        device.Inventory
-	deviceUpdateChan map[string]chan *pmojo.ManagedDevice
+	lastAuthTime     time.Time
+	password         string
+	pollInterval     time.Duration
+	session          *apiclient.APISession
+	username         string
 }
 
-type managedDevicesResponse struct {
-	TotalCount   int                   `json:"totalCount"`
-	NextLink     string                `json:"nextLink"`
-	PreviousLink string                `json:"previousLink"`
-	Devices      []pmojo.ManagedDevice `json:"managedDevices"`
-}
-
-func (m *mwm) addDevice(d pmojo.ManagedDevice) (device.Device, error) {
-	ch := make(chan *pmojo.ManagedDevice)
+func (m *mwm) addDevice(d *apiclient.ManagedDevice) (device.Device, error) {
+	ch := make(chan *apiclient.ManagedDevice)
 	did := pmojo.DeviceIDFromMac(d.Macaddress)
 	md := devices.NewMojo(did, ch)
 	if err := m.inventory.Add(did, md); err != nil {
@@ -69,11 +72,11 @@ func (m *mwm) removeDevice(key string) error {
 	return nil
 }
 
-func (m *mwm) handleDeviceUpdate(d pmojo.ManagedDevice) error {
+func (m *mwm) handleDeviceUpdate(d *apiclient.ManagedDevice) error {
 	did := pmojo.DeviceIDFromMac(d.Macaddress)
 	_, ok := m.inventory.Get(did)
 	if !ok {
-		if !d.Active {
+		if !d.IsActive {
 			return nil
 		}
 		_, err := m.addDevice(d)
@@ -82,65 +85,37 @@ func (m *mwm) handleDeviceUpdate(d pmojo.ManagedDevice) error {
 		}
 	}
 
-	if !d.Active {
+	if !d.IsActive {
 		if err := m.removeDevice(did); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	m.deviceUpdateChan[did] <- &d
+	m.deviceUpdateChan[did] <- d
 	return nil
 }
 
-func (m *mwm) getManagedDevices(url string) (*managedDevicesResponse, error) {
-	if url == "" {
-		url = m.apiURL + "/new/webservice/v6/devices/manageddevices"
-	}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	req.AddCookie(&http.Cookie{
-		Name:  "JSESSIONID",
-		Value: m.jsessionid})
-	resp, err := m.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Error getting manageddevices: %s", err)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	mdr := &managedDevicesResponse{}
-	if err := json.Unmarshal(body, mdr); err != nil {
-		return nil, err
-	}
-	return mdr, nil
-}
-
 func (m *mwm) pollMWM() error {
-	// Keep requesting more devices until we've got them all.
-	url := ""
-	for {
-		resp, err := m.getManagedDevices(url)
+	// Log in if the previous login has expired.
+	t := time.Now()
+	nextAuthNeeded := m.lastAuthTime.Add(m.authTimeout)
+	if t.Add(m.pollInterval).After(nextAuthNeeded) {
+		_, err := m.session.Open(m.username, m.password, m.authTimeout)
 		if err != nil {
 			return err
 		}
+		m.lastAuthTime = t
+	}
 
-		for _, d := range resp.Devices {
-			if err := m.handleDeviceUpdate(d); err != nil {
-				return err
-			}
-		}
+	devices, err := m.session.GetManagedDevices(apiclient.Filter{})
+	if err != nil {
+		return err
+	}
 
-		// XXX_jcr: Is 100 always the limit per request?
-		if len(resp.Devices) == 100 {
-			url = resp.NextLink
-		} else {
-			break
+	for _, d := range devices {
+		if err := m.handleDeviceUpdate(d); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -149,11 +124,13 @@ func (m *mwm) pollMWM() error {
 func (m *mwm) Manage(inventory device.Inventory) error {
 	m.inventory = inventory
 
-	m.client = &http.Client{
-		Timeout: time.Second * 20,
+	var err error
+	m.session, err = apiclient.NewAPISession(m.address)
+	if err != nil {
+		return err
 	}
 
-	if err := m.pollMWM(); err != nil {
+	if err = m.pollMWM(); err != nil {
 		return err
 	}
 
@@ -172,12 +149,17 @@ func newMWM(options map[string]string) (device.Manager, error) {
 	m := &mwm{}
 	var err error
 
-	m.apiURL, err = device.GetStringOption("apiurl", options)
+	m.address, err = device.GetAddressOption("address", options)
 	if err != nil {
 		return nil, err
 	}
 
-	m.jsessionid, err = device.GetStringOption("jsessionid", options)
+	m.authTimeout, err = device.GetDurationOption("authTimeout", options)
+	if err != nil {
+		return nil, err
+	}
+
+	m.password, err = device.GetStringOption("password", options)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +168,13 @@ func newMWM(options map[string]string) (device.Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	m.deviceUpdateChan = make(map[string]chan *pmojo.ManagedDevice)
+
+	m.username, err = device.GetStringOption("username", options)
+	if err != nil {
+		return nil, err
+	}
+
+	m.deviceUpdateChan = make(map[string]chan *apiclient.ManagedDevice)
 
 	return m, nil
 }

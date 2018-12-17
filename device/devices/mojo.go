@@ -7,6 +7,7 @@ package devices
 
 import (
 	"arista/device"
+	"arista/mwm/apiclient"
 	"arista/provider"
 	pmojo "arista/provider/mojo"
 	"errors"
@@ -51,7 +52,7 @@ func (m *mojo) Providers() ([]provider.Provider, error) {
 
 // NewMojo returns a new Mojo Device.
 func NewMojo(deviceID string,
-	deviceUpdateChan chan *pmojo.ManagedDevice) device.Device {
+	deviceUpdateChan chan *apiclient.ManagedDevice) device.Device {
 	mj := &mojo{}
 	mj.deviceID = deviceID
 	mj.mojoProvider = pmojo.NewMojoProvider(deviceUpdateChan)

@@ -6,6 +6,7 @@
 package mojo
 
 import (
+	"arista/mwm/apiclient"
 	"arista/provider"
 	pgnmi "arista/provider/gnmi"
 	"context"
@@ -15,22 +16,10 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
-// ManagedDevice encapsulates an MWM managed device.
-type ManagedDevice struct {
-	BoxID           int64  `json:"boxId"`
-	Name            string `json:"name"`
-	Macaddress      string `json:"macaddress"`
-	Model           string `json:"model"`
-	SoftwareVersion string `json:"softwareVersion"`
-	IPAddress       string `json:"ipAddress"`
-	Active          bool   `json:"active"`
-	UpSince         uint64 `json:"upSince"`
-}
-
 type mojo struct {
 	ctx              context.Context
 	client           gnmi.GNMIClient
-	deviceUpdateChan chan *ManagedDevice
+	deviceUpdateChan chan *apiclient.ManagedDevice
 	errChan          chan error
 	initialized      bool
 }
@@ -58,7 +47,7 @@ func DeviceIDFromMac(mac string) string {
 	return strings.Replace(mac, ":", "", -1)
 }
 
-func (m *mojo) handleDeviceUpdate(deviceUpdate *ManagedDevice) {
+func (m *mojo) handleDeviceUpdate(deviceUpdate *apiclient.ManagedDevice) {
 	updates := []*gnmi.Update{
 		pgnmi.Update(platformComponentConfigPath("name"), pgnmi.Strval("chassis")),
 		pgnmi.Update(platformComponentPath("name"), pgnmi.Strval("chassis")),
@@ -69,21 +58,21 @@ func (m *mojo) handleDeviceUpdate(deviceUpdate *ManagedDevice) {
 			platformComponentStatePath("hardware-version"),
 			pgnmi.Strval(deviceUpdate.Model)))
 	}
-	if deviceUpdate.SoftwareVersion != "" {
+	if deviceUpdate.FirmwareVersion != "" {
 		updates = append(updates, pgnmi.Update(
 			platformComponentStatePath("software-version"),
-			pgnmi.Strval(deviceUpdate.SoftwareVersion)))
+			pgnmi.Strval(deviceUpdate.FirmwareVersion)))
 	}
 	if deviceUpdate.Macaddress != "" {
 		updates = append(updates, pgnmi.Update(
 			pgnmi.Path("system", "state", "hostname"),
 			pgnmi.Strval(DeviceIDFromMac(deviceUpdate.Macaddress))))
 	}
-	if deviceUpdate.UpSince != 0 {
+	if deviceUpdate.UpSinceTimestamp != 0 {
 		// XXX_jcr: This is seconds, I think?
 		updates = append(updates, pgnmi.Update(
 			pgnmi.Path("system", "state", "boot-time"),
-			pgnmi.Uintval(100*deviceUpdate.UpSince)))
+			pgnmi.Intval(100*deviceUpdate.UpSinceTimestamp)))
 	}
 
 	sr := &gnmi.SetRequest{
@@ -117,9 +106,9 @@ func (m *mojo) Run(ctx context.Context) error {
 }
 
 // NewMojoProvider returns a Mojo provider.
-func NewMojoProvider(deviceUpdateChan chan *ManagedDevice) provider.GNMIOpenConfigProvider {
+func NewMojoProvider(ch chan *apiclient.ManagedDevice) provider.GNMIOpenConfigProvider {
 	return &mojo{
-		deviceUpdateChan: deviceUpdateChan,
+		deviceUpdateChan: ch,
 		errChan:          make(chan error),
 	}
 }

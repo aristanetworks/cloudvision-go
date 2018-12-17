@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"fmt"
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -122,9 +121,5 @@ func GetDurationOption(optionName string,
 	if !ok {
 		return 0, fmt.Errorf("No option '%s'", optionName)
 	}
-	dur, err := strconv.ParseInt(o, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(dur) * time.Second, nil
+	return time.ParseDuration(o)
 }

@@ -6,6 +6,7 @@
 package mojo
 
 import (
+	"arista/mwm/apiclient"
 	pgnmi "arista/provider/gnmi"
 	"context"
 	"encoding/json"
@@ -203,7 +204,7 @@ type testCase struct {
 }
 
 func testUpdate(t *testing.T, mj *mojo, gc *pgnmi.TestClient, tc testCase) {
-	u := ManagedDevice{}
+	u := apiclient.ManagedDevice{}
 	if err := json.Unmarshal([]byte(tc.deviceUpdate), &u); err != nil {
 		t.Fatalf("Error in Unmarshal: %s", err)
 	}
@@ -221,7 +222,7 @@ func TestMojo(t *testing.T) {
 	gNMIClient := &pgnmi.TestClient{
 		Out: make(chan *gnmi.SetRequest),
 	}
-	mj := NewMojoProvider(make(chan *ManagedDevice)).(*mojo)
+	mj := NewMojoProvider(make(chan *apiclient.ManagedDevice)).(*mojo)
 	mj.InitGNMIOpenConfig(gNMIClient)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -248,7 +249,7 @@ func TestMojo(t *testing.T) {
 					pgnmi.Update(pgnmi.Path("system", "state", "hostname"),
 						pgnmi.Strval("001174A3A9FF")),
 					pgnmi.Update(pgnmi.Path("system", "state", "boot-time"),
-						pgnmi.Uintval(uint64(139421397149000))),
+						pgnmi.Intval(int64(139421397149000))),
 				},
 			},
 		},
@@ -270,7 +271,7 @@ func TestMojo(t *testing.T) {
 					pgnmi.Update(pgnmi.Path("system", "state", "hostname"),
 						pgnmi.Strval("0011749CBC9F")),
 					pgnmi.Update(pgnmi.Path("system", "state", "boot-time"),
-						pgnmi.Uintval(uint64(151374900174300))),
+						pgnmi.Intval(int64(151374900174300))),
 				},
 			},
 		},
