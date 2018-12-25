@@ -6,7 +6,6 @@
 package device
 
 import (
-	"arista/flag"
 	"errors"
 	"fmt"
 )
@@ -109,11 +108,11 @@ func Delete() {
 	managerInUse = nil
 }
 
-// AddManagerHelp adds the appropriate manager options to flag.Usage.
-func AddManagerHelp() error {
+// ManagerOptionHelp returns the options and associated help strings of
+// the manager in use.
+func ManagerOptionHelp() (map[string]string, error) {
 	if managerInUse == nil {
-		return errors.New("No manager in use")
+		return nil, errors.New("No manager in use")
 	}
-	flag.AddHelp("", help(managerInUse.options, "manager", managerInUse.name))
-	return nil
+	return helpDesc(managerInUse.options), nil
 }

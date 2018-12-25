@@ -6,8 +6,6 @@
 package device
 
 import (
-	"arista/flag"
-	"bytes"
 	"fmt"
 	"net"
 	"time"
@@ -65,18 +63,6 @@ func helpDesc(options map[string]Option) map[string]string {
 		hd[k] = desc
 	}
 	return hd
-}
-
-// Return help string for a given set of options.
-func help(options map[string]Option, optionType, name string) string {
-	b := new(bytes.Buffer)
-	hd := helpDesc(options)
-	// Don't print out device separator if the device has no options.
-	if len(hd) == 0 {
-		return ""
-	}
-	flag.FormatOptions(b, "Help options for "+optionType+" '"+name+"':", hd)
-	return b.String()
 }
 
 // GetStringOption returns the option specified by optionName as a

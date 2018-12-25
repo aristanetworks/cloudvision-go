@@ -6,8 +6,7 @@
 package device
 
 import (
-	"arista/flag"
-	"arista/provider"
+	"cloudvision-go/provider"
 	"errors"
 	"fmt"
 )
@@ -114,11 +113,11 @@ func Init(pluginDir, deviceName string, creator *Creator,
 	return nil
 }
 
-// AddHelp adds the appropriate device options to flag.Usage.
-func AddHelp() error {
+// OptionHelp returns the options and associated help strings of the
+// device in use.
+func OptionHelp() (map[string]string, error) {
 	if deviceInUse == nil {
-		return errors.New("No device in use")
+		return nil, errors.New("No device in use")
 	}
-	flag.AddHelp("", help(deviceInUse.options, "device", deviceInUse.name))
-	return nil
+	return helpDesc(deviceInUse.options), nil
 }

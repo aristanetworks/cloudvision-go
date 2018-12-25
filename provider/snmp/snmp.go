@@ -6,10 +6,10 @@
 package snmp
 
 import (
-	"arista/provider"
-	pgnmi "arista/provider/gnmi"
-	"arista/provider/openconfig"
 	"bytes"
+	"cloudvision-go/provider"
+	pgnmi "cloudvision-go/provider/gnmi"
+	"cloudvision-go/provider/openconfig"
 	"context"
 	"encoding/hex"
 	"errors"

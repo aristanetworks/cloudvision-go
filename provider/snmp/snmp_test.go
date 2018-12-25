@@ -6,8 +6,8 @@
 package snmp
 
 import (
-	pgnmi "arista/provider/gnmi"
-	"arista/provider/openconfig"
+	pgnmi "cloudvision-go/provider/gnmi"
+	"cloudvision-go/provider/openconfig"
 	"encoding/hex"
 	"fmt"
 	"reflect"

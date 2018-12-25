@@ -6,7 +6,7 @@
 package gnmi
 
 import (
-	"arista/provider"
+	"cloudvision-go/provider"
 	"context"
 	"fmt"
 
@@ -17,7 +17,6 @@ import (
 )
 
 type gnmiProvider struct {
-	provider.ReadOnly
 	cfg         *agnmi.Config
 	paths       []string
 	inClient    gnmi.GNMIClient

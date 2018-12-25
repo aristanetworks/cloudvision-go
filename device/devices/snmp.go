@@ -6,9 +6,9 @@
 package devices
 
 import (
-	"arista/device"
-	"arista/provider"
-	psnmp "arista/provider/snmp"
+	"cloudvision-go/device"
+	"cloudvision-go/provider"
+	psnmp "cloudvision-go/provider/snmp"
 	"time"
 )
 

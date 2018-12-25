@@ -6,7 +6,7 @@
 package main
 
 import (
-	"arista/device"
+	"cloudvision-go/device"
 )
 
 var testPluginName = "test"

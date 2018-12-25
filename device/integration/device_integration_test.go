@@ -8,7 +8,7 @@
 package devicetest
 
 import (
-	"arista/device"
+	"cloudvision-go/device"
 	"testing"
 )
 

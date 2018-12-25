@@ -6,9 +6,9 @@
 package devices
 
 import (
-	"arista/device"
-	"arista/provider"
-	pgnmi "arista/provider/gnmi"
+	"cloudvision-go/device"
+	"cloudvision-go/provider"
+	pgnmi "cloudvision-go/provider/gnmi"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -55,7 +55,7 @@ func (o *openconfigDevice) CheckAlive() (bool, error) {
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)
 	livenessPath := "/system/processes/process/state"
-	req, err := gnmi.NewGetRequest(gnmi.SplitPaths([]string{livenessPath}))
+	req, err := gnmi.NewGetRequest(gnmi.SplitPaths([]string{livenessPath}), "")
 	if err != nil {
 		return false, err
 	}
@@ -75,7 +75,7 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 	// Not doing that now because EOS doesn't support it so I don't even know what the gNMI
 	// response looks like..
 	livenessPath := "/system/config"
-	req, err := gnmi.NewGetRequest(gnmi.SplitPaths([]string{livenessPath}))
+	req, err := gnmi.NewGetRequest(gnmi.SplitPaths([]string{livenessPath}), "")
 	if err != nil {
 		return "", err
 	}

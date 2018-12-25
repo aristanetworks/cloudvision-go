@@ -6,7 +6,7 @@
 package device
 
 import (
-	"arista/provider"
+	"cloudvision-go/provider"
 )
 
 // TestDeviceOptions is a set of test options

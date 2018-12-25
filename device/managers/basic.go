@@ -6,7 +6,7 @@
 package managers
 
 import (
-	"arista/device"
+	"cloudvision-go/device"
 	"fmt"
 )
 
