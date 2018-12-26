@@ -33,7 +33,7 @@ func oidIndex(oid string) (string, string, error) {
 }
 
 const (
-	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11.1"
+	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11"
 	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
 	snmpIfTable                      = ".1.3.6.1.2.1.2.2"
 	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
@@ -93,7 +93,9 @@ func strval(s interface{}) *gnmi.TypedValue {
 	}
 	u, ok := s.([]byte)
 	if ok {
-		return pgnmi.Strval(string(u))
+		// Remove newlines. OpenConfig will reject multiline strings.
+		ss := strings.Replace(string(u), "\n", " ", -1)
+		return pgnmi.Strval(ss)
 	}
 	glog.Fatalf("Unexpected type in strval: %T", s)
 	return nil
@@ -188,7 +190,27 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
-	return s.getStringByOID(snmpEntPhysicalSerialNum)
+	serial := ""
+
+	// XXX_jcr: This just takes the first serial number we find.
+	// Ultimately I think we probably want to take the
+	// entPhysicalSerialNum of the index corresponding to the first
+	// entPhysicalDescr of type "chassis".
+	serialNumWalk := func(data gosnmp.SnmpPDU) error {
+		if serial != "" {
+			return nil
+		}
+		serial = string(data.Value.([]byte))
+		return nil
+	}
+
+	if err := s.walk(snmpEntPhysicalSerialNum, serialNumWalk); err != nil {
+		return "", err
+	}
+	if serial == "" {
+		return "", errors.New("Failed to get serial number")
+	}
+	return serial, nil
 }
 
 // CheckAlive checks if device is still alive if poll interval has passed.
@@ -329,6 +351,19 @@ func (s *Snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
+// Some implementations will return a hostname only, while others
+// will return a fully qualified domain name. splitSysName returns
+// the hostname and the domain if it exists.
+func splitSysName(sysName string) (string, string) {
+	ss := strings.Split(sysName, ".")
+	hn := ss[0]
+	var dn string
+	if len(ss) > 1 {
+		dn = strings.Join(ss[1:], ".")
+	}
+	return hn, dn
+}
+
 func (s *Snmp) updateSystemState() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -337,13 +372,16 @@ func (s *Snmp) updateSystemState() (*gnmi.SetRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	hostname := strings.Split(sysName, ".")[0]
-	domainName := strings.Join(strings.Split(sysName, ".")[1:], ".")
+	hostname, domainName := splitSysName(sysName)
 
 	hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
-	dn := update(pgnmi.Path("system", "state", "domain-name"),
-		strval(domainName))
-	setReq.Replace = []*gnmi.Update{hn, dn}
+	upd := []*gnmi.Update{hn}
+	if domainName != "" {
+		upd = append(upd,
+			update(pgnmi.Path("system", "state", "domain-name"),
+				strval(domainName)))
+	}
+	setReq.Replace = upd
 
 	return setReq, nil
 }

@@ -29,6 +29,14 @@ type pollTestCase struct {
 	expected  *gnmi.SetRequest
 }
 
+// deviceIDTestCase describes a test of the SNMP DeviceID method: the
+// mocked SNMP responses and an expected device ID.
+type deviceIDTestCase struct {
+	name      string
+	responses map[string][]gosnmp.SnmpPDU
+	expected  string
+}
+
 // mockget and mockwalk are the SNMP get and walk routines used for
 // injecting mocked SNMP data into the polling routines.
 func mockget(oids []string,
@@ -77,6 +85,24 @@ func mockPoll(t *testing.T, s *Snmp, tc pollTestCase) {
 	}
 	if !reflect.DeepEqual(sr, tc.expected) {
 		t.Fatalf("SetRequests not equal. Expected %v\nGot %v", tc.expected, sr)
+	}
+}
+
+// Call DeviceID, feeding in the mocked PDUs in tc.responses. Check
+// that it returns the expected device ID.
+func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
+	s.getter = func(oids []string) (*gosnmp.SnmpPacket, error) {
+		return mockget(oids, tc.responses)
+	}
+	s.walker = func(oid string, walker gosnmp.WalkFunc) error {
+		return mockwalk(oid, walker, tc.responses)
+	}
+	did, err := s.DeviceID()
+	if err != nil {
+		t.Fatalf("Error in DeviceID: %v", err)
+	}
+	if did != tc.expected {
+		t.Fatalf("Device IDs not equal. Expected %v, got %v", tc.expected, did)
 	}
 }
 
@@ -205,6 +231,61 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.451 = STRING: Ethernet3/1
 .1.0.8802.1.1.2.1.3.7.1.3.452 = STRING: Ethernet3/2
 .1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
+`
+
+var entPhysSerialNumAristaResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420017
+.1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002002 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002003 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002004 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002005 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002006 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002051 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002052 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002053 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002054 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002055 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002056 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002101 = STRING: JPE15200157
+.1.3.6.1.2.1.47.1.1.1.1.11.100002102 = STRING: JPE15200256
+.1.3.6.1.2.1.47.1.1.1.1.11.100002103 = STRING: JPE17400037
+.1.3.6.1.2.1.47.1.1.1.1.11.100002105 = STRING: JPE15214958
+.1.3.6.1.2.1.47.1.1.1.1.11.100002106 = STRING: JPE13351729
+.1.3.6.1.2.1.47.1.1.1.1.11.100002151 = STRING: JPE15253426
+.1.3.6.1.2.1.47.1.1.1.1.11.100002152 = STRING: JPE15253614
+.1.3.6.1.2.1.47.1.1.1.1.11.100002153 = STRING: JPE15253369
+.1.3.6.1.2.1.47.1.1.1.1.11.100002154 = STRING: JPE15253523
+.1.3.6.1.2.1.47.1.1.1.1.11.100002155 = STRING: JPE15253366
+.1.3.6.1.2.1.47.1.1.1.1.11.100002156 = STRING: JPE15253556
+.1.3.6.1.2.1.47.1.1.1.1.11.100601000 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100601100 = STRING: JPE15253426
+.1.3.6.1.2.1.47.1.1.1.1.11.100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100601111 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100601120 = STRING:
+`
+
+var entPhysSerialNumN9KResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.11.10 = STRING: SAL1817R822
+.1.3.6.1.2.1.47.1.1.1.1.11.22 = STRING: SAL1817R822
+.1.3.6.1.2.1.47.1.1.1.1.11.23 = STRING: SAL1807M59Z
+.1.3.6.1.2.1.47.1.1.1.1.11.149 = STRING: SAL1817R822
+.1.3.6.1.2.1.47.1.1.1.1.11.214 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.215 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.278 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.279 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.342 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.343 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.344 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.470 = STRING: DCH1815R075
+.1.3.6.1.2.1.47.1.1.1.1.11.471 = STRING: DCH1815R07C
+.1.3.6.1.2.1.47.1.1.1.1.11.534 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.535 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.536 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.598 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.5206 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.5207 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.5208 = STRING:
 `
 
 func parsePDU(line string) (oid, pduTypeString, value string) {
@@ -462,9 +543,52 @@ func TestSnmp(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "updateSystemStateHostnameOnly",
+			pollFn: s.updateSystemState,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpSysName: []gosnmp.SnmpPDU{
+					pdu(snmpSysName, octstr, []byte("deviceABC")),
+				},
+			},
+			expected: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
+				},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockPoll(t, s, tc)
+		})
+	}
+}
+
+func TestDeviceID(t *testing.T) {
+	s := &Snmp{
+		errc:             make(chan error),
+		interfaceIndex:   make(map[string]string),
+		interfaceName:    make(map[string]bool),
+		lldpLocPortIndex: make(map[string]string),
+	}
+	for _, tc := range []deviceIDTestCase{
+		{
+			name: "deviceIDArista",
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumAristaResponse),
+			},
+			expected: "JSH11420017",
+		},
+		{
+			name: "deviceIDN9K",
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumN9KResponse),
+			},
+			expected: "SAL1817R822",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockDeviceID(t, s, tc)
 		})
 	}
 }
