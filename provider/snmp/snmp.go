@@ -33,53 +33,57 @@ func oidIndex(oid string) (string, string, error) {
 }
 
 const (
+	snmpEntPhysicalClass             = ".1.3.6.1.2.1.47.1.1.1.1.5"
 	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11"
-	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
+	snmpEntPhysicalTable             = ".1.3.6.1.2.1.47.1.1.1.1"
 	snmpIfTable                      = ".1.3.6.1.2.1.2.2"
-	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
 	snmpIfDescr                      = ".1.3.6.1.2.1.2.2.1.2"
 	snmpIfType                       = ".1.3.6.1.2.1.2.2.1.3"
 	snmpIfMtu                        = ".1.3.6.1.2.1.2.2.1.4"
 	snmpIfAdminStatus                = ".1.3.6.1.2.1.2.2.1.7"
-	snmpIfOperStatus                 = ".1.3.6.1.2.1.2.2.1.8"
-	snmpIfInOctets                   = ".1.3.6.1.2.1.2.2.1.10"
-	snmpIfInUcastPkts                = ".1.3.6.1.2.1.2.2.1.11"
-	snmpIfInMulticastPkts            = ".1.3.6.1.2.1.31.1.1.1.2"
 	snmpIfInBroadcastPkts            = ".1.3.6.1.2.1.31.1.1.1.3"
 	snmpIfInDiscards                 = ".1.3.6.1.2.1.2.2.1.13"
 	snmpIfInErrors                   = ".1.3.6.1.2.1.2.2.1.14"
+	snmpIfInMulticastPkts            = ".1.3.6.1.2.1.31.1.1.1.2"
+	snmpIfInOctets                   = ".1.3.6.1.2.1.2.2.1.10"
+	snmpIfInUcastPkts                = ".1.3.6.1.2.1.2.2.1.11"
 	snmpIfInUnknownProtos            = ".1.3.6.1.2.1.2.2.1.15"
-	snmpIfOutOctets                  = ".1.3.6.1.2.1.2.2.1.16"
-	snmpIfOutUcastPkts               = ".1.3.6.1.2.1.2.2.1.17"
-	snmpIfOutMulticastPkts           = ".1.3.6.1.2.1.31.1.1.1.4"
+	snmpIfOperStatus                 = ".1.3.6.1.2.1.2.2.1.8"
 	snmpIfOutBroadcastPkts           = ".1.3.6.1.2.1.31.1.1.1.5"
 	snmpIfOutDiscards                = ".1.3.6.1.2.1.2.2.1.19"
 	snmpIfOutErrors                  = ".1.3.6.1.2.1.2.2.1.20"
+	snmpIfOutMulticastPkts           = ".1.3.6.1.2.1.31.1.1.1.4"
+	snmpIfOutOctets                  = ".1.3.6.1.2.1.2.2.1.16"
+	snmpIfOutUcastPkts               = ".1.3.6.1.2.1.2.2.1.17"
+	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
 	snmpLldpLocalSystemData          = ".1.0.8802.1.1.2.1.3"
-	snmpLldpLocPortTable             = ".1.0.8802.1.1.2.1.3.7"
-	snmpLldpRemTable                 = ".1.0.8802.1.1.2.1.4.1"
-	snmpLldpStatistics               = ".1.0.8802.1.1.2.1.2"
-	snmpLldpStatsTxPortTable         = ".1.0.8802.1.1.2.1.2.6"
-	snmpLldpStatsRxPortTable         = ".1.0.8802.1.1.2.1.2.7"
 	snmpLldpLocChassisID             = ".1.0.8802.1.1.2.1.3.2.0"
 	snmpLldpLocChassisIDSubtype      = ".1.0.8802.1.1.2.1.3.1.0"
-	snmpLldpLocSysName               = ".1.0.8802.1.1.2.1.3.3.0"
-	snmpLldpLocSysDesc               = ".1.0.8802.1.1.2.1.3.4.0"
 	snmpLldpLocPortID                = ".1.0.8802.1.1.2.1.3.7.1.3"
+	snmpLldpLocPortTable             = ".1.0.8802.1.1.2.1.3.7"
+	snmpLldpLocSysDesc               = ".1.0.8802.1.1.2.1.3.4.0"
+	snmpLldpLocSysName               = ".1.0.8802.1.1.2.1.3.3.0"
 	snmpLldpRemPortID                = ".1.0.8802.1.1.2.1.4.1.1.7"
 	snmpLldpRemPortIDSubtype         = ".1.0.8802.1.1.2.1.4.1.1.6"
 	snmpLldpRemChassisID             = ".1.0.8802.1.1.2.1.4.1.1.5"
 	snmpLldpRemChassisIDSubtype      = ".1.0.8802.1.1.2.1.4.1.1.4"
-	snmpLldpRemSysName               = ".1.0.8802.1.1.2.1.4.1.1.9"
 	snmpLldpRemSysDesc               = ".1.0.8802.1.1.2.1.4.1.1.10"
-	snmpLldpStatsTxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.6.1.2"
-	snmpLldpStatsRxPortFramesDiscard = ".1.0.8802.1.1.2.1.2.7.1.2"
-	snmpLldpStatsRxPortFramesErrors  = ".1.0.8802.1.1.2.1.2.7.1.3"
+	snmpLldpRemSysName               = ".1.0.8802.1.1.2.1.4.1.1.9"
+	snmpLldpRemTable                 = ".1.0.8802.1.1.2.1.4.1"
+	snmpLldpStatistics               = ".1.0.8802.1.1.2.1.2"
 	snmpLldpStatsRxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.7.1.4"
+	snmpLldpStatsRxPortTable         = ".1.0.8802.1.1.2.1.2.7"
 	snmpLldpStatsRxPortTLVsDiscard   = ".1.0.8802.1.1.2.1.2.7.1.5"
 	snmpLldpStatsRxPortTLVsUnrecog   = ".1.0.8802.1.1.2.1.2.7.1.6"
+	snmpLldpStatsRxPortFramesDiscard = ".1.0.8802.1.1.2.1.2.7.1.2"
+	snmpLldpStatsRxPortFramesErrors  = ".1.0.8802.1.1.2.1.2.7.1.3"
+	snmpLldpStatsTxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.6.1.2"
+	snmpLldpStatsTxPortTable         = ".1.0.8802.1.1.2.1.2.6"
+	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
 	snmpSysUpTime                    = ".1.3.6.1.2.1.1.3.0"
 )
+
+var snmpEntPhysicalClassTypeChassis = 3
 
 // Less typing:
 func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
@@ -191,20 +195,41 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
 	serial := ""
+	var done bool
+	chassisIndex := ""
 
-	// XXX_jcr: This just takes the first serial number we find.
-	// Ultimately I think we probably want to take the
-	// entPhysicalSerialNum of the index corresponding to the first
-	// entPhysicalDescr of type "chassis".
-	serialNumWalk := func(data gosnmp.SnmpPDU) error {
-		if serial != "" {
+	// Get the serial number corresponding to the index whose class
+	// type is chassis(3).
+	entPhysicalWalk := func(data gosnmp.SnmpPDU) error {
+		if done {
 			return nil
 		}
-		serial = string(data.Value.([]byte))
+		baseOid, index, err := oidIndex(data.Name)
+		if err != nil {
+			return err
+		}
+		// If the physical class is "chassis", this is the index we want.
+		if baseOid == snmpEntPhysicalClass {
+			if data.Value.(int) == snmpEntPhysicalClassTypeChassis {
+				chassisIndex = index
+			}
+		}
+		if baseOid == snmpEntPhysicalSerialNum {
+			// Take the first non-empty serial number as a backup, in
+			// case there isn't a chassis serial number.
+			if serial == "" {
+				serial = string(data.Value.([]byte))
+			}
+			if index == chassisIndex {
+				serial = string(data.Value.([]byte))
+				done = true
+			}
+		}
+
 		return nil
 	}
 
-	if err := s.walk(snmpEntPhysicalSerialNum, serialNumWalk); err != nil {
+	if err := s.walk(snmpEntPhysicalTable, entPhysicalWalk); err != nil {
 		return "", err
 	}
 	if serial == "" {

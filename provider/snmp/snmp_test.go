@@ -233,7 +233,36 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
 `
 
-var entPhysSerialNumAristaResponse = `
+var entPhysTableAristaResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.5.1 = INTEGER: chassis(3)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002001 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002002 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002003 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002004 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002005 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002006 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002051 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002052 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002053 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002054 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002055 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002056 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002101 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002102 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002103 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002105 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002106 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002151 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002152 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002153 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002154 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002155 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002156 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601000 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601100 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601110 = INTEGER: fan(7)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601111 = INTEGER: sensor(8)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601120 = INTEGER: fan(7)
 .1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420017
 .1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.11.100002002 = STRING:
@@ -265,7 +294,27 @@ var entPhysSerialNumAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.100601120 = STRING:
 `
 
-var entPhysSerialNumN9KResponse = `
+var entPhysTableN9KResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.5.10 = INTEGER: stack(11)
+.1.3.6.1.2.1.47.1.1.1.1.5.22 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.23 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.149 = INTEGER: chassis(3)
+.1.3.6.1.2.1.47.1.1.1.1.5.214 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.215 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.278 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.279 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.342 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.343 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.344 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.470 = INTEGER: powerSupply(6)
+.1.3.6.1.2.1.47.1.1.1.1.5.471 = INTEGER: powerSupply(6)
+.1.3.6.1.2.1.47.1.1.1.1.5.534 = INTEGER: fan(7)
+.1.3.6.1.2.1.47.1.1.1.1.5.535 = INTEGER: fan(7)
+.1.3.6.1.2.1.47.1.1.1.1.5.536 = INTEGER: fan(7)
+.1.3.6.1.2.1.47.1.1.1.1.5.598 = INTEGER: other(1)
+.1.3.6.1.2.1.47.1.1.1.1.5.5206 = INTEGER: port(10)
+.1.3.6.1.2.1.47.1.1.1.1.5.5207 = INTEGER: port(10)
+.1.3.6.1.2.1.47.1.1.1.1.5.5208 = INTEGER: port(10)
 .1.3.6.1.2.1.47.1.1.1.1.11.10 = STRING: SAL1817R822
 .1.3.6.1.2.1.47.1.1.1.1.11.22 = STRING: SAL1817R822
 .1.3.6.1.2.1.47.1.1.1.1.11.23 = STRING: SAL1807M59Z
@@ -288,6 +337,29 @@ var entPhysSerialNumN9KResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.5208 = STRING:
 `
 
+var entPhysTableDefaultResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420018
+.1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002002 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002003 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002004 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002005 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002006 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002051 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002052 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002053 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002054 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002055 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002056 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002101 = STRING: JPE15200157
+.1.3.6.1.2.1.47.1.1.1.1.11.100002102 = STRING: JPE15200256
+.1.3.6.1.2.1.47.1.1.1.1.11.100002103 = STRING: JPE17400037
+.1.3.6.1.2.1.47.1.1.1.1.11.100002105 = STRING: JPE15214958
+.1.3.6.1.2.1.47.1.1.1.1.11.100002106 = STRING: JPE13351729
+.1.3.6.1.2.1.47.1.1.1.1.11.100002151 = STRING: JPE15253426
+.1.3.6.1.2.1.47.1.1.1.1.11.100002152 = STRING: JPE15253614
+`
+
 func parsePDU(line string) (oid, pduTypeString, value string) {
 	t := strings.Split(line, " = ")
 	if len(t) < 2 {
@@ -297,7 +369,12 @@ func parsePDU(line string) (oid, pduTypeString, value string) {
 	t = strings.Split(t[1], ": ")
 	pduTypeString = t[0]
 	if len(t) >= 2 {
-		value = t[1]
+		// Handle case where value is of format "chassis(3)".
+		s := strings.Split(strings.Split(t[1], ")")[0], "(")
+		value = s[0]
+		if len(s) > 1 {
+			value = s[1]
+		}
 	} else {
 		pduTypeString = strings.Split(t[0], ":")[0]
 	}
@@ -575,16 +652,23 @@ func TestDeviceID(t *testing.T) {
 		{
 			name: "deviceIDArista",
 			responses: map[string][]gosnmp.SnmpPDU{
-				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumAristaResponse),
+				snmpEntPhysicalTable: pdusFromString(entPhysTableAristaResponse),
 			},
 			expected: "JSH11420017",
 		},
 		{
 			name: "deviceIDN9K",
 			responses: map[string][]gosnmp.SnmpPDU{
-				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumN9KResponse),
+				snmpEntPhysicalTable: pdusFromString(entPhysTableN9KResponse),
 			},
 			expected: "SAL1817R822",
+		},
+		{
+			name: "noChassisFound",
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpEntPhysicalTable: pdusFromString(entPhysTableDefaultResponse),
+			},
+			expected: "JSH11420018",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
