@@ -183,6 +183,10 @@ var basicLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.452 = STRING: Ethernet3/2
 `
 
+var lldpLocalSystemDataResponseStringID = `
+.1.0.8802.1.1.2.1.3.2.0 = STRING: 50:87:89:a1:64:4f
+`
+
 var basicLldpRemTableResponse = `
 .1.0.8802.1.1.2.1.4.1.1.4.0.1.1 = INTEGER: 4
 .1.0.8802.1.1.2.1.4.1.1.4.0.451.3 = INTEGER: 4
@@ -617,6 +621,21 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.LldpIntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
 					update(pgnmi.LldpIntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
 					update(pgnmi.LldpIntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+				},
+			},
+		},
+		{
+			name:   "updateLldpStringChassisID",
+			pollFn: s.updateLldp,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpLldpLocalSystemData: pdusFromString(lldpLocalSystemDataResponseStringID),
+				snmpLldpRemTable:        []gosnmp.SnmpPDU{},
+				snmpLldpStatistics:      []gosnmp.SnmpPDU{},
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.LldpStatePath("chassis-id"), strval("50:87:89:a1:64:4f")),
 				},
 			},
 		},

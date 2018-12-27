@@ -439,9 +439,14 @@ func processLldpOid(oid string) (locIndex, remoteID,
 	return
 }
 
-// Return MAC address from hex byte string.
+// Return MAC address from string or hex byte string.
 func macFromBytes(s []byte) string {
-	// XXX_jcr: hex assumption is only right for MAC
+	// string case
+	if len(s) == 17 {
+		return string(s)
+	}
+
+	// else assume hex string
 	var t bytes.Buffer
 	for i := 0; i < len(s); i++ {
 		if i != 0 {
