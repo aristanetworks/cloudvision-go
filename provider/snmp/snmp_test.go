@@ -223,6 +223,63 @@ var basicLldpStatisticsResponse = `
 .1.0.8802.1.1.2.1.2.7.1.2.454 = Counter32: 0
 `
 
+var basicLldpV2IntfSetupResponse = `
+.1.3.6.1.2.1.2.2.1.1.6 = INTEGER: 6
+.1.3.6.1.2.1.2.2.1.1.18 = INTEGER: 18
+.1.3.6.1.2.1.2.2.1.1.19 = INTEGER: 19
+.1.3.6.1.2.1.2.2.1.2.6 = STRING: ethernet1/1
+.1.3.6.1.2.1.2.2.1.2.18 = STRING: ethernet1/13
+.1.3.6.1.2.1.2.2.1.2.19 = STRING: ethernet1/14
+`
+
+var basicLldpV2LocalSystemDataResponse = `
+.1.3.111.2.802.1.1.13.1.3.1.0 = INTEGER: 4
+.1.3.111.2.802.1.1.13.1.3.2.0 = STRING: 24:0b:0a:00:70:98
+.1.3.111.2.802.1.1.13.1.3.3.0 = STRING: firewall337-PAN3060
+.1.3.111.2.802.1.1.13.1.3.4.0 = STRING: Palo Alto Networks 3000 series firewall
+.1.3.111.2.802.1.1.13.1.3.5.0 = Hex-STRING: E8 00
+.1.3.111.2.802.1.1.13.1.3.6.0 = Hex-STRING: C0 00
+.1.3.111.2.802.1.1.13.1.3.7.1.2.6 = INTEGER: 5
+.1.3.111.2.802.1.1.13.1.3.7.1.2.18 = INTEGER: 5
+.1.3.111.2.802.1.1.13.1.3.7.1.2.19 = INTEGER: 5
+.1.3.111.2.802.1.1.13.1.3.7.1.3.6 = STRING: ethernet1/1
+.1.3.111.2.802.1.1.13.1.3.7.1.3.18 = STRING: ethernet1/13
+.1.3.111.2.802.1.1.13.1.3.7.1.3.19 = STRING: ethernet1/14
+`
+
+var basicLldpV2RemTableResponse = `
+.1.3.111.2.802.1.1.13.1.4.1.1.5.0.18.1.1 = INTEGER: 4
+.1.3.111.2.802.1.1.13.1.4.1.1.5.0.19.1.2 = INTEGER: 4
+.1.3.111.2.802.1.1.13.1.4.1.1.6.0.18.1.1 = STRING: 28:99:3a:bf:26:46
+.1.3.111.2.802.1.1.13.1.4.1.1.6.0.19.1.2 = STRING: 28:99:3a:bf:23:f6
+.1.3.111.2.802.1.1.13.1.4.1.1.7.0.18.1.1 = INTEGER: 5
+.1.3.111.2.802.1.1.13.1.4.1.1.7.0.19.1.2 = INTEGER: 5
+.1.3.111.2.802.1.1.13.1.4.1.1.8.0.18.1.1 = STRING: Ethernet46
+.1.3.111.2.802.1.1.13.1.4.1.1.8.0.19.1.2 = STRING: Ethernet46
+.1.3.111.2.802.1.1.13.1.4.1.1.10.0.18.1.1 = STRING: switch123.sjc.aristanetworks.com
+.1.3.111.2.802.1.1.13.1.4.1.1.10.0.19.1.2 = STRING: switch124.sjc.aristanetworks.com
+.1.3.111.2.802.1.1.13.1.4.1.1.11.0.18.1.1 = STRING: Arista Networks EOS version x.y.z
+.1.3.111.2.802.1.1.13.1.4.1.1.11.0.19.1.2 = STRING: Arista Networks EOS version x.y.z
+.1.3.111.2.802.1.1.13.1.4.1.1.12.0.18.1.1 = Hex-STRING: 28 00
+.1.3.111.2.802.1.1.13.1.4.1.1.12.0.19.1.2 = Hex-STRING: 28 00
+.1.3.111.2.802.1.1.13.1.4.1.1.13.0.18.1.1 = Hex-STRING: 28 00
+.1.3.111.2.802.1.1.13.1.4.1.1.13.0.19.1.2 = Hex-STRING: 28 00
+.1.3.111.2.802.1.1.13.1.4.1.1.14.0.18.1.1 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.1.1.14.0.19.1.2 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.1.1.15.0.18.1.1 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.1.1.15.0.19.1.2 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.2.1.3.1.9.49.53.48.46.48.46.48.46.49 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.2.1.3.1.9.49.53.48.46.48.46.48.46.50 = INTEGER: 2
+.1.3.111.2.802.1.1.13.1.4.3.1.2.127 = STRING: 0x00120f0427d8
+`
+
+var basicLldpV2StatisticsResponse = `
+.1.3.111.2.802.1.1.13.1.2.6.1.3.18.1 = Counter32: 118331
+.1.3.111.2.802.1.1.13.1.2.6.1.3.19.1 = Counter32: 118329
+.1.3.111.2.802.1.1.13.1.2.7.1.5.18.2 = Counter32: 118219
+.1.3.111.2.802.1.1.13.1.2.7.1.5.19.3 = Counter32: 118194
+`
+
 // Include another interface, Ethernet3/3, that's inactive.
 var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
@@ -650,6 +707,117 @@ func TestSnmp(t *testing.T) {
 			expected: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
 					update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
+				},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockPoll(t, s, tc)
+		})
+	}
+}
+
+func TestSnmpLldpV2(t *testing.T) {
+	s := &Snmp{
+		errc:             make(chan error),
+		interfaceIndex:   make(map[string]string),
+		interfaceName:    make(map[string]bool),
+		lldpLocPortIndex: make(map[string]string),
+		lldpV2:           true,
+	}
+	for _, tc := range []pollTestCase{
+		{
+			name:   "lldpV2IntfSetup",
+			pollFn: s.updateInterfaces,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpIfTable:  pdusFromString(basicLldpV2IntfSetupResponse),
+				snmpIfXTable: []gosnmp.SnmpPDU{},
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.IntfStatePath("ethernet1/1", "name"), strval("ethernet1/1")),
+					update(pgnmi.IntfPath("ethernet1/1", "name"), strval("ethernet1/1")),
+					update(pgnmi.IntfConfigPath("ethernet1/1", "name"), strval("ethernet1/1")),
+					update(pgnmi.IntfStatePath("ethernet1/13", "name"), strval("ethernet1/13")),
+					update(pgnmi.IntfPath("ethernet1/13", "name"), strval("ethernet1/13")),
+					update(pgnmi.IntfConfigPath("ethernet1/13", "name"), strval("ethernet1/13")),
+					update(pgnmi.IntfStatePath("ethernet1/14", "name"), strval("ethernet1/14")),
+					update(pgnmi.IntfPath("ethernet1/14", "name"), strval("ethernet1/14")),
+					update(pgnmi.IntfConfigPath("ethernet1/14", "name"), strval("ethernet1/14")),
+				},
+			},
+		},
+		{
+			name:   "updateLldpV2Basic",
+			pollFn: s.updateLldp,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpLldpV2LocalSystemData: pdusFromString(basicLldpV2LocalSystemDataResponse),
+				snmpLldpV2RemTable:        pdusFromString(basicLldpV2RemTableResponse),
+				snmpLldpV2Statistics:      pdusFromString(basicLldpV2StatisticsResponse),
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.LldpStatePath("chassis-id-type"),
+						strval(openconfig.LLDPChassisIDType(4))),
+					update(pgnmi.LldpStatePath("chassis-id"), strval("24:0b:0a:00:70:98")),
+					update(pgnmi.LldpStatePath("system-name"),
+						strval("firewall337-PAN3060")),
+					update(pgnmi.LldpStatePath("system-description"),
+						strval("Palo Alto Networks 3000 series firewall")),
+					update(pgnmi.LldpIntfConfigPath("ethernet1/1", "name"),
+						strval("ethernet1/1")),
+					update(pgnmi.LldpIntfPath("ethernet1/1", "name"),
+						strval("ethernet1/1")),
+					update(pgnmi.LldpIntfStatePath("ethernet1/1", "name"),
+						strval("ethernet1/1")),
+					update(pgnmi.LldpIntfConfigPath("ethernet1/13", "name"),
+						strval("ethernet1/13")),
+					update(pgnmi.LldpIntfPath("ethernet1/13", "name"),
+						strval("ethernet1/13")),
+					update(pgnmi.LldpIntfStatePath("ethernet1/13", "name"),
+						strval("ethernet1/13")),
+					update(pgnmi.LldpIntfConfigPath("ethernet1/14", "name"),
+						strval("ethernet1/14")),
+					update(pgnmi.LldpIntfPath("ethernet1/14", "name"),
+						strval("ethernet1/14")),
+					update(pgnmi.LldpIntfStatePath("ethernet1/14", "name"),
+						strval("ethernet1/14")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "id"),
+						strval("1")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "chassis-id-type"),
+						strval("MAC_ADDRESS")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "id"), strval("2")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "chassis-id-type"),
+						strval("MAC_ADDRESS")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "chassis-id"),
+						strval("28:99:3a:bf:26:46")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "chassis-id"),
+						strval("28:99:3a:bf:23:f6")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "port-id-type"),
+						strval("INTERFACE_NAME")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "port-id-type"),
+						strval("INTERFACE_NAME")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "port-id"),
+						strval("Ethernet46")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "port-id"),
+						strval("Ethernet46")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "system-name"),
+						strval("switch123.sjc.aristanetworks.com")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "system-name"),
+						strval("switch124.sjc.aristanetworks.com")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/13", "1", "system-description"),
+						strval("Arista Networks EOS version x.y.z")),
+					update(pgnmi.LldpNeighborStatePath("ethernet1/14", "2", "system-description"),
+						strval("Arista Networks EOS version x.y.z")),
+					update(pgnmi.LldpIntfCountersPath("ethernet1/13", "frame-out"),
+						uintval(118331)),
+					update(pgnmi.LldpIntfCountersPath("ethernet1/14", "frame-out"),
+						uintval(118329)),
+					update(pgnmi.LldpIntfCountersPath("ethernet1/13", "frame-in"),
+						uintval(118219)),
+					update(pgnmi.LldpIntfCountersPath("ethernet1/14", "frame-in"), uintval(118194)),
 				},
 			},
 		},

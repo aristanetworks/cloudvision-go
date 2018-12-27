@@ -33,54 +33,77 @@ func oidIndex(oid string) (string, string, error) {
 }
 
 const (
-	snmpEntPhysicalClass             = ".1.3.6.1.2.1.47.1.1.1.1.5"
-	snmpEntPhysicalSerialNum         = ".1.3.6.1.2.1.47.1.1.1.1.11"
-	snmpEntPhysicalTable             = ".1.3.6.1.2.1.47.1.1.1.1"
-	snmpIfTable                      = ".1.3.6.1.2.1.2.2"
-	snmpIfDescr                      = ".1.3.6.1.2.1.2.2.1.2"
-	snmpIfType                       = ".1.3.6.1.2.1.2.2.1.3"
-	snmpIfMtu                        = ".1.3.6.1.2.1.2.2.1.4"
-	snmpIfAdminStatus                = ".1.3.6.1.2.1.2.2.1.7"
-	snmpIfInBroadcastPkts            = ".1.3.6.1.2.1.31.1.1.1.3"
-	snmpIfInDiscards                 = ".1.3.6.1.2.1.2.2.1.13"
-	snmpIfInErrors                   = ".1.3.6.1.2.1.2.2.1.14"
-	snmpIfInMulticastPkts            = ".1.3.6.1.2.1.31.1.1.1.2"
-	snmpIfInOctets                   = ".1.3.6.1.2.1.2.2.1.10"
-	snmpIfInUcastPkts                = ".1.3.6.1.2.1.2.2.1.11"
-	snmpIfInUnknownProtos            = ".1.3.6.1.2.1.2.2.1.15"
-	snmpIfOperStatus                 = ".1.3.6.1.2.1.2.2.1.8"
-	snmpIfOutBroadcastPkts           = ".1.3.6.1.2.1.31.1.1.1.5"
-	snmpIfOutDiscards                = ".1.3.6.1.2.1.2.2.1.19"
-	snmpIfOutErrors                  = ".1.3.6.1.2.1.2.2.1.20"
-	snmpIfOutMulticastPkts           = ".1.3.6.1.2.1.31.1.1.1.4"
-	snmpIfOutOctets                  = ".1.3.6.1.2.1.2.2.1.16"
-	snmpIfOutUcastPkts               = ".1.3.6.1.2.1.2.2.1.17"
-	snmpIfXTable                     = ".1.3.6.1.2.1.31.1.1"
-	snmpLldpLocalSystemData          = ".1.0.8802.1.1.2.1.3"
-	snmpLldpLocChassisID             = ".1.0.8802.1.1.2.1.3.2.0"
-	snmpLldpLocChassisIDSubtype      = ".1.0.8802.1.1.2.1.3.1.0"
-	snmpLldpLocPortID                = ".1.0.8802.1.1.2.1.3.7.1.3"
-	snmpLldpLocPortTable             = ".1.0.8802.1.1.2.1.3.7"
-	snmpLldpLocSysDesc               = ".1.0.8802.1.1.2.1.3.4.0"
-	snmpLldpLocSysName               = ".1.0.8802.1.1.2.1.3.3.0"
-	snmpLldpRemPortID                = ".1.0.8802.1.1.2.1.4.1.1.7"
-	snmpLldpRemPortIDSubtype         = ".1.0.8802.1.1.2.1.4.1.1.6"
-	snmpLldpRemChassisID             = ".1.0.8802.1.1.2.1.4.1.1.5"
-	snmpLldpRemChassisIDSubtype      = ".1.0.8802.1.1.2.1.4.1.1.4"
-	snmpLldpRemSysDesc               = ".1.0.8802.1.1.2.1.4.1.1.10"
-	snmpLldpRemSysName               = ".1.0.8802.1.1.2.1.4.1.1.9"
-	snmpLldpRemTable                 = ".1.0.8802.1.1.2.1.4.1"
-	snmpLldpStatistics               = ".1.0.8802.1.1.2.1.2"
-	snmpLldpStatsRxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.7.1.4"
-	snmpLldpStatsRxPortTable         = ".1.0.8802.1.1.2.1.2.7"
-	snmpLldpStatsRxPortTLVsDiscard   = ".1.0.8802.1.1.2.1.2.7.1.5"
-	snmpLldpStatsRxPortTLVsUnrecog   = ".1.0.8802.1.1.2.1.2.7.1.6"
-	snmpLldpStatsRxPortFramesDiscard = ".1.0.8802.1.1.2.1.2.7.1.2"
-	snmpLldpStatsRxPortFramesErrors  = ".1.0.8802.1.1.2.1.2.7.1.3"
-	snmpLldpStatsTxPortFramesTotal   = ".1.0.8802.1.1.2.1.2.6.1.2"
-	snmpLldpStatsTxPortTable         = ".1.0.8802.1.1.2.1.2.6"
-	snmpSysName                      = ".1.3.6.1.2.1.1.5.0"
-	snmpSysUpTime                    = ".1.3.6.1.2.1.1.3.0"
+	snmpEntPhysicalClass               = ".1.3.6.1.2.1.47.1.1.1.1.5"
+	snmpEntPhysicalSerialNum           = ".1.3.6.1.2.1.47.1.1.1.1.11"
+	snmpEntPhysicalTable               = ".1.3.6.1.2.1.47.1.1.1.1"
+	snmpIfTable                        = ".1.3.6.1.2.1.2.2"
+	snmpIfDescr                        = ".1.3.6.1.2.1.2.2.1.2"
+	snmpIfType                         = ".1.3.6.1.2.1.2.2.1.3"
+	snmpIfMtu                          = ".1.3.6.1.2.1.2.2.1.4"
+	snmpIfAdminStatus                  = ".1.3.6.1.2.1.2.2.1.7"
+	snmpIfInBroadcastPkts              = ".1.3.6.1.2.1.31.1.1.1.3"
+	snmpIfInDiscards                   = ".1.3.6.1.2.1.2.2.1.13"
+	snmpIfInErrors                     = ".1.3.6.1.2.1.2.2.1.14"
+	snmpIfInMulticastPkts              = ".1.3.6.1.2.1.31.1.1.1.2"
+	snmpIfInOctets                     = ".1.3.6.1.2.1.2.2.1.10"
+	snmpIfInUcastPkts                  = ".1.3.6.1.2.1.2.2.1.11"
+	snmpIfInUnknownProtos              = ".1.3.6.1.2.1.2.2.1.15"
+	snmpIfOperStatus                   = ".1.3.6.1.2.1.2.2.1.8"
+	snmpIfOutBroadcastPkts             = ".1.3.6.1.2.1.31.1.1.1.5"
+	snmpIfOutDiscards                  = ".1.3.6.1.2.1.2.2.1.19"
+	snmpIfOutErrors                    = ".1.3.6.1.2.1.2.2.1.20"
+	snmpIfOutMulticastPkts             = ".1.3.6.1.2.1.31.1.1.1.4"
+	snmpIfOutOctets                    = ".1.3.6.1.2.1.2.2.1.16"
+	snmpIfOutUcastPkts                 = ".1.3.6.1.2.1.2.2.1.17"
+	snmpIfXTable                       = ".1.3.6.1.2.1.31.1.1"
+	snmpLldpLocalSystemData            = ".1.0.8802.1.1.2.1.3"
+	snmpLldpLocChassisID               = ".1.0.8802.1.1.2.1.3.2.0"
+	snmpLldpLocChassisIDSubtype        = ".1.0.8802.1.1.2.1.3.1.0"
+	snmpLldpLocPortID                  = ".1.0.8802.1.1.2.1.3.7.1.3"
+	snmpLldpLocPortTable               = ".1.0.8802.1.1.2.1.3.7"
+	snmpLldpLocSysDesc                 = ".1.0.8802.1.1.2.1.3.4.0"
+	snmpLldpLocSysName                 = ".1.0.8802.1.1.2.1.3.3.0"
+	snmpLldpRemPortID                  = ".1.0.8802.1.1.2.1.4.1.1.7"
+	snmpLldpRemPortIDSubtype           = ".1.0.8802.1.1.2.1.4.1.1.6"
+	snmpLldpRemChassisID               = ".1.0.8802.1.1.2.1.4.1.1.5"
+	snmpLldpRemChassisIDSubtype        = ".1.0.8802.1.1.2.1.4.1.1.4"
+	snmpLldpRemSysDesc                 = ".1.0.8802.1.1.2.1.4.1.1.10"
+	snmpLldpRemSysName                 = ".1.0.8802.1.1.2.1.4.1.1.9"
+	snmpLldpRemTable                   = ".1.0.8802.1.1.2.1.4.1"
+	snmpLldpStatistics                 = ".1.0.8802.1.1.2.1.2"
+	snmpLldpStatsRxPortFramesTotal     = ".1.0.8802.1.1.2.1.2.7.1.4"
+	snmpLldpStatsRxPortTable           = ".1.0.8802.1.1.2.1.2.7"
+	snmpLldpStatsRxPortTLVsDiscard     = ".1.0.8802.1.1.2.1.2.7.1.5"
+	snmpLldpStatsRxPortTLVsUnrecog     = ".1.0.8802.1.1.2.1.2.7.1.6"
+	snmpLldpStatsRxPortFramesDiscard   = ".1.0.8802.1.1.2.1.2.7.1.2"
+	snmpLldpStatsRxPortFramesErrors    = ".1.0.8802.1.1.2.1.2.7.1.3"
+	snmpLldpStatsTxPortFramesTotal     = ".1.0.8802.1.1.2.1.2.6.1.2"
+	snmpLldpStatsTxPortTable           = ".1.0.8802.1.1.2.1.2.6"
+	snmpLldpV2LocalSystemData          = ".1.3.111.2.802.1.1.13.1.3"
+	snmpLldpV2LocChassisID             = ".1.3.111.2.802.1.1.13.1.3.2.0"
+	snmpLldpV2LocChassisIDSubtype      = ".1.3.111.2.802.1.1.13.1.3.1.0"
+	snmpLldpV2LocPortID                = ".1.3.111.2.802.1.1.13.1.3.7.1.3"
+	snmpLldpV2LocPortTable             = ".1.3.111.2.802.1.1.13.1.3.7"
+	snmpLldpV2LocSysDesc               = ".1.3.111.2.802.1.1.13.1.3.4.0"
+	snmpLldpV2LocSysName               = ".1.3.111.2.802.1.1.13.1.3.3.0"
+	snmpLldpV2RemPortID                = ".1.3.111.2.802.1.1.13.1.4.1.1.8"
+	snmpLldpV2RemPortIDSubtype         = ".1.3.111.2.802.1.1.13.1.4.1.1.7"
+	snmpLldpV2RemChassisID             = ".1.3.111.2.802.1.1.13.1.4.1.1.6"
+	snmpLldpV2RemChassisIDSubtype      = ".1.3.111.2.802.1.1.13.1.4.1.1.5"
+	snmpLldpV2RemSysDesc               = ".1.3.111.2.802.1.1.13.1.4.1.1.11"
+	snmpLldpV2RemSysName               = ".1.3.111.2.802.1.1.13.1.4.1.1.10"
+	snmpLldpV2RemTable                 = ".1.3.111.2.802.1.1.13.1.4.1"
+	snmpLldpV2Statistics               = ".1.3.111.2.802.1.1.13.1.2"
+	snmpLldpV2StatsRxPortFramesTotal   = ".1.3.111.2.802.1.1.13.1.2.7.1.5"
+	snmpLldpV2StatsRxPortTable         = ".1.3.111.2.802.1.1.13.1.2.7"
+	snmpLldpV2StatsRxPortTLVsDiscard   = "1.3.111.2.802.1.1.13.1.2.7.1.6"
+	snmpLldpV2StatsRxPortTLVsUnrecog   = ".1.3.111.2.802.1.1.13.1.2.7.1.7"
+	snmpLldpV2StatsRxPortFramesDiscard = ".1.3.111.2.802.1.1.13.1.2.7.1.3"
+	snmpLldpV2StatsRxPortFramesErrors  = ".1.3.111.2.802.1.1.13.1.2.7.1.4"
+	snmpLldpV2StatsTxPortFramesTotal   = ".1.3.111.2.802.1.1.13.1.2.6.1.3"
+	snmpLldpV2StatsTxPortTable         = ".1.3.111.2.802.1.1.13.1.2.6"
+	snmpSysName                        = ".1.3.6.1.2.1.1.5.0"
+	snmpSysUpTime                      = ".1.3.6.1.2.1.1.3.0"
 )
 
 var snmpEntPhysicalClassTypeChassis = 3
@@ -130,6 +153,9 @@ type Snmp struct {
 	// lldpRemoteID is a map of remote system ID -> true. It's used to
 	// remember which remote IDs we've already seen in a given round of polling.
 	lldpRemoteID map[string]bool
+
+	// lldpV2 indicates whether to use LLDP-V2-MIB.
+	lldpV2 bool
 
 	address   string
 	community string
@@ -419,13 +445,46 @@ func (s *Snmp) updateSystemState() (*gnmi.SetRequest, error) {
 func processLldpOid(oid string) (locIndex, remoteID,
 	baseOid string, err error) {
 	baseOid = oid
+
+	// Local per-port
 	if strings.HasPrefix(oid, snmpLldpStatsTxPortTable) ||
 		strings.HasPrefix(oid, snmpLldpStatsRxPortTable) ||
-		strings.HasPrefix(oid, snmpLldpLocPortTable) {
+		strings.HasPrefix(oid, snmpLldpLocPortTable) ||
+		strings.HasPrefix(oid, snmpLldpV2LocPortTable) {
 		baseOid, locIndex, err = oidIndex(oid)
 		return
-	} else if strings.HasPrefix(oid, snmpLldpRemTable) {
+	}
+	// Local per-port V2
+	if strings.HasPrefix(oid, snmpLldpV2StatsTxPortTable) ||
+		strings.HasPrefix(oid, snmpLldpV2StatsRxPortTable) {
+		baseOid, _, err = oidIndex(oid) // remove lldpV2StatsTxDestMACAddress
+		if err != nil {
+			return
+		}
+		baseOid, locIndex, err = oidIndex(baseOid)
+		return
+	}
+
+	// Remote
+	if strings.HasPrefix(oid, snmpLldpRemTable) {
 		baseOid, remoteID, err = oidIndex(oid)
+		if err != nil {
+			return
+		}
+		baseOid, locIndex, err = oidIndex(baseOid)
+		if err != nil {
+			return
+		}
+		baseOid, _, err = oidIndex(baseOid) // remove lldpRemTimeMark
+		return
+	}
+	// Remote V2
+	if strings.HasPrefix(oid, snmpLldpV2RemTable) {
+		baseOid, remoteID, err = oidIndex(oid)
+		if err != nil {
+			return
+		}
+		baseOid, _, err = oidIndex(baseOid) // remove lldpV2RemLocalDestMACAddress
 		if err != nil {
 			return
 		}
@@ -474,7 +533,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 			// If we have the port ID AND this interface is in the interfaceIndex,
 			// add it to the port index map. Otherwise we can't do anything and
 			// should return.
-			if baseOid != snmpLldpLocPortID {
+			if baseOid != snmpLldpLocPortID && baseOid != snmpLldpV2LocPortID {
 				return nil, nil
 			}
 			intfName = string(pdu.Value.([]byte))
@@ -497,7 +556,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 
 	var u *gnmi.Update
 	switch baseOid {
-	case snmpLldpLocPortID:
+	case snmpLldpLocPortID, snmpLldpV2LocPortID:
 		updates = append(updates,
 			update(pgnmi.LldpIntfConfigPath(intfName, "name"),
 				strval(intfName)),
@@ -505,52 +564,52 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 				strval(intfName)),
 			update(pgnmi.LldpIntfStatePath(intfName, "name"),
 				strval(intfName)))
-	case snmpLldpLocChassisID:
+	case snmpLldpLocChassisID, snmpLldpV2LocChassisID:
 		u = update(pgnmi.LldpStatePath("chassis-id"),
 			strval(macFromBytes(pdu.Value.([]byte))))
-	case snmpLldpLocChassisIDSubtype:
+	case snmpLldpLocChassisIDSubtype, snmpLldpV2LocChassisIDSubtype:
 		u = update(pgnmi.LldpStatePath("chassis-id-type"),
 			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
-	case snmpLldpLocSysName:
+	case snmpLldpLocSysName, snmpLldpV2LocSysName:
 		u = update(pgnmi.LldpStatePath("system-name"),
 			strval(pdu.Value))
-	case snmpLldpLocSysDesc:
+	case snmpLldpLocSysDesc, snmpLldpV2LocSysDesc:
 		u = update(pgnmi.LldpStatePath("system-description"),
 			strval(pdu.Value))
-	case snmpLldpStatsTxPortFramesTotal:
+	case snmpLldpStatsTxPortFramesTotal, snmpLldpV2StatsTxPortFramesTotal:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-out"),
 			uintval(pdu.Value))
-	case snmpLldpStatsRxPortFramesDiscard:
+	case snmpLldpStatsRxPortFramesDiscard, snmpLldpV2StatsRxPortFramesDiscard:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-discard"),
 			uintval(pdu.Value))
-	case snmpLldpStatsRxPortFramesErrors:
+	case snmpLldpStatsRxPortFramesErrors, snmpLldpV2StatsRxPortFramesErrors:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-error-in"),
 			uintval(pdu.Value))
-	case snmpLldpStatsRxPortFramesTotal:
+	case snmpLldpStatsRxPortFramesTotal, snmpLldpV2StatsRxPortFramesTotal:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "frame-in"),
 			uintval(pdu.Value))
-	case snmpLldpStatsRxPortTLVsDiscard:
+	case snmpLldpStatsRxPortTLVsDiscard, snmpLldpV2StatsRxPortTLVsDiscard:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "tlv-discard"),
 			uintval(pdu.Value))
-	case snmpLldpStatsRxPortTLVsUnrecog:
+	case snmpLldpStatsRxPortTLVsUnrecog, snmpLldpV2StatsRxPortTLVsUnrecog:
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "tlv-unknown"),
 			uintval(pdu.Value))
-	case snmpLldpRemPortID:
+	case snmpLldpRemPortID, snmpLldpV2RemPortID:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id"),
 			strval(pdu.Value))
-	case snmpLldpRemPortIDSubtype:
+	case snmpLldpRemPortIDSubtype, snmpLldpV2RemPortIDSubtype:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id-type"),
 			strval(openconfig.LLDPPortIDType(pdu.Value.(int))))
-	case snmpLldpRemChassisID:
+	case snmpLldpRemChassisID, snmpLldpV2RemChassisID:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id"),
 			strval(macFromBytes(pdu.Value.([]byte))))
-	case snmpLldpRemChassisIDSubtype:
+	case snmpLldpRemChassisIDSubtype, snmpLldpV2RemChassisIDSubtype:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
 			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
-	case snmpLldpRemSysName:
+	case snmpLldpRemSysName, snmpLldpV2RemSysName:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "system-name"),
 			strval(pdu.Value))
-	case snmpLldpRemSysDesc:
+	case snmpLldpRemSysDesc, snmpLldpV2RemSysDesc:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "system-description"),
 			strval(pdu.Value))
 	}
@@ -563,6 +622,15 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	locSysData := snmpLldpLocalSystemData
+	remTable := snmpLldpRemTable
+	statsTable := snmpLldpStatistics
+	if s.lldpV2 {
+		locSysData = snmpLldpV2LocalSystemData
+		remTable = snmpLldpV2RemTable
+		statsTable = snmpLldpV2Statistics
+	}
 
 	s.lldpRemoteID = make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
@@ -577,15 +645,22 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 		}
 		return nil
 	}
-	if err := s.walk(snmpLldpLocalSystemData, updater); err != nil {
+
+	if err := s.walk(locSysData, updater); err != nil {
+		return nil, err
+	}
+	// XXX_jcr: Ultimately we'll want to add a proper mechanism for discovering which
+	// MIBs the target device supports. For now just try a different version next time.
+	if len(updates) == 0 {
+		s.lldpV2 = !s.lldpV2
+		return setReq, nil
+	}
+
+	if err := s.walk(remTable, updater); err != nil {
 		return nil, err
 	}
 
-	if err := s.walk(snmpLldpRemTable, updater); err != nil {
-		return nil, err
-	}
-
-	if err := s.walk(snmpLldpStatistics, updater); err != nil {
+	if err := s.walk(statsTable, updater); err != nil {
 		return nil, err
 	}
 
