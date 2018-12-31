@@ -29,19 +29,6 @@ func (m *mojo) InitGNMIOpenConfig(client gnmi.GNMIClient) {
 	m.initialized = true
 }
 
-func platformComponentPath(leafName string) *gnmi.Path {
-	return pgnmi.Path("components",
-		pgnmi.ListWithKey("component", "name", "chassis"), leafName)
-}
-func platformComponentConfigPath(leafName string) *gnmi.Path {
-	return pgnmi.Path("components",
-		pgnmi.ListWithKey("component", "name", "chassis"), "config", leafName)
-}
-func platformComponentStatePath(leafName string) *gnmi.Path {
-	return pgnmi.Path("components",
-		pgnmi.ListWithKey("component", "name", "chassis"), "state", leafName)
-}
-
 // DeviceIDFromMac returns a Mojo device ID from a MAC address.
 func DeviceIDFromMac(mac string) string {
 	return strings.Replace(mac, ":", "", -1)
@@ -49,18 +36,21 @@ func DeviceIDFromMac(mac string) string {
 
 func (m *mojo) handleDeviceUpdate(deviceUpdate *apiclient.ManagedDevice) {
 	updates := []*gnmi.Update{
-		pgnmi.Update(platformComponentConfigPath("name"), pgnmi.Strval("chassis")),
-		pgnmi.Update(platformComponentPath("name"), pgnmi.Strval("chassis")),
-		pgnmi.Update(platformComponentStatePath("name"), pgnmi.Strval("chassis")),
+		pgnmi.Update(pgnmi.PlatformComponentConfigPath("chassis", "name"),
+			pgnmi.Strval("chassis")),
+		pgnmi.Update(pgnmi.PlatformComponentPath("chassis", "name"),
+			pgnmi.Strval("chassis")),
+		pgnmi.Update(pgnmi.PlatformComponentStatePath("chassis", "name"),
+			pgnmi.Strval("chassis")),
 	}
 	if deviceUpdate.Model != "" {
 		updates = append(updates, pgnmi.Update(
-			platformComponentStatePath("hardware-version"),
+			pgnmi.PlatformComponentStatePath("chassis", "hardware-version"),
 			pgnmi.Strval(deviceUpdate.Model)))
 	}
 	if deviceUpdate.FirmwareVersion != "" {
 		updates = append(updates, pgnmi.Update(
-			platformComponentStatePath("software-version"),
+			pgnmi.PlatformComponentStatePath("chassis", "software-version"),
 			pgnmi.Strval(deviceUpdate.FirmwareVersion)))
 	}
 	if deviceUpdate.Macaddress != "" {

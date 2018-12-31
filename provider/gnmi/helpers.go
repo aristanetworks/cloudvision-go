@@ -144,6 +144,16 @@ func pollOnce(ctx context.Context, client gnmi.GNMIClient,
 	return err
 }
 
+// PollOnce takes a polling function that performs a complete
+// update of a some part of the OpenConfig tree and calls it
+// once, putting any errors in the provided error channel.
+func PollOnce(ctx context.Context, client gnmi.GNMIClient,
+	poller PollFn, errc chan error) {
+	if err := pollOnce(ctx, client, poller); err != nil {
+		errc <- err
+	}
+}
+
 // PollForever takes a polling function that performs a
 // complete update of some part of the OpenConfig tree and calls it
 // at the specified interval.
@@ -151,9 +161,7 @@ func PollForever(ctx context.Context, client gnmi.GNMIClient,
 	interval time.Duration, poller PollFn, errc chan error) {
 
 	// Poll immediately.
-	if err := pollOnce(ctx, client, poller); err != nil {
-		errc <- err
-	}
+	PollOnce(ctx, client, poller, errc)
 
 	// Poll at intervals forever.
 	tick := time.NewTicker(interval)
@@ -161,9 +169,7 @@ func PollForever(ctx context.Context, client gnmi.GNMIClient,
 	for {
 		select {
 		case <-tick.C:
-			if err := pollOnce(ctx, client, poller); err != nil {
-				errc <- err
-			}
+			PollOnce(ctx, client, poller, errc)
 		case <-ctx.Done():
 			return
 		}
@@ -240,4 +246,22 @@ func LldpNeighborStatePath(intfName, id, leafName string) *gnmi.Path {
 	return Path("lldp", "interfaces", ListWithKey("interface", "name",
 		intfName), "neighbors", ListWithKey("neighbor", "id", id),
 		"state", leafName)
+}
+
+// PlatformComponentPath returns a component path.
+func PlatformComponentPath(name, leafName string) *gnmi.Path {
+	return Path("components",
+		ListWithKey("component", "name", name), leafName)
+}
+
+// PlatformComponentConfigPath returns a component config path.
+func PlatformComponentConfigPath(name, leafName string) *gnmi.Path {
+	return Path("components",
+		ListWithKey("component", "name", name), "config", leafName)
+}
+
+// PlatformComponentStatePath returns a component state path.
+func PlatformComponentStatePath(name, leafName string) *gnmi.Path {
+	return Path("components",
+		ListWithKey("component", "name", name), "state", leafName)
 }

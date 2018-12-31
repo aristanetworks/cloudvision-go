@@ -84,6 +84,28 @@ func mockPoll(t *testing.T, s *Snmp, tc pollTestCase) {
 		t.Fatalf("Error in pollFn: %v", err)
 	}
 	if !reflect.DeepEqual(sr, tc.expected) {
+		for i, d := range sr.Delete {
+			if i >= len(tc.expected.Delete) {
+				t.Fatalf("Got unexpected delete: %v", d)
+			} else if !reflect.DeepEqual(d, tc.expected.Delete[i]) {
+				t.Fatalf("Expected delete: %v, Got: %v", tc.expected.Delete[i], d)
+			}
+		}
+		if len(tc.expected.Delete) > len(sr.Delete) {
+			t.Fatalf("Expected but did not see delete: %v",
+				tc.expected.Delete[len(sr.Delete)])
+		}
+		for i, r := range sr.Replace {
+			if i >= len(tc.expected.Replace) {
+				t.Fatalf("Got unexpected replace: %v", r)
+			} else if !reflect.DeepEqual(r, tc.expected.Replace[i]) {
+				t.Fatalf("Expected: %v, Got: %v", tc.expected.Replace[i], r)
+			}
+		}
+		if len(tc.expected.Replace) > len(sr.Replace) {
+			t.Fatalf("Expected but did not see replace: %v",
+				tc.expected.Replace[len(sr.Replace)])
+		}
 		t.Fatalf("SetRequests not equal. Expected %v\nGot %v", tc.expected, sr)
 	}
 }
@@ -121,6 +143,41 @@ const (
 	counter = gosnmp.Counter32
 	integer = gosnmp.Integer
 )
+
+var basicEntPhysicalTableResponse = `
+.1.3.6.1.2.1.47.1.1.1.1.2.1 = STRING: DCS-7504 Chassis
+.1.3.6.1.2.1.47.1.1.1.1.2.100002001 = STRING: Supervisor Slot 1
+.1.3.6.1.2.1.47.1.1.1.1.2.100002101 = STRING: DCS-7500E-SUP Supervisor Module
+.1.3.6.1.2.1.47.1.1.1.1.2.100601110 = STRING: Fan Tray 1 Fan 1
+.1.3.6.1.2.1.47.1.1.1.1.5.1 = INTEGER: chassis(3)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002001 = INTEGER: container(5)
+.1.3.6.1.2.1.47.1.1.1.1.5.100002101 = INTEGER: module(9)
+.1.3.6.1.2.1.47.1.1.1.1.5.100601110 = INTEGER: fan(7)
+.1.3.6.1.2.1.47.1.1.1.1.7.1 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.7.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.7.100002101 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.7.100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.8.1 = STRING: 02.00
+.1.3.6.1.2.1.47.1.1.1.1.8.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.8.100002101 = STRING: 02.02
+.1.3.6.1.2.1.47.1.1.1.1.8.100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.10.1 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.10.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.10.100002101 = STRING: 4.21.0F
+.1.3.6.1.2.1.47.1.1.1.1.10..100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420017
+.1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.11.100002101 = STRING: JPE15200157
+.1.3.6.1.2.1.47.1.1.1.1.11.100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.12.1 = STRING: Arista Networks
+.1.3.6.1.2.1.47.1.1.1.1.12.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.12.100002101 = STRING: Arista Networks
+.1.3.6.1.2.1.47.1.1.1.1.12.100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.13.1 = STRING: DCS-7504
+.1.3.6.1.2.1.47.1.1.1.1.13.100002001 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.13.100002101 = STRING: DCS-7500E-SUP
+.1.3.6.1.2.1.47.1.1.1.1.13.100601110 = STRING:
+`
 
 // snmpwalk responses for six interfaces, four interface types.
 var basicIfTableResponse = `
@@ -499,6 +556,94 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.Path("system", "state", "hostname"), strval("device123")),
 					update(pgnmi.Path("system", "state", "domain-name"),
 						strval("sjc.aristanetworks.com")),
+				},
+			},
+		},
+		{
+			name:   "updatePlatformBasic",
+			pollFn: s.updatePlatform,
+			responses: map[string][]gosnmp.SnmpPDU{
+				snmpEntPhysicalTable: pdusFromString(basicEntPhysicalTableResponse),
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("components")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.PlatformComponentConfigPath("1", "name"),
+						strval("1")),
+					update(pgnmi.PlatformComponentPath("1", "name"),
+						strval("1")),
+					update(pgnmi.PlatformComponentStatePath("1", "name"),
+						strval("1")),
+					update(pgnmi.PlatformComponentStatePath("1", "id"),
+						strval("1")),
+					update(pgnmi.PlatformComponentStatePath("1", "type"),
+						strval("CHASSIS")),
+					update(pgnmi.PlatformComponentStatePath("1", "description"),
+						strval("DCS-7504 Chassis")),
+					update(pgnmi.PlatformComponentStatePath("1", "software-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("1", "hardware-version"),
+						strval("DCS-7504")),
+					update(pgnmi.PlatformComponentStatePath("1", "serial-no"),
+						strval("JSH11420017")),
+					update(pgnmi.PlatformComponentStatePath("1", "mfg-name"),
+						strval("Arista Networks")),
+					update(pgnmi.PlatformComponentConfigPath("100002001", "name"),
+						strval("100002001")),
+					update(pgnmi.PlatformComponentPath("100002001", "name"),
+						strval("100002001")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "name"),
+						strval("100002001")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "id"),
+						strval("100002001")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "description"),
+						strval("Supervisor Slot 1")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "software-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "hardware-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "serial-no"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "mfg-name"),
+						strval("")),
+					update(pgnmi.PlatformComponentConfigPath("100002101", "name"),
+						strval("100002101")),
+					update(pgnmi.PlatformComponentPath("100002101", "name"),
+						strval("100002101")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "name"),
+						strval("100002101")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "id"),
+						strval("100002101")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "description"),
+						strval("DCS-7500E-SUP Supervisor Module")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "software-version"),
+						strval("4.21.0F")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "hardware-version"),
+						strval("DCS-7500E-SUP")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "serial-no"),
+						strval("JPE15200157")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "mfg-name"),
+						strval("Arista Networks")),
+					update(pgnmi.PlatformComponentConfigPath("100601110", "name"),
+						strval("100601110")),
+					update(pgnmi.PlatformComponentPath("100601110", "name"),
+						strval("100601110")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "name"),
+						strval("100601110")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "id"),
+						strval("100601110")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "type"),
+						strval("FAN")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "description"),
+						strval("Fan Tray 1 Fan 1")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "software-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "hardware-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "serial-no"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "mfg-name"),
+						strval("")),
 				},
 			},
 		},

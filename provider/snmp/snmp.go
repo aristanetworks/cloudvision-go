@@ -14,6 +14,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -34,7 +35,11 @@ func oidIndex(oid string) (string, string, error) {
 
 const (
 	snmpEntPhysicalClass               = ".1.3.6.1.2.1.47.1.1.1.1.5"
+	snmpEntPhysicalDescr               = ".1.3.6.1.2.1.47.1.1.1.1.2"
+	snmpEntPhysicalMfgName             = ".1.3.6.1.2.1.47.1.1.1.1.12"
+	snmpEntPhysicalModelName           = ".1.3.6.1.2.1.47.1.1.1.1.13"
 	snmpEntPhysicalSerialNum           = ".1.3.6.1.2.1.47.1.1.1.1.11"
+	snmpEntPhysicalSoftwareRev         = ".1.3.6.1.2.1.47.1.1.1.1.10"
 	snmpEntPhysicalTable               = ".1.3.6.1.2.1.47.1.1.1.1"
 	snmpIfTable                        = ".1.3.6.1.2.1.2.2"
 	snmpIfDescr                        = ".1.3.6.1.2.1.2.2.1.2"
@@ -669,6 +674,134 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
+type entEntry struct {
+	index           string
+	softwareVersion string
+	hardwareVersion string
+	serial          string
+	mfgName         string
+	description     string
+	class           string
+}
+
+func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
+	entPhysTable map[string]*entEntry) error {
+
+	baseOid, index, err := oidIndex(pdu.Name)
+	if err != nil {
+		return err
+	}
+	entry, ok := entPhysTable[index]
+	if !ok {
+		entPhysTable[index] = &entEntry{
+			index: index,
+		}
+		entry = entPhysTable[index]
+	}
+
+	switch baseOid {
+	case snmpEntPhysicalClass:
+		v := pdu.Value.(int)
+		// OpenConfig's OPENCONFIG_HARDWARE_COMPONENT type identities don't
+		// map perfectly to SNMP's PhysicalClass values. If we see a
+		// PhysicalClass value of other(1), unknown(2), container(5), or
+		// module(9), just leave the type blank.
+		snmpOpenConfigComponentTypeMap := map[int]string{
+			1:  "",
+			2:  "",
+			3:  "CHASSIS",
+			4:  "BACKPLANE",
+			5:  "",
+			6:  "POWER_SUPPLY",
+			7:  "FAN",
+			8:  "SENSOR",
+			9:  "",
+			10: "PORT",
+			11: "",
+			12: "CPU",
+		}
+		class, ok := snmpOpenConfigComponentTypeMap[v]
+		if !ok {
+			return fmt.Errorf("Unexpected PhysicalClass value %v", v)
+		}
+		entry.class = class
+	case snmpEntPhysicalDescr:
+		entry.description = string(pdu.Value.([]byte))
+	case snmpEntPhysicalMfgName:
+		entry.mfgName = string(pdu.Value.([]byte))
+	case snmpEntPhysicalSerialNum:
+		entry.serial = string(pdu.Value.([]byte))
+	case snmpEntPhysicalSoftwareRev:
+		entry.softwareVersion = string(pdu.Value.([]byte))
+	case snmpEntPhysicalModelName:
+		entry.hardwareVersion = string(pdu.Value.([]byte))
+	}
+	return nil
+}
+
+func sortedEntityKeys(m map[string]*entEntry) (keys []string) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return
+}
+
+func (s *Snmp) updatePlatform() (*gnmi.SetRequest, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	ept := make(map[string]*entEntry)
+
+	setReq := new(gnmi.SetRequest)
+	updates := make([]*gnmi.Update, 0)
+	updater := func(data gosnmp.SnmpPDU) error {
+		return s.handleEntityMibPDU(data, ept)
+	}
+
+	if err := s.walk(snmpEntPhysicalTable, updater); err != nil {
+		return nil, err
+	}
+
+	for _, k := range sortedEntityKeys(ept) {
+		entry := ept[k]
+		// entPhysicalName may not be unique; use index as entry key.
+		// (RFC2737: "Note that the value of entPhysicalName for two physical
+		// entities will be the same in the event that the console
+		// interface does not distinguish between them.")
+		name := entry.index
+
+		updates = append(updates,
+			update(pgnmi.PlatformComponentConfigPath(name, "name"),
+				strval(name)),
+			update(pgnmi.PlatformComponentPath(name, "name"), strval(name)),
+			update(pgnmi.PlatformComponentStatePath(name, "name"), strval(name)),
+			update(pgnmi.PlatformComponentStatePath(name, "id"),
+				strval(entry.index)))
+		if entry.class != "" {
+			updates = append(updates,
+				update(pgnmi.PlatformComponentStatePath(name, "type"),
+					strval(entry.class)))
+		}
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(name, "description"),
+				strval(entry.description)),
+			update(pgnmi.PlatformComponentStatePath(name, "software-version"),
+				strval(entry.softwareVersion)),
+			update(pgnmi.PlatformComponentStatePath(name, "hardware-version"),
+				strval(entry.hardwareVersion)),
+			update(pgnmi.PlatformComponentStatePath(name, "serial-no"),
+				strval(entry.serial)),
+			update(pgnmi.PlatformComponentStatePath(name, "mfg-name"),
+				strval(entry.mfgName)))
+
+	}
+
+	setReq.Delete = []*gnmi.Path{pgnmi.Path("components")}
+	setReq.Replace = updates
+	return setReq, nil
+}
+
 // InitGNMIOpenConfig initializes the Snmp provider with a gNMI client.
 func (s *Snmp) InitGNMIOpenConfig(client gnmi.GNMIClient) {
 	s.client = client
@@ -700,6 +833,8 @@ func (s *Snmp) Run(ctx context.Context) error {
 	// Do periodic state updates.
 	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
 		s.updateSystemState, s.errc)
+	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
+		s.updatePlatform, s.errc)
 	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
 		s.updateInterfaces, s.errc)
 	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
