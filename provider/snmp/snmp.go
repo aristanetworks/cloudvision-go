@@ -14,7 +14,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -111,9 +110,7 @@ const (
 	snmpSysUpTime                      = ".1.3.6.1.2.1.1.3.0"
 )
 
-var snmpEntPhysicalClassTypeChassis = 3
-
-// Less typing:
+// Less typing: gNMI type helpers.
 func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	return pgnmi.Update(path, val)
 }
@@ -132,6 +129,7 @@ func strval(s interface{}) *gnmi.TypedValue {
 	glog.Fatalf("Unexpected type in strval: %T", s)
 	return nil
 }
+
 func uintval(u interface{}) *gnmi.TypedValue {
 	if v, err := provider.ToUint64(u); err == nil {
 		return pgnmi.Uintval(v)
@@ -144,20 +142,10 @@ type Snmp struct {
 	errc   chan error
 	client gnmi.GNMIClient
 
-	// interfaceIndex is a map of SNMP interface index -> name.
-	interfaceIndex map[string]string
-
 	// interfaceName is a map of interface name (as discovered in ifTable) -> true.
 	// It's used so that we don't include inactive interfaces we see in
 	// snmpLldpLocPortTable.
 	interfaceName map[string]bool
-
-	// lldpLocPortIndex is a map of lldpLocPortNum -> lldpLocPortId.
-	lldpLocPortIndex map[string]string
-
-	// lldpRemoteID is a map of remote system ID -> true. It's used to
-	// remember which remote IDs we've already seen in a given round of polling.
-	lldpRemoteID map[string]bool
 
 	// lldpV2 indicates whether to use LLDP-V2-MIB.
 	lldpV2 bool
@@ -228,6 +216,7 @@ func (s *Snmp) DeviceID() (string, error) {
 	serial := ""
 	var done bool
 	chassisIndex := ""
+	var snmpEntPhysicalClassTypeChassis = 3
 
 	// Get the serial number corresponding to the index whose class
 	// type is chassis(3).
@@ -286,19 +275,20 @@ func (s *Snmp) stop() {
 }
 
 // Given an incoming PDU, update the appropriate interface state.
-func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
+func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
+	interfaceIndex map[string]string) ([]*gnmi.Update, error) {
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
 	baseOid, index, err := oidIndex(pdu.Name)
 	if err != nil {
 		return nil, err
 	}
-	intfName, ok := s.interfaceIndex[index]
+	intfName, ok := interfaceIndex[index]
 	if !ok && baseOid != snmpIfDescr {
 		return nil, nil
 	} else if !ok && baseOid == snmpIfDescr {
 		intfName = string(pdu.Value.([]byte))
-		s.interfaceIndex[index] = intfName
+		interfaceIndex[index] = intfName
 		s.interfaceName[intfName] = true
 	}
 
@@ -374,17 +364,19 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 }
 
 func (s *Snmp) updateInterfaces() (*gnmi.SetRequest, error) {
+	// interfaceIndex is a map of SNMP interface index -> name for this poll.
+	interfaceIndex := make(map[string]string)
+
 	s.lock.Lock()
-	// Clear interface index and name maps for each new poll. It should be
+	// Clear interfaceName map for each new poll. It should be
 	// protected by the lock, because updateLldp needs it, too. :(
-	s.interfaceIndex = make(map[string]string)
 	s.interfaceName = make(map[string]bool)
 	defer s.lock.Unlock()
 
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
 	intfWalk := func(data gosnmp.SnmpPDU) error {
-		u, err := s.handleInterfacePDU(data)
+		u, err := s.handleInterfacePDU(data, interfaceIndex)
 		if err != nil {
 			return err
 		}
@@ -521,7 +513,10 @@ func macFromBytes(s []byte) string {
 	return t.String()
 }
 
-func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
+func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
+	lldpLocPortIndex map[string]string,
+	lldpRemoteID map[string]bool) ([]*gnmi.Update, error) {
+
 	// Split OID into parts.
 	locIndex, remoteID, baseOid, err := processLldpOid(pdu.Name)
 	if err != nil {
@@ -533,11 +528,11 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 	updates := make([]*gnmi.Update, 0)
 	var ok bool
 	if locIndex != "" {
-		intfName, ok = s.lldpLocPortIndex[locIndex]
+		intfName, ok = lldpLocPortIndex[locIndex]
 		if !ok {
-			// If we have the port ID AND this interface is in the interfaceIndex,
-			// add it to the port index map. Otherwise we can't do anything and
-			// should return.
+			// If we have the port ID AND this interface is in the interfaceName
+			// map, add it to the port index map. Otherwise we can't do anything
+			// and should return.
 			if baseOid != snmpLldpLocPortID && baseOid != snmpLldpV2LocPortID {
 				return nil, nil
 			}
@@ -545,17 +540,17 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 			if _, ok = s.interfaceName[intfName]; !ok {
 				return nil, nil
 			}
-			s.lldpLocPortIndex[locIndex] = intfName
+			lldpLocPortIndex[locIndex] = intfName
 		}
 	}
 
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
-		if _, ok = s.lldpRemoteID[remoteID]; !ok {
+		if _, ok = lldpRemoteID[remoteID]; !ok {
 			updates = append(updates,
 				update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
 					strval(remoteID)))
-			s.lldpRemoteID[remoteID] = true
+			lldpRemoteID[remoteID] = true
 		}
 	}
 
@@ -625,6 +620,13 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU) ([]*gnmi.Update, error) {
 }
 
 func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
+	// lldpLocPortIndex is a map of lldpLocPortNum -> lldpLocPortId.
+	lldpLocPortIndex := make(map[string]string)
+
+	// lldpRemoteID is a map of remote system ID -> true. It's used to
+	// remember which remote IDs we've already seen in a given round of polling.
+	lldpRemoteID := make(map[string]bool)
+
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -637,11 +639,10 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 		statsTable = snmpLldpV2Statistics
 	}
 
-	s.lldpRemoteID = make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
 	updater := func(data gosnmp.SnmpPDU) error {
-		u, err := s.handleLldpPDU(data)
+		u, err := s.handleLldpPDU(data, lldpLocPortIndex, lldpRemoteID)
 		if err != nil {
 			return err
 		}
@@ -674,29 +675,26 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-type entEntry struct {
-	index           string
-	softwareVersion string
-	hardwareVersion string
-	serial          string
-	mfgName         string
-	description     string
-	class           string
-}
-
 func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
-	entPhysTable map[string]*entEntry) error {
+	entityIndexMap map[string]bool) ([]*gnmi.Update, error) {
 
 	baseOid, index, err := oidIndex(pdu.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	entry, ok := entPhysTable[index]
-	if !ok {
-		entPhysTable[index] = &entEntry{
-			index: index,
-		}
-		entry = entPhysTable[index]
+
+	updates := make([]*gnmi.Update, 0)
+	if _, ok := entityIndexMap[index]; !ok {
+		entityIndexMap[index] = true
+		updates = append(updates,
+			update(pgnmi.PlatformComponentConfigPath(index, "name"),
+				strval(index)),
+			update(pgnmi.PlatformComponentPath(index, "name"),
+				strval(index)),
+			update(pgnmi.PlatformComponentStatePath(index, "name"),
+				strval(index)),
+			update(pgnmi.PlatformComponentStatePath(index, "id"),
+				strval(index)))
 	}
 
 	switch baseOid {
@@ -722,79 +720,55 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 		}
 		class, ok := snmpOpenConfigComponentTypeMap[v]
 		if !ok {
-			return fmt.Errorf("Unexpected PhysicalClass value %v", v)
+			return nil, fmt.Errorf("Unexpected PhysicalClass value %v", v)
 		}
-		entry.class = class
+		if class != "" {
+			updates = append(updates,
+				update(pgnmi.PlatformComponentStatePath(index, "type"), strval(class)))
+		}
 	case snmpEntPhysicalDescr:
-		entry.description = string(pdu.Value.([]byte))
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(index, "description"),
+				strval(pdu.Value)))
 	case snmpEntPhysicalMfgName:
-		entry.mfgName = string(pdu.Value.([]byte))
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(index, "mfg-name"),
+				strval(pdu.Value)))
 	case snmpEntPhysicalSerialNum:
-		entry.serial = string(pdu.Value.([]byte))
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(index, "serial-no"),
+				strval(pdu.Value)))
 	case snmpEntPhysicalSoftwareRev:
-		entry.softwareVersion = string(pdu.Value.([]byte))
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(index, "software-version"),
+				strval(pdu.Value)))
 	case snmpEntPhysicalModelName:
-		entry.hardwareVersion = string(pdu.Value.([]byte))
+		updates = append(updates,
+			update(pgnmi.PlatformComponentStatePath(index, "hardware-version"),
+				strval(pdu.Value)))
 	}
-	return nil
-}
-
-func sortedEntityKeys(m map[string]*entEntry) (keys []string) {
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return
+	return updates, nil
 }
 
 func (s *Snmp) updatePlatform() (*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	ept := make(map[string]*entEntry)
-
+	entityIndexMap := make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
+
 	updater := func(data gosnmp.SnmpPDU) error {
-		return s.handleEntityMibPDU(data, ept)
+		u, err := s.handleEntityMibPDU(data, entityIndexMap)
+		if err != nil {
+			return err
+		}
+		updates = append(updates, u...)
+		return nil
 	}
 
 	if err := s.walk(snmpEntPhysicalTable, updater); err != nil {
 		return nil, err
-	}
-
-	for _, k := range sortedEntityKeys(ept) {
-		entry := ept[k]
-		// entPhysicalName may not be unique; use index as entry key.
-		// (RFC2737: "Note that the value of entPhysicalName for two physical
-		// entities will be the same in the event that the console
-		// interface does not distinguish between them.")
-		name := entry.index
-
-		updates = append(updates,
-			update(pgnmi.PlatformComponentConfigPath(name, "name"),
-				strval(name)),
-			update(pgnmi.PlatformComponentPath(name, "name"), strval(name)),
-			update(pgnmi.PlatformComponentStatePath(name, "name"), strval(name)),
-			update(pgnmi.PlatformComponentStatePath(name, "id"),
-				strval(entry.index)))
-		if entry.class != "" {
-			updates = append(updates,
-				update(pgnmi.PlatformComponentStatePath(name, "type"),
-					strval(entry.class)))
-		}
-		updates = append(updates,
-			update(pgnmi.PlatformComponentStatePath(name, "description"),
-				strval(entry.description)),
-			update(pgnmi.PlatformComponentStatePath(name, "software-version"),
-				strval(entry.softwareVersion)),
-			update(pgnmi.PlatformComponentStatePath(name, "hardware-version"),
-				strval(entry.hardwareVersion)),
-			update(pgnmi.PlatformComponentStatePath(name, "serial-no"),
-				strval(entry.serial)),
-			update(pgnmi.PlatformComponentStatePath(name, "mfg-name"),
-				strval(entry.mfgName)))
-
 	}
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("components")}
@@ -856,15 +830,13 @@ func NewSNMPProvider(address string, community string,
 	gosnmp.Default.Community = community
 	gosnmp.Default.Timeout = 2 * pollInt
 	s := &Snmp{
-		errc:             make(chan error),
-		interfaceIndex:   make(map[string]string),
-		interfaceName:    make(map[string]bool),
-		lldpLocPortIndex: make(map[string]string),
-		address:          address,
-		community:        community,
-		pollInterval:     pollInt,
-		getter:           gosnmp.Default.Get,
-		walker:           gosnmp.Default.BulkWalk,
+		errc:          make(chan error),
+		interfaceName: make(map[string]bool),
+		address:       address,
+		community:     community,
+		pollInterval:  pollInt,
+		getter:        gosnmp.Default.Get,
+		walker:        gosnmp.Default.BulkWalk,
 	}
 	if err := s.snmpNetworkInit(); err != nil {
 		glog.Errorf("Error connecting to device: %v", err)

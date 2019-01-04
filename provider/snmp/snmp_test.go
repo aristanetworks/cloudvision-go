@@ -164,7 +164,7 @@ var basicEntPhysicalTableResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.10.1 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.10.100002001 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.10.100002101 = STRING: 4.21.0F
-.1.3.6.1.2.1.47.1.1.1.1.10..100601110 = STRING:
+.1.3.6.1.2.1.47.1.1.1.1.10.100601110 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420017
 .1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.11.100002101 = STRING: JPE15200157
@@ -537,10 +537,8 @@ func pdusFromString(s string) []gosnmp.SnmpPDU {
 
 func TestSnmp(t *testing.T) {
 	s := &Snmp{
-		errc:             make(chan error),
-		interfaceIndex:   make(map[string]string),
-		interfaceName:    make(map[string]bool),
-		lldpLocPortIndex: make(map[string]string),
+		errc:          make(chan error),
+		interfaceName: make(map[string]bool),
 	}
 	for _, tc := range []pollTestCase{
 		{
@@ -576,18 +574,8 @@ func TestSnmp(t *testing.T) {
 						strval("1")),
 					update(pgnmi.PlatformComponentStatePath("1", "id"),
 						strval("1")),
-					update(pgnmi.PlatformComponentStatePath("1", "type"),
-						strval("CHASSIS")),
 					update(pgnmi.PlatformComponentStatePath("1", "description"),
 						strval("DCS-7504 Chassis")),
-					update(pgnmi.PlatformComponentStatePath("1", "software-version"),
-						strval("")),
-					update(pgnmi.PlatformComponentStatePath("1", "hardware-version"),
-						strval("DCS-7504")),
-					update(pgnmi.PlatformComponentStatePath("1", "serial-no"),
-						strval("JSH11420017")),
-					update(pgnmi.PlatformComponentStatePath("1", "mfg-name"),
-						strval("Arista Networks")),
 					update(pgnmi.PlatformComponentConfigPath("100002001", "name"),
 						strval("100002001")),
 					update(pgnmi.PlatformComponentPath("100002001", "name"),
@@ -598,14 +586,6 @@ func TestSnmp(t *testing.T) {
 						strval("100002001")),
 					update(pgnmi.PlatformComponentStatePath("100002001", "description"),
 						strval("Supervisor Slot 1")),
-					update(pgnmi.PlatformComponentStatePath("100002001", "software-version"),
-						strval("")),
-					update(pgnmi.PlatformComponentStatePath("100002001", "hardware-version"),
-						strval("")),
-					update(pgnmi.PlatformComponentStatePath("100002001", "serial-no"),
-						strval("")),
-					update(pgnmi.PlatformComponentStatePath("100002001", "mfg-name"),
-						strval("")),
 					update(pgnmi.PlatformComponentConfigPath("100002101", "name"),
 						strval("100002101")),
 					update(pgnmi.PlatformComponentPath("100002101", "name"),
@@ -616,14 +596,6 @@ func TestSnmp(t *testing.T) {
 						strval("100002101")),
 					update(pgnmi.PlatformComponentStatePath("100002101", "description"),
 						strval("DCS-7500E-SUP Supervisor Module")),
-					update(pgnmi.PlatformComponentStatePath("100002101", "software-version"),
-						strval("4.21.0F")),
-					update(pgnmi.PlatformComponentStatePath("100002101", "hardware-version"),
-						strval("DCS-7500E-SUP")),
-					update(pgnmi.PlatformComponentStatePath("100002101", "serial-no"),
-						strval("JPE15200157")),
-					update(pgnmi.PlatformComponentStatePath("100002101", "mfg-name"),
-						strval("Arista Networks")),
 					update(pgnmi.PlatformComponentConfigPath("100601110", "name"),
 						strval("100601110")),
 					update(pgnmi.PlatformComponentPath("100601110", "name"),
@@ -632,17 +604,43 @@ func TestSnmp(t *testing.T) {
 						strval("100601110")),
 					update(pgnmi.PlatformComponentStatePath("100601110", "id"),
 						strval("100601110")),
-					update(pgnmi.PlatformComponentStatePath("100601110", "type"),
-						strval("FAN")),
 					update(pgnmi.PlatformComponentStatePath("100601110", "description"),
 						strval("Fan Tray 1 Fan 1")),
+					update(pgnmi.PlatformComponentStatePath("1", "type"),
+						strval("CHASSIS")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "type"),
+						strval("FAN")),
+					update(pgnmi.PlatformComponentStatePath("1", "software-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "software-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "software-version"),
+						strval("4.21.0F")),
 					update(pgnmi.PlatformComponentStatePath("100601110", "software-version"),
 						strval("")),
-					update(pgnmi.PlatformComponentStatePath("100601110", "hardware-version"),
+					update(pgnmi.PlatformComponentStatePath("1", "serial-no"),
+						strval("JSH11420017")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "serial-no"),
 						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "serial-no"),
+						strval("JPE15200157")),
 					update(pgnmi.PlatformComponentStatePath("100601110", "serial-no"),
 						strval("")),
+					update(pgnmi.PlatformComponentStatePath("1", "mfg-name"),
+						strval("Arista Networks")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "mfg-name"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "mfg-name"),
+						strval("Arista Networks")),
 					update(pgnmi.PlatformComponentStatePath("100601110", "mfg-name"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("1", "hardware-version"),
+						strval("DCS-7504")),
+					update(pgnmi.PlatformComponentStatePath("100002001", "hardware-version"),
+						strval("")),
+					update(pgnmi.PlatformComponentStatePath("100002101", "hardware-version"),
+						strval("DCS-7500E-SUP")),
+					update(pgnmi.PlatformComponentStatePath("100601110", "hardware-version"),
 						strval("")),
 				},
 			},
@@ -864,11 +862,9 @@ func TestSnmp(t *testing.T) {
 
 func TestSnmpLldpV2(t *testing.T) {
 	s := &Snmp{
-		errc:             make(chan error),
-		interfaceIndex:   make(map[string]string),
-		interfaceName:    make(map[string]bool),
-		lldpLocPortIndex: make(map[string]string),
-		lldpV2:           true,
+		errc:          make(chan error),
+		interfaceName: make(map[string]bool),
+		lldpV2:        true,
 	}
 	for _, tc := range []pollTestCase{
 		{
@@ -975,10 +971,8 @@ func TestSnmpLldpV2(t *testing.T) {
 
 func TestDeviceID(t *testing.T) {
 	s := &Snmp{
-		errc:             make(chan error),
-		interfaceIndex:   make(map[string]string),
-		interfaceName:    make(map[string]bool),
-		lldpLocPortIndex: make(map[string]string),
+		errc:          make(chan error),
+		interfaceName: make(map[string]bool),
 	}
 	for _, tc := range []deviceIDTestCase{
 		{
