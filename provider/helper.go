@@ -140,10 +140,12 @@ func recursiveEntityDeleteNotification(notifs []types.Notification, e types.Enti
 			afterRecurseNotifs = append(afterRecurseNotifs, types.NewNotificationWithEntity(ts,
 				path.Append(e.Path(), attr.Name), []key.Key{}, nil, e))
 			children := e.GetCollection(attr.Name)
-			children.ForEach(func(k key.Key, child interface{}) error {
+			if err := children.ForEach(func(k key.Key, child interface{}) error {
 				childEntities = append(childEntities, child.(types.Entity))
 				return nil
-			})
+			}); err != nil {
+				panic("unexpected error iterating over children: " + err.Error())
+			}
 		} else if child, ok := e.GetEntity(attr.Name); ok {
 			childEntities = append(childEntities, child)
 		}
