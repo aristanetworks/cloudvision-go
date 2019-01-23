@@ -8,8 +8,9 @@
 package devicetest
 
 import (
-	"cloudvision-go/device"
 	"testing"
+
+	"github.com/aristanetworks/cloudvision-go/device"
 )
 
 var pluginDir = "../plugins/build"

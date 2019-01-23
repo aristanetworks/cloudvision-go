@@ -6,14 +6,15 @@
 package snmp
 
 import (
-	pgnmi "cloudvision-go/provider/gnmi"
-	"cloudvision-go/provider/openconfig"
 	"encoding/hex"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 	"testing"
+
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"

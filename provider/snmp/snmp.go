@@ -7,9 +7,6 @@ package snmp
 
 import (
 	"bytes"
-	"cloudvision-go/provider"
-	pgnmi "cloudvision-go/provider/gnmi"
-	"cloudvision-go/provider/openconfig"
 	"context"
 	"encoding/hex"
 	"errors"
@@ -17,6 +14,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aristanetworks/cloudvision-go/provider"
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
 
 	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"

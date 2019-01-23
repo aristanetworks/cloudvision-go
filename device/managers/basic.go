@@ -6,8 +6,9 @@
 package managers
 
 import (
-	"cloudvision-go/device"
 	"fmt"
+
+	"github.com/aristanetworks/cloudvision-go/device"
 )
 
 // There's no need to register this manager, as we should never need to

@@ -6,10 +6,11 @@
 package devices
 
 import (
-	"cloudvision-go/device"
-	"cloudvision-go/provider"
-	psnmp "cloudvision-go/provider/snmp"
 	"time"
+
+	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/provider"
+	psnmp "github.com/aristanetworks/cloudvision-go/provider/snmp"
 )
 
 func init() {

@@ -6,13 +6,14 @@
 package devices
 
 import (
-	"cloudvision-go/device"
-	"cloudvision-go/provider"
-	pgnmi "cloudvision-go/provider/gnmi"
 	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/provider"
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 
 	"github.com/aristanetworks/goarista/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"

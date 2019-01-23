@@ -6,9 +6,10 @@
 package gnmi
 
 import (
-	"cloudvision-go/provider"
 	"context"
 	"fmt"
+
+	"github.com/aristanetworks/cloudvision-go/provider"
 
 	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"

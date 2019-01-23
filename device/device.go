@@ -6,9 +6,10 @@
 package device
 
 import (
-	"cloudvision-go/provider"
 	"errors"
 	"fmt"
+
+	"github.com/aristanetworks/cloudvision-go/provider"
 )
 
 // Type is used to distinguish between target devices and management systems.
