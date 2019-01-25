@@ -7,7 +7,6 @@ package provider
 
 import (
 	"context"
-	"sync"
 )
 
 // A Provider "owns" some states on a target device streams out notifications on any
@@ -18,22 +17,4 @@ type Provider interface {
 	// is cancelled or an error is encountered,
 	// and is thus usually invoked by doing `go provider.Run()'.
 	Run(ctx context.Context) error
-}
-
-// Run runs a single provider and returns a function that will stop it, wait for it to finish,
-// and return any error returned by Run. Intended for use within tests.
-func Run(p Provider) func() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	wg.Add(1)
-	var err error
-	go func() {
-		err = p.Run(ctx)
-		wg.Done()
-	}()
-	return func() error {
-		cancel()
-		wg.Wait()
-		return err
-	}
 }
