@@ -258,8 +258,8 @@ func (s *Snmp) DeviceID() (string, error) {
 	return serial, nil
 }
 
-// CheckAlive checks if device is still alive if poll interval has passed.
-func (s *Snmp) CheckAlive() (bool, error) {
+// Alive checks if device is still alive if poll interval has passed.
+func (s *Snmp) Alive() (bool, error) {
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}

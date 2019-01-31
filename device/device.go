@@ -25,7 +25,7 @@ const (
 // A Device knows how to interact with a specific device.
 type Device interface {
 	Type() Type
-	CheckAlive() (bool, error)
+	Alive() (bool, error)
 	DeviceID() (string, error)
 	Providers() ([]provider.Provider, error)
 }

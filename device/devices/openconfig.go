@@ -50,7 +50,7 @@ func (o *openconfigDevice) Type() device.Type {
 	return device.Target
 }
 
-func (o *openconfigDevice) CheckAlive() (bool, error) {
+func (o *openconfigDevice) Alive() (bool, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)

@@ -49,8 +49,8 @@ func (s *snmp) Type() device.Type {
 
 // XXX_jcr: For now, we return an error rather than just returning false. We
 // may want to rethink that in the future.
-func (s *snmp) CheckAlive() (bool, error) {
-	_, err := s.snmpProvider.(*psnmp.Snmp).CheckAlive()
+func (s *snmp) Alive() (bool, error) {
+	_, err := s.snmpProvider.(*psnmp.Snmp).Alive()
 	if err != nil {
 		return false, err
 	}

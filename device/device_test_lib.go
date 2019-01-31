@@ -27,7 +27,7 @@ type testDevice struct{}
 // TestDeviceID is the device ID used for retriving the device from the inventory.
 var TestDeviceID = "0a0a.0a0a.0a0a"
 
-func (td testDevice) CheckAlive() (bool, error) {
+func (td testDevice) Alive() (bool, error) {
 	return true, nil
 }
 
