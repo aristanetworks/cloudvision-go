@@ -655,7 +655,7 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 	if err := s.walk(locSysData, updater); err != nil {
 		return nil, err
 	}
-	// XXX_jcr: Ultimately we'll want to add a proper mechanism for discovering which
+	// XXX NOTE: Ultimately we'll want to add a proper mechanism for discovering which
 	// MIBs the target device supports. For now just try a different version next time.
 	if len(updates) == 0 {
 		s.lldpV2 = !s.lldpV2
@@ -788,7 +788,7 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case err := <-s.errc:
-			// XXX_jcr: We should probably return for some errors.
+			// XXX NOTE: We should probably return for some errors.
 			// Others we can't return from. For example, an LLDP poll
 			// may fail if it takes place after an interface change that
 			// hasn't yet showed up in an interface poll, since LLDP

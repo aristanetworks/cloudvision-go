@@ -47,7 +47,7 @@ func (s *snmp) Type() device.Type {
 	return device.Target
 }
 
-// XXX_jcr: For now, we return an error rather than just returning false. We
+// XXX NOTE: For now, we return an error rather than just returning false. We
 // may want to rethink that in the future.
 func (s *snmp) Alive() (bool, error) {
 	_, err := s.snmpProvider.(*psnmp.Snmp).Alive()
@@ -73,7 +73,7 @@ func (s *snmp) Providers() ([]provider.Provider, error) {
 	return []provider.Provider{s.snmpProvider}, nil
 }
 
-// XXX_jcr: The network operations here could fail on startup, and if
+// XXX NOTE: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
 func newSnmp(options map[string]string) (device.Device, error) {

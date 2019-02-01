@@ -19,7 +19,7 @@ func TestDevice(t *testing.T) {
 	RunDeviceTest(t, testPluginName, device.TestDeviceConfig, "", true)
 }
 
-// XXX_jcr: This test has to be in a different package than the other
+// XXX NOTE: This test has to be in a different package than the other
 // tests because of https://github.com/golang/go/issues/17928 ("cannot
 // load a plugin from a test where the plugin includes the tested
 // package"). The plugin also has to be outside the test package

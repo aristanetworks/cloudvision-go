@@ -14,7 +14,7 @@ func init() {
 	device.Register("test", device.NewTestDevice, device.TestDeviceOptions)
 }
 
-// XXX_jcr: The device test runner (RunDeviceTest) has to be outside the
+// XXX NOTE: The device test runner (RunDeviceTest) has to be outside the
 // device package because packages imported by Collector (such as device)
 // cannot import package testing in files that aren't named *_test.go,
 // but if it's named *_test.go it can't export symbols. This is also why
