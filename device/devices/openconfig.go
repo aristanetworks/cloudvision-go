@@ -34,6 +34,11 @@ func init() {
 			Description: "gNMI subscription username",
 			Required:    true,
 		},
+		"device_id": device.Option{
+			Description: "device ID",
+			Default:     "",
+			Required:    false,
+		},
 	}
 
 	// Register
@@ -44,6 +49,7 @@ type openconfigDevice struct {
 	gNMIProvider provider.GNMIProvider
 	gNMIClient   pb.GNMIClient
 	config       *gnmi.Config
+	deviceID     string
 }
 
 func (o *openconfigDevice) Type() device.Type {
@@ -68,6 +74,9 @@ func (o *openconfigDevice) Providers() ([]provider.Provider, error) {
 }
 
 func (o *openconfigDevice) DeviceID() (string, error) {
+	if o.deviceID != "" {
+		return o.deviceID, nil
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)
@@ -94,9 +103,22 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 
 // newOpenConfig returns an openconfig device.
 func newOpenConfig(opt map[string]string) (device.Device, error) {
-	gNMIAddr := opt["gnmi_addr"]
-	gNMIUsername := opt["gnmi_username"]
-	gNMIPaths := strings.Split(opt["gnmi_paths"], ",")
+	gNMIAddr, err := device.GetStringOption("gnmi_addr", opt)
+	if err != nil {
+		return nil, err
+	}
+	gNMIUsername, err := device.GetStringOption("gnmi_username", opt)
+	if err != nil {
+		return nil, err
+	}
+	deviceID, err := device.GetStringOption("device_id", opt)
+	if err != nil {
+		return nil, err
+	}
+	gNMIPaths, err := device.GetStringOption("gnmi_paths", opt)
+	if err != nil {
+		return nil, err
+	}
 	openconfig := &openconfigDevice{}
 	config := &gnmi.Config{
 		Addr:     gNMIAddr,
@@ -108,8 +130,9 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 	}
 	openconfig.gNMIClient = client
 	openconfig.config = config
+	openconfig.deviceID = deviceID
 
-	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, gNMIPaths)
+	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, strings.Split(gNMIPaths, ","))
 
 	return openconfig, nil
 }
