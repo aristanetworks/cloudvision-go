@@ -1,0 +1,91 @@
+// Copyright (c) 2019 Arista Networks, Inc.
+// Use of this source code is governed by the Apache License 2.0
+// that can be found in the COPYING file.
+
+package device
+
+import (
+	"context"
+	"testing"
+
+	"github.com/aristanetworks/goarista/test"
+	"google.golang.org/grpc/metadata"
+)
+
+func TestNewMetadata(t *testing.T) {
+
+	boolTrue := true
+	deviceType := "Target"
+
+	for _, tc := range []struct {
+		desc       string
+		shouldFail bool
+		md         Metadata
+		ctx        context.Context
+	}{
+		{
+			desc: "required fields only",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				deviceIDMetadata, "id",
+				openConfigMetadata, "true"),
+			md: Metadata{
+				deviceID:   "id",
+				openConfig: true,
+			},
+		},
+		{
+			desc: "complete metadata",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				deviceIDMetadata, "id",
+				openConfigMetadata, "true",
+				deviceTypeMetadata, deviceType,
+				deviceLivenessMetadata, "true"),
+			md: Metadata{
+				deviceID:   "id",
+				openConfig: true,
+				deviceType: &deviceType,
+				alive:      &boolTrue,
+			},
+		},
+		{
+			desc: "missing device ID",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				openConfigMetadata, "true",
+				deviceTypeMetadata, deviceType,
+				deviceLivenessMetadata, "true"),
+			shouldFail: true,
+		},
+		{
+			desc: "missing openConfig",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				deviceIDMetadata, "id",
+				deviceTypeMetadata, deviceType,
+				deviceLivenessMetadata, "true"),
+			shouldFail: true,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			md, ok := metadata.FromOutgoingContext(tc.ctx)
+			if !ok {
+				t.Fatalf("Outgoing context doesn't have any metadata")
+			}
+			ctx := metadata.NewIncomingContext(tc.ctx, md)
+			data, err := NewMetadata(ctx)
+			if err != nil && !tc.shouldFail {
+				t.Fatal(err)
+			}
+			if err == nil && tc.shouldFail {
+				t.Fatalf("Test should have error but doesn't")
+			}
+			if !tc.shouldFail {
+				if diff := test.Diff(tc.md, data); diff != "" {
+					t.Fatalf("Unexpected metadata: Diff is %v", diff)
+				}
+			}
+		})
+	}
+}
