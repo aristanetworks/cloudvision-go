@@ -6,6 +6,7 @@ package darwin
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
-	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
@@ -115,13 +115,13 @@ func (d *darwin) updateInterfaces() (*gnmi.SetRequest, error) {
 	return setRequest, nil
 }
 
-func (d *darwin) handleErrors(ctx context.Context) {
+func (d *darwin) handleErrors(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			return nil
 		case err := <-d.errc:
-			glog.Errorf("Failure in gNMI stream: %v", err)
+			return fmt.Errorf("Error in darwin provider: %v", err)
 		}
 	}
 }
@@ -136,18 +136,20 @@ func (d *darwin) Run(ctx context.Context) error {
 		d.updateInterfaces, d.errc)
 
 	// handleErrors only returns if it sees an error.
-	d.handleErrors(ctx)
-
-	return nil
+	return d.handleErrors(ctx)
 }
 
-func (d *darwin) InitGNMIOpenConfig(client gnmi.GNMIClient) {
+func (d *darwin) InitGNMI(client gnmi.GNMIClient) {
 	d.client = client
+}
+
+func (d *darwin) OpenConfig() bool {
+	return true
 }
 
 // NewDarwinProvider returns a darwin provider that registers a
 // Darwin device and streams interface statistics.
-func NewDarwinProvider(pollInterval time.Duration) provider.GNMIOpenConfigProvider {
+func NewDarwinProvider(pollInterval time.Duration) provider.GNMIProvider {
 	return &darwin{
 		errc:         make(chan error),
 		pollInterval: pollInterval,

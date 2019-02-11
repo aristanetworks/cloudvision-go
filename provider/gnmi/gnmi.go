@@ -20,13 +20,17 @@ type gnmiProvider struct {
 	cfg         *agnmi.Config
 	paths       []string
 	inClient    gnmi.GNMIClient
-	channel     chan<- *gnmi.Notification
+	outClient   gnmi.GNMIClient
 	initialized bool
 }
 
-func (p *gnmiProvider) InitGNMI(ch chan<- *gnmi.Notification) {
-	p.channel = ch
+func (p *gnmiProvider) InitGNMI(client gnmi.GNMIClient) {
+	p.outClient = client
 	p.initialized = true
+}
+
+func (p *gnmiProvider) OpenConfig() bool {
+	return false
 }
 
 func (p *gnmiProvider) Run(ctx context.Context) error {
@@ -57,7 +61,8 @@ func (p *gnmiProvider) Run(ctx context.Context) error {
 					glog.Errorf("gNMI sync failed")
 				}
 			case *gnmi.SubscribeResponse_Update:
-				p.channel <- resp.Update
+				// One SetRequest per update:
+				p.outClient.Set(ctx, &gnmi.SetRequest{Update: resp.Update.Update})
 			}
 		case err := <-errChan:
 			return fmt.Errorf("Error from gNMI connection: %v", err)

@@ -40,7 +40,7 @@ type snmp struct {
 	community    string
 	pollInterval time.Duration
 	systemID     string
-	snmpProvider provider.GNMIOpenConfigProvider
+	snmpProvider provider.GNMIProvider
 }
 
 func (s *snmp) Type() device.Type {

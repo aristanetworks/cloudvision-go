@@ -776,10 +776,16 @@ func (s *Snmp) updatePlatform() (*gnmi.SetRequest, error) {
 	return setReq, nil
 }
 
-// InitGNMIOpenConfig initializes the Snmp provider with a gNMI client.
-func (s *Snmp) InitGNMIOpenConfig(client gnmi.GNMIClient) {
+// InitGNMI initializes the Snmp provider with a gNMI client.
+func (s *Snmp) InitGNMI(client gnmi.GNMIClient) {
 	s.client = client
 	s.initialized = true
+}
+
+// OpenConfig indicates that this provider wants OpenConfig
+// type-checking.
+func (s *Snmp) OpenConfig() bool {
+	return true
 }
 
 func (s *Snmp) handleErrors(ctx context.Context) {
@@ -825,7 +831,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration) provider.GNMIOpenConfigProvider {
+	pollInt time.Duration) provider.GNMIProvider {
 	gosnmp.Default.Target = address
 	gosnmp.Default.Community = community
 	gosnmp.Default.Timeout = 2 * pollInt

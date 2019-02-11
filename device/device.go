@@ -5,7 +5,6 @@
 package device
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
@@ -51,7 +50,6 @@ type deviceInfo struct {
 }
 
 var deviceMap = map[string]deviceInfo{}
-var deviceInUse *deviceInfo
 
 // Register registers a function that can create a new Device
 // of the given name.
@@ -68,56 +66,34 @@ func Unregister(name string) {
 	delete(deviceMap, name)
 }
 
-// setDeviceInUse sets the current device in use. This is separated from
-// CreateDevice so that we can print out help messages using -help of a
-// specific device if we fail to correctly configure the device.
-func setDeviceInUse(name string) error {
-	di, ok := deviceMap[name]
-	if !ok {
-		return fmt.Errorf("Device %s doesn't exist", name)
+// Registered returns a list of registered device names.
+func Registered() (keys []string) {
+	for k := range deviceMap {
+		keys = append(keys, k)
 	}
-	deviceInUse = &di
-	return nil
+	return
 }
 
 // Create takes a config map, sanitizes the provided config, and returns
-// a Device from the current device in use initialized with the sanitized
-// config.
-func Create(config map[string]string) (Device, error) {
-	if deviceInUse == nil {
-		return nil, errors.New("No device set for use")
+// a Device.
+func Create(name string, config map[string]string) (Device, error) {
+	deviceInfo, ok := deviceMap[name]
+	if !ok {
+		return nil, fmt.Errorf("Device '%v' not found", name)
 	}
-	sanitizedConfig, err := sanitizedOptions(deviceInUse.options, config)
+	sanitizedConfig, err := sanitizedOptions(deviceInfo.options, config)
 	if err != nil {
 		return nil, err
 	}
-	return deviceInUse.creator(sanitizedConfig)
-}
-
-// Init takes relevant information about a device and does initial setup
-// for that device.
-func Init(pluginDir, deviceName string, creator *Creator,
-	deviceOpt map[string]Option) error {
-
-	if creator != nil {
-		Register(deviceName, *creator, deviceOpt)
-	}
-	err := loadPlugins(pluginDir)
-	if err != nil {
-		return fmt.Errorf("Failure in device.loadPlugins: %v", err)
-	}
-	err = setDeviceInUse(deviceName)
-	if err != nil {
-		return fmt.Errorf("Failure in device.setDeviceInUse: %s", err)
-	}
-	return nil
+	return deviceInfo.creator(sanitizedConfig)
 }
 
 // OptionHelp returns the options and associated help strings of the
-// device in use.
-func OptionHelp() (map[string]string, error) {
-	if deviceInUse == nil {
-		return nil, errors.New("No device in use")
+// specified device.
+func OptionHelp(deviceName string) (map[string]string, error) {
+	deviceInfo, ok := deviceMap[deviceName]
+	if !ok {
+		return nil, fmt.Errorf("Device '%v' not found", deviceName)
 	}
-	return helpDesc(deviceInUse.options), nil
+	return helpDesc(deviceInfo.options), nil
 }

@@ -1,3 +1,7 @@
+# Copyright (c) 2019 Arista Networks, Inc.
+# Use of this source code is governed by the Apache License 2.0
+# that can be found in the COPYING file.
+
 GO := go
 
 TEST_TIMEOUT := 30s
@@ -6,6 +10,8 @@ GOLINT := golint
 GOFMT := gofmt
 GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
 GOFILES := find . -name '*.go' ! -path './vendor/*' ! -name '*.pb.go'
+GOPKGVERSION := $(shell git rev-parse HEAD)
+GOLDFLAGS := -ldflags="-s -w -X arista/version.Version=$(GOPKGVERSION)"
 
 DEVICE_DIR := ./device
 DEVICE_INTEGRATION_DIR := $(DEVICE_DIR)/integration

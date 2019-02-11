@@ -27,7 +27,7 @@ func init() {
 
 type darwin struct {
 	deviceID string
-	provider provider.GNMIOpenConfigProvider
+	provider provider.GNMIProvider
 }
 
 func (d *darwin) Type() device.Type {
