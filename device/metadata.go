@@ -14,10 +14,10 @@ import (
 
 // Metadata represents all grpc metadata about a device.
 type Metadata struct {
-	deviceID   string
-	openConfig bool
-	deviceType *string
-	alive      *bool
+	DeviceID   string
+	OpenConfig bool
+	DeviceType *string
+	Alive      *bool
 }
 
 const (
@@ -40,26 +40,26 @@ func NewMetadata(ctx context.Context) (Metadata, error) {
 	if len(deviceIDVal) != 1 {
 		return ret, errors.Errorf("Context should have device ID metadata")
 	}
-	ret.deviceID = deviceIDVal[0]
+	ret.DeviceID = deviceIDVal[0]
 
 	openConfigVal := md.Get(openConfigMetadata)
 	if len(openConfigVal) != 1 {
 		return ret, errors.Errorf("Context should have openConfig metadata")
 	}
-	ret.openConfig, err = strconv.ParseBool(openConfigVal[0])
+	ret.OpenConfig, err = strconv.ParseBool(openConfigVal[0])
 	if err != nil {
 		return ret, errors.Errorf("Error parsing openConfig value: %v", err)
 	}
 
 	deviceTypeVal := md.Get(deviceTypeMetadata)
 	if len(deviceTypeVal) != 0 {
-		ret.deviceType = &deviceTypeVal[0]
+		ret.DeviceType = &deviceTypeVal[0]
 	}
 
 	deviceLivenessVal := md.Get(deviceLivenessMetadata)
 	if len(deviceLivenessVal) != 0 {
 		t := true
-		ret.alive = &t
+		ret.Alive = &t
 	}
 
 	return ret, nil

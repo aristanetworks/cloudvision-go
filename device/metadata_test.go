@@ -30,8 +30,8 @@ func TestNewMetadata(t *testing.T) {
 				deviceIDMetadata, "id",
 				openConfigMetadata, "true"),
 			md: Metadata{
-				deviceID:   "id",
-				openConfig: true,
+				DeviceID:   "id",
+				OpenConfig: true,
 			},
 		},
 		{
@@ -43,10 +43,10 @@ func TestNewMetadata(t *testing.T) {
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
 			md: Metadata{
-				deviceID:   "id",
-				openConfig: true,
-				deviceType: &deviceType,
-				alive:      &boolTrue,
+				DeviceID:   "id",
+				OpenConfig: true,
+				DeviceType: &deviceType,
+				Alive:      &boolTrue,
 			},
 		},
 		{
