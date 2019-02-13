@@ -351,7 +351,7 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
 `
 
-var entPhysTableAristaResponse = `
+var entPhysClassAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.5.1 = INTEGER: chassis(3)
 .1.3.6.1.2.1.47.1.1.1.1.5.100002001 = INTEGER: container(5)
 .1.3.6.1.2.1.47.1.1.1.1.5.100002002 = INTEGER: container(5)
@@ -381,6 +381,9 @@ var entPhysTableAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.5.100601110 = INTEGER: fan(7)
 .1.3.6.1.2.1.47.1.1.1.1.5.100601111 = INTEGER: sensor(8)
 .1.3.6.1.2.1.47.1.1.1.1.5.100601120 = INTEGER: fan(7)
+`
+
+var entPhysSerialNumAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420017
 .1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.11.100002002 = STRING:
@@ -412,7 +415,7 @@ var entPhysTableAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.100601120 = STRING:
 `
 
-var entPhysTableN9KResponse = `
+var entPhysClassN9KResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.5.10 = INTEGER: stack(11)
 .1.3.6.1.2.1.47.1.1.1.1.5.22 = INTEGER: module(9)
 .1.3.6.1.2.1.47.1.1.1.1.5.23 = INTEGER: module(9)
@@ -433,6 +436,9 @@ var entPhysTableN9KResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.5.5206 = INTEGER: port(10)
 .1.3.6.1.2.1.47.1.1.1.1.5.5207 = INTEGER: port(10)
 .1.3.6.1.2.1.47.1.1.1.1.5.5208 = INTEGER: port(10)
+`
+
+var entPhysSerialNumN9KResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.10 = STRING: SAL1817R822
 .1.3.6.1.2.1.47.1.1.1.1.11.22 = STRING: SAL1817R822
 .1.3.6.1.2.1.47.1.1.1.1.11.23 = STRING: SAL1807M59Z
@@ -455,7 +461,10 @@ var entPhysTableN9KResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.5208 = STRING:
 `
 
-var entPhysTableDefaultResponse = `
+var entPhysClassDefaultResponse = `
+`
+
+var entPhysSerialNumDefaultResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.1 = STRING: JSH11420018
 .1.3.6.1.2.1.47.1.1.1.1.11.100002001 = STRING:
 .1.3.6.1.2.1.47.1.1.1.1.11.100002002 = STRING:
@@ -978,21 +987,24 @@ func TestDeviceID(t *testing.T) {
 		{
 			name: "deviceIDArista",
 			responses: map[string][]gosnmp.SnmpPDU{
-				snmpEntPhysicalTable: pdusFromString(entPhysTableAristaResponse),
+				snmpEntPhysicalClass:     pdusFromString(entPhysClassAristaResponse),
+				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumAristaResponse),
 			},
 			expected: "JSH11420017",
 		},
 		{
 			name: "deviceIDN9K",
 			responses: map[string][]gosnmp.SnmpPDU{
-				snmpEntPhysicalTable: pdusFromString(entPhysTableN9KResponse),
+				snmpEntPhysicalClass:     pdusFromString(entPhysClassN9KResponse),
+				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumN9KResponse),
 			},
 			expected: "SAL1817R822",
 		},
 		{
 			name: "noChassisFound",
 			responses: map[string][]gosnmp.SnmpPDU{
-				snmpEntPhysicalTable: pdusFromString(entPhysTableDefaultResponse),
+				snmpEntPhysicalClass:     pdusFromString(entPhysClassDefaultResponse),
+				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumDefaultResponse),
 			},
 			expected: "JSH11420018",
 		},

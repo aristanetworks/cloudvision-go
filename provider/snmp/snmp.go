@@ -5,11 +5,10 @@
 package snmp
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -22,15 +21,6 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"
 )
-
-// return base OID, index
-func oidIndex(oid string) (string, string, error) {
-	finalDotPos := strings.LastIndex(oid, ".")
-	if finalDotPos < 0 {
-		return "", "", fmt.Errorf("oid '%s' does not match expected format", oid)
-	}
-	return oid[:finalDotPos], oid[(finalDotPos + 1):], nil
-}
 
 const (
 	snmpEntPhysicalClass               = ".1.3.6.1.2.1.47.1.1.1.1.5"
@@ -110,23 +100,31 @@ const (
 	snmpSysUpTime                      = ".1.3.6.1.2.1.1.3.0"
 )
 
+// Split the final index off an OID and return it along with the remaining OID.
+func oidSplitEnd(oid string) (string, string, error) {
+	finalDotPos := strings.LastIndex(oid, ".")
+	if finalDotPos < 0 {
+		return "", "", fmt.Errorf("oid '%s' does not match expected format", oid)
+	}
+	return oid[:finalDotPos], oid[(finalDotPos + 1):], nil
+}
+
 // Less typing: gNMI type helpers.
 func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	return pgnmi.Update(path, val)
 }
 
 func strval(s interface{}) *gnmi.TypedValue {
-	t, ok := s.(string)
-	if ok {
+	switch t := s.(type) {
+	case string:
 		return pgnmi.Strval(t)
-	}
-	u, ok := s.([]byte)
-	if ok {
+	case []byte:
 		// Remove newlines. OpenConfig will reject multiline strings.
-		ss := strings.Replace(string(u), "\n", " ", -1)
+		ss := strings.Replace(string(t), "\n", " ", -1)
 		return pgnmi.Strval(ss)
+	default:
+		glog.Fatalf("Unexpected type in strval: %T", s)
 	}
-	glog.Fatalf("Unexpected type in strval: %T", s)
 	return nil
 }
 
@@ -150,9 +148,10 @@ type Snmp struct {
 	// lldpV2 indicates whether to use LLDP-V2-MIB.
 	lldpV2 bool
 
-	address   string
-	community string
-	gsnmp     *gosnmp.GoSNMP
+	lldpLocChassisIDSubtype string
+
+	// gosnmp object
+	gsnmp gosnmp.GoSNMP
 
 	// gosnmp can't handle parallel gets.
 	lock sync.Mutex
@@ -196,7 +195,7 @@ func (s *Snmp) getStringByOID(oid string) (string, error) {
 	}
 	v := pkt.Variables[0]
 	if v.Type != gosnmp.OctetString {
-		return "", fmt.Errorf("PDU type for OID %s is not octet string", oid)
+		return "", fmt.Errorf("Variable type in PDU for OID %s is not octet string", oid)
 	}
 	return string(v.Value.([]byte)), nil
 }
@@ -212,6 +211,8 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 	return err
 }
 
+var errStopWalk = errors.New("stop walk")
+
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
 	serial := ""
@@ -222,10 +223,12 @@ func (s *Snmp) DeviceID() (string, error) {
 	// Get the serial number corresponding to the index whose class
 	// type is chassis(3).
 	entPhysicalWalk := func(data gosnmp.SnmpPDU) error {
+		// If we're finished, throw a pseudo-error to indicate to the
+		// walker that no more walking is required.
 		if done {
-			return nil
+			return errStopWalk
 		}
-		baseOid, index, err := oidIndex(data.Name)
+		baseOid, index, err := oidSplitEnd(data.Name)
 		if err != nil {
 			return err
 		}
@@ -241,7 +244,7 @@ func (s *Snmp) DeviceID() (string, error) {
 			if serial == "" {
 				serial = string(data.Value.([]byte))
 			}
-			if index == chassisIndex {
+			if index == chassisIndex && string(data.Value.([]byte)) != "" {
 				serial = string(data.Value.([]byte))
 				done = true
 			}
@@ -250,8 +253,13 @@ func (s *Snmp) DeviceID() (string, error) {
 		return nil
 	}
 
-	if err := s.walk(snmpEntPhysicalTable, entPhysicalWalk); err != nil {
+	if err := s.walk(snmpEntPhysicalClass, entPhysicalWalk); err != nil {
 		return "", err
+	}
+	if err := s.walk(snmpEntPhysicalSerialNum, entPhysicalWalk); err != nil {
+		if err != errStopWalk {
+			return "", err
+		}
 	}
 	if serial == "" {
 		return "", errors.New("Failed to get serial number")
@@ -280,7 +288,7 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 	interfaceIndex map[string]string) ([]*gnmi.Update, error) {
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
-	baseOid, index, err := oidIndex(pdu.Name)
+	baseOid, index, err := oidSplitEnd(pdu.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -404,13 +412,8 @@ func (s *Snmp) updateInterfaces() (*gnmi.SetRequest, error) {
 // will return a fully qualified domain name. splitSysName returns
 // the hostname and the domain if it exists.
 func splitSysName(sysName string) (string, string) {
-	ss := strings.Split(sysName, ".")
-	hn := ss[0]
-	var dn string
-	if len(ss) > 1 {
-		dn = strings.Join(ss[1:], ".")
-	}
-	return hn, dn
+	ss := append(strings.SplitN(sysName, ".", 2), "")
+	return ss[0], ss[1]
 }
 
 func (s *Snmp) updateSystemState() (*gnmi.SetRequest, error) {
@@ -449,48 +452,48 @@ func processLldpOid(oid string) (locIndex, remoteID,
 		strings.HasPrefix(oid, snmpLldpStatsRxPortTable) ||
 		strings.HasPrefix(oid, snmpLldpLocPortTable) ||
 		strings.HasPrefix(oid, snmpLldpV2LocPortTable) {
-		baseOid, locIndex, err = oidIndex(oid)
+		baseOid, locIndex, err = oidSplitEnd(oid)
 		return
 	}
 	// Local per-port V2
 	if strings.HasPrefix(oid, snmpLldpV2StatsTxPortTable) ||
 		strings.HasPrefix(oid, snmpLldpV2StatsRxPortTable) {
-		baseOid, _, err = oidIndex(oid) // remove lldpV2StatsTxDestMACAddress
+		baseOid, _, err = oidSplitEnd(oid) // remove lldpV2StatsTxDestMACAddress
 		if err != nil {
 			return
 		}
-		baseOid, locIndex, err = oidIndex(baseOid)
+		baseOid, locIndex, err = oidSplitEnd(baseOid)
 		return
 	}
 
 	// Remote
 	if strings.HasPrefix(oid, snmpLldpRemTable) {
-		baseOid, remoteID, err = oidIndex(oid)
+		baseOid, remoteID, err = oidSplitEnd(oid)
 		if err != nil {
 			return
 		}
-		baseOid, locIndex, err = oidIndex(baseOid)
+		baseOid, locIndex, err = oidSplitEnd(baseOid)
 		if err != nil {
 			return
 		}
-		baseOid, _, err = oidIndex(baseOid) // remove lldpRemTimeMark
+		baseOid, _, err = oidSplitEnd(baseOid) // remove lldpRemTimeMark
 		return
 	}
 	// Remote V2
 	if strings.HasPrefix(oid, snmpLldpV2RemTable) {
-		baseOid, remoteID, err = oidIndex(oid)
+		baseOid, remoteID, err = oidSplitEnd(oid)
 		if err != nil {
 			return
 		}
-		baseOid, _, err = oidIndex(baseOid) // remove lldpV2RemLocalDestMACAddress
+		baseOid, _, err = oidSplitEnd(baseOid) // remove lldpV2RemLocalDestMACAddress
 		if err != nil {
 			return
 		}
-		baseOid, locIndex, err = oidIndex(baseOid)
+		baseOid, locIndex, err = oidSplitEnd(baseOid)
 		if err != nil {
 			return
 		}
-		baseOid, _, err = oidIndex(baseOid) // remove lldpRemTimeMark
+		baseOid, _, err = oidSplitEnd(baseOid) // remove lldpRemTimeMark
 		return
 	}
 	return
@@ -504,20 +507,35 @@ func macFromBytes(s []byte) string {
 	}
 
 	// else assume hex string
-	var t bytes.Buffer
-	for i := 0; i < len(s); i++ {
-		if i != 0 {
-			t.WriteString(":")
-		}
-		t.WriteString(hex.EncodeToString(s[i : i+1]))
-	}
-	return t.String()
+	return net.HardwareAddr(s).String()
 }
 
-func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
-	lldpLocPortIndex map[string]string,
-	lldpRemoteID map[string]bool) ([]*gnmi.Update, error) {
+var subtypeMacAddress = openconfig.LLDPChassisIDType(4)
 
+func chassisID(b []byte, subtype string) string {
+	if subtype == subtypeMacAddress {
+		return macFromBytes(b)
+	}
+	return string(b)
+}
+
+func (s *Snmp) locChassisID(b []byte) string {
+	return chassisID(b, s.lldpLocChassisIDSubtype)
+}
+
+type remoteKey struct{ intfName, remoteID string }
+
+// Data collected during a round of polling
+type lldpSeen struct {
+	// lldpLocPortNum -> lldpLocPortId
+	locPortID map[string]string
+
+	// Which intfName/remoteID pairs we've already seen in the round,
+	// and their associated lldpChassisIdSubtypes.
+	remoteID map[remoteKey]string
+}
+
+func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update, error) {
 	// Split OID into parts.
 	locIndex, remoteID, baseOid, err := processLldpOid(pdu.Name)
 	if err != nil {
@@ -529,29 +547,37 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
 	updates := make([]*gnmi.Update, 0)
 	var ok bool
 	if locIndex != "" {
-		intfName, ok = lldpLocPortIndex[locIndex]
+		intfName, ok = seen.locPortID[locIndex]
 		if !ok {
 			// If we have the port ID AND this interface is in the interfaceName
 			// map, add it to the port index map. Otherwise we can't do anything
 			// and should return.
 			if baseOid != snmpLldpLocPortID && baseOid != snmpLldpV2LocPortID {
+				// XXX NOTE: The RFC says lldpLocPortDesc should have the
+				// same value as a corresponding ifDescr object, but in
+				// practice all the devices we've tested against have
+				// lldpLocPortId equal to an ifDescr object, and
+				// lldpLocPortDesc is all over the map--sometimes empty,
+				// sometimes set to ifAlias. So while it seems like we
+				// should be using lldpLocPortDesc here, lldpLocPortId is
+				// the only one that actually works...
 				return nil, nil
 			}
 			intfName = string(pdu.Value.([]byte))
 			if _, ok = s.interfaceName[intfName]; !ok {
 				return nil, nil
 			}
-			lldpLocPortIndex[locIndex] = intfName
+			seen.locPortID[locIndex] = intfName
 		}
 	}
 
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
-		if _, ok = lldpRemoteID[remoteID]; !ok {
+		if _, ok := seen.remoteID[remoteKey{intfName, remoteID}]; !ok {
 			updates = append(updates,
 				update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
 					strval(remoteID)))
-			lldpRemoteID[remoteID] = true
+			seen.remoteID[remoteKey{intfName, remoteID}] = ""
 		}
 	}
 
@@ -566,11 +592,12 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
 			update(pgnmi.LldpIntfStatePath(intfName, "name"),
 				strval(intfName)))
 	case snmpLldpLocChassisID, snmpLldpV2LocChassisID:
-		u = update(pgnmi.LldpStatePath("chassis-id"),
-			strval(macFromBytes(pdu.Value.([]byte))))
+		v := s.locChassisID(pdu.Value.([]byte))
+		u = update(pgnmi.LldpStatePath("chassis-id"), strval(v))
 	case snmpLldpLocChassisIDSubtype, snmpLldpV2LocChassisIDSubtype:
+		s.lldpLocChassisIDSubtype = openconfig.LLDPChassisIDType(pdu.Value.(int))
 		u = update(pgnmi.LldpStatePath("chassis-id-type"),
-			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
+			strval(s.lldpLocChassisIDSubtype))
 	case snmpLldpLocSysName, snmpLldpV2LocSysName:
 		u = update(pgnmi.LldpStatePath("system-name"),
 			strval(pdu.Value))
@@ -602,11 +629,15 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id-type"),
 			strval(openconfig.LLDPPortIDType(pdu.Value.(int))))
 	case snmpLldpRemChassisID, snmpLldpV2RemChassisID:
+		subtype := seen.remoteID[remoteKey{intfName, remoteID}]
+		v := chassisID(pdu.Value.([]byte), subtype)
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id"),
-			strval(macFromBytes(pdu.Value.([]byte))))
+			strval(v))
 	case snmpLldpRemChassisIDSubtype, snmpLldpV2RemChassisIDSubtype:
+		v := openconfig.LLDPChassisIDType(pdu.Value.(int))
+		seen.remoteID[remoteKey{intfName, remoteID}] = v
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
-			strval(openconfig.LLDPChassisIDType(pdu.Value.(int))))
+			strval(v))
 	case snmpLldpRemSysName, snmpLldpV2RemSysName:
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "system-name"),
 			strval(pdu.Value))
@@ -621,29 +652,30 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU,
 }
 
 func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
-	// lldpLocPortIndex is a map of lldpLocPortNum -> lldpLocPortId.
-	lldpLocPortIndex := make(map[string]string)
-
-	// lldpRemoteID is a map of remote system ID -> true. It's used to
-	// remember which remote IDs we've already seen in a given round of polling.
-	lldpRemoteID := make(map[string]bool)
-
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	// Unset local chassis ID subtype.
+	s.lldpLocChassisIDSubtype = ""
+
 	locSysData := snmpLldpLocalSystemData
 	remTable := snmpLldpRemTable
-	statsTable := snmpLldpStatistics
+	statsRoot := snmpLldpStatistics
 	if s.lldpV2 {
 		locSysData = snmpLldpV2LocalSystemData
 		remTable = snmpLldpV2RemTable
-		statsTable = snmpLldpV2Statistics
+		statsRoot = snmpLldpV2Statistics
+	}
+
+	seen := &lldpSeen{
+		locPortID: make(map[string]string),
+		remoteID:  make(map[remoteKey]string),
 	}
 
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
 	updater := func(data gosnmp.SnmpPDU) error {
-		u, err := s.handleLldpPDU(data, lldpLocPortIndex, lldpRemoteID)
+		u, err := s.handleLldpPDU(data, seen)
 		if err != nil {
 			return err
 		}
@@ -657,7 +689,9 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 		return nil, err
 	}
 	// XXX NOTE: Ultimately we'll want to add a proper mechanism for discovering which
-	// MIBs the target device supports. For now just try a different version next time.
+	// MIBs the target device supports. Here we could just request lldpV2LocSysName
+	// to see if the device supports V2. But for now just try a different version
+	// next time.
 	if len(updates) == 0 {
 		s.lldpV2 = !s.lldpV2
 		return setReq, nil
@@ -667,7 +701,7 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 		return nil, err
 	}
 
-	if err := s.walk(statsTable, updater); err != nil {
+	if err := s.walk(statsRoot, updater); err != nil {
 		return nil, err
 	}
 
@@ -679,7 +713,7 @@ func (s *Snmp) updateLldp() (*gnmi.SetRequest, error) {
 func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 	entityIndexMap map[string]bool) ([]*gnmi.Update, error) {
 
-	baseOid, index, err := oidIndex(pdu.Name)
+	baseOid, index, err := oidSplitEnd(pdu.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -833,7 +867,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 // limiting requests.
 func NewSNMPProvider(address string, community string,
 	pollInt time.Duration) provider.GNMIProvider {
-	gsnmp := &gosnmp.GoSNMP{
+	gsnmp := gosnmp.GoSNMP{
 		Port:               161,
 		Version:            gosnmp.Version2c,
 		Retries:            3,
