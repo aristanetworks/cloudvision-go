@@ -7,12 +7,15 @@ package device
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
+	"github.com/aristanetworks/cloudvision-go/version"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/metadata"
 )
 
 // An Inventory maintains a set of devices.
@@ -24,20 +27,23 @@ type Inventory interface {
 
 // deviceConn contains a device and its gNMI connections.
 type deviceConn struct {
-	device        Device
-	ctx           context.Context
-	cancel        context.CancelFunc
-	gnmiClient    gnmi.GNMIClient
-	gnmiOCClient  gnmi.GNMIClient
-	providerGroup *errgroup.Group
+	device            Device
+	deviceID          string
+	version           string
+	deviceType        string
+	ctx               context.Context
+	cancel            context.CancelFunc
+	rawGNMIClient     gnmi.GNMIClient
+	wrappedGNMIClient *gNMIClientWrapper
+	providerGroup     *errgroup.Group
 }
 
+// inventory implements the Inventory interface.
 type inventory struct {
-	ctx              context.Context
-	group            *errgroup.Group
-	gnmiServerAddr   string
-	gnmiOCServerAddr string
-	devices          map[string]*deviceConn
+	ctx            context.Context
+	group          *errgroup.Group
+	gnmiServerAddr string
+	devices        map[string]*deviceConn
 }
 
 func startGNMIClient(serverAddr string) (gnmi.GNMIClient, error) {
@@ -45,6 +51,36 @@ func startGNMIClient(serverAddr string) (gnmi.GNMIClient, error) {
 		return nil, fmt.Errorf("Invalid gNMI server address '%v'", serverAddr)
 	}
 	return agnmi.Dial(&agnmi.Config{Addr: serverAddr})
+}
+
+func (dc *deviceConn) sendPeriodicUpdates() error {
+	ticker := time.NewTicker(time.Second)
+	for {
+		select {
+		case <-dc.ctx.Done():
+			return nil
+		case <-ticker.C:
+			if dc.deviceID == "" {
+				var err error
+				dc.deviceID, err = dc.device.DeviceID()
+				if err != nil {
+					return err
+				}
+			}
+			if dc.deviceType == "" {
+				dc.deviceType = dc.device.Type().String()
+			}
+			ctx := metadata.AppendToOutgoingContext(dc.ctx,
+				deviceTypeMetadata, dc.deviceType,
+				deviceLivenessMetadata, "true",
+				collectorVersionMetadata, version.Version)
+			dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
+		}
+	}
+}
+
+func (dc *deviceConn) handleErrors() error {
+	return dc.providerGroup.Wait()
 }
 
 // Add adds a device to the inventory, opens up any gNMI connections
@@ -72,42 +108,34 @@ func (i *inventory) Add(key string, device Device) error {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
 
-		// Initialize the provider, depending on whether it wants OpenConfig
-		// type-checking.
-		if pt.OpenConfig() {
-			if dc.gnmiOCClient == nil {
-				dc.gnmiOCClient, err = startGNMIClient(i.gnmiOCServerAddr)
-				if err != nil {
-					return err
-				}
+		if dc.rawGNMIClient == nil {
+			dc.rawGNMIClient, err = startGNMIClient(i.gnmiServerAddr)
+			if err != nil {
+				return err
 			}
-			pt.InitGNMI(dc.gnmiOCClient)
-		} else {
-			if dc.gnmiClient == nil {
-				dc.gnmiClient, err = startGNMIClient(i.gnmiServerAddr)
-				if err != nil {
-					return err
-				}
-			}
-			pt.InitGNMI(dc.gnmiClient)
+			dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient,
+				key, false)
 		}
+		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, key, pt.OpenConfig()))
 
 		// Watch for provider errors in the provider errgroup and
 		// propagate them up to the inventory errgroup.
 		i.group.Go(func() error {
-			return i.handleErrors(dc)
+			return dc.handleErrors()
 		})
 
 		// Start the providers.
 		dc.providerGroup.Go(func() error {
 			return p.Run(dc.ctx)
 		})
+
+		// Send periodic updates of device-level metadata.
+		i.group.Go(func() error {
+			return dc.sendPeriodicUpdates()
+		})
+
 	}
 	return nil
-}
-
-func (i *inventory) handleErrors(dc *deviceConn) error {
-	return dc.providerGroup.Wait()
 }
 
 func (i *inventory) Delete(key string) error {
@@ -137,12 +165,11 @@ func (i *inventory) Get(key string) (Device, bool) {
 
 // NewInventory creates an Inventory.
 func NewInventory(ctx context.Context, group *errgroup.Group,
-	gnmiServerAddr, gnmiOCServerAddr string) Inventory {
+	gnmiServerAddr string) Inventory {
 	return &inventory{
-		ctx:              ctx,
-		devices:          make(map[string]*deviceConn),
-		group:            group,
-		gnmiServerAddr:   gnmiServerAddr,
-		gnmiOCServerAddr: gnmiOCServerAddr,
+		ctx:            ctx,
+		devices:        make(map[string]*deviceConn),
+		group:          group,
+		gnmiServerAddr: gnmiServerAddr,
 	}
 }

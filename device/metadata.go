@@ -14,17 +14,19 @@ import (
 
 // Metadata represents all grpc metadata about a device.
 type Metadata struct {
-	DeviceID   string
-	OpenConfig bool
-	DeviceType *string
-	Alive      *bool
+	DeviceID         string
+	OpenConfig       bool
+	DeviceType       *string
+	Alive            *bool
+	CollectorVersion string
 }
 
 const (
-	deviceIDMetadata       = "deviceID"
-	openConfigMetadata     = "openConfig"
-	deviceTypeMetadata     = "deviceType"
-	deviceLivenessMetadata = "deviceLiveness"
+	deviceIDMetadata         = "deviceID"
+	openConfigMetadata       = "openConfig"
+	deviceTypeMetadata       = "deviceType"
+	deviceLivenessMetadata   = "deviceLiveness"
+	collectorVersionMetadata = "collectorVersion"
 )
 
 // NewMetadata returns a metadata from an incoming context.
@@ -58,8 +60,13 @@ func NewMetadata(ctx context.Context) (Metadata, error) {
 
 	deviceLivenessVal := md.Get(deviceLivenessMetadata)
 	if len(deviceLivenessVal) != 0 {
-		t := true
+		t := (deviceLivenessVal[0] == "true")
 		ret.Alive = &t
+	}
+
+	collectorVersionVal := md.Get(collectorVersionMetadata)
+	if len(collectorVersionVal) != 0 {
+		ret.CollectorVersion = collectorVersionVal[0]
 	}
 
 	return ret, nil

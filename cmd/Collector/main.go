@@ -34,9 +34,8 @@ var (
 	managerOptions = aflag.Map{}
 
 	// gNMI server config
-	gnmiServerAddr           = flag.String("gnmiServerAddr", "", "Address of gNMI server")
-	gnmiOpenConfigServerAddr = flag.String("gnmiOpenConfigServerAddr", "",
-		"Address of gNMI OpenConfig server")
+	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
+		"Address of gNMI server")
 )
 
 func init() {
@@ -161,8 +160,7 @@ func main() {
 
 	// Create inventory.
 	group, ctx := errgroup.WithContext(context.Background())
-	inventory := device.NewInventory(ctx, group, *gnmiServerAddr,
-		*gnmiOpenConfigServerAddr)
+	inventory := device.NewInventory(ctx, group, *gnmiServerAddr)
 
 	// Populate inventory with manager or from configured devices.
 	if *managerName != "" {
