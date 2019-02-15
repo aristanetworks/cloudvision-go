@@ -10,6 +10,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"runtime"
 	"strings"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
 	"golang.org/x/sync/errgroup"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var (
@@ -31,7 +34,10 @@ var (
 	deviceOptions = aflag.Map{}
 	managerName   = flag.String("manager", "",
 		"Manager type (available managers: "+managerList()+")")
-	managerOptions = aflag.Map{}
+	managerOptions   = aflag.Map{}
+	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
+	deviceIDFile     = flag.String("dumpDeviceIDs", "",
+		"Path to output file used to associate device IDs with device configuration")
 
 	// gNMI server config
 	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
@@ -96,43 +102,95 @@ func addHelp() error {
 
 func validateConfig() {
 	// A device or a device manager must be specified unless we're running with -h
-	if *deviceName == "" && *managerName == "" {
-		glog.Fatal("-device or -manager must be specified.")
+	if *deviceName == "" && *managerName == "" && *deviceConfigFile == "" {
+		glog.Fatal("-device, -manager, or -config must be specified.")
 	}
 
 	if *deviceName != "" && *managerName != "" {
 		glog.Fatal("-device and -manager should not be both specified.")
 	}
+
+	if *deviceConfigFile != "" && *managerName != "" {
+		glog.Fatal("-config and -manager should not be both specified.")
+	}
+
+	if *deviceConfigFile != "" && *deviceName != "" {
+		glog.Fatal("-config and -device should not be both specified.")
+	}
 }
 
-func createDevices() (devices []device.Device, err error) {
-	deviceConfigs := []device.Config{}
+type deviceInfo struct {
+	id     string
+	config device.Config
+	device device.Device
+}
 
+func createDevice(name string, options map[string]string) (*deviceInfo, error) {
+	config := device.Config{
+		Device:  name,
+		Options: options,
+	}
+	d, err := device.Create(name, options)
+	if err != nil {
+		return nil, fmt.Errorf("Failed creating device '%v'", config.Device)
+	}
+	did, err := d.DeviceID()
+	if err != nil {
+		return nil, fmt.Errorf("Error getting device ID: %v", err)
+	}
+	return &deviceInfo{config: config, id: did, device: d}, nil
+}
+
+func createDevices(name, configPath string, options map[string]string) ([]*deviceInfo, error) {
+	var infos []*deviceInfo
 	// Single configured device
-	if *deviceName != "" {
-		deviceConfigs = []device.Config{
-			device.Config{
-				Device:  *deviceName,
-				Options: deviceOptions,
-			},
-		}
-	}
-
-	// Config file
-	if *deviceName == "" {
-		// XXX TODO
-		return nil, errors.New("Config file reading not yet implemented")
-	}
-
-	// Create devices from configs.
-	for _, dc := range deviceConfigs {
-		d, err := device.Create(dc.Device, dc.Options)
+	if name != "" {
+		info, err := createDevice(name, options)
 		if err != nil {
-			return nil, fmt.Errorf("Failed creating device '%v'", dc.Device)
+			return nil, err
 		}
-		devices = append(devices, d)
+		infos = append(infos, info)
 	}
-	return
+	// Config file
+	if configPath != "" {
+		readConfigs, err := device.ReadConfigs(configPath)
+		if err != nil {
+			return nil, fmt.Errorf("Error reading config file: %v", err)
+		}
+		for _, config := range readConfigs {
+			info, err := createDevice(config.Device, config.Options)
+			if err != nil {
+				return nil, err
+			}
+			infos = append(infos, info)
+		}
+	}
+	return infos, nil
+}
+
+func dumpDeviceIDs(devices []*deviceInfo) error {
+	idToConfig := map[string]device.Config{}
+	for _, info := range devices {
+		idToConfig[info.id] = info.config
+	}
+
+	f, err := ioutil.TempFile("", "")
+	if err != nil {
+		return fmt.Errorf("Error in ioutil.TempFile: %v", err)
+	}
+	defer os.Remove(f.Name())
+	enc := yaml.NewEncoder(f)
+
+	err = enc.Encode(&idToConfig)
+	if err != nil {
+		return fmt.Errorf("Error in yaml.Decode: %v", err)
+	}
+	f.Close()
+	err = os.Rename(f.Name(), *deviceIDFile)
+	if err != nil {
+		return fmt.Errorf("Error in os.Rename: %v", err)
+	}
+	return nil
 }
 
 func main() {
@@ -175,21 +233,24 @@ func main() {
 			}
 		}()
 	} else {
-		devices, err := createDevices()
+		devices, err := createDevices(*deviceName, *deviceConfigFile, deviceOptions)
 		if err != nil {
 			glog.Fatal(err)
 		}
-		for _, d := range devices {
-			did, err := d.DeviceID()
+		for _, info := range devices {
+			err := inventory.Add(info.id, info.device)
 			if err != nil {
-				glog.Fatalf("Error getting device ID: %v", err)
+				glog.Fatalf("Error in inventory.Add(): %v", err)
 			}
-			if err = inventory.Add(did, d); err != nil {
+		}
+		if *deviceIDFile != "" {
+			err := dumpDeviceIDs(devices)
+			if err != nil {
 				glog.Fatal(err)
 			}
 		}
 	}
-
+	glog.V(2).Info("Collector is running")
 	// Watch for errors.
 	err := group.Wait()
 	if err == nil {

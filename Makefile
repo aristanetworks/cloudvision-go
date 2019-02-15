@@ -12,6 +12,9 @@ GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
 GOFILES := find . -name '*.go' ! -path './vendor/*' ! -name '*.pb.go'
 GOPKGVERSION := $(shell git rev-parse HEAD)
 GOLDFLAGS := -ldflags="-s -w -X arista/version.Version=$(GOPKGVERSION)"
+# Supply defaults if not provided
+GOOS ?= linux
+GOARCH ?= 386
 
 DEVICE_DIR := ./device
 DEVICE_INTEGRATION_DIR := $(DEVICE_DIR)/integration

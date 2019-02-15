@@ -152,6 +152,7 @@ type Snmp struct {
 
 	address   string
 	community string
+	gsnmp     *gosnmp.GoSNMP
 
 	// gosnmp can't handle parallel gets.
 	lock sync.Mutex
@@ -169,7 +170,7 @@ func (s *Snmp) snmpNetworkInit() error {
 	if s.initialized {
 		return nil
 	}
-	return gosnmp.Default.Connect()
+	return s.gsnmp.Connect()
 }
 
 func (s *Snmp) getByOID(oids []string) (*gosnmp.SnmpPacket, error) {
@@ -271,7 +272,7 @@ func (s *Snmp) Alive() (bool, error) {
 }
 
 func (s *Snmp) stop() {
-	gosnmp.Default.Conn.Close()
+	s.gsnmp.Conn.Close()
 }
 
 // Given an incoming PDU, update the appropriate interface state.
@@ -832,17 +833,23 @@ func (s *Snmp) Run(ctx context.Context) error {
 // limiting requests.
 func NewSNMPProvider(address string, community string,
 	pollInt time.Duration) provider.GNMIProvider {
-	gosnmp.Default.Target = address
-	gosnmp.Default.Community = community
-	gosnmp.Default.Timeout = 2 * pollInt
+	gsnmp := &gosnmp.GoSNMP{
+		Port:               161,
+		Version:            gosnmp.Version2c,
+		Retries:            3,
+		ExponentialTimeout: true,
+		MaxOids:            gosnmp.MaxOids,
+		Target:             address,
+		Community:          community,
+		Timeout:            2 * pollInt,
+	}
 	s := &Snmp{
+		gsnmp:         gsnmp,
 		errc:          make(chan error),
 		interfaceName: make(map[string]bool),
-		address:       address,
-		community:     community,
 		pollInterval:  pollInt,
-		getter:        gosnmp.Default.Get,
-		walker:        gosnmp.Default.BulkWalk,
+		getter:        gsnmp.Get,
+		walker:        gsnmp.BulkWalk,
 	}
 	if err := s.snmpNetworkInit(); err != nil {
 		glog.Errorf("Error connecting to device: %v", err)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/provider"
 	"github.com/aristanetworks/cloudvision-go/version"
+	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
@@ -135,6 +136,7 @@ func (i *inventory) Add(key string, device Device) error {
 		})
 
 	}
+	glog.V(2).Infof("Added device %s", key)
 	return nil
 }
 
@@ -152,6 +154,7 @@ func (i *inventory) Delete(key string) error {
 	dc.cancel()
 	_ = dc.providerGroup.Wait()
 	delete(i.devices, key)
+	glog.V(2).Infof("Deleted device %s", key)
 	return nil
 }
 
