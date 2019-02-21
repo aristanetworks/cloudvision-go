@@ -81,7 +81,7 @@ func updatesFromNetstatLine(fields []string) ([]*gnmi.Update, error) {
 	}, nil
 }
 
-func (d *darwin) updateInterfaces() (*gnmi.SetRequest, error) {
+func (d *darwin) updateInterfaces() ([]*gnmi.SetRequest, error) {
 	ns := exec.Command("netstat", "-ibn")
 	out, err := ns.CombinedOutput()
 	if err != nil {
@@ -112,7 +112,7 @@ func (d *darwin) updateInterfaces() (*gnmi.SetRequest, error) {
 
 	setRequest.Delete = []*gnmi.Path{pgnmi.Path("interfaces")}
 	setRequest.Replace = updates
-	return setRequest, nil
+	return []*gnmi.SetRequest{setRequest}, nil
 }
 
 func (d *darwin) handleErrors(ctx context.Context) error {

@@ -128,19 +128,22 @@ func Update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	}
 }
 
-// A PollFn polls a target device and returns a gNMI SetRequest.
-type PollFn func() (*gnmi.SetRequest, error)
+// A PollFn polls a target device and returns a slice of gNMI SetRequests.
+type PollFn func() ([]*gnmi.SetRequest, error)
 
 func pollOnce(ctx context.Context, client gnmi.GNMIClient,
 	poller PollFn) error {
-	setreq, err := poller()
+	setreqs, err := poller()
 	if err != nil {
 		return err
 	}
-	if setreq != nil {
+	for _, setreq := range setreqs {
 		_, err = client.Set(ctx, setreq)
+		if err != nil {
+			return err
+		}
 	}
-	return err
+	return nil
 }
 
 // PollOnce takes a polling function that performs a complete

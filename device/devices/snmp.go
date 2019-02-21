@@ -95,7 +95,8 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, err
 	}
 
-	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.community, s.pollInterval)
+	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.community,
+		s.pollInterval, false)
 
 	return s, nil
 }

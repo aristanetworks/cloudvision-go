@@ -5,11 +5,8 @@
 package snmp
 
 import (
-	"encoding/hex"
 	"fmt"
 	"reflect"
-	"strconv"
-	"strings"
 	"testing"
 
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
@@ -19,13 +16,18 @@ import (
 	"github.com/soniah/gosnmp"
 )
 
+// These tests exercise the SNMP provider's polling methods. They do
+// not run the provider itself, but rather feed simple test cases to
+// the polling logic and make sure the resulting SetRequests are
+// exactly as expected.
+
 // pollTestCase describes a test of an SNMP polling routine: the routine
 // to test, the mocked SNMP responses for the poller, and the gNMI
 // SetRequest we expect the poller to return.
 type pollTestCase struct {
 	name      string
-	pollFn    func() (*gnmi.SetRequest, error)
-	responses map[string][]gosnmp.SnmpPDU //OID -> PDUs
+	pollFn    func() ([]*gnmi.SetRequest, error)
+	responses map[string][]*gosnmp.SnmpPDU //OID -> PDUs
 	expected  *gnmi.SetRequest
 }
 
@@ -33,14 +35,14 @@ type pollTestCase struct {
 // mocked SNMP responses and an expected device ID.
 type deviceIDTestCase struct {
 	name      string
-	responses map[string][]gosnmp.SnmpPDU
+	responses map[string][]*gosnmp.SnmpPDU
 	expected  string
 }
 
 // mockget and mockwalk are the SNMP get and walk routines used for
 // injecting mocked SNMP data into the polling routines.
 func mockget(oids []string,
-	responses map[string][]gosnmp.SnmpPDU) (*gosnmp.SnmpPacket, error) {
+	responses map[string][]*gosnmp.SnmpPDU) (*gosnmp.SnmpPacket, error) {
 	if len(oids) != 1 {
 		return nil, fmt.Errorf("Expected one OID, got %d", len(oids))
 	}
@@ -49,19 +51,20 @@ func mockget(oids []string,
 	if !ok {
 		return nil, fmt.Errorf("mockget saw unexpected OID %s", oid)
 	}
-	pkt := &gosnmp.SnmpPacket{
-		Variables: r,
+	pkt := &gosnmp.SnmpPacket{}
+	for _, pdu := range r {
+		pkt.Variables = append(pkt.Variables, *pdu)
 	}
 	return pkt, nil
 }
 func mockwalk(oid string, walker gosnmp.WalkFunc,
-	responses map[string][]gosnmp.SnmpPDU) error {
+	responses map[string][]*gosnmp.SnmpPDU) error {
 	pdus, ok := responses[oid]
 	if !ok {
 		return fmt.Errorf("mockwalk saw unexpected OID %s", oid)
 	}
 	for _, p := range pdus {
-		if err := walker(p); err != nil {
+		if err := walker(*p); err != nil {
 			return err
 		}
 	}
@@ -79,10 +82,14 @@ func mockPoll(t *testing.T, s *Snmp, tc pollTestCase) {
 		return mockwalk(oid, walker, tc.responses)
 	}
 
-	sr, err := tc.pollFn()
+	srs, err := tc.pollFn()
 	if err != nil {
 		t.Fatalf("Error in pollFn: %v", err)
 	}
+	if len(srs) != 1 {
+		t.Fatalf("Too many SetRequests")
+	}
+	sr := srs[0]
 	if !reflect.DeepEqual(sr, tc.expected) {
 		for i, d := range sr.Delete {
 			if i >= len(tc.expected.Delete) {
@@ -127,22 +134,6 @@ func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
 		t.Fatalf("Device IDs not equal. Expected %v, got %v", tc.expected, did)
 	}
 }
-
-// PDU creation wrapper.
-func pdu(name string, t gosnmp.Asn1BER, val interface{}) gosnmp.SnmpPDU {
-	return gosnmp.SnmpPDU{
-		Name:  name,
-		Type:  t,
-		Value: val,
-	}
-}
-
-// SNMP PDU types of interest.
-const (
-	octstr  = gosnmp.OctetString
-	counter = gosnmp.Counter32
-	integer = gosnmp.Integer
-)
 
 var basicEntPhysicalTableResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.2.1 = STRING: DCS-7504 Chassis
@@ -487,63 +478,6 @@ var entPhysSerialNumDefaultResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.100002152 = STRING: JPE15253614
 `
 
-func parsePDU(line string) (oid, pduTypeString, value string) {
-	t := strings.Split(line, " = ")
-	if len(t) < 2 {
-		return "", "", ""
-	}
-	oid = t[0]
-	t = strings.Split(t[1], ": ")
-	pduTypeString = t[0]
-	if len(t) >= 2 {
-		// Handle case where value is of format "chassis(3)".
-		s := strings.Split(strings.Split(t[1], ")")[0], "(")
-		value = s[0]
-		if len(s) > 1 {
-			value = s[1]
-		}
-	} else {
-		pduTypeString = strings.Split(t[0], ":")[0]
-	}
-	return oid, pduTypeString, value
-}
-
-// Convert a set of formatted SNMP responses (as returned by
-// snmpwalk -v3 -O ne <target> <oid>) to PDUs.
-func pdusFromString(s string) []gosnmp.SnmpPDU {
-	pdus := make([]gosnmp.SnmpPDU, 0)
-	for _, line := range strings.Split(s, "\n") {
-		oid, pduTypeString, val := parsePDU(line)
-		if oid == "" {
-			continue
-		}
-
-		var pduType gosnmp.Asn1BER
-		var value interface{}
-		switch pduTypeString {
-		case "INTEGER":
-			pduType = integer
-			v, _ := strconv.ParseInt(val, 10, 32)
-			value = int(v)
-		case "STRING":
-			pduType = octstr
-			value = []byte(val)
-		case "Hex-STRING":
-			pduType = octstr
-			s := strings.Replace(val, " ", "", -1)
-			value, _ = hex.DecodeString(strings.Replace(s, " ", "", -1))
-		case "Counter32":
-			pduType = counter
-			v, _ := strconv.ParseUint(val, 10, 32)
-			value = uint(v)
-		default:
-			panic("Shouldn't get here")
-		}
-		pdus = append(pdus, pdu(oid, pduType, value))
-	}
-	return pdus
-}
-
 func TestSnmp(t *testing.T) {
 	s := &Snmp{
 		errc:          make(chan error),
@@ -553,8 +487,8 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateSystemStateBasic",
 			pollFn: s.updateSystemState,
-			responses: map[string][]gosnmp.SnmpPDU{
-				snmpSysName: []gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysName: []*gosnmp.SnmpPDU{
 					pdu(snmpSysName, octstr, []byte("device123.sjc.aristanetworks.com")),
 				},
 			},
@@ -569,7 +503,7 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updatePlatformBasic",
 			pollFn: s.updatePlatform,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpEntPhysicalTable: pdusFromString(basicEntPhysicalTableResponse),
 			},
 			expected: &gnmi.SetRequest{
@@ -657,7 +591,7 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateInterfacesBasic",
 			pollFn: s.updateInterfaces,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpIfTable:  pdusFromString(basicIfTableResponse),
 				snmpIfXTable: pdusFromString(basicIfXTableResponse),
 			},
@@ -716,7 +650,7 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateLldpBasic",
 			pollFn: s.updateLldp,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpLldpLocalSystemData: pdusFromString(basicLldpLocalSystemDataResponse),
 				snmpLldpRemTable:        pdusFromString(basicLldpRemTableResponse),
 				snmpLldpStatistics:      pdusFromString(basicLldpStatisticsResponse),
@@ -803,10 +737,10 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateLldpOmitInactiveIntfs",
 			pollFn: s.updateLldp,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpLldpLocalSystemData: pdusFromString(inactiveIntfLldpLocalSystemDataResponse),
-				snmpLldpRemTable:        []gosnmp.SnmpPDU{},
-				snmpLldpStatistics:      []gosnmp.SnmpPDU{},
+				snmpLldpRemTable:        []*gosnmp.SnmpPDU{},
+				snmpLldpStatistics:      []*gosnmp.SnmpPDU{},
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
@@ -836,10 +770,10 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateLldpStringChassisID",
 			pollFn: s.updateLldp,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpLldpLocalSystemData: pdusFromString(lldpLocalSystemDataResponseStringID),
-				snmpLldpRemTable:        []gosnmp.SnmpPDU{},
-				snmpLldpStatistics:      []gosnmp.SnmpPDU{},
+				snmpLldpRemTable:        []*gosnmp.SnmpPDU{},
+				snmpLldpStatistics:      []*gosnmp.SnmpPDU{},
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
@@ -851,8 +785,8 @@ func TestSnmp(t *testing.T) {
 		{
 			name:   "updateSystemStateHostnameOnly",
 			pollFn: s.updateSystemState,
-			responses: map[string][]gosnmp.SnmpPDU{
-				snmpSysName: []gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysName: []*gosnmp.SnmpPDU{
 					pdu(snmpSysName, octstr, []byte("deviceABC")),
 				},
 			},
@@ -879,9 +813,9 @@ func TestSnmpLldpV2(t *testing.T) {
 		{
 			name:   "lldpV2IntfSetup",
 			pollFn: s.updateInterfaces,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpIfTable:  pdusFromString(basicLldpV2IntfSetupResponse),
-				snmpIfXTable: []gosnmp.SnmpPDU{},
+				snmpIfXTable: []*gosnmp.SnmpPDU{},
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
@@ -901,7 +835,7 @@ func TestSnmpLldpV2(t *testing.T) {
 		{
 			name:   "updateLldpV2Basic",
 			pollFn: s.updateLldp,
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpLldpV2LocalSystemData: pdusFromString(basicLldpV2LocalSystemDataResponse),
 				snmpLldpV2RemTable:        pdusFromString(basicLldpV2RemTableResponse),
 				snmpLldpV2Statistics:      pdusFromString(basicLldpV2StatisticsResponse),
@@ -986,7 +920,7 @@ func TestDeviceID(t *testing.T) {
 	for _, tc := range []deviceIDTestCase{
 		{
 			name: "deviceIDArista",
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpEntPhysicalClass:     pdusFromString(entPhysClassAristaResponse),
 				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumAristaResponse),
 			},
@@ -994,7 +928,7 @@ func TestDeviceID(t *testing.T) {
 		},
 		{
 			name: "deviceIDN9K",
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpEntPhysicalClass:     pdusFromString(entPhysClassN9KResponse),
 				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumN9KResponse),
 			},
@@ -1002,7 +936,7 @@ func TestDeviceID(t *testing.T) {
 		},
 		{
 			name: "noChassisFound",
-			responses: map[string][]gosnmp.SnmpPDU{
+			responses: map[string][]*gosnmp.SnmpPDU{
 				snmpEntPhysicalClass:     pdusFromString(entPhysClassDefaultResponse),
 				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumDefaultResponse),
 			},

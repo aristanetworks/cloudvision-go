@@ -113,19 +113,21 @@ const npoll uint64 = 3
 
 var testIfName = "intf123"
 
-func expectedSetRequest(inOctets uint64) *gnmi.SetRequest {
-	return &gnmi.SetRequest{
-		Delete: []*gnmi.Path{
-			Path("interfaces", "interface"),
-		},
-		Replace: []*gnmi.Update{
-			Update(IntfPath(testIfName, "name"), Strval(testIfName)),
-			Update(IntfConfigPath(testIfName, "name"), Strval(testIfName)),
-			Update(IntfStatePath(testIfName, "name"), Strval(testIfName)),
-			Update(IntfStateCountersPath(testIfName, "in-octets"),
-				Uintval(inOctets)),
-			Update(IntfStateCountersPath(testIfName, "in-multicast-pkts"),
-				Uintval(inMcastPkts)),
+func expectedSetRequest(inOctets uint64) []*gnmi.SetRequest {
+	return []*gnmi.SetRequest{
+		&gnmi.SetRequest{
+			Delete: []*gnmi.Path{
+				Path("interfaces", "interface"),
+			},
+			Replace: []*gnmi.Update{
+				Update(IntfPath(testIfName, "name"), Strval(testIfName)),
+				Update(IntfConfigPath(testIfName, "name"), Strval(testIfName)),
+				Update(IntfStatePath(testIfName, "name"), Strval(testIfName)),
+				Update(IntfStateCountersPath(testIfName, "in-octets"),
+					Uintval(inOctets)),
+				Update(IntfStateCountersPath(testIfName, "in-multicast-pkts"),
+					Uintval(inMcastPkts)),
+			},
 		},
 	}
 }
@@ -133,7 +135,7 @@ func expectedSetRequest(inOctets uint64) *gnmi.SetRequest {
 // Toy poller that just increments the in-octets interface counter
 // and leaves the in-multicast-pkts counter. It will poll three times
 // and then give up.
-func testPoller() (*gnmi.SetRequest, error) {
+func testPoller() ([]*gnmi.SetRequest, error) {
 	inOctets++
 	if inOctets > npoll {
 		return nil, nil
@@ -158,7 +160,7 @@ func TestPollForever(t *testing.T) {
 
 	wg.Add(1)
 	// Run poller 3 times.
-	go PollForever(ctx, client, 100*time.Millisecond, testPoller, errc)
+	go PollForever(ctx, client, time.Millisecond, testPoller, errc)
 
 	wg.Wait() // Wait for the poller to poll 3x.
 
@@ -167,7 +169,10 @@ func TestPollForever(t *testing.T) {
 	for i = 1; i <= npoll; i++ {
 		got := <-client.Out
 		exp := expectedSetRequest(i)
-		if !reflect.DeepEqual(got, exp) {
+		if len(exp) != 1 {
+			t.Fatalf("Too many SetRequests")
+		}
+		if !reflect.DeepEqual(got, exp[0]) {
 			t.Fatalf("SetRequests not equal. \nExpected %v\nGot: %v", exp, got)
 		}
 
