@@ -52,37 +52,6 @@ func Unmarshal(val *gnmi.TypedValue) interface{} {
 	}
 }
 
-// TestClient is a pass-through gNMI client for testing.
-type TestClient struct {
-	Out chan *gnmi.SetRequest
-}
-
-// Capabilities is not implemented.
-func (g *TestClient) Capabilities(ctx context.Context, in *gnmi.CapabilityRequest,
-	opts ...grpc.CallOption) (*gnmi.CapabilityResponse, error) {
-	panic("not implemented")
-}
-
-// Get is not implemented.
-func (g *TestClient) Get(ctx context.Context, in *gnmi.GetRequest,
-	opts ...grpc.CallOption) (*gnmi.GetResponse, error) {
-	panic("not implemented")
-}
-
-// Set pipes the specified SetRequest out to the TestClient's
-// SetRequest channel.
-func (g *TestClient) Set(ctx context.Context, in *gnmi.SetRequest,
-	opts ...grpc.CallOption) (*gnmi.SetResponse, error) {
-	g.Out <- in
-	return nil, nil
-}
-
-// Subscribe is not implemented.
-func (g *TestClient) Subscribe(ctx context.Context,
-	opts ...grpc.CallOption) (gnmi.GNMI_SubscribeClient, error) {
-	panic("not implemented")
-}
-
 // Path returns a gnmi.Path given a set of elements.
 func Path(element ...string) *gnmi.Path {
 	p, err := agnmi.ParseGNMIElements(element)
@@ -266,4 +235,38 @@ func PlatformComponentConfigPath(name, leafName string) *gnmi.Path {
 func PlatformComponentStatePath(name, leafName string) *gnmi.Path {
 	return Path("components",
 		ListWithKey("component", "name", name), "state", leafName)
+}
+
+type setRequestProcessor = func(ctx context.Context,
+	req *gnmi.SetRequest) (*gnmi.SetResponse, error)
+
+// simpleGNMIClient implements gnmi.GNMIClient interface minimally with a custom
+// processor function for incoming SetRequests.
+type simpleGNMIClient struct {
+	processor setRequestProcessor
+}
+
+func (g *simpleGNMIClient) Capabilities(ctx context.Context, in *gnmi.CapabilityRequest,
+	opts ...grpc.CallOption) (*gnmi.CapabilityResponse, error) {
+	panic("not implemented")
+}
+
+func (g *simpleGNMIClient) Get(ctx context.Context, in *gnmi.GetRequest,
+	opts ...grpc.CallOption) (*gnmi.GetResponse, error) {
+	panic("not implemented")
+}
+
+func (g *simpleGNMIClient) Set(ctx context.Context, in *gnmi.SetRequest,
+	opts ...grpc.CallOption) (*gnmi.SetResponse, error) {
+	return g.processor(ctx, in)
+}
+
+func (g *simpleGNMIClient) Subscribe(ctx context.Context,
+	opts ...grpc.CallOption) (gnmi.GNMI_SubscribeClient, error) {
+	panic("not implemented")
+}
+
+// NewSimpleGNMIClient returns a simpleGNMIClient.
+func NewSimpleGNMIClient(processor setRequestProcessor) gnmi.GNMIClient {
+	return &simpleGNMIClient{processor: processor}
 }

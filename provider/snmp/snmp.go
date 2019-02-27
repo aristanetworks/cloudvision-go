@@ -150,10 +150,8 @@ type Snmp struct {
 
 	lldpLocChassisIDSubtype string
 
-	address   string
-	community string
-	gsnmp     *gosnmp.GoSNMP // gosnmp object
-	mock      bool           // if true, don't do any network init
+	gsnmp *gosnmp.GoSNMP // gosnmp object
+	mock  bool           // if true, don't do any network init
 
 	// gosnmp can't handle parallel gets.
 	lock sync.Mutex

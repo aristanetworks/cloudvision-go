@@ -85,12 +85,7 @@ func TestNewMetadata(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			md, ok := metadata.FromOutgoingContext(tc.ctx)
-			if !ok {
-				t.Fatalf("Outgoing context doesn't have any metadata")
-			}
-			ctx := metadata.NewIncomingContext(tc.ctx, md)
-			data, err := NewMetadata(ctx)
+			data, err := NewMetadataFromOutgoing(tc.ctx)
 			if err != nil && !tc.shouldFail {
 				t.Fatal(err)
 			}

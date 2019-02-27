@@ -33,15 +33,31 @@ const (
 	collectorVersionMetadata = "collectorVersion"
 )
 
-// NewMetadata returns a metadata from an incoming context.
-func NewMetadata(ctx context.Context) (Metadata, error) {
+// NewMetadataFromOutgoing returns a metadata from an outgoing context.
+func NewMetadataFromOutgoing(ctx context.Context) (Metadata, error) {
 	ret := Metadata{}
-	var err error
+
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		return ret, errors.Errorf("Unable to get metadata from outgoing context")
+	}
+	return newMetadata(md)
+}
+
+// NewMetadataFromIncoming returns a metadata from an incoming context.
+func NewMetadataFromIncoming(ctx context.Context) (Metadata, error) {
+	ret := Metadata{}
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return ret, errors.Errorf("Unable to get metadata from context")
+		return ret, errors.Errorf("Unable to get metadata from incoming context")
 	}
+	return newMetadata(md)
+}
 
+func newMetadata(md metadata.MD) (Metadata, error) {
+	ret := Metadata{}
+	var err error
 	deviceIDVal := md.Get(deviceIDMetadata)
 	if len(deviceIDVal) != 1 {
 		return ret, errors.Errorf("Context should have device ID metadata")

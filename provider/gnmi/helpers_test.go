@@ -151,10 +151,13 @@ func TestPollForever(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	client := &TestClient{
-		Out: make(chan *gnmi.SetRequest, 3),
+	out := make(chan *gnmi.SetRequest, 3)
+	setFunc := func(ctx context.Context, in *gnmi.SetRequest) (*gnmi.SetResponse, error) {
+		out <- in
+		return nil, nil
 	}
+
+	client := NewSimpleGNMIClient(setFunc)
 
 	errc := make(chan error)
 
@@ -167,7 +170,7 @@ func TestPollForever(t *testing.T) {
 	var i uint64
 
 	for i = 1; i <= npoll; i++ {
-		got := <-client.Out
+		got := <-out
 		exp := expectedSetRequest(i)
 		if len(exp) != 1 {
 			t.Fatalf("Too many SetRequests")

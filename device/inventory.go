@@ -6,13 +6,12 @@ package device
 
 import (
 	"context"
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
 	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/aristanetworks/glog"
-	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -41,17 +40,11 @@ type deviceConn struct {
 
 // inventory implements the Inventory interface.
 type inventory struct {
-	ctx            context.Context
-	group          *errgroup.Group
-	gnmiServerAddr string
-	devices        map[string]*deviceConn
-}
-
-func startGNMIClient(serverAddr string) (gnmi.GNMIClient, error) {
-	if serverAddr == "" {
-		return nil, fmt.Errorf("Invalid gNMI server address '%v'", serverAddr)
-	}
-	return agnmi.Dial(&agnmi.Config{Addr: serverAddr})
+	ctx           context.Context
+	group         *errgroup.Group
+	rawGNMIClient gnmi.GNMIClient
+	devices       map[string]*deviceConn
+	lock          sync.Mutex
 }
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
@@ -87,6 +80,8 @@ func (dc *deviceConn) handleErrors() error {
 // Add adds a device to the inventory, opens up any gNMI connections
 // required by the device's providers, and then starts its providers.
 func (i *inventory) Add(key string, device Device) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	if _, ok := i.devices[key]; ok {
 		return nil
 	}
@@ -102,11 +97,7 @@ func (i *inventory) Add(key string, device Device) error {
 	if err != nil {
 		return err
 	}
-
-	dc.rawGNMIClient, err = startGNMIClient(i.gnmiServerAddr)
-	if err != nil {
-		return err
-	}
+	dc.rawGNMIClient = i.rawGNMIClient
 	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
 		key, false)
 
@@ -140,6 +131,8 @@ func (i *inventory) Add(key string, device Device) error {
 }
 
 func (i *inventory) Delete(key string) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	dc, ok := i.devices[key]
 	if !ok {
 		return nil
@@ -158,6 +151,8 @@ func (i *inventory) Delete(key string) error {
 }
 
 func (i *inventory) Get(key string) (Device, bool) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	d, ok := i.devices[key]
 	if !ok {
 		return nil, ok
@@ -167,11 +162,12 @@ func (i *inventory) Get(key string) (Device, bool) {
 
 // NewInventory creates an Inventory.
 func NewInventory(ctx context.Context, group *errgroup.Group,
-	gnmiServerAddr string) Inventory {
-	return &inventory{
-		ctx:            ctx,
-		devices:        make(map[string]*deviceConn),
-		group:          group,
-		gnmiServerAddr: gnmiServerAddr,
+	gnmiClient gnmi.GNMIClient) Inventory {
+	inv := &inventory{
+		ctx:           ctx,
+		devices:       make(map[string]*deviceConn),
+		group:         group,
+		rawGNMIClient: gnmiClient,
 	}
+	return inv
 }

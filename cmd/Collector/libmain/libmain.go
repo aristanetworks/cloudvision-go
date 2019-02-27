@@ -10,19 +10,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices"  // import all registered devices
 	_ "github.com/aristanetworks/cloudvision-go/device/managers" // import all registered managers
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
+	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"golang.org/x/sync/errgroup"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // Main is the "real" main.
@@ -42,10 +42,20 @@ func Main() {
 		deviceIDFile     = flag.String("dumpDeviceIDs", "",
 			"Path to output file used to associate device IDs with device configuration")
 
+		// MockCollector config
+		mock          = flag.Bool("mock", false, "Run Collector in mock mode")
+		mockCheckPath = aflag.Map{}
+		mockTimeout   = flag.Duration("mockTimeout", 60*time.Second,
+			"Timeout for checking notifications in mock mode")
+
 		// gNMI server config
 		gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
 			"Address of gNMI server")
 	)
+	flag.Var(mockCheckPath, "mockCheckPath",
+		"<path>=<feature> option for mock mode, where <path> is a path that,"+
+			" if present in the Collector output, signifies that the target device supports "+
+			"the feature described in <feature>")
 	flag.Var(deviceOptions, "deviceoption", "<key>=<value> option for the Device. "+
 		"May be repeated to set multiple Device options.")
 	flag.Var(managerOptions, "manageroption", "<key>=<value> option for the Manager. "+
@@ -72,11 +82,22 @@ func Main() {
 
 	// We're running for real at this point. Check that the config
 	// is sane.
-	validateConfig(*managerName, *deviceName, *deviceConfigFile)
+	validateConfig(*managerName, *deviceName, *deviceConfigFile, *mock, mockCheckPath)
 
 	// Create inventory.
 	group, ctx := errgroup.WithContext(context.Background())
-	inventory := device.NewInventory(ctx, group, *gnmiServerAddr)
+	var inventory device.Inventory
+	mockInfo := newMockInfo(mockCheckPath)
+	if *mock {
+		inventory = device.NewInventory(ctx, group,
+			pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
+	} else {
+		gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
+		if err != nil {
+			glog.Fatal(err)
+		}
+		inventory = device.NewInventory(ctx, group, gnmiClient)
+	}
 
 	// Populate inventory with manager or from configured devices.
 	if *managerName != "" {
@@ -88,30 +109,42 @@ func Main() {
 			return manager.Manage(inventory)
 		})
 	} else {
-		devices, err := createDevices(*deviceName, *deviceConfigFile, deviceOptions)
+		devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 		if err != nil {
 			glog.Fatal(err)
 		}
+		mockInfo.initDevices(devices)
 		for _, info := range devices {
-			err := inventory.Add(info.id, info.device)
+			err := inventory.Add(info.ID, info.Device)
 			if err != nil {
 				glog.Fatalf("Error in inventory.Add(): %v", err)
 			}
 		}
 		if *deviceIDFile != "" {
-			err := dumpDeviceIDs(devices, *deviceIDFile)
+			err := device.DumpDeviceIDs(devices, *deviceIDFile)
 			if err != nil {
 				glog.Fatal(err)
 			}
 		}
 	}
 	glog.V(2).Info("Collector is running")
-	// Watch for errors.
-	err := group.Wait()
-	if err == nil {
-		err = errors.New("device routines returned unexpectedly")
+	errChan := make(chan error)
+	go func() {
+		// Watch for errors.
+		err := group.Wait()
+		if err == nil {
+			err = errors.New("device routines returned unexpectedly")
+		}
+		errChan <- err
+	}()
+	if *mock {
+		err := mockInfo.waitForUpdates(errChan, *mockTimeout)
+		if err != nil {
+			glog.Fatal(err)
+		}
+	} else {
+		glog.Fatal(<-errChan)
 	}
-	glog.Fatal(err)
 }
 
 // Return a formatted list of available devices.
@@ -162,7 +195,8 @@ func addHelp(managerName, deviceName string) error {
 	return nil
 }
 
-func validateConfig(managerName, deviceName, deviceConfigFile string) {
+func validateConfig(managerName, deviceName, deviceConfigFile string,
+	mock bool, mockCheckPath map[string]string) {
 	// A device or a device manager must be specified unless we're running with -h
 	if deviceName == "" && managerName == "" && deviceConfigFile == "" {
 		glog.Fatal("-device, -manager, or -config must be specified.")
@@ -179,78 +213,12 @@ func validateConfig(managerName, deviceName, deviceConfigFile string) {
 	if deviceConfigFile != "" && deviceName != "" {
 		glog.Fatal("-config and -device should not be both specified.")
 	}
-}
 
-type deviceInfo struct {
-	id     string
-	config device.Config
-	device device.Device
-}
-
-func createDevice(name string, options map[string]string) (*deviceInfo, error) {
-	config := device.Config{
-		Device:  name,
-		Options: options,
-	}
-	d, err := device.Create(name, options)
-	if err != nil {
-		return nil, fmt.Errorf("Failed creating device '%v': %v", config.Device, err)
-	}
-	did, err := d.DeviceID()
-	if err != nil {
-		return nil, fmt.Errorf("Error getting device ID: %v", err)
-	}
-	return &deviceInfo{config: config, id: did, device: d}, nil
-}
-
-func createDevices(name, configPath string, options map[string]string) ([]*deviceInfo, error) {
-	var infos []*deviceInfo
-	// Single configured device
-	if name != "" {
-		info, err := createDevice(name, options)
-		if err != nil {
-			return nil, err
-		}
-		infos = append(infos, info)
-	}
-	// Config file
-	if configPath != "" {
-		readConfigs, err := device.ReadConfigs(configPath)
-		if err != nil {
-			return nil, fmt.Errorf("Error reading config file: %v", err)
-		}
-		for _, config := range readConfigs {
-			info, err := createDevice(config.Device, config.Options)
-			if err != nil {
-				return nil, err
-			}
-			infos = append(infos, info)
-		}
-	}
-	return infos, nil
-}
-
-func dumpDeviceIDs(devices []*deviceInfo, deviceIDFile string) error {
-	idToConfig := map[string]device.Config{}
-	for _, info := range devices {
-		idToConfig[info.id] = info.config
+	if mock && managerName != "" {
+		glog.Fatal("-manager should not be specified in mock mode")
 	}
 
-	f, err := ioutil.TempFile("", "")
-	if err != nil {
-		return fmt.Errorf("Error in ioutil.TempFile: %v", err)
+	if !mock && len(mockCheckPath) > 0 {
+		glog.Fatal("-mockCheckPath is only valid in mock mode")
 	}
-	defer os.Remove(f.Name())
-	enc := yaml.NewEncoder(f)
-
-	err = enc.Encode(&idToConfig)
-	if err != nil {
-		return fmt.Errorf("Error in yaml.Decode: %v", err)
-	}
-	f.Close()
-	err = os.Rename(f.Name(), deviceIDFile)
-	if err != nil {
-		return fmt.Errorf("Error in os.Rename: %v", err)
-	}
-	return nil
 }

@@ -7,17 +7,55 @@ package device
 import (
 	"reflect"
 	"testing"
+
+	"github.com/aristanetworks/cloudvision-go/provider"
 )
 
-var testDeviceInfo = deviceInfo{
+var testDeviceOptions = map[string]Option{
+	"a": Option{
+		Description: "option a is a required option",
+		Default:     "",
+		Required:    true,
+	},
+	"b": Option{
+		Description: "option b is not required",
+		Default:     "stuff",
+		Required:    false,
+	},
+}
+
+var testDeviceInfo = registrationInfo{
 	name:    "test",
 	creator: NewTestDevice,
-	options: TestDeviceOptions,
+	options: testDeviceOptions,
+}
+
+type testDevice struct{}
+
+func (td testDevice) Alive() (bool, error) {
+	return true, nil
+}
+
+func (td testDevice) DeviceID() (string, error) {
+	return "0a0a.0a0a.0a0a", nil
+}
+
+func (td testDevice) Providers() ([]provider.Provider, error) {
+	return nil, nil
+}
+
+func (td testDevice) Type() Type {
+	return Target
+}
+
+// NewTestDevice returns a dummy device for testing.
+func NewTestDevice(map[string]string) (Device, error) {
+	return testDevice{}, nil
 }
 
 type optionsTestCase struct {
 	description    string
-	devInfo        deviceInfo
+	devInfo        registrationInfo
 	config         map[string]string
 	expectedConfig map[string]string
 	shouldPass     bool
