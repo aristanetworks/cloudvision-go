@@ -28,10 +28,12 @@ func TestNewMetadata(t *testing.T) {
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
 				deviceIDMetadata, "id",
+				typeCheckMetadata, "true",
 				openConfigMetadata, "true"),
 			md: Metadata{
 				DeviceID:   "id",
 				OpenConfig: true,
+				TypeCheck:  true,
 			},
 		},
 		{
@@ -39,6 +41,7 @@ func TestNewMetadata(t *testing.T) {
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
 				deviceIDMetadata, "id",
+				typeCheckMetadata, "true",
 				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
@@ -47,12 +50,14 @@ func TestNewMetadata(t *testing.T) {
 				OpenConfig: true,
 				DeviceType: &deviceType,
 				Alive:      &boolTrue,
+				TypeCheck:  true,
 			},
 		},
 		{
 			desc: "missing device ID",
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
+				typeCheckMetadata, "true",
 				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
@@ -62,7 +67,18 @@ func TestNewMetadata(t *testing.T) {
 			desc: "missing openConfig",
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
+				typeCheckMetadata, "true",
 				deviceIDMetadata, "id",
+				deviceTypeMetadata, deviceType,
+				deviceLivenessMetadata, "true"),
+			shouldFail: true,
+		},
+		{
+			desc: "missing typeCheck",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				deviceIDMetadata, "id",
+				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
 			shouldFail: true,

@@ -6,7 +6,10 @@ package device
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/aristanetworks/cloudvision-go/provider"
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -19,16 +22,14 @@ type gNMIClientWrapper struct {
 	client     gnmi.GNMIClient
 	deviceID   string
 	openConfig bool
+	typeCheck  bool
 }
 
 func (g *gNMIClientWrapper) updatedContext(ctx context.Context) context.Context {
-	oc := "false"
-	if g.openConfig {
-		oc = "true"
-	}
 	return metadata.AppendToOutgoingContext(ctx,
 		deviceIDMetadata, g.deviceID,
-		openConfigMetadata, oc)
+		openConfigMetadata, strconv.FormatBool(g.openConfig),
+		typeCheckMetadata, strconv.FormatBool(g.typeCheck))
 }
 
 func (g *gNMIClientWrapper) Capabilities(ctx context.Context, in *gnmi.CapabilityRequest,
@@ -51,11 +52,18 @@ func (g *gNMIClientWrapper) Subscribe(ctx context.Context,
 	return g.client.Subscribe(g.updatedContext(ctx), opts...)
 }
 
-func newGNMIClientWrapper(client gnmi.GNMIClient, deviceID string,
-	openConfig bool) *gNMIClientWrapper {
-	return &gNMIClientWrapper{
+func newGNMIClientWrapper(client gnmi.GNMIClient, provider provider.Provider,
+	deviceID string, openconfig bool) *gNMIClientWrapper {
+	wrapper := &gNMIClientWrapper{
 		client:     client,
 		deviceID:   deviceID,
-		openConfig: openConfig,
+		openConfig: openconfig,
+		typeCheck:  openconfig,
 	}
+	// This special case only is for Gnmi provider which doesn't
+	// want type checking but still fits openconfig schema.
+	if _, ok := provider.(*pgnmi.Gnmi); ok {
+		wrapper.typeCheck = false
+	}
+	return wrapper
 }

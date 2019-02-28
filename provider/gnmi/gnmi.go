@@ -16,7 +16,9 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
-type gnmiProvider struct {
+// A Gnmi connects to a gNMI server at a target device
+// and emits updates as gNMI SetRequests.
+type Gnmi struct {
 	cfg         *agnmi.Config
 	paths       []string
 	inClient    gnmi.GNMIClient
@@ -24,16 +26,19 @@ type gnmiProvider struct {
 	initialized bool
 }
 
-func (p *gnmiProvider) InitGNMI(client gnmi.GNMIClient) {
+// InitGNMI initializes the provider with a gNMI client.
+func (p *Gnmi) InitGNMI(client gnmi.GNMIClient) {
 	p.outClient = client
 	p.initialized = true
 }
 
-func (p *gnmiProvider) OpenConfig() bool {
-	return false
+// OpenConfig indicates whether the provider wants OpenConfig type-checking.
+func (p *Gnmi) OpenConfig() bool {
+	return true
 }
 
-func (p *gnmiProvider) Run(ctx context.Context) error {
+// Run kicks off the provider.
+func (p *Gnmi) Run(ctx context.Context) error {
 	if !p.initialized {
 		return fmt.Errorf("provider is uninitialized")
 	}
@@ -73,7 +78,7 @@ func (p *gnmiProvider) Run(ctx context.Context) error {
 // NewGNMIProvider returns a read-only gNMI provider.
 func NewGNMIProvider(client gnmi.GNMIClient, cfg *agnmi.Config,
 	paths []string) provider.GNMIProvider {
-	return &gnmiProvider{
+	return &Gnmi{
 		inClient: client,
 		cfg:      cfg,
 		paths:    paths,

@@ -14,7 +14,10 @@ import (
 
 // Metadata represents all grpc metadata about a device.
 type Metadata struct {
-	DeviceID         string
+	DeviceID string
+	// TypeCheck indicates whether the gNMI server should perform OpenConfig type-checking.
+	TypeCheck bool
+	// OpenConfig indicates whether transmitted gNMI data is OpenConfig-modeled.
 	OpenConfig       bool
 	DeviceType       *string
 	Alive            *bool
@@ -24,6 +27,7 @@ type Metadata struct {
 const (
 	deviceIDMetadata         = "deviceID"
 	openConfigMetadata       = "openConfig"
+	typeCheckMetadata        = "typeCheck"
 	deviceTypeMetadata       = "deviceType"
 	deviceLivenessMetadata   = "deviceLiveness"
 	collectorVersionMetadata = "collectorVersion"
@@ -51,6 +55,15 @@ func NewMetadata(ctx context.Context) (Metadata, error) {
 	ret.OpenConfig, err = strconv.ParseBool(openConfigVal[0])
 	if err != nil {
 		return ret, errors.Errorf("Error parsing openConfig value: %v", err)
+	}
+
+	typeCheckVal := md.Get(typeCheckMetadata)
+	if len(typeCheckVal) != 1 {
+		return ret, errors.Errorf("Context should have typeCheck metadata")
+	}
+	ret.TypeCheck, err = strconv.ParseBool(typeCheckVal[0])
+	if err != nil {
+		return ret, errors.Errorf("Error parsing typeCheck value: %v", err)
 	}
 
 	deviceTypeVal := md.Get(deviceTypeMetadata)

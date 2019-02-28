@@ -107,7 +107,7 @@ func (i *inventory) Add(key string, device Device) error {
 	if err != nil {
 		return err
 	}
-	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient,
+	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
 		key, false)
 
 	for _, p := range providers {
@@ -116,7 +116,7 @@ func (i *inventory) Add(key string, device Device) error {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
 
-		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, key, pt.OpenConfig()))
+		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, key, pt.OpenConfig()))
 
 		// Watch for provider errors in the provider errgroup and
 		// propagate them up to the inventory errgroup.
