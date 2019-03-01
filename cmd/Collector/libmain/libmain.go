@@ -197,7 +197,7 @@ func createDevice(name string, options map[string]string) (*deviceInfo, error) {
 	}
 	d, err := device.Create(name, options)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating device '%v'", config.Device)
+		return nil, fmt.Errorf("Failed creating device '%v': %v", config.Device, err)
 	}
 	did, err := d.DeviceID()
 	if err != nil {

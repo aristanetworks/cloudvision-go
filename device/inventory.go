@@ -103,20 +103,19 @@ func (i *inventory) Add(key string, device Device) error {
 		return err
 	}
 
+	dc.rawGNMIClient, err = startGNMIClient(i.gnmiServerAddr)
+	if err != nil {
+		return err
+	}
+	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient,
+		key, false)
+
 	for _, p := range providers {
 		pt, ok := p.(provider.GNMIProvider)
 		if !ok {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
 
-		if dc.rawGNMIClient == nil {
-			dc.rawGNMIClient, err = startGNMIClient(i.gnmiServerAddr)
-			if err != nil {
-				return err
-			}
-			dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient,
-				key, false)
-		}
 		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, key, pt.OpenConfig()))
 
 		// Watch for provider errors in the provider errgroup and
@@ -129,13 +128,13 @@ func (i *inventory) Add(key string, device Device) error {
 		dc.providerGroup.Go(func() error {
 			return p.Run(dc.ctx)
 		})
-
-		// Send periodic updates of device-level metadata.
-		i.group.Go(func() error {
-			return dc.sendPeriodicUpdates()
-		})
-
 	}
+
+	// Send periodic updates of device-level metadata.
+	i.group.Go(func() error {
+		return dc.sendPeriodicUpdates()
+	})
+
 	glog.V(2).Infof("Added device %s", key)
 	return nil
 }
