@@ -84,12 +84,9 @@ func Main() {
 		if err != nil {
 			glog.Fatal(err)
 		}
-		go func() {
-			err = manager.Manage(inventory)
-			if err != nil {
-				glog.Fatal(err)
-			}
-		}()
+		group.Go(func() error {
+			return manager.Manage(inventory)
+		})
 	} else {
 		devices, err := createDevices(*deviceName, *deviceConfigFile, deviceOptions)
 		if err != nil {
