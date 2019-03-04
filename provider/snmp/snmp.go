@@ -151,7 +151,7 @@ type Snmp struct {
 	lldpLocChassisIDSubtype string
 
 	// gosnmp object
-	gsnmp gosnmp.GoSNMP
+	gsnmp *gosnmp.GoSNMP
 
 	// gosnmp can't handle parallel gets.
 	lock sync.Mutex
@@ -867,7 +867,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 // limiting requests.
 func NewSNMPProvider(address string, community string,
 	pollInt time.Duration) provider.GNMIProvider {
-	gsnmp := gosnmp.GoSNMP{
+	gsnmp := &gosnmp.GoSNMP{
 		Port:               161,
 		Version:            gosnmp.Version2c,
 		Retries:            3,
