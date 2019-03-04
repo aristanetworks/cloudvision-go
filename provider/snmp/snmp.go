@@ -220,6 +220,9 @@ var errStopWalk = errors.New("stop walk")
 
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
+	if err := s.snmpNetworkInit(); err != nil {
+		return "", fmt.Errorf("Error connecting to device: %v", err)
+	}
 	serial := ""
 	var done bool
 	chassisIndex := ""
@@ -274,6 +277,9 @@ func (s *Snmp) DeviceID() (string, error) {
 
 // Alive checks if device is still alive if poll interval has passed.
 func (s *Snmp) Alive() (bool, error) {
+	if err := s.snmpNetworkInit(); err != nil {
+		return false, fmt.Errorf("Error connecting to device: %v", err)
+	}
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}
@@ -862,10 +868,8 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 
 // Run sets the Snmp provider running and returns only on error.
 func (s *Snmp) Run(ctx context.Context) error {
-	if !s.initialized {
-		if err := s.snmpNetworkInit(); err != nil {
-			return fmt.Errorf("Error connecting to device: %v", err)
-		}
+	if err := s.snmpNetworkInit(); err != nil {
+		return fmt.Errorf("Error connecting to device: %v", err)
 	}
 
 	// Do periodic state updates.

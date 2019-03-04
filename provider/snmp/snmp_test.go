@@ -916,6 +916,7 @@ func TestDeviceID(t *testing.T) {
 	s := &Snmp{
 		errc:          make(chan error),
 		interfaceName: make(map[string]bool),
+		mock:          true,
 	}
 	for _, tc := range []deviceIDTestCase{
 		{
