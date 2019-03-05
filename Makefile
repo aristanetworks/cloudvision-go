@@ -5,7 +5,7 @@
 GO := go
 
 TEST_TIMEOUT := 30s
-GOTEST_FLAGS := -v
+GOTEST_FLAGS := -cover -race -count 1
 GOLINT := golint
 GOFMT := gofmt
 GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
