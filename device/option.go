@@ -7,6 +7,7 @@ package device
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -59,6 +60,9 @@ func helpDesc(options map[string]Option) map[string]string {
 		if v.Default != "" {
 			desc = desc + " (default " + v.Default + ")"
 		}
+		if v.Required {
+			k = k + " (required)"
+		}
 		hd[k] = desc
 	}
 	return hd
@@ -73,6 +77,16 @@ func GetStringOption(optionName string,
 		return "", fmt.Errorf("No option '%s'", optionName)
 	}
 	return o, nil
+}
+
+// GetBoolOption returns the option specified by optionName as a boolean.
+func GetBoolOption(optionName string,
+	options map[string]string) (bool, error) {
+	o, ok := options[optionName]
+	if !ok {
+		return false, fmt.Errorf("No option '%s'", optionName)
+	}
+	return strconv.ParseBool(o)
 }
 
 // GetAddressOption returns the option specified by optionName as a

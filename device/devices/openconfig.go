@@ -21,18 +21,49 @@ import (
 func init() {
 	// Set options
 	options := map[string]device.Option{
-		"gnmi_addr": device.Option{
+		"address": device.Option{
 			Description: "gNMI server host/port",
 			Required:    true,
 		},
-		"gnmi_paths": device.Option{
+		"paths": device.Option{
 			Description: "gNMI subscription path (comma-separated if multiple)",
 			Default:     "/",
 			Required:    false,
 		},
-		"gnmi_username": device.Option{
+		"username": device.Option{
 			Description: "gNMI subscription username",
-			Required:    true,
+			Default:     "",
+			Required:    false,
+		},
+		"password": device.Option{
+			Description: "gNMI subscription password",
+			Default:     "",
+			Required:    false,
+		},
+		"cafile": device.Option{
+			Description: "Path to server TLS certificate file",
+			Default:     "",
+			Required:    false,
+		},
+		"certfile": device.Option{
+			Description: "Path to client TLS certificate file",
+			Default:     "",
+			Required:    false,
+		},
+		"keyfile": device.Option{
+			Description: "Path to client TLS private key file",
+			Default:     "",
+			Required:    false,
+		},
+		"compression": device.Option{
+			Description: "Compression method (Supported options: \"\" and \"gzip\")",
+			Default:     "",
+			Required:    false,
+		},
+		"tls": device.Option{
+			Description: "Enable TLS",
+			Default:     "false",
+			Required:    false,
 		},
 		"device_id": device.Option{
 			Description: "device ID",
@@ -101,28 +132,58 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 	return config["openconfig-system:hostname"] + "." + config["openconfig-system:domain-name"], nil
 }
 
+func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
+	config := &gnmi.Config{}
+	var err error
+	config.Addr, err = device.GetStringOption("address", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.Username, err = device.GetStringOption("username", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.Password, err = device.GetStringOption("password", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.CAFile, err = device.GetStringOption("cafile", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.CertFile, err = device.GetStringOption("certfile", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.KeyFile, err = device.GetStringOption("keyfile", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.Compression, err = device.GetStringOption("compression", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.TLS, err = device.GetBoolOption("tls", opt)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
 // newOpenConfig returns an openconfig device.
 func newOpenConfig(opt map[string]string) (device.Device, error) {
-	gNMIAddr, err := device.GetStringOption("gnmi_addr", opt)
-	if err != nil {
-		return nil, err
-	}
-	gNMIUsername, err := device.GetStringOption("gnmi_username", opt)
-	if err != nil {
-		return nil, err
-	}
 	deviceID, err := device.GetStringOption("device_id", opt)
 	if err != nil {
 		return nil, err
 	}
-	gNMIPaths, err := device.GetStringOption("gnmi_paths", opt)
+	gNMIPaths, err := device.GetStringOption("paths", opt)
 	if err != nil {
 		return nil, err
 	}
 	openconfig := &openconfigDevice{}
-	config := &gnmi.Config{
-		Addr:     gNMIAddr,
-		Username: gNMIUsername,
+	config, err := parseGNMIOptions(opt)
+	if err != nil {
+		return nil, err
 	}
 	client, err := gnmi.Dial(config)
 	if err != nil {
