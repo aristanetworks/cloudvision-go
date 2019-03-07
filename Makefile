@@ -4,7 +4,7 @@
 
 GO := go
 
-TEST_TIMEOUT := 30s
+TEST_TIMEOUT := 60s
 GOTEST_FLAGS := -cover -race -count 1
 GOLINT := golint
 GOFMT := gofmt

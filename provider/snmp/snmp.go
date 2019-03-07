@@ -54,6 +54,7 @@ const (
 	snmpLldpLocChassisID               = ".1.0.8802.1.1.2.1.3.2.0"
 	snmpLldpLocChassisIDSubtype        = ".1.0.8802.1.1.2.1.3.1.0"
 	snmpLldpLocPortID                  = ".1.0.8802.1.1.2.1.3.7.1.3"
+	snmpLldpLocPortDesc                = ".1.0.8802.1.1.2.1.3.7.1.4"
 	snmpLldpLocPortTable               = ".1.0.8802.1.1.2.1.3.7"
 	snmpLldpLocSysDesc                 = ".1.0.8802.1.1.2.1.3.4.0"
 	snmpLldpLocSysName                 = ".1.0.8802.1.1.2.1.3.3.0"
@@ -77,6 +78,7 @@ const (
 	snmpLldpV2LocChassisID             = ".1.3.111.2.802.1.1.13.1.3.2.0"
 	snmpLldpV2LocChassisIDSubtype      = ".1.3.111.2.802.1.1.13.1.3.1.0"
 	snmpLldpV2LocPortID                = ".1.3.111.2.802.1.1.13.1.3.7.1.3"
+	snmpLldpV2LocPortDesc              = ".1.3.111.2.802.1.1.13.1.3.7.1.4"
 	snmpLldpV2LocPortTable             = ".1.3.111.2.802.1.1.13.1.3.7"
 	snmpLldpV2LocSysDesc               = ".1.3.111.2.802.1.1.13.1.3.4.0"
 	snmpLldpV2LocSysName               = ".1.3.111.2.802.1.1.13.1.3.3.0"
@@ -172,7 +174,7 @@ func (s *Snmp) snmpNetworkInit() error {
 	return s.gsnmp.Connect()
 }
 
-func (s *Snmp) getByOID(oid string) (*gosnmp.SnmpPacket, error) {
+func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 	if s.getter == nil {
 		return nil, errors.New("SNMP getter not set")
 	}
@@ -185,21 +187,28 @@ func (s *Snmp) getByOID(oid string) (*gosnmp.SnmpPacket, error) {
 	return pkt, err
 }
 
-// getStringByOID does a Get on the specified OID, an octet string, and
+func (s *Snmp) getFirstPDU(oid string) (*gosnmp.SnmpPDU, error) {
+	pkt, err := s.get(oid)
+	if err != nil {
+		return nil, err
+	}
+	if len(pkt.Variables) == 0 {
+		return nil, fmt.Errorf("No variables in SNMP packet for OID %s", oid)
+	}
+	return &pkt.Variables[0], err
+}
+
+// getString does a Get on the specified OID, an octet string, and
 // returns the result as a string.
-func (s *Snmp) getStringByOID(oid string) (string, error) {
-	pkt, err := s.getByOID(oid)
+func (s *Snmp) getString(oid string) (string, error) {
+	pdu, err := s.getFirstPDU(oid)
 	if err != nil {
 		return "", err
 	}
-	if len(pkt.Variables) == 0 {
-		return "", fmt.Errorf("No variables in SNMP packet for OID %s", oid)
-	}
-	v := pkt.Variables[0]
-	if v.Type != gosnmp.OctetString {
+	if pdu.Type != gosnmp.OctetString {
 		return "", fmt.Errorf("Variable type in PDU for OID %s is not octet string", oid)
 	}
-	return string(v.Value.([]byte)), nil
+	return string(pdu.Value.([]byte)), nil
 }
 
 func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
@@ -216,11 +225,7 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 
 var errStopWalk = errors.New("stop walk")
 
-// DeviceID returns the device ID.
-func (s *Snmp) DeviceID() (string, error) {
-	if err := s.snmpNetworkInit(); err != nil {
-		return "", fmt.Errorf("Error connecting to device: %v", err)
-	}
+func (s *Snmp) getSerialNumber() (string, error) {
 	serial := ""
 	var done bool
 	chassisIndex := ""
@@ -267,10 +272,42 @@ func (s *Snmp) DeviceID() (string, error) {
 			return "", err
 		}
 	}
-	if serial == "" {
-		return "", errors.New("Failed to get serial number")
-	}
 	return serial, nil
+}
+
+func (s *Snmp) getChassisID() (string, error) {
+	pdu, err := s.getFirstPDU(snmpLldpLocChassisIDSubtype)
+	if err != nil {
+		return "", err
+	}
+	subtype := openconfig.LLDPChassisIDType(pdu.Value.(int))
+	pkt, err := s.getFirstPDU(snmpLldpLocChassisID)
+	if err != nil {
+		return "", err
+	}
+	return chassisID(pkt.Value.([]byte), subtype), nil
+}
+
+// DeviceID returns the device ID.
+func (s *Snmp) DeviceID() (string, error) {
+	if err := s.snmpNetworkInit(); err != nil {
+		return "", fmt.Errorf("Error connecting to device: %v", err)
+	}
+	did, err := s.getSerialNumber()
+	if err == nil && did != "" {
+		return did, nil
+	}
+
+	did, err = s.getChassisID()
+	if err == nil && did != "" {
+		return did, nil
+	}
+
+	// The device didn't give us a serial number. Use the device
+	// address instead. It's not great but better than nothing.
+	glog.Infof("Failed to retrieve serial number for device '%s'; "+
+		"using address for device ID", s.gsnmp.Target)
+	return s.gsnmp.Target, nil
 }
 
 // Alive checks if device is still alive if poll interval has passed.
@@ -281,7 +318,7 @@ func (s *Snmp) Alive() (bool, error) {
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}
-	_, err := s.getByOID(snmpSysUpTime)
+	_, err := s.get(snmpSysUpTime)
 	if err != nil {
 		return false, err
 	}
@@ -431,9 +468,13 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	setReq := new(gnmi.SetRequest)
-	sysName, err := s.getStringByOID(snmpSysName)
+	sysName, err := s.getString(snmpSysName)
 	if err != nil {
-		return nil, err
+		// Try lldpLocSysName if sysName isn't there.
+		sysName, err = s.getString(snmpLldpLocSysName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	hostname, domainName := splitSysName(sysName)
 
@@ -544,6 +585,9 @@ type lldpSeen struct {
 	// Which intfName/remoteID pairs we've already seen in the round,
 	// and their associated lldpChassisIdSubtypes.
 	remoteID map[remoteKey]string
+
+	// The OID from which we pulled interface names matching ifDescr.
+	intfOid string
 }
 
 func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update, error) {
@@ -560,24 +604,28 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 	if locIndex != "" {
 		intfName, ok = seen.locPortID[locIndex]
 		if !ok {
-			// If we have the port ID AND this interface is in the interfaceName
-			// map, add it to the port index map. Otherwise we can't do anything
-			// and should return.
-			if baseOid != snmpLldpLocPortID && baseOid != snmpLldpV2LocPortID {
-				// XXX NOTE: The RFC says lldpLocPortDesc should have the
-				// same value as a corresponding ifDescr object, but in
-				// practice all the devices we've tested against have
-				// lldpLocPortId equal to an ifDescr object, and
-				// lldpLocPortDesc is all over the map--sometimes empty,
-				// sometimes set to ifAlias. So while it seems like we
-				// should be using lldpLocPortDesc here, lldpLocPortId is
-				// the only one that actually works...
+			// If this is an interface name AND this interface is in the
+			// interfaceName map, add it to the port index map.
+			// Otherwise we can't do anything and should return.
+			if baseOid != snmpLldpLocPortID && baseOid != snmpLldpV2LocPortID &&
+				baseOid != snmpLldpLocPortDesc && baseOid != snmpLldpV2LocPortDesc {
+				return nil, nil
+			}
+
+			// XXX NOTE: The RFC says lldpLocPortDesc should have the
+			// same value as a corresponding ifDescr object, but in
+			// practice it seems more common to be have lldpLocPortId
+			// equal to an ifDescr object, and lldpLocPortDesc is all
+			// over the map--sometimes empty, sometimes set to
+			// ifAlias. So just use whichever one matches ifDescr.
+			if seen.intfOid != "" && baseOid != seen.intfOid {
 				return nil, nil
 			}
 			intfName = string(pdu.Value.([]byte))
 			if _, ok = s.interfaceName[intfName]; !ok {
 				return nil, nil
 			}
+			seen.intfOid = baseOid
 			seen.locPortID[locIndex] = intfName
 		}
 	}
@@ -594,7 +642,9 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 
 	var u *gnmi.Update
 	switch baseOid {
-	case snmpLldpLocPortID, snmpLldpV2LocPortID:
+	case seen.intfOid:
+		// lldpLocPortID, lldpV2LocPortID, lldpLocPortDesc,
+		// lldpV2LocPortDesc
 		updates = append(updates,
 			update(pgnmi.LldpIntfConfigPath(intfName, "name"),
 				strval(intfName)),
