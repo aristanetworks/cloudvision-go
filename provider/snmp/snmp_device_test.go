@@ -189,16 +189,30 @@ func (m *testGNMIClient) Subscribe(ctx context.Context,
 	panic("not implemented")
 }
 
+// testget and testwalk implement a primitive/wrong SNMP
+// pseudo-agent. They aren't correct but given the simple nature of
+// the request types we care about and the provider error handling,
+// they should be correct enough for the provider to behave the same
+// way it would to a real response.
 func testget(oids []string, wm walkMap) (*gosnmp.SnmpPacket, error) {
 	pkt := &gosnmp.SnmpPacket{}
-	for _, oid := range oids {
-		pdus, ok := wm[oid]
-		if !ok {
-			continue
+	if len(oids) > 1 {
+		panic("testget doesn't support multiple OIDs")
+	}
+	oid := oids[0]
+	pdus, ok := wm[oid]
+	if !ok {
+		pkt.Variables = []gosnmp.SnmpPDU{
+			gosnmp.SnmpPDU{
+				Name:  oid,
+				Type:  gosnmp.NoSuchObject,
+				Value: nil,
+			},
 		}
-		for _, p := range pdus {
-			pkt.Variables = append(pkt.Variables, *p)
-		}
+		return pkt, nil
+	}
+	for _, p := range pdus {
+		pkt.Variables = append(pkt.Variables, *p)
 	}
 	return pkt, nil
 }
@@ -206,6 +220,7 @@ func testget(oids []string, wm walkMap) (*gosnmp.SnmpPacket, error) {
 func testwalk(oid string, walker gosnmp.WalkFunc, wm walkMap) error {
 	pdus, ok := wm[oid]
 	if !ok {
+
 		return nil
 	}
 	for _, pdu := range pdus {
@@ -271,6 +286,7 @@ func runDeviceTest(t *testing.T, tc deviceTestCase) {
 	if err := prov.Run(ctx); err != nil {
 		t.Fatalf("runDeviceTest failed in provider.Run: %v", err)
 	}
+
 	if client.pollsRemaining != 0 {
 		t.Fatal("runDeviceTest did not finish polling")
 	}

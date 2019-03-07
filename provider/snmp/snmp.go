@@ -181,10 +181,15 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 
 	pkt, err := s.getter([]string{oid})
 	if err != nil {
-		s.lastAlive = time.Now()
+		return nil, err
 	}
+	s.lastAlive = time.Now()
 
 	return pkt, err
+}
+
+func oidExists(pdu gosnmp.SnmpPDU) bool {
+	return pdu.Type != gosnmp.NoSuchObject && pdu.Type != gosnmp.NoSuchInstance
 }
 
 func (s *Snmp) getFirstPDU(oid string) (*gosnmp.SnmpPDU, error) {
@@ -202,12 +207,16 @@ func (s *Snmp) getFirstPDU(oid string) (*gosnmp.SnmpPDU, error) {
 // returns the result as a string.
 func (s *Snmp) getString(oid string) (string, error) {
 	pdu, err := s.getFirstPDU(oid)
-	if err != nil {
+
+	// Accept a noSuchObject or noSuchInstance, but otherwise, if it's not
+	// an octet string, something went wrong.
+	if err != nil || !oidExists(*pdu) {
 		return "", err
 	}
 	if pdu.Type != gosnmp.OctetString {
 		return "", fmt.Errorf("Variable type in PDU for OID %s is not octet string", oid)
 	}
+
 	return string(pdu.Value.([]byte)), nil
 }
 
@@ -218,8 +227,9 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 
 	err := s.walker(rootOid, walkFn)
 	if err != nil {
-		s.lastAlive = time.Now()
+		return err
 	}
+	s.lastAlive = time.Now()
 	return err
 }
 
@@ -277,9 +287,10 @@ func (s *Snmp) getSerialNumber() (string, error) {
 
 func (s *Snmp) getChassisID() (string, error) {
 	pdu, err := s.getFirstPDU(snmpLldpLocChassisIDSubtype)
-	if err != nil {
+	if err != nil || !oidExists(*pdu) {
 		return "", err
 	}
+
 	subtype := openconfig.LLDPChassisIDType(pdu.Value.(int))
 	pkt, err := s.getFirstPDU(snmpLldpLocChassisID)
 	if err != nil {
@@ -469,13 +480,19 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	defer s.lock.Unlock()
 	setReq := new(gnmi.SetRequest)
 	sysName, err := s.getString(snmpSysName)
-	if err != nil {
+	if err != nil || sysName == "" {
 		// Try lldpLocSysName if sysName isn't there.
 		sysName, err = s.getString(snmpLldpLocSysName)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	if sysName == "" {
+		// Didn't get anything useful. Don't return a SetRequest.
+		return nil, nil
+	}
+
 	hostname, domainName := splitSysName(sysName)
 
 	hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
