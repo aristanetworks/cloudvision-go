@@ -254,7 +254,7 @@ func newSNMPProvider(client *testGNMIClient,
 		client.lock.Lock()
 		defer client.lock.Unlock()
 		poll := client.polls - client.pollsRemaining
-		if poll == client.polls {
+		if poll >= client.polls {
 			poll = client.polls - 1
 		}
 		return testget(oids, walkMaps[poll])
@@ -263,7 +263,7 @@ func newSNMPProvider(client *testGNMIClient,
 		client.lock.Lock()
 		defer client.lock.Unlock()
 		poll := client.polls - client.pollsRemaining
-		if poll == client.polls {
+		if poll >= client.polls {
 			poll = client.polls - 1
 		}
 		return testwalk(oid, walker, walkMaps[poll])
@@ -287,6 +287,8 @@ func runDeviceTest(t *testing.T, tc deviceTestCase) {
 		t.Fatalf("runDeviceTest failed in provider.Run: %v", err)
 	}
 
+	client.lock.Lock()
+	defer client.lock.Unlock()
 	if client.pollsRemaining != 0 {
 		t.Fatal("runDeviceTest did not finish polling")
 	}
