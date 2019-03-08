@@ -16,18 +16,6 @@ GOLDFLAGS := -ldflags="-s -w -X arista/version.Version=$(GOPKGVERSION)"
 GOOS ?= linux
 GOARCH ?= 386
 
-DEVICE_DIR := ./device
-DEVICE_INTEGRATION_DIR := $(DEVICE_DIR)/integration
-PROVIDER_DIR := ./provider
-DEVICE_PLUGIN_DIR := $(DEVICE_DIR)/plugins
-DEVICE_TEST_DIR := $(DEVICE_DIR)/test
-PLUGIN_SO_BASE_DIR := $(DEVICE_PLUGIN_DIR)/build
-# To test loading plugins recursively.
-PLUGIN_SO_DIR := $(DEVICE_PLUGIN_DIR)/build/test1/test2
-PLUGIN_NAME := test.so
-PLUGIN_SRC_FILES := $(DEVICE_PLUGIN_DIR)/test_plugin.go
-DEVICE_INTEGRATION_FLAGS = -test.short -cover -tags="integration device"
-
 all: install
 
 install:
@@ -56,19 +44,4 @@ lint:
 test:
 	$(GO) test $(GOTEST_FLAGS) -timeout=$(TEST_TIMEOUT) ./...
 
-plugins:
-	mkdir -p $(PLUGIN_SO_DIR)
-	# Build a dummy plugin for integration testing.
-	$(GO) build $(GOLDFLAGS) -buildmode=plugin -o $(PLUGIN_SO_DIR)/$(PLUGIN_NAME) $(PLUGIN_SRC_FILES)
-
-clean-plugins:
-	rm -rf $(PLUGIN_SO_BASE_DIR)
-
-integration:
-	$(MAKE) plugins
-	$(GO) test $(DEVICE_INTEGRATION_DIR)/... $(DEVICE_INTEGRATION_FLAGS)
-	$(MAKE) clean-plugins
-
-COVER_PKGS := `find . -name '*_test.go' ! -path "./.git/*" ! -path "./vendor/*" | xargs -I{} dirname {} | sort -u`
-
-.PHONY: all check fmtcheck jenkins lint test vet plugins clean-plugins
+.PHONY: all check fmtcheck jenkins lint test vet
