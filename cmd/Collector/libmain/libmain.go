@@ -43,18 +43,18 @@ func Main() {
 			"Path to output file used to associate device IDs with device configuration")
 
 		// MockCollector config
-		mock          = flag.Bool("mock", false, "Run Collector in mock mode")
-		mockCheckPath = aflag.Map{}
-		mockTimeout   = flag.Duration("mockTimeout", 60*time.Second,
+		mock        = flag.Bool("mock", false, "Run Collector in mock mode")
+		mockFeature = aflag.Map{}
+		mockTimeout = flag.Duration("mockTimeout", 60*time.Second,
 			"Timeout for checking notifications in mock mode")
 
 		// gNMI server config
 		gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
 			"Address of gNMI server")
 	)
-	flag.Var(mockCheckPath, "mockCheckPath",
-		"<path>=<feature> option for mock mode, where <path> is a path that,"+
-			" if present in the Collector output, signifies that the target device supports "+
+	flag.Var(mockFeature, "mockFeature",
+		"<feature>=<path> option for mock mode, where <path> is a path that, "+
+			"if present in the Collector output, signifies that the target device supports "+
 			"the feature described in <feature>")
 	flag.Var(deviceOptions, "deviceoption", "<key>=<value> option for the Device. "+
 		"May be repeated to set multiple Device options.")
@@ -82,12 +82,12 @@ func Main() {
 
 	// We're running for real at this point. Check that the config
 	// is sane.
-	validateConfig(*managerName, *deviceName, *deviceConfigFile, *mock, mockCheckPath)
+	validateConfig(*managerName, *deviceName, *deviceConfigFile, *mock, mockFeature)
 
 	// Create inventory.
 	group, ctx := errgroup.WithContext(context.Background())
 	var inventory device.Inventory
-	mockInfo := newMockInfo(mockCheckPath)
+	mockInfo := newMockInfo(mockFeature)
 	if *mock {
 		inventory = device.NewInventory(ctx, group,
 			pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
@@ -196,7 +196,7 @@ func addHelp(managerName, deviceName string) error {
 }
 
 func validateConfig(managerName, deviceName, deviceConfigFile string,
-	mock bool, mockCheckPath map[string]string) {
+	mock bool, mockFeature map[string]string) {
 	// A device or a device manager must be specified unless we're running with -h
 	if deviceName == "" && managerName == "" && deviceConfigFile == "" {
 		glog.Fatal("-device, -manager, or -config must be specified.")
@@ -218,7 +218,7 @@ func validateConfig(managerName, deviceName, deviceConfigFile string,
 		glog.Fatal("-manager should not be specified in mock mode")
 	}
 
-	if !mock && len(mockCheckPath) > 0 {
-		glog.Fatal("-mockCheckPath is only valid in mock mode")
+	if !mock && len(mockFeature) > 0 {
+		glog.Fatal("-mockFeature is only valid in mock mode")
 	}
 }

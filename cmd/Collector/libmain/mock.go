@@ -21,7 +21,7 @@ import (
 )
 
 type mockInfo struct {
-	pathToFeature  map[string]string
+	featureToPath  map[string]string
 	seenUpdates    map[string]map[string]bool
 	idToInfo       map[string]*device.Info
 	lock           sync.Mutex
@@ -35,7 +35,7 @@ func (m *mockInfo) processRequest(ctx context.Context,
 	defer m.lock.Unlock()
 	seenAll := true
 	for _, updates := range m.seenUpdates {
-		if len(updates) < len(m.pathToFeature) {
+		if len(updates) < len(m.featureToPath) {
 			seenAll = false
 			break
 		}
@@ -53,7 +53,7 @@ func (m *mockInfo) processRequest(ctx context.Context,
 	updates := append(req.Replace, req.Update...)
 	for _, update := range updates {
 		path := agnmi.StrPath(update.Path)
-		for p := range m.pathToFeature {
+		for _, p := range m.featureToPath {
 			if strings.HasPrefix(path, p) {
 				m.seenUpdates[md.DeviceID][p] = true
 			}
@@ -68,24 +68,24 @@ func (m *mockInfo) printResults(seenAll bool) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 20, 1, 8, ' ', 0)
 	if seenAll {
-		if len(m.pathToFeature) > 0 {
+		if len(m.featureToPath) > 0 {
 			color.Green("All features are supported by all devices:")
 		} else {
 			color.Yellow("Mock mode is set without any paths to check. " +
 				"Specify -mockCheckPath to check for feature support.")
 		}
-		for _, str := range m.pathToFeature {
-			fmt.Fprintln(w, color.GreenString("    %s\tsupported", str))
+		for feature := range m.featureToPath {
+			fmt.Fprintln(w, color.GreenString("    %s\tsupported", feature))
 		}
 	} else {
 		color.Red("Some features are not supported by some devices:")
 		for id, updates := range m.seenUpdates {
 			fmt.Fprintln(w, m.idToInfo[id])
-			for update, str := range m.pathToFeature {
-				if _, ok := updates[update]; ok {
-					fmt.Fprintln(w, color.GreenString("    %s\tsupported", str))
+			for feature, path := range m.featureToPath {
+				if _, ok := updates[path]; ok {
+					fmt.Fprintln(w, color.GreenString("    %s\tsupported", feature))
 				} else {
-					fmt.Fprintln(w, color.RedString("    %s\tunsupported", str))
+					fmt.Fprintln(w, color.RedString("    %s\tunsupported", feature))
 				}
 			}
 		}
@@ -118,9 +118,9 @@ func (m *mockInfo) waitForUpdates(errChan chan error, timeout time.Duration) err
 	}
 }
 
-func newMockInfo(pathToFeature map[string]string) *mockInfo {
+func newMockInfo(featureToPath map[string]string) *mockInfo {
 	return &mockInfo{
-		pathToFeature:  pathToFeature,
+		featureToPath:  featureToPath,
 		seenUpdates:    map[string]map[string]bool{},
 		lock:           sync.Mutex{},
 		startTime:      time.Now(),
