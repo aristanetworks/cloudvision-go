@@ -26,7 +26,7 @@ var (
 type oidFlags []string
 
 func (o *oidFlags) String() string {
-	return strings.Join(*o, "")
+	return strings.Join(*o, ", ")
 }
 
 func (o *oidFlags) Set(v string) error {

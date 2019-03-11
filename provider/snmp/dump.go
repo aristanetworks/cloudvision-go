@@ -97,7 +97,7 @@ func pduFromString(s string) *gosnmp.SnmpPDU {
 	case hexstrTypeString:
 		pduType = octstr
 		s := strings.Replace(val, " ", "", -1)
-		value, _ = hex.DecodeString(strings.Replace(s, " ", "", -1))
+		value, _ = hex.DecodeString(s)
 	case counterTypeString:
 		pduType = counter
 		v, _ := strconv.ParseUint(val, 10, 32)

@@ -134,7 +134,7 @@ func pathElemMatches(e1, e2 *gnmi.PathElem) bool {
 		return false
 	}
 	for k, v := range e1.Key {
-		v2, ok := e1.Key[k]
+		v2, ok := e2.Key[k]
 		if !ok {
 			return false
 		}
@@ -316,7 +316,7 @@ func TestDevices(t *testing.T) {
 		},
 		{
 			deviceName:     "Arista_DCS-7508_4.21.3F-INT",
-			deviceDumpFile: "dumps/Arista_DCS-7150S-24_4.21.3F-2GB-INT_20190301.gz",
+			deviceDumpFile: "dumps/Arista_DCS-7508_4.21.3F-INT_20190301.gz",
 			expectedPaths:  basicPaths(),
 			polls:          2,
 		},
