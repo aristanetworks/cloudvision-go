@@ -28,9 +28,6 @@ type Inventory interface {
 // deviceConn contains a device and its gNMI connections.
 type deviceConn struct {
 	device            Device
-	deviceID          string
-	version           string
-	deviceType        string
 	ctx               context.Context
 	cancel            context.CancelFunc
 	rawGNMIClient     gnmi.GNMIClient
@@ -49,26 +46,24 @@ type inventory struct {
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(time.Second)
+	ctx := metadata.AppendToOutgoingContext(dc.ctx,
+		deviceTypeMetadata, dc.device.Type().String(),
+		collectorVersionMetadata, version.Version)
+	dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 	for {
 		select {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			if dc.deviceID == "" {
-				var err error
-				dc.deviceID, err = dc.device.DeviceID()
-				if err != nil {
-					return err
+			if alive, err := dc.device.Alive(); err != nil {
+				if alive {
+					ctx := metadata.AppendToOutgoingContext(dc.ctx,
+						deviceLivenessMetadata, "true")
+					dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 				}
+			} else {
+				return err
 			}
-			if dc.deviceType == "" {
-				dc.deviceType = dc.device.Type().String()
-			}
-			ctx := metadata.AppendToOutgoingContext(dc.ctx,
-				deviceTypeMetadata, dc.deviceType,
-				deviceLivenessMetadata, "true",
-				collectorVersionMetadata, version.Version)
-			dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 		}
 	}
 }
