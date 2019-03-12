@@ -55,7 +55,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			if alive, err := dc.device.Alive(); err != nil {
+			if alive, err := dc.device.Alive(); err == nil {
 				if alive {
 					ctx := metadata.AppendToOutgoingContext(dc.ctx,
 						deviceLivenessMetadata, "true")
