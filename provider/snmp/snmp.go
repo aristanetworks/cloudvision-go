@@ -116,13 +116,29 @@ func update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	return pgnmi.Update(path, val)
 }
 
+func appendUpdates(base []*gnmi.Update, updates ...*gnmi.Update) []*gnmi.Update {
+	for _, update := range updates {
+		if update.Val != nil {
+			base = append(base, update)
+		}
+	}
+	return base
+}
+
 func strval(s interface{}) *gnmi.TypedValue {
 	switch t := s.(type) {
 	case string:
+		if t == "" {
+			return nil
+		}
 		return pgnmi.Strval(t)
 	case []byte:
+		str := string(t)
+		if str == "" {
+			return nil
+		}
 		// Remove newlines. OpenConfig will reject multiline strings.
-		ss := strings.Replace(string(t), "\n", " ", -1)
+		ss := strings.Replace(str, "\n", " ", -1)
 		return pgnmi.Strval(ss)
 	default:
 		glog.Fatalf("Unexpected type in strval: %T", s)
@@ -421,10 +437,11 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 		return nil, nil
 	}
 
-	updates := []*gnmi.Update{u}
+	var updates []*gnmi.Update
+	updates = appendUpdates(updates, u)
 	// When we get a name, add name, config/name, state/name.
 	if baseOid == snmpIfDescr {
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.IntfPath(intfName, "name"), strval(intfName)),
 			update(pgnmi.IntfConfigPath(intfName, "name"), strval(intfName)))
 	}
@@ -448,7 +465,7 @@ func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 		if err != nil {
 			return err
 		}
-		updates = append(updates, u...)
+		updates = appendUpdates(updates, u...)
 		return nil
 	}
 
@@ -496,9 +513,10 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	hostname, domainName := splitSysName(sysName)
 
 	hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
-	upd := []*gnmi.Update{hn}
+	var upd []*gnmi.Update
+	upd = appendUpdates(upd, hn)
 	if domainName != "" {
-		upd = append(upd,
+		upd = appendUpdates(upd,
 			update(pgnmi.Path("system", "state", "domain-name"),
 				strval(domainName)))
 	}
@@ -650,7 +668,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 	// If we haven't yet seen this remote system, add its ID.
 	if remoteID != "" {
 		if _, ok := seen.remoteID[remoteKey{intfName, remoteID}]; !ok {
-			updates = append(updates,
+			updates = appendUpdates(updates,
 				update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "id"),
 					strval(remoteID)))
 			seen.remoteID[remoteKey{intfName, remoteID}] = ""
@@ -662,7 +680,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 	case seen.intfOid:
 		// lldpLocPortID, lldpV2LocPortID, lldpLocPortDesc,
 		// lldpV2LocPortDesc
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.LldpIntfConfigPath(intfName, "name"),
 				strval(intfName)),
 			update(pgnmi.LldpIntfPath(intfName, "name"),
@@ -724,7 +742,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 			strval(pdu.Value))
 	}
 	if u != nil {
-		updates = append(updates, u)
+		updates = appendUpdates(updates, u)
 	}
 	return updates, nil
 }
@@ -758,7 +776,7 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 			return err
 		}
 		if u != nil {
-			updates = append(updates, u...)
+			updates = appendUpdates(updates, u...)
 		}
 		return nil
 	}
@@ -813,7 +831,7 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 	updates := make([]*gnmi.Update, 0)
 	if _, ok := entityIndexMap[index]; !ok {
 		entityIndexMap[index] = true
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentConfigPath(index, "name"),
 				strval(index)),
 			update(pgnmi.PlatformComponentPath(index, "name"),
@@ -850,27 +868,27 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 			return nil, fmt.Errorf("Unexpected PhysicalClass value %v", v)
 		}
 		if class != "" {
-			updates = append(updates,
+			updates = appendUpdates(updates,
 				update(pgnmi.PlatformComponentStatePath(index, "type"), strval(class)))
 		}
 	case snmpEntPhysicalDescr:
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentStatePath(index, "description"),
 				strval(pdu.Value)))
 	case snmpEntPhysicalMfgName:
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentStatePath(index, "mfg-name"),
 				strval(pdu.Value)))
 	case snmpEntPhysicalSerialNum:
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentStatePath(index, "serial-no"),
 				strval(pdu.Value)))
 	case snmpEntPhysicalSoftwareRev:
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentStatePath(index, "software-version"),
 				strval(pdu.Value)))
 	case snmpEntPhysicalModelName:
-		updates = append(updates,
+		updates = appendUpdates(updates,
 			update(pgnmi.PlatformComponentStatePath(index, "hardware-version"),
 				strval(pdu.Value)))
 	}
@@ -890,7 +908,7 @@ func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 		if err != nil {
 			return err
 		}
-		updates = append(updates, u...)
+		updates = appendUpdates(updates, u...)
 		return nil
 	}
 
