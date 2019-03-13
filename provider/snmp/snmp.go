@@ -187,7 +187,9 @@ func (s *Snmp) snmpNetworkInit() error {
 	if s.initialized || s.mock {
 		return nil
 	}
-	return s.gsnmp.Connect()
+	err := s.gsnmp.Connect()
+	s.initialized = err != nil
+	return err
 }
 
 func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
@@ -926,7 +928,6 @@ func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 // InitGNMI initializes the Snmp provider with a gNMI client.
 func (s *Snmp) InitGNMI(client gnmi.GNMIClient) {
 	s.client = client
-	s.initialized = true
 }
 
 // OpenConfig indicates that this provider wants OpenConfig
@@ -953,6 +954,10 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 
 // Run sets the Snmp provider running and returns only on error.
 func (s *Snmp) Run(ctx context.Context) error {
+	if s.client == nil {
+		return errors.New("Run called before InitGNMI")
+	}
+
 	if err := s.snmpNetworkInit(); err != nil {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
