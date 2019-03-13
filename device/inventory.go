@@ -104,17 +104,17 @@ func (i *inventory) Add(key string, device Device) error {
 
 		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, key, pt.OpenConfig()))
 
-		// Watch for provider errors in the provider errgroup and
-		// propagate them up to the inventory errgroup.
-		i.group.Go(func() error {
-			return dc.handleErrors()
-		})
-
 		// Start the providers.
 		dc.providerGroup.Go(func() error {
 			return p.Run(dc.ctx)
 		})
 	}
+
+	// Watch for provider errors in the provider errgroup and
+	// propagate them up to the inventory errgroup.
+	i.group.Go(func() error {
+		return dc.handleErrors()
+	})
 
 	// Send periodic updates of device-level metadata.
 	i.group.Go(func() error {

@@ -342,6 +342,8 @@ func (s *Snmp) Alive() (bool, error) {
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}
