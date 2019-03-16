@@ -18,9 +18,6 @@ GOARCH ?= 386
 
 all: install
 
-# XXX TODO: This is a change to test the cloudvision-go-to-github Jenkins job.
-# It should be removed ASAP.
-
 install:
 	$(GO) install ./...
 
