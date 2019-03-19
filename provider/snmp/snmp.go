@@ -601,10 +601,10 @@ func macFromBytes(s []byte) string {
 	return net.HardwareAddr(s).String()
 }
 
-var subtypeMacAddress = openconfig.LLDPChassisIDType(4)
+var chassisIDSubtypeMacAddress = openconfig.LLDPChassisIDType(4)
 
 func chassisID(b []byte, subtype string) string {
-	if subtype == subtypeMacAddress {
+	if subtype == chassisIDSubtypeMacAddress {
 		return macFromBytes(b)
 	}
 	return string(b)
@@ -612,6 +612,15 @@ func chassisID(b []byte, subtype string) string {
 
 func (s *Snmp) locChassisID(b []byte) string {
 	return chassisID(b, s.lldpLocChassisIDSubtype)
+}
+
+var portIDSubtypeMacAddress = openconfig.LLDPPortIDType(3)
+
+func portID(b []byte, subtype string) string {
+	if subtype == portIDSubtypeMacAddress {
+		return macFromBytes(b)
+	}
+	return string(b)
 }
 
 type remoteKey struct{ intfName, remoteID string }
@@ -624,6 +633,9 @@ type lldpSeen struct {
 	// Which intfName/remoteID pairs we've already seen in the round,
 	// and their associated lldpChassisIdSubtypes.
 	remoteID map[remoteKey]string
+
+	// intfName/remoteID -> lldpRemPortIdSubtype
+	remotePortID map[remoteKey]string
 
 	// The OID from which we pulled interface names matching ifDescr.
 	intfOid string
@@ -723,11 +735,15 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 		u = update(pgnmi.LldpIntfCountersPath(intfName, "tlv-unknown"),
 			uintval(pdu.Value))
 	case snmpLldpRemPortID, snmpLldpV2RemPortID:
+		subtype := seen.remotePortID[remoteKey{intfName, remoteID}]
+		v := portID(pdu.Value.([]byte), subtype)
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id"),
-			strval(pdu.Value))
+			strval(v))
 	case snmpLldpRemPortIDSubtype, snmpLldpV2RemPortIDSubtype:
+		v := openconfig.LLDPPortIDType(pdu.Value.(int))
+		seen.remotePortID[remoteKey{intfName, remoteID}] = v
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id-type"),
-			strval(openconfig.LLDPPortIDType(pdu.Value.(int))))
+			strval(v))
 	case snmpLldpRemChassisID, snmpLldpV2RemChassisID:
 		subtype := seen.remoteID[remoteKey{intfName, remoteID}]
 		v := chassisID(pdu.Value.([]byte), subtype)
@@ -768,8 +784,9 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	}
 
 	seen := &lldpSeen{
-		locPortID: make(map[string]string),
-		remoteID:  make(map[remoteKey]string),
+		locPortID:    make(map[string]string),
+		remoteID:     make(map[remoteKey]string),
+		remotePortID: make(map[remoteKey]string),
 	}
 
 	setReq := new(gnmi.SetRequest)
