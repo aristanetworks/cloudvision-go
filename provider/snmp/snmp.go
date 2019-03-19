@@ -5,6 +5,7 @@
 package snmp
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -133,13 +134,16 @@ func strval(s interface{}) *gnmi.TypedValue {
 		}
 		return pgnmi.Strval(t)
 	case []byte:
+		// Remove null characters and newlines to keep the JSON
+		// unmarshaler happy. We may want to sanitize these more
+		// thoroughly.
+		t = bytes.Replace(t, []byte{'\n'}, []byte{' '}, -1)
+		t = bytes.Replace(t, []byte{'\x00'}, []byte{}, -1)
 		str := string(t)
 		if str == "" {
 			return nil
 		}
-		// Remove newlines. OpenConfig will reject multiline strings.
-		ss := strings.Replace(str, "\n", " ", -1)
-		return pgnmi.Strval(ss)
+		return pgnmi.Strval(str)
 	default:
 		glog.Fatalf("Unexpected type in strval: %T", s)
 	}
