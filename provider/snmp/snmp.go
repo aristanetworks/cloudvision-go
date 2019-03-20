@@ -8,8 +8,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"net"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -208,11 +210,14 @@ func (s *Snmp) snmpNetworkInit() error {
 }
 
 func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
+	glog.V(3).Infof("Device %s: get (OID = %s)", s.deviceID, oid)
 	if s.getter == nil {
 		return nil, errors.New("SNMP getter not set")
 	}
 
 	pkt, err := s.getter([]string{oid})
+	glog.V(3).Infof("Device %s: get complete (OID = %s): pkt = %v, err = %v",
+		s.deviceID, oid, pkt, err)
 	if err != nil {
 		return nil, err
 	}
@@ -254,6 +259,7 @@ func (s *Snmp) getString(oid string) (string, error) {
 }
 
 func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
+	glog.V(3).Infof("Device %s: walk (OID = %s)", s.deviceID, rootOid)
 	if s.walker == nil {
 		return errors.New("SNMP walker not set")
 	}
@@ -262,6 +268,7 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 	if err != nil {
 		return err
 	}
+	glog.V(3).Infof("Device %s: walk complete (OID = %s)", s.deviceID, rootOid)
 	s.lastAlive = time.Now()
 	return err
 }
@@ -276,6 +283,7 @@ func (s *Snmp) getSerialNumber() (string, error) {
 
 	// Get the serial number corresponding to the index whose class
 	// type is chassis(3).
+	glog.V(9).Infof("Device %s: getSerialNumber", s.deviceID)
 	entPhysicalWalk := func(data gosnmp.SnmpPDU) error {
 		// If we're finished, throw a pseudo-error to indicate to the
 		// walker that no more walking is required.
@@ -315,10 +323,12 @@ func (s *Snmp) getSerialNumber() (string, error) {
 			return "", err
 		}
 	}
+	glog.V(9).Infof("Device %s: getSerialNumber complete (serial = %v)", s.deviceID, serial)
 	return serial, nil
 }
 
 func (s *Snmp) getChassisID() (string, error) {
+	glog.V(9).Infof("Device %s: getChassisID", s.deviceID)
 	pdu, err := s.getFirstPDU(snmpLldpLocChassisIDSubtype)
 	if err != nil || !oidExists(*pdu) {
 		return "", err
@@ -329,11 +339,14 @@ func (s *Snmp) getChassisID() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	glog.V(9).Infof("Device %s: getChassisID (chassisID = %v)",
+		s.deviceID, chassisID(pkt.Value.([]byte), subtype))
 	return chassisID(pkt.Value.([]byte), subtype), nil
 }
 
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
+	glog.V(9).Info("Snmp.DeviceID")
 	if err := s.snmpNetworkInit(); err != nil {
 		return "", fmt.Errorf("Error connecting to device: %v", err)
 	}
@@ -364,6 +377,7 @@ func (s *Snmp) DeviceID() (string, error) {
 
 // Alive checks if device is still alive if poll interval has passed.
 func (s *Snmp) Alive() (bool, error) {
+	glog.V(3).Infof("Device %s: Alive", s.deviceID)
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}
@@ -391,6 +405,8 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
 	baseOid, index, err := oidSplitEnd(pdu.Name)
+	glog.V(9).Infof("Device %s: handleInterfacePDU (OID = %s)",
+		s.deviceID, pdu.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -484,8 +500,8 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 	// interfaceIndex is a map of SNMP interface index -> name for this poll.
 	interfaceIndex := make(map[string]string)
-
 	s.lock.Lock()
+	glog.V(9).Infof("Device %s: updateInterfaces", s.deviceID)
 	// Clear interfaceName map for each new poll. It should be
 	// protected by the lock, because updateLldp needs it, too. :(
 	s.interfaceName = make(map[string]bool)
@@ -507,13 +523,21 @@ func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 		return nil, err
 	}
 
+	glog.V(9).Infof("Device %s: updateInterfaces finished ifTable",
+		s.deviceID)
+
 	// ifXTable
 	if err := s.walk(snmpIfXTable, intfWalk); err != nil {
 		return nil, err
 	}
 
+	glog.V(9).Infof("Device %s: updateInterfaces finished ifXTable",
+		s.deviceID)
+
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("interfaces", "interface")}
 	setReq.Replace = updates
+	glog.V(9).Infof("Device %s: updateInterfaces produced %d updates",
+		s.deviceID, len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -528,6 +552,7 @@ func splitSysName(sysName string) (string, string) {
 func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	glog.V(9).Infof("Device %s: updateSystemState", s.deviceID)
 	setReq := new(gnmi.SetRequest)
 	sysName, err := s.getString(snmpSysName)
 	if err != nil || sysName == "" {
@@ -554,6 +579,9 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 				strval(domainName)))
 	}
 	setReq.Replace = upd
+
+	glog.V(9).Infof("Device %s: updateSystemState produced %d updates",
+		s.deviceID, len(upd))
 
 	return []*gnmi.SetRequest{setReq}, nil
 }
@@ -676,6 +704,8 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 	if err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: handleLldpPDU (OID = %s)",
+		s.deviceID, pdu.Name)
 
 	// If we haven't yet seen this local interface, add it to our list.
 	intfName := ""
@@ -799,6 +829,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	glog.V(9).Infof("Device %s: updateLldp", s.deviceID)
 
 	// Unset local chassis ID subtype.
 	s.lldpLocChassisIDSubtype = ""
@@ -834,6 +865,8 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(locSysData, updater); err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: updateLldp finished lldpLocalSystemData",
+		s.deviceID)
 	// XXX NOTE: Ultimately we'll want to add a proper mechanism for discovering which
 	// MIBs the target device supports. Here we could just request lldpV2LocSysName
 	// to see if the device supports V2. But for now just try a different version
@@ -846,13 +879,19 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(remTable, updater); err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: updateLldp finished lldpRemoteSystemsData",
+		s.deviceID)
 
 	if err := s.walk(statsRoot, updater); err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: updateLldp finished lldpStatistics",
+		s.deviceID)
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("lldp")}
 	setReq.Replace = updates
+	glog.V(9).Infof("Device %s: updateLldp produced %d updates",
+		s.deviceID, len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -877,6 +916,8 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 	if err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: handleEntityMibPDU (OID = %s)",
+		s.deviceID, pdu.Name)
 
 	updates := make([]*gnmi.Update, 0)
 	if _, ok := entityIndexMap[index]; !ok {
@@ -948,6 +989,7 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	glog.V(9).Infof("Device %s: updatePlatform", s.deviceID)
 
 	entityIndexMap := make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
@@ -965,9 +1007,13 @@ func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(snmpEntPhysicalTable, updater); err != nil {
 		return nil, err
 	}
+	glog.V(9).Infof("Device %s: updatePlatform finished entPhysicalTable",
+		s.deviceID)
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("components")}
 	setReq.Replace = updates
+	glog.V(9).Infof("Device %s: updatePlatform produced %d updates",
+		s.deviceID, len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -986,7 +1032,8 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			glog.V(2).Infof("SNMP provider for device %v is finished", s.deviceID)
+			glog.Infof("SNMP provider for device %v is finished",
+				s.deviceID)
 			return
 		case err := <-s.errc:
 			// XXX NOTE: We should probably return for some errors.
@@ -1004,10 +1051,12 @@ func (s *Snmp) Run(ctx context.Context) error {
 	if s.client == nil {
 		return errors.New("Run called before InitGNMI")
 	}
+	glog.V(3).Infof("Device %s: Run", s.deviceID)
 
 	if err := s.snmpNetworkInit(); err != nil {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
+	glog.V(3).Infof("Device %s: gosnmp.Connect complete", s.deviceID)
 
 	// Do periodic state updates.
 	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
@@ -1028,7 +1077,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration, mock bool) provider.GNMIProvider {
+	pollInt time.Duration, verbose bool, mock bool) provider.GNMIProvider {
 	gsnmp := &gosnmp.GoSNMP{
 		Port:               161,
 		Version:            gosnmp.Version2c,
@@ -1038,7 +1087,13 @@ func NewSNMPProvider(address string, community string,
 		Target:             address,
 		Community:          community,
 		Timeout:            2 * pollInt,
+		Logger:             nil,
+		MaxRepetitions:     12,
 	}
+	if verbose {
+		gsnmp.Logger = log.New(os.Stdout, "", 0)
+	}
+
 	s := &Snmp{
 		gsnmp:         gsnmp,
 		errc:          make(chan error),

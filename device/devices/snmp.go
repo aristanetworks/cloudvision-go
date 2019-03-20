@@ -30,6 +30,10 @@ func init() {
 			Description: "Polling interval, with unit suffix (s/m/h)",
 			Default:     "20s",
 		},
+		"verbose": device.Option{
+			Description: "Log SNMP operations (true/false)",
+			Default:     "false",
+		},
 	}
 
 	device.Register("snmp", newSnmp, options)
@@ -40,6 +44,7 @@ type snmp struct {
 	community    string
 	pollInterval time.Duration
 	systemID     string
+	verbose      bool
 	snmpProvider provider.GNMIProvider
 }
 
@@ -95,8 +100,13 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, err
 	}
 
+	s.verbose, err = device.GetBoolOption("verbose", options)
+	if err != nil {
+		return nil, err
+	}
+
 	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.community,
-		s.pollInterval, false)
+		s.pollInterval, s.verbose, false)
 
 	return s, nil
 }

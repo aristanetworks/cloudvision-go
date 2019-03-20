@@ -246,7 +246,7 @@ func newTestGNMIClient(cancel context.CancelFunc,
 
 func newSNMPProvider(client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
-	p := NewSNMPProvider("whatever", "stuff", 10*time.Millisecond, true)
+	p := NewSNMPProvider("whatever", "stuff", 10*time.Millisecond, false, true)
 
 	// Set up provider with special getter + walker, keeping track of
 	// which poll we're on.
