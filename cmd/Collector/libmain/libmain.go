@@ -17,7 +17,6 @@ import (
 	"github.com/aristanetworks/cloudvision-go/device"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices"  // import all registered devices
 	_ "github.com/aristanetworks/cloudvision-go/device/managers" // import all registered managers
-	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
@@ -25,33 +24,34 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	v    = flag.Bool("version", false, "Print the version number")
+	help = flag.Bool("help", false, "Print program options")
+
+	// Device config
+	deviceName = flag.String("device", "",
+		"Device type (available devices: "+deviceList()+")")
+	deviceOptions = aflag.Map{}
+	managerName   = flag.String("manager", "",
+		"Manager type (available managers: "+managerList()+")")
+	managerOptions   = aflag.Map{}
+	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
+	deviceIDFile     = flag.String("dumpDeviceIDs", "",
+		"Path to output file used to associate device IDs with device configuration")
+
+	// MockCollector config
+	mock        = flag.Bool("mock", false, "Run Collector in mock mode")
+	mockFeature = aflag.Map{}
+	mockTimeout = flag.Duration("mockTimeout", 60*time.Second,
+		"Timeout for checking notifications in mock mode")
+
+	// gNMI server config
+	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
+		"Address of gNMI server")
+)
+
 // Main is the "real" main.
 func Main() {
-	var (
-		v    = flag.Bool("version", false, "Print the version number")
-		help = flag.Bool("help", false, "Print program options")
-
-		// Device config
-		deviceName = flag.String("device", "",
-			"Device type (available devices: "+deviceList()+")")
-		deviceOptions = aflag.Map{}
-		managerName   = flag.String("manager", "",
-			"Manager type (available managers: "+managerList()+")")
-		managerOptions   = aflag.Map{}
-		deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
-		deviceIDFile     = flag.String("dumpDeviceIDs", "",
-			"Path to output file used to associate device IDs with device configuration")
-
-		// MockCollector config
-		mock        = flag.Bool("mock", false, "Run Collector in mock mode")
-		mockFeature = aflag.Map{}
-		mockTimeout = flag.Duration("mockTimeout", 60*time.Second,
-			"Timeout for checking notifications in mock mode")
-
-		// gNMI server config
-		gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
-			"Address of gNMI server")
-	)
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
 			"if present in the Collector output, signifies that the target device supports "+
@@ -82,24 +82,23 @@ func Main() {
 
 	// We're running for real at this point. Check that the config
 	// is sane.
-	validateConfig(*managerName, *deviceName, *deviceConfigFile, *mock, mockFeature)
+	validateConfig()
 
-	// Create inventory.
 	group, ctx := errgroup.WithContext(context.Background())
-	var inventory device.Inventory
-	mockInfo := newMockInfo(mockFeature)
 	if *mock {
-		inventory = device.NewInventory(ctx, group,
-			pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
-	} else {
-		gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
-		if err != nil {
-			glog.Fatal(err)
-		}
-		inventory = device.NewInventory(ctx, group, gnmiClient)
+		runMock(ctx, group)
+		return
 	}
+	runMain(ctx, group)
+}
 
-	// Populate inventory with manager or from configured devices.
+func runMain(ctx context.Context, group *errgroup.Group) {
+	gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
+	if err != nil {
+		glog.Fatal(err)
+	}
+	// Create inventory.
+	inventory := device.NewInventory(ctx, group, gnmiClient)
 	if *managerName != "" {
 		manager, err := device.CreateManager(*managerName, managerOptions)
 		if err != nil {
@@ -113,7 +112,6 @@ func Main() {
 		if err != nil {
 			glog.Fatal(err)
 		}
-		mockInfo.initDevices(devices)
 		for _, info := range devices {
 			err := inventory.Add(info.ID, info.Device)
 			if err != nil {
@@ -137,14 +135,7 @@ func Main() {
 		}
 		errChan <- err
 	}()
-	if *mock {
-		err := mockInfo.waitForUpdates(errChan, *mockTimeout)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	} else {
-		glog.Fatal(<-errChan)
-	}
+	glog.Fatal(<-errChan)
 }
 
 // Return a formatted list of available devices.
@@ -195,30 +186,29 @@ func addHelp(managerName, deviceName string) error {
 	return nil
 }
 
-func validateConfig(managerName, deviceName, deviceConfigFile string,
-	mock bool, mockFeature map[string]string) {
+func validateConfig() {
 	// A device or a device manager must be specified unless we're running with -h
-	if deviceName == "" && managerName == "" && deviceConfigFile == "" {
+	if *deviceName == "" && *managerName == "" && *deviceConfigFile == "" {
 		glog.Fatal("-device, -manager, or -config must be specified.")
 	}
 
-	if deviceName != "" && managerName != "" {
+	if *deviceName != "" && *managerName != "" {
 		glog.Fatal("-device and -manager should not be both specified.")
 	}
 
-	if deviceConfigFile != "" && managerName != "" {
+	if *deviceConfigFile != "" && *managerName != "" {
 		glog.Fatal("-config and -manager should not be both specified.")
 	}
 
-	if deviceConfigFile != "" && deviceName != "" {
+	if *deviceConfigFile != "" && *deviceName != "" {
 		glog.Fatal("-config and -device should not be both specified.")
 	}
 
-	if mock && managerName != "" {
+	if *mock && *managerName != "" {
 		glog.Fatal("-manager should not be specified in mock mode")
 	}
 
-	if !mock && len(mockFeature) > 0 {
+	if !*mock && len(mockFeature) > 0 {
 		glog.Fatal("-mockFeature is only valid in mock mode")
 	}
 }

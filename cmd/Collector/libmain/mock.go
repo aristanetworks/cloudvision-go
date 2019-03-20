@@ -15,9 +15,12 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/fatih/color"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"golang.org/x/sync/errgroup"
 )
 
 type mockInfo struct {
@@ -25,7 +28,6 @@ type mockInfo struct {
 	seenUpdates    map[string]map[string]bool
 	idToInfo       map[string]*device.Info
 	lock           sync.Mutex
-	startTime      time.Time
 	seenAllUpdates chan struct{}
 }
 
@@ -123,8 +125,38 @@ func newMockInfo(featureToPath map[string]string) *mockInfo {
 		featureToPath:  featureToPath,
 		seenUpdates:    map[string]map[string]bool{},
 		lock:           sync.Mutex{},
-		startTime:      time.Now(),
 		seenAllUpdates: make(chan struct{}),
 		idToInfo:       map[string]*device.Info{},
+	}
+}
+
+func runMock(ctx context.Context, group *errgroup.Group) {
+	mockInfo := newMockInfo(mockFeature)
+	inventory := device.NewInventory(ctx, group,
+		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
+	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	mockInfo.initDevices(devices)
+	for _, info := range devices {
+		err := inventory.Add(info.ID, info.Device)
+		if err != nil {
+			glog.Fatalf("Error in inventory.Add(): %v", err)
+		}
+	}
+	glog.V(2).Info("Mock Collector is running")
+	errChan := make(chan error)
+	go func() {
+		// Watch for errors.
+		err := group.Wait()
+		if err == nil {
+			err = errors.New("device routines returned unexpectedly")
+		}
+		errChan <- err
+	}()
+	err = mockInfo.waitForUpdates(errChan, *mockTimeout)
+	if err != nil {
+		glog.Fatal(err)
 	}
 }
