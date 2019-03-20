@@ -126,6 +126,7 @@ func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
 	s.walker = func(oid string, walker gosnmp.WalkFunc) error {
 		return mockwalk(oid, walker, tc.responses)
 	}
+	s.deviceID = ""
 	did, err := s.DeviceID()
 	if err != nil {
 		t.Fatalf("Error in DeviceID: %v", err)

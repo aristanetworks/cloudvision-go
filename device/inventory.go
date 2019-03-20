@@ -60,6 +60,9 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 					ctx := metadata.AppendToOutgoingContext(dc.ctx,
 						deviceLivenessMetadata, "true")
 					dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
+				} else {
+					did, _ := dc.device.DeviceID()
+					glog.V(2).Infof("Device %s is not alive", did)
 				}
 			} else {
 				return err

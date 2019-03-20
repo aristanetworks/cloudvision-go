@@ -181,6 +181,7 @@ type Snmp struct {
 	pollInterval time.Duration
 	lastAlive    time.Time
 	initialized  bool
+	deviceID     string
 
 	// Alternative Walk() and Get() for mock testing.
 	getter func([]string) (*gosnmp.SnmpPacket, error)
@@ -326,13 +327,20 @@ func (s *Snmp) DeviceID() (string, error) {
 	if err := s.snmpNetworkInit(); err != nil {
 		return "", fmt.Errorf("Error connecting to device: %v", err)
 	}
+
+	if s.deviceID != "" {
+		return s.deviceID, nil
+	}
+
 	did, err := s.getSerialNumber()
 	if err == nil && did != "" {
+		s.deviceID = did
 		return did, nil
 	}
 
 	did, err = s.getChassisID()
 	if err == nil && did != "" {
+		s.deviceID = did
 		return did, nil
 	}
 
@@ -340,6 +348,7 @@ func (s *Snmp) DeviceID() (string, error) {
 	// address instead. It's not great but better than nothing.
 	glog.Infof("Failed to retrieve serial number for device '%s'; "+
 		"using address for device ID", s.gsnmp.Target)
+	s.deviceID = s.gsnmp.Target
 	return s.gsnmp.Target, nil
 }
 
@@ -961,6 +970,7 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			glog.V(2).Infof("SNMP provider for device %v is finished", s.deviceID)
 			return
 		case err := <-s.errc:
 			// XXX NOTE: We should probably return for some errors.
@@ -968,7 +978,7 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 			// may fail if it takes place after an interface change that
 			// hasn't yet showed up in an interface poll, since LLDP
 			// interfaces also have to be present in interfaces/interface.
-			glog.Errorf("Failure in gNMI stream: %v", err)
+			glog.Errorf("Failure in SNMP -> gNMI stream for device %v: %v", s.deviceID, err)
 		}
 	}
 }
