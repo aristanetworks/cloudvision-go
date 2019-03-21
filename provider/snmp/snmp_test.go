@@ -191,6 +191,12 @@ var basicIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.3.1000001 = INTEGER: 161
 .1.3.6.1.2.1.2.2.1.3.2001610 = INTEGER: 136
 .1.3.6.1.2.1.2.2.1.3.5000000 = INTEGER: 24
+.1.3.6.1.2.1.2.2.1.4.3001 = INTEGER: 1000
+.1.3.6.1.2.1.2.2.1.4.3002 = INTEGER: 1000
+.1.3.6.1.2.1.2.2.1.4.999011 = INTEGER: 1000
+.1.3.6.1.2.1.2.2.1.4.1000001 = INTEGER: 1000
+.1.3.6.1.2.1.2.2.1.4.2001610 = INTEGER: 1000
+.1.3.6.1.2.1.2.2.1.4.5000000 = INTEGER: 65536
 .1.3.6.1.2.1.2.2.1.6.3001 = STRING: 74:83:ef:f:6b:6d
 .1.3.6.1.2.1.2.2.1.6.3002 = STRING: 74:83:ef:f:6b:6e
 .1.3.6.1.2.1.2.2.1.6.999011 = STRING: 0:1c:73:d6:22:c7
@@ -605,6 +611,12 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.IntfStatePath("Port-Channel1", "type"), strval("ieee8023adLag")),
 					update(pgnmi.IntfStatePath("Vlan1610", "type"), strval("l3ipvlan")),
 					update(pgnmi.IntfStatePath("Loopback0", "type"), strval("softwareLoopback")),
+					update(pgnmi.IntfStatePath("Ethernet3/1", "mtu"), uintval(1000)),
+					update(pgnmi.IntfStatePath("Ethernet3/2", "mtu"), uintval(1000)),
+					update(pgnmi.IntfStatePath("Management1/1", "mtu"), uintval(1000)),
+					update(pgnmi.IntfStatePath("Port-Channel1", "mtu"), uintval(1000)),
+					update(pgnmi.IntfStatePath("Vlan1610", "mtu"), uintval(1000)),
+					update(pgnmi.IntfStatePath("Loopback0", "mtu"), uintval(65535)),
 					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-octets"),
 						uintval(uint(1193032336))),
 					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-octets"),
@@ -929,6 +941,43 @@ func TestDeviceID(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockDeviceID(t, s, tc)
+		})
+	}
+}
+
+type valTestCase struct {
+	name string
+	in   interface{}
+	out  *gnmi.TypedValue
+}
+
+func TestStrval(t *testing.T) {
+	for _, tc := range []valTestCase{
+		{
+			name: "normal string",
+			in:   "normal",
+			out:  pgnmi.Strval("normal"),
+		},
+		{
+			name: "normal bytes",
+			in:   []byte{'n', 'o', 'r', 'm', 'a', 'l'},
+			out:  pgnmi.Strval("normal"),
+		},
+		{
+			name: "bytes with null",
+			in:   []byte{'a', 'b', 0x0, 'c'},
+			out:  pgnmi.Strval("abc"),
+		},
+		{
+			name: "bytes with newline",
+			in:   []byte{'a', 'b', '\n', 'c'},
+			out:  pgnmi.Strval("abc"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if !reflect.DeepEqual(strval(tc.in), tc.out) {
+				t.Fatalf("got: %v, expected: %v", strval(tc.in), tc.out)
+			}
 		})
 	}
 }

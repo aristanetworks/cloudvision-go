@@ -5,10 +5,10 @@
 package snmp
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"strings"
 	"sync"
@@ -126,6 +126,21 @@ func appendUpdates(base []*gnmi.Update, updates ...*gnmi.Update) []*gnmi.Update 
 	return base
 }
 
+// Remove all but ASCII characters 32-126 to keep the JSON
+// unmarshaler happy.
+func bytesToSanitizedString(b []byte) string {
+	out := make([]byte, len(b))
+	j := 0
+	for i := 0; i < len(b); i++ {
+		if b[i] < 32 || b[i] > 126 {
+			continue
+		}
+		out[j] = b[i]
+		j++
+	}
+	return string(out[:j])
+}
+
 func strval(s interface{}) *gnmi.TypedValue {
 	switch t := s.(type) {
 	case string:
@@ -134,12 +149,7 @@ func strval(s interface{}) *gnmi.TypedValue {
 		}
 		return pgnmi.Strval(t)
 	case []byte:
-		// Remove null characters and newlines to keep the JSON
-		// unmarshaler happy. We may want to sanitize these more
-		// thoroughly.
-		t = bytes.Replace(t, []byte{'\n'}, []byte{' '}, -1)
-		t = bytes.Replace(t, []byte{'\x00'}, []byte{}, -1)
-		str := string(t)
+		str := string(bytesToSanitizedString(t))
 		if str == "" {
 			return nil
 		}
@@ -402,8 +412,14 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 		u = update(pgnmi.IntfStatePath(intfName, "type"),
 			strval(openconfig.InterfaceType(pdu.Value.(int))))
 	case snmpIfMtu:
-		u = update(pgnmi.IntfStatePath(intfName, "mtu"),
-			uintval(pdu.Value))
+		v, err := provider.ToUint64(pdu.Value)
+		if err != nil {
+			return nil, nil
+		}
+		if v > math.MaxUint16 {
+			v = math.MaxUint16
+		}
+		u = update(pgnmi.IntfStatePath(intfName, "mtu"), uintval(v))
 	case snmpIfAdminStatus:
 		u = update(pgnmi.IntfStatePath(intfName, "admin-status"),
 			strval(openconfig.IntfAdminStatus(pdu.Value.(int))))
