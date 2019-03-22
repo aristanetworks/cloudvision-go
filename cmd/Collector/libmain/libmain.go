@@ -36,7 +36,7 @@ var (
 		"Manager type (available managers: "+managerList()+")")
 	managerOptions   = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
-	deviceIDFile     = flag.String("dumpDeviceIDs", "",
+	deviceIDFile     = flag.String("dumpDeviceIDFile", "",
 		"Path to output file used to associate device IDs with device configuration")
 
 	// MockCollector config
@@ -44,6 +44,12 @@ var (
 	mockFeature = aflag.Map{}
 	mockTimeout = flag.Duration("mockTimeout", 60*time.Second,
 		"Timeout for checking notifications in mock mode")
+
+	// Dump Collector config
+	dump        = flag.Bool("dump", false, "Run Collector in dump mode")
+	dumpFile    = flag.String("dumpFile", "", "Path to output file used to dump gNMI SetRequests")
+	dumpTimeout = flag.Duration("dumpTimeout", 20*time.Second,
+		"Timeout for dumping gNMI SetRequests")
 
 	// gNMI server config
 	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
@@ -87,6 +93,10 @@ func Main() {
 	group, ctx := errgroup.WithContext(context.Background())
 	if *mock {
 		runMock(ctx, group)
+		return
+	}
+	if *dump {
+		runDump(ctx, group)
 		return
 	}
 	runMain(ctx, group)
@@ -210,5 +220,13 @@ func validateConfig() {
 
 	if !*mock && len(mockFeature) > 0 {
 		glog.Fatal("-mockFeature is only valid in mock mode")
+	}
+
+	if *mock && *dump {
+		glog.Fatal("-mock and -dump should not be both specified")
+	}
+
+	if *dump && *dumpFile == "" {
+		glog.Fatal("-dumpFile must be specified in dump mode")
 	}
 }
