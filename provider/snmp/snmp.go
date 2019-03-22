@@ -187,8 +187,11 @@ type Snmp struct {
 	gsnmp *gosnmp.GoSNMP // gosnmp object
 	mock  bool           // if true, don't do any network init
 
-	// gosnmp can't handle parallel gets.
-	lock sync.Mutex
+	// Lock for synchronizing access to state produced by SNMP polls.
+	providerLock sync.Mutex
+	// gosnmp can't handle parallel gets, so we also need to lock
+	// access to its connection object.
+	connectionLock sync.Mutex
 
 	pollInterval time.Duration
 	lastAlive    time.Time
@@ -204,8 +207,12 @@ func (s *Snmp) snmpNetworkInit() error {
 	if s.initialized || s.mock {
 		return nil
 	}
+
+	s.connectionLock.Lock()
+	defer s.connectionLock.Unlock()
 	err := s.gsnmp.Connect()
-	s.initialized = err != nil
+
+	s.initialized = err == nil
 	return err
 }
 
@@ -215,6 +222,8 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 		return nil, errors.New("SNMP getter not set")
 	}
 
+	s.connectionLock.Lock()
+	defer s.connectionLock.Unlock()
 	pkt, err := s.getter([]string{oid})
 	glog.V(3).Infof("Device %s: get complete (OID = %s): pkt = %v, err = %v",
 		s.deviceID, oid, pkt, err)
@@ -264,6 +273,8 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 		return errors.New("SNMP walker not set")
 	}
 
+	s.connectionLock.Lock()
+	defer s.connectionLock.Unlock()
 	err := s.walker(rootOid, walkFn)
 	if err != nil {
 		return err
@@ -381,8 +392,6 @@ func (s *Snmp) Alive() (bool, error) {
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}
@@ -500,12 +509,12 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 	// interfaceIndex is a map of SNMP interface index -> name for this poll.
 	interfaceIndex := make(map[string]string)
-	s.lock.Lock()
+	s.providerLock.Lock()
+	defer s.providerLock.Unlock()
 	glog.V(9).Infof("Device %s: updateInterfaces", s.deviceID)
 	// Clear interfaceName map for each new poll. It should be
 	// protected by the lock, because updateLldp needs it, too. :(
 	s.interfaceName = make(map[string]bool)
-	defer s.lock.Unlock()
 
 	setReq := new(gnmi.SetRequest)
 	updates := make([]*gnmi.Update, 0)
@@ -550,8 +559,8 @@ func splitSysName(sysName string) (string, string) {
 }
 
 func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.providerLock.Lock()
+	defer s.providerLock.Unlock()
 	glog.V(9).Infof("Device %s: updateSystemState", s.deviceID)
 	setReq := new(gnmi.SetRequest)
 	sysName, err := s.getString(snmpSysName)
@@ -827,8 +836,8 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 }
 
 func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.providerLock.Lock()
+	defer s.providerLock.Unlock()
 	glog.V(9).Infof("Device %s: updateLldp", s.deviceID)
 
 	// Unset local chassis ID subtype.
@@ -987,8 +996,8 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 }
 
 func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.providerLock.Lock()
+	defer s.providerLock.Unlock()
 	glog.V(9).Infof("Device %s: updatePlatform", s.deviceID)
 
 	entityIndexMap := make(map[string]bool)
