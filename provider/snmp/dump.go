@@ -33,15 +33,17 @@ import (
 
 // SNMP PDU types of interest.
 const (
-	octstr            = gosnmp.OctetString
-	counter           = gosnmp.Counter32
-	integer           = gosnmp.Integer
-	octstrTypeString  = "STRING"
-	hexstrTypeString  = "Hex-STRING"
-	integerTypeString = "INTEGER"
-	counterTypeString = "Counter32"
-	getString         = "GET"
-	walkString        = "WALK"
+	octstr              = gosnmp.OctetString
+	counter             = gosnmp.Counter32
+	counter64           = gosnmp.Counter64
+	integer             = gosnmp.Integer
+	octstrTypeString    = "STRING"
+	hexstrTypeString    = "Hex-STRING"
+	integerTypeString   = "INTEGER"
+	counterTypeString   = "Counter32"
+	counter64TypeString = "Counter64"
+	getString           = "GET"
+	walkString          = "WALK"
 )
 
 // PDU creation wrapper.
@@ -102,6 +104,10 @@ func pduFromString(s string) *gosnmp.SnmpPDU {
 		pduType = counter
 		v, _ := strconv.ParseUint(val, 10, 32)
 		value = uint(v)
+	case counter64TypeString:
+		pduType = counter64
+		v, _ := strconv.ParseUint(val, 10, 64)
+		value = uint64(v)
 	default:
 		return nil
 	}

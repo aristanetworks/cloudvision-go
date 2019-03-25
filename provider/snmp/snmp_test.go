@@ -218,12 +218,12 @@ var basicIfXTableResponse = `
 .1.3.6.1.2.1.31.1.1.1.1.1000001 = STRING: Port-Channel1
 .1.3.6.1.2.1.31.1.1.1.1.2001610 = STRING: Vlan1610
 .1.3.6.1.2.1.31.1.1.1.1.5000000 = STRING: Loopback0
-.1.3.6.1.2.1.31.1.1.1.4.3001 = Counter32: 1303028
-.1.3.6.1.2.1.31.1.1.1.4.3002 = Counter32: 5498034
-.1.3.6.1.2.1.31.1.1.1.4.999011 = Counter32: 210209
-.1.3.6.1.2.1.31.1.1.1.4.1000001 = Counter32: 17708654
-.1.3.6.1.2.1.31.1.1.1.4.2001610 = Counter32: 0
-.1.3.6.1.2.1.31.1.1.1.4.5000000 = Counter32: 0
+.1.3.6.1.2.1.31.1.1.1.12.3001 = Counter64: 1303028
+.1.3.6.1.2.1.31.1.1.1.12.3002 = Counter64: 5498034
+.1.3.6.1.2.1.31.1.1.1.12.999011 = Counter64: 210209
+.1.3.6.1.2.1.31.1.1.1.12.1000001 = Counter64: 17708654
+.1.3.6.1.2.1.31.1.1.1.12.2001610 = Counter64: 0
+.1.3.6.1.2.1.31.1.1.1.12.5000000 = Counter64: 0
 `
 
 var basicLldpLocalSystemDataResponse = `
@@ -483,6 +483,30 @@ var entPhysSerialNumDefaultResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.100002106 = STRING: JPE13351729
 .1.3.6.1.2.1.47.1.1.1.1.11.100002151 = STRING: JPE15253426
 .1.3.6.1.2.1.47.1.1.1.1.11.100002152 = STRING: JPE15253614
+`
+
+var ifTable64BitResponse = `
+.1.3.6.1.2.1.2.2.1.1.3001 = INTEGER: 3001
+.1.3.6.1.2.1.2.2.1.1.3002 = INTEGER: 3002
+.1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
+.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
+.1.3.6.1.2.1.2.2.1.3.3001 = INTEGER: 6
+.1.3.6.1.2.1.2.2.1.3.3002 = INTEGER: 6
+.1.3.6.1.2.1.2.2.1.10.3001 = Counter32: 103001
+.1.3.6.1.2.1.2.2.1.10.3002 = Counter32: 103002
+`
+
+var ifXTable64BitResponse = `
+.1.3.6.1.2.1.31.1.1.1.1.3001 = STRING: Ethernet3/1
+.1.3.6.1.2.1.31.1.1.1.1.3002 = STRING: Ethernet3/2
+.1.3.6.1.2.1.31.1.1.1.4.3001 = Counter32: 43001
+.1.3.6.1.2.1.31.1.1.1.4.3002 = Counter32: 43002
+.1.3.6.1.2.1.31.1.1.1.6.3001 = Counter64: 103001
+.1.3.6.1.2.1.31.1.1.1.6.3002 = Counter64: 103002
+.1.3.6.1.2.1.31.1.1.1.8.3001 = Counter64: 83001
+.1.3.6.1.2.1.31.1.1.1.8.3002 = Counter64: 83002
+.1.3.6.1.2.1.31.1.1.1.10.3001 = Counter64: 103001
+.1.3.6.1.2.1.31.1.1.1.10.3002 = Counter64: 103002
 `
 
 func TestSnmp(t *testing.T) {
@@ -941,6 +965,89 @@ func TestDeviceID(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockDeviceID(t, s, tc)
+		})
+	}
+}
+
+func TestIfTable64Bit(t *testing.T) {
+	s := &Snmp{
+		errc:          make(chan error),
+		interfaceName: make(map[string]bool),
+	}
+	for _, tc := range []pollTestCase{
+		{
+			name:   "updateInterfaces64BitFirstPoll",
+			pollFn: s.updateInterfaces,
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpIfTable:  pdusFromString(ifTable64BitResponse),
+				snmpIfXTable: pdusFromString(ifXTable64BitResponse),
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfConfigPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfStatePath("Ethernet3/1", "type"), strval("ethernetCsmacd")),
+					update(pgnmi.IntfStatePath("Ethernet3/2", "type"), strval("ethernetCsmacd")),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-octets"),
+						uintval(uint(103001))),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-octets"),
+						uintval(uint(103002))),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-octets"),
+						uintval(103001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-octets"),
+						uintval(103002)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-multicast-pkts"),
+						uintval(83001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-multicast-pkts"),
+						uintval(83002)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "out-octets"),
+						uintval(103001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "out-octets"),
+						uintval(103002)),
+				},
+			},
+		},
+		{
+			name:   "updateInterfaces64BitSecondPoll",
+			pollFn: s.updateInterfaces,
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpIfTable:  pdusFromString(ifTable64BitResponse),
+				snmpIfXTable: pdusFromString(ifXTable64BitResponse),
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfConfigPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+					update(pgnmi.IntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+					update(pgnmi.IntfStatePath("Ethernet3/1", "type"), strval("ethernetCsmacd")),
+					update(pgnmi.IntfStatePath("Ethernet3/2", "type"), strval("ethernetCsmacd")),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-octets"),
+						uintval(103001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-octets"),
+						uintval(103002)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "in-multicast-pkts"),
+						uintval(83001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "in-multicast-pkts"),
+						uintval(83002)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/1", "out-octets"),
+						uintval(103001)),
+					update(pgnmi.IntfStateCountersPath("Ethernet3/2", "out-octets"),
+						uintval(103002)),
+				},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockPoll(t, s, tc)
 		})
 	}
 }

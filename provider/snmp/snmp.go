@@ -37,19 +37,24 @@ const (
 	snmpIfDescr                        = ".1.3.6.1.2.1.2.2.1.2"
 	snmpIfType                         = ".1.3.6.1.2.1.2.2.1.3"
 	snmpIfMtu                          = ".1.3.6.1.2.1.2.2.1.4"
+	snmpIfName                         = ".1.3.6.1.2.1.31.1.1.1.1"
 	snmpIfAdminStatus                  = ".1.3.6.1.2.1.2.2.1.7"
-	snmpIfInBroadcastPkts              = ".1.3.6.1.2.1.31.1.1.1.3"
+	snmpIfHCInOctets                   = ".1.3.6.1.2.1.31.1.1.1.6"
+	snmpIfHCInBroadcastPkts            = ".1.3.6.1.2.1.31.1.1.1.9"
+	snmpIfHCInMulticastPkts            = ".1.3.6.1.2.1.31.1.1.1.8"
+	snmpIfHCInUcastPkts                = ".1.3.6.1.2.1.31.1.1.1.7"
+	snmpIfHCOutOctets                  = ".1.3.6.1.2.1.31.1.1.1.10"
+	snmpIfHCOutUcastPkts               = ".1.3.6.1.2.1.31.1.1.1.11"
+	snmpIfHCOutBroadcastPkts           = ".1.3.6.1.2.1.31.1.1.1.13"
+	snmpIfHCOutMulticastPkts           = ".1.3.6.1.2.1.31.1.1.1.12"
 	snmpIfInDiscards                   = ".1.3.6.1.2.1.2.2.1.13"
 	snmpIfInErrors                     = ".1.3.6.1.2.1.2.2.1.14"
-	snmpIfInMulticastPkts              = ".1.3.6.1.2.1.31.1.1.1.2"
 	snmpIfInOctets                     = ".1.3.6.1.2.1.2.2.1.10"
 	snmpIfInUcastPkts                  = ".1.3.6.1.2.1.2.2.1.11"
 	snmpIfInUnknownProtos              = ".1.3.6.1.2.1.2.2.1.15"
 	snmpIfOperStatus                   = ".1.3.6.1.2.1.2.2.1.8"
-	snmpIfOutBroadcastPkts             = ".1.3.6.1.2.1.31.1.1.1.5"
 	snmpIfOutDiscards                  = ".1.3.6.1.2.1.2.2.1.19"
 	snmpIfOutErrors                    = ".1.3.6.1.2.1.2.2.1.20"
-	snmpIfOutMulticastPkts             = ".1.3.6.1.2.1.31.1.1.1.4"
 	snmpIfOutOctets                    = ".1.3.6.1.2.1.2.2.1.16"
 	snmpIfOutUcastPkts                 = ".1.3.6.1.2.1.2.2.1.17"
 	snmpIfXTable                       = ".1.3.6.1.2.1.31.1.1"
@@ -178,6 +183,9 @@ type Snmp struct {
 	// It's used so that we don't include inactive interfaces we see in
 	// snmpLldpLocPortTable.
 	interfaceName map[string]bool
+
+	// Whether the device implements ifXTable.
+	ifX bool
 
 	// lldpV2 indicates whether to use LLDP-V2-MIB.
 	lldpV2 bool
@@ -445,6 +453,8 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 			v = math.MaxUint16
 		}
 		u = update(pgnmi.IntfStatePath(intfName, "mtu"), uintval(v))
+	case snmpIfName:
+		s.ifX = true
 	case snmpIfAdminStatus:
 		u = update(pgnmi.IntfStatePath(intfName, "admin-status"),
 			strval(openconfig.IntfAdminStatus(pdu.Value.(int))))
@@ -452,16 +462,32 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 		u = update(pgnmi.IntfStatePath(intfName, "oper-status"),
 			strval(openconfig.IntfOperStatus(pdu.Value.(int))))
 	case snmpIfInOctets:
+		if !s.ifX {
+			u = update(pgnmi.IntfStateCountersPath(intfName, "in-octets"),
+				uintval(pdu.Value))
+		}
+	case snmpIfHCInOctets:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-octets"),
 			uintval(pdu.Value))
 	case snmpIfInUcastPkts:
+		if !s.ifX {
+			u = update(pgnmi.IntfStateCountersPath(intfName, "in-unicast-pkts"),
+				uintval(pdu.Value))
+		}
+	case snmpIfHCInUcastPkts:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-unicast-pkts"),
 			uintval(pdu.Value))
-	case snmpIfInMulticastPkts:
+	case snmpIfHCInMulticastPkts:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-multicast-pkts"),
 			uintval(pdu.Value))
-	case snmpIfInBroadcastPkts:
+	case snmpIfHCInBroadcastPkts:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-broadcast-pkts"),
+			uintval(pdu.Value))
+	case snmpIfHCOutMulticastPkts:
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-multicast-pkts"),
+			uintval(pdu.Value))
+	case snmpIfHCOutBroadcastPkts:
+		u = update(pgnmi.IntfStateCountersPath(intfName, "out-broadcast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfInDiscards:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-discards"),
@@ -473,16 +499,20 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 		u = update(pgnmi.IntfStateCountersPath(intfName, "in-unknown-protos"),
 			uintval(pdu.Value))
 	case snmpIfOutOctets:
+		if !s.ifX {
+			u = update(pgnmi.IntfStateCountersPath(intfName, "out-octets"),
+				uintval(pdu.Value))
+		}
+	case snmpIfHCOutOctets:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "out-octets"),
 			uintval(pdu.Value))
 	case snmpIfOutUcastPkts:
+		if !s.ifX {
+			u = update(pgnmi.IntfStateCountersPath(intfName, "out-unicast-pkts"),
+				uintval(pdu.Value))
+		}
+	case snmpIfHCOutUcastPkts:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "out-unicast-pkts"),
-			uintval(pdu.Value))
-	case snmpIfOutMulticastPkts:
-		u = update(pgnmi.IntfStateCountersPath(intfName, "out-multicast-pkts"),
-			uintval(pdu.Value))
-	case snmpIfOutBroadcastPkts:
-		u = update(pgnmi.IntfStateCountersPath(intfName, "out-broadcast-pkts"),
 			uintval(pdu.Value))
 	case snmpIfOutDiscards:
 		u = update(pgnmi.IntfStateCountersPath(intfName, "out-discards"),
@@ -496,7 +526,9 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 	}
 
 	var updates []*gnmi.Update
-	updates = appendUpdates(updates, u)
+	if u != nil {
+		updates = appendUpdates(updates, u)
+	}
 	// When we get a name, add name, config/name, state/name.
 	if baseOid == snmpIfDescr {
 		updates = appendUpdates(updates,
