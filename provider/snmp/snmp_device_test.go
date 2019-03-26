@@ -225,7 +225,7 @@ func testwalk(oid string, walker gosnmp.WalkFunc, wm walkMap) error {
 	}
 	for _, pdu := range pdus {
 		if err := walker(*pdu); err != nil {
-			return fmt.Errorf("walker failed on OID %s: %v", oid, err)
+			return err
 		}
 	}
 	return nil

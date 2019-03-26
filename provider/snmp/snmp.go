@@ -375,13 +375,17 @@ func (s *Snmp) DeviceID() (string, error) {
 	}
 
 	did, err := s.getSerialNumber()
-	if err == nil && did != "" {
+	if err != nil {
+		return did, err
+	} else if did != "" {
 		s.deviceID = did
 		return did, nil
 	}
 
 	did, err = s.getChassisID()
-	if err == nil && did != "" {
+	if err != nil {
+		return did, err
+	} else if did != "" {
 		s.deviceID = did
 		return did, nil
 	}
