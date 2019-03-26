@@ -1131,7 +1131,7 @@ func NewSNMPProvider(address string, community string,
 		MaxOids:            gosnmp.MaxOids,
 		Target:             address,
 		Community:          community,
-		Timeout:            2 * pollInt,
+		Timeout:            time.Duration(2) * time.Second,
 		Logger:             nil,
 		MaxRepetitions:     12,
 	}
