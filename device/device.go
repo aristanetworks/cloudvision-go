@@ -72,7 +72,7 @@ func Create(name string, config map[string]string) (Device, error) {
 	if !ok {
 		return nil, fmt.Errorf("Device '%v' not found", name)
 	}
-	sanitizedConfig, err := sanitizedOptions(registrationInfo.options, config)
+	sanitizedConfig, err := SanitizedOptions(registrationInfo.options, config)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,8 @@ func createDevice(name string, options map[string]string) (*Info, error) {
 	}
 	d, err := Create(name, options)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating device '%v'", config.Device)
+		return nil, fmt.Errorf("Failed creating device '%v': %v",
+			config.Device, err)
 	}
 	did, err := d.DeviceID()
 	if err != nil {

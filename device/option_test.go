@@ -65,7 +65,7 @@ type optionsTestCase struct {
 }
 
 func runOptionsTest(t *testing.T, testCase optionsTestCase) {
-	sanitized, err := sanitizedOptions(testCase.devInfo.options,
+	sanitized, err := SanitizedOptions(testCase.devInfo.options,
 		testCase.config)
 	if testCase.shouldPass && err != nil {
 		t.Fatalf("Error sanitizing options in test %s", testCase.description)

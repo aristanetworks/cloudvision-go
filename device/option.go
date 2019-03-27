@@ -20,11 +20,11 @@ type Option struct {
 	Required    bool
 }
 
-// sanitizedOptions takes the map of device option keys and values
+// SanitizedOptions takes the map of device option keys and values
 // passed in at the command line and checks it against the device
 // or manager's exported list of accepted options, returning an
 // error if there are inappropriate or missing options.
-func sanitizedOptions(options map[string]Option,
+func SanitizedOptions(options map[string]Option,
 	config map[string]string) (map[string]string, error) {
 	sopt := make(map[string]string)
 

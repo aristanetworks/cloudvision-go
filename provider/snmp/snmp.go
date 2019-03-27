@@ -1138,14 +1138,22 @@ func (s *Snmp) Run(ctx context.Context) error {
 	return nil
 }
 
+// V3Params contains options related to SNMPv3.
+type V3Params struct {
+	SecurityModel gosnmp.SnmpV3SecurityModel
+	Level         gosnmp.SnmpV3MsgFlags
+	UsmParams     *gosnmp.UsmSecurityParameters
+}
+
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(address string, community string,
-	pollInt time.Duration, verbose bool, mock bool) provider.GNMIProvider {
+	pollInt time.Duration, version gosnmp.SnmpVersion,
+	v3Params *V3Params, verbose bool, mock bool) provider.GNMIProvider {
 	gsnmp := &gosnmp.GoSNMP{
 		Port:               161,
-		Version:            gosnmp.Version2c,
+		Version:            version,
 		Retries:            3,
 		ExponentialTimeout: true,
 		MaxOids:            gosnmp.MaxOids,
@@ -1157,6 +1165,11 @@ func NewSNMPProvider(address string, community string,
 	}
 	if verbose {
 		gsnmp.Logger = log.New(os.Stdout, "", 0)
+	}
+	if v3Params != nil {
+		gsnmp.MsgFlags = v3Params.Level
+		gsnmp.SecurityModel = v3Params.SecurityModel
+		gsnmp.SecurityParameters = v3Params.UsmParams
 	}
 
 	s := &Snmp{
