@@ -30,10 +30,6 @@ type darwin struct {
 	provider provider.GNMIProvider
 }
 
-func (d *darwin) Type() device.Type {
-	return device.Target
-}
-
 func (d *darwin) Alive() (bool, error) {
 	// Runs on the device itself, so if the method is called, it's alive.
 	return true, nil

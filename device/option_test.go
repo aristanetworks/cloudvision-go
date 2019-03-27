@@ -50,10 +50,6 @@ func (td testDevice) Providers() ([]provider.Provider, error) {
 	return nil, nil
 }
 
-func (td testDevice) Type() Type {
-	return Target
-}
-
 // NewTestDevice returns a dummy device for testing.
 func NewTestDevice(map[string]string) (Device, error) {
 	return testDevice{}, nil

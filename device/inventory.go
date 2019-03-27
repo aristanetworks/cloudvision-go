@@ -47,8 +47,17 @@ type inventory struct {
 func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(time.Second)
 	ctx := metadata.AppendToOutgoingContext(dc.ctx,
-		deviceTypeMetadata, dc.device.Type().String(),
 		collectorVersionMetadata, version.Version)
+	if _, ok := dc.device.(Manager); ok {
+		// ManagementSystem is a system managing other devices which itself
+		// shouldn't be treated as an actual streaming device in CloudVision.
+		ctx = metadata.AppendToOutgoingContext(ctx,
+			deviceTypeMetadata, "managementSystem")
+	} else {
+		// Target is an ordinary device streaming to CloudVision.
+		ctx = metadata.AppendToOutgoingContext(ctx,
+			deviceTypeMetadata, "target")
+	}
 	dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 	for {
 		select {

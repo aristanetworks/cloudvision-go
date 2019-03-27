@@ -14,31 +14,18 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// Type is used to distinguish between target devices and management systems.
-type Type int
-
-const (
-	// Target is an ordinary device streaming to CloudVision.
-	Target Type = 0
-	// ManagementSystem is a system managing other devices which itself
-	// shouldn't be treated an actual streaming device in CloudVision.
-	ManagementSystem Type = 1
-)
-
 // A Device knows how to interact with a specific device.
 type Device interface {
-	Type() Type
 	Alive() (bool, error)
 	DeviceID() (string, error)
 	Providers() ([]provider.Provider, error)
 }
 
-// String converts a device Type enum to its string value.
-func (t Type) String() string {
-	return map[Type]string{
-		Target:           "target",
-		ManagementSystem: "managementSystem",
-	}[t]
+// A Manager manages a device inventory, adding and deleting
+// devices as appropriate.
+type Manager interface {
+	Device
+	Manage(inventory Inventory) error
 }
 
 // Creator returns a new instance of a Device.

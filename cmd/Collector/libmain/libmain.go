@@ -15,8 +15,7 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
-	_ "github.com/aristanetworks/cloudvision-go/device/devices"  // import all registered devices
-	_ "github.com/aristanetworks/cloudvision-go/device/managers" // import all registered managers
+	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
 	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
@@ -31,10 +30,7 @@ var (
 	// Device config
 	deviceName = flag.String("device", "",
 		"Device type (available devices: "+deviceList()+")")
-	deviceOptions = aflag.Map{}
-	managerName   = flag.String("manager", "",
-		"Manager type (available managers: "+managerList()+")")
-	managerOptions   = aflag.Map{}
+	deviceOptions    = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
 	deviceIDFile     = flag.String("dumpDeviceIDFile", "",
 		"Path to output file used to associate device IDs with device configuration")
@@ -64,8 +60,6 @@ func Main() {
 			"the feature described in <feature>")
 	flag.Var(deviceOptions, "deviceoption", "<key>=<value> option for the Device. "+
 		"May be repeated to set multiple Device options.")
-	flag.Var(managerOptions, "manageroption", "<key>=<value> option for the Manager. "+
-		"May be repeated to set multiple Manager options.")
 	flag.BoolVar(help, "h", false, "Print program options")
 
 	flag.Parse()
@@ -76,11 +70,11 @@ func Main() {
 		return
 	}
 
-	// Print help, including device/manager-specific help,
+	// Print help, including device-specific help,
 	// if requested.
 	if *help {
-		if *deviceName != "" || *managerName != "" {
-			addHelp(*managerName, *deviceName)
+		if *deviceName != "" {
+			addHelp()
 		}
 		flag.Usage()
 		return
@@ -109,30 +103,25 @@ func runMain(ctx context.Context, group *errgroup.Group) {
 	}
 	// Create inventory.
 	inventory := device.NewInventory(ctx, group, gnmiClient)
-	if *managerName != "" {
-		manager, err := device.CreateManager(*managerName, managerOptions)
+	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	for _, info := range devices {
+		err := inventory.Add(info.ID, info.Device)
+		if err != nil {
+			glog.Fatalf("Error in inventory.Add(): %v", err)
+		}
+		if manager, ok := info.Device.(device.Manager); ok {
+			group.Go(func() error {
+				return manager.Manage(inventory)
+			})
+		}
+	}
+	if *deviceIDFile != "" {
+		err := device.DumpDeviceIDs(devices, *deviceIDFile)
 		if err != nil {
 			glog.Fatal(err)
-		}
-		group.Go(func() error {
-			return manager.Manage(inventory)
-		})
-	} else {
-		devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
-		if err != nil {
-			glog.Fatal(err)
-		}
-		for _, info := range devices {
-			err := inventory.Add(info.ID, info.Device)
-			if err != nil {
-				glog.Fatalf("Error in inventory.Add(): %v", err)
-			}
-		}
-		if *deviceIDFile != "" {
-			err := device.DumpDeviceIDs(devices, *deviceIDFile)
-			if err != nil {
-				glog.Fatal(err)
-			}
 		}
 	}
 	glog.V(2).Info("Collector is running")
@@ -157,30 +146,8 @@ func deviceList() string {
 	return "none"
 }
 
-// Return a formatted list of available managers.
-func managerList() string {
-	ml := device.RegisteredManagers()
-	if len(ml) > 0 {
-		return strings.Join(ml, ", ")
-	}
-	return "none"
-}
-
-func addHelp(managerName, deviceName string) error {
-	var oh map[string]string
-	var name string
-	var optionType string
-	var err error
-
-	if managerName != "" {
-		name = managerName
-		optionType = "manager"
-		oh, err = device.ManagerOptionHelp(name)
-	} else {
-		name = deviceName
-		optionType = "device"
-		oh, err = device.OptionHelp(name)
-	}
+func addHelp() error {
+	oh, err := device.OptionHelp(*deviceName)
 	if err != nil {
 		return fmt.Errorf("addHelp: %v", err)
 	}
@@ -188,7 +155,7 @@ func addHelp(managerName, deviceName string) error {
 	var formattedOptions string
 	if len(oh) > 0 {
 		b := new(bytes.Buffer)
-		aflag.FormatOptions(b, "Help options for "+optionType+" '"+name+"':", oh)
+		aflag.FormatOptions(b, "Help options for device '"+*deviceName+"':", oh)
 		formattedOptions = b.String()
 	}
 
@@ -197,25 +164,13 @@ func addHelp(managerName, deviceName string) error {
 }
 
 func validateConfig() {
-	// A device or a device manager must be specified unless we're running with -h
-	if *deviceName == "" && *managerName == "" && *deviceConfigFile == "" {
-		glog.Fatal("-device, -manager, or -config must be specified.")
-	}
-
-	if *deviceName != "" && *managerName != "" {
-		glog.Fatal("-device and -manager should not be both specified.")
-	}
-
-	if *deviceConfigFile != "" && *managerName != "" {
-		glog.Fatal("-config and -manager should not be both specified.")
+	// A device or a device config must be specified unless we're running with -h
+	if *deviceName == "" && *deviceConfigFile == "" {
+		glog.Fatal("-device or -config must be specified.")
 	}
 
 	if *deviceConfigFile != "" && *deviceName != "" {
 		glog.Fatal("-config and -device should not be both specified.")
-	}
-
-	if *mock && *managerName != "" {
-		glog.Fatal("-manager should not be specified in mock mode")
 	}
 
 	if !*mock && len(mockFeature) > 0 {
