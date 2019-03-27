@@ -25,8 +25,6 @@ check: vet fmtcheck lint test
 
 jenkins: check
 
-# XXX Useless comment for testing.
-
 fmtcheck:
 	@if ! which $(GOFMT) >/dev/null; then echo Please install $(GOFMT); exit 1; fi
 	goimports=`$(GOFILES) | xargs $(GOFMT) -l 2>&1`; \
