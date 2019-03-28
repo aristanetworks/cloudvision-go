@@ -110,6 +110,15 @@ const (
 	snmpSysUpTime                      = ".1.3.6.1.2.1.1.3.0"
 )
 
+var snmpErrMap = map[gosnmp.SNMPError]string{
+	0: "noError", 1: "tooBig", 2: "noSuchName", 3: "badValue",
+	4: "readOnly", 5: "genErr", 6: "noAccess", 7: "wrongType",
+	8: "wrongLength", 9: "wrongEncoding", 10: "wrongValue",
+	11: "noCreation", 12: "inconsistentValue", 13: "resourceUnavailable",
+	14: "commitFailed", 15: "undoFailed", 16: "authorizationError",
+	17: "notWritable", 18: "inconsistentName",
+}
+
 // Split the final index off an OID and return it along with the remaining OID.
 func oidSplitEnd(oid string) (string, string, error) {
 	finalDotPos := strings.LastIndex(oid, ".")
@@ -238,6 +247,17 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Handle packet errors.
+	if pkt.Error != gosnmp.NoError {
+		errstr, ok := snmpErrMap[pkt.Error]
+		if !ok {
+			errstr = "Unknown error"
+		}
+		return nil, fmt.Errorf("Device %s: Error in packet (%v): %v",
+			s.deviceID, pkt, errstr)
+	}
+
 	s.lastAlive = time.Now()
 
 	return pkt, err
