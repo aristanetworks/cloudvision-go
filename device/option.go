@@ -7,6 +7,7 @@ package device
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -15,6 +16,7 @@ import (
 type Option struct {
 	Description string
 	Default     string
+	Pattern     string
 	Required    bool
 }
 
@@ -28,16 +30,46 @@ func sanitizedOptions(options map[string]Option,
 
 	// Check whether the user gave us bad options.
 	for k, v := range config {
-		_, ok := options[k]
+		o, ok := options[k]
 		if !ok {
 			return nil, fmt.Errorf("Bad option '%s'", k)
+		}
+
+		// Check whether the user's string, if non-empty, matches the
+		// option's defined pattern.
+		if o.Pattern != "" && v != "" {
+			re, err := regexp.Compile(o.Pattern)
+			if err != nil {
+				return nil, err
+			}
+			re.Longest()
+			fs := re.FindString(v)
+			if fs != v {
+				return nil, fmt.Errorf("Value for option '%s' ('%s') does "+
+					"not match regular expression '%s'", k, v, o.Pattern)
+			}
 		}
 		sopt[k] = v
 	}
 
 	// Check that all required options were specified, and fill in
-	// any others with defaults.
+	// any others with defaults. Also check that the defaults are
+	// consistent with the provided patterns.
 	for k, v := range options {
+		if v.Pattern != "" && v.Default != "" {
+			re, err := regexp.Compile(v.Pattern)
+			if err != nil {
+				return nil, err
+			}
+			re.Longest()
+			fs := re.FindString(v.Default)
+			if fs != v.Default {
+				return nil, fmt.Errorf("Default value ('%s') for option "+
+					"'%s' does not match regular expression '%s'",
+					v.Default, k, v.Pattern)
+			}
+		}
+
 		_, found := sopt[k]
 		if v.Required && !found {
 			return nil, fmt.Errorf("Required option '%s' not provided", k)

@@ -9,18 +9,24 @@ import (
 	"testing"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
+	"github.com/pkg/errors"
 )
 
 var testDeviceOptions = map[string]Option{
 	"a": Option{
 		Description: "option a is a required option",
 		Default:     "",
+		Pattern:     "[xyz]{3}",
 		Required:    true,
 	},
 	"b": Option{
 		Description: "option b is not required",
 		Default:     "stuff",
 		Required:    false,
+	},
+	"c": Option{
+		Description: "option c is not required but has a pattern",
+		Pattern:     "[xyz]{3}",
 	},
 }
 
@@ -58,6 +64,7 @@ type optionsTestCase struct {
 	devInfo        registrationInfo
 	config         map[string]string
 	expectedConfig map[string]string
+	expectedError  error
 	shouldPass     bool
 }
 
@@ -70,6 +77,10 @@ func runOptionsTest(t *testing.T, testCase optionsTestCase) {
 	if !testCase.shouldPass && err == nil {
 		t.Fatalf("No error sanitizing options in test %s", testCase.description)
 	} else if !testCase.shouldPass {
+		if testCase.expectedError != nil &&
+			err.Error() != testCase.expectedError.Error() {
+			t.Fatalf("Expected error '%s'; got '%s'", testCase.expectedError, err)
+		}
 		return
 	}
 
@@ -97,6 +108,7 @@ func TestOptions(t *testing.T) {
 			expectedConfig: map[string]string{
 				"a": "xyz",
 				"b": "jkl",
+				"c": "",
 			},
 			shouldPass: true,
 		},
@@ -109,6 +121,7 @@ func TestOptions(t *testing.T) {
 			expectedConfig: map[string]string{
 				"a": "xyz",
 				"b": "stuff",
+				"c": "",
 			},
 			shouldPass: true,
 		},
@@ -116,7 +129,7 @@ func TestOptions(t *testing.T) {
 			description: "extra options",
 			devInfo:     testDeviceInfo,
 			config: map[string]string{
-				"a": "xyz",
+				"a": "zyx",
 				"c": "ghi",
 			},
 			expectedConfig: nil,
@@ -130,6 +143,35 @@ func TestOptions(t *testing.T) {
 			},
 			expectedConfig: nil,
 			shouldPass:     false,
+		},
+		{
+			description: "non-matching option",
+			devInfo:     testDeviceInfo,
+			config: map[string]string{
+				"a": "xxxx",
+			},
+			expectedConfig: nil,
+			expectedError: errors.New("Value for option 'a' ('xxxx') " +
+				"does not match regular expression '[xyz]{3}'"),
+			shouldPass: false,
+		},
+		{
+			description: "default option invalid according to pattern",
+			devInfo: registrationInfo{
+				name:    "test2",
+				creator: NewTestDevice,
+				options: map[string]Option{
+					"a": Option{
+						Description: "option a is not required",
+						Default:     "abc",
+						Pattern:     "[xyz]{3}",
+					},
+				},
+			},
+			config:         map[string]string{},
+			expectedConfig: nil,
+			expectedError: errors.New("Default value ('abc') for option 'a' " +
+				"does not match regular expression '[xyz]{3}'"),
 		},
 	}
 	runOptionsTests(t, testCases)
