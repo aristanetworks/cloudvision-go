@@ -124,9 +124,11 @@ func (i *inventory) Add(key string, device Device) error {
 
 	// Watch for provider errors in the provider errgroup and
 	// propagate them up to the inventory errgroup.
-	i.group.Go(func() error {
-		return dc.handleErrors()
-	})
+	if len(providers) != 0 {
+		i.group.Go(func() error {
+			return dc.handleErrors()
+		})
+	}
 
 	// Send periodic updates of device-level metadata.
 	i.group.Go(func() error {
