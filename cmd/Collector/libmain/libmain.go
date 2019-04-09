@@ -9,6 +9,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
+	"github.com/fsnotify/fsnotify"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -131,6 +133,9 @@ func runMain(ctx context.Context) {
 			glog.Fatal(err)
 		}
 	}
+	group.Go(func() error {
+		return watchConfig(*deviceConfigFile, inventory)
+	})
 	glog.V(2).Info("Collector is running")
 	if err := group.Wait(); err != nil {
 		glog.Fatal(err)
@@ -184,4 +189,52 @@ func validateConfig() {
 	if *dump && *dumpFile == "" {
 		glog.Fatal("-dumpFile must be specified in dump mode")
 	}
+}
+
+func watchConfig(configPath string, inventory device.Inventory) error {
+	if configPath == "" {
+		return nil
+	}
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+	defer watcher.Close()
+	if err != nil {
+		return err
+	}
+	configDir, _ := filepath.Split(configPath)
+	group, ctx := errgroup.WithContext(context.Background())
+	group.Go(func() error {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok { // 'Events' channel is closed
+					return nil
+				}
+				if event.Name == configPath {
+					devices, err := device.CreateDevices("", configPath, nil)
+					if err != nil {
+						glog.Errorf("Error creating devices from watched config: %v", err)
+						continue
+					}
+					err = inventory.Update(devices)
+					if err != nil {
+						glog.Errorf("Error updating inventory from watched config: %v", err)
+						continue
+					}
+				}
+			case err, ok := <-watcher.Errors:
+				if ok { // 'Errors' channel is not closed
+					return fmt.Errorf("Watcher error: %v", err)
+				}
+				return nil
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
+	// we have to watch the entire directory to pick up changes to symlinks
+	watcher.Add(configDir)
+	return group.Wait()
 }

@@ -22,6 +22,7 @@ type Inventory interface {
 	Add(key string, device Device) error
 	Delete(key string) error
 	Get(key string) (Device, bool)
+	Update(devices []*Info) error
 }
 
 // deviceConn contains a device and its gNMI connections.
@@ -159,6 +160,26 @@ func (i *inventory) Get(key string) (Device, bool) {
 		return nil, ok
 	}
 	return d.device, ok
+}
+
+func (i *inventory) Update(devices []*Info) error {
+	idToDevice := map[string]Device{}
+	for _, info := range devices {
+		err := i.Add(info.ID, info.Device)
+		if err != nil {
+			return err
+		}
+		idToDevice[info.ID] = info.Device
+	}
+	for id := range i.devices {
+		if _, ok := idToDevice[id]; !ok {
+			err := i.Delete(id)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // NewInventory creates an Inventory.
