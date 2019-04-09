@@ -20,7 +20,6 @@ import (
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/fatih/color"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"golang.org/x/sync/errgroup"
 )
 
 type mockInfo struct {
@@ -130,10 +129,9 @@ func newMockInfo(featureToPath map[string]string) *mockInfo {
 	}
 }
 
-func runMock(ctx context.Context, group *errgroup.Group) {
+func runMock(ctx context.Context) {
 	mockInfo := newMockInfo(mockFeature)
-	inventory := device.NewInventory(ctx, group,
-		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
+	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
 		glog.Fatal(err)
@@ -147,14 +145,6 @@ func runMock(ctx context.Context, group *errgroup.Group) {
 	}
 	glog.V(2).Info("Mock Collector is running")
 	errChan := make(chan error)
-	go func() {
-		// Watch for errors.
-		err := group.Wait()
-		if err == nil {
-			err = errors.New("device routines returned unexpectedly")
-		}
-		errChan <- err
-	}()
 	err = mockInfo.waitForUpdates(errChan, *mockTimeout)
 	if err != nil {
 		glog.Fatal(err)

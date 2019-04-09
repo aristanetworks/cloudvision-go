@@ -11,15 +11,13 @@ import (
 
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"golang.org/x/sync/errgroup"
 )
 
 func TestInventoryBasic(t *testing.T) {
 	processor := func(ctx context.Context, req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 		return nil, nil
 	}
-	group, ctx := errgroup.WithContext(context.Background())
-	inventory := NewInventory(ctx, group, pgnmi.NewSimpleGNMIClient(processor))
+	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor))
 	expectedDevice := testDevice{}
 	deviceID := "dummy"
 	err := inventory.Add(deviceID, expectedDevice)

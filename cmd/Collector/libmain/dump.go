@@ -6,7 +6,6 @@ package libmain
 
 import (
 	"context"
-	"errors"
 	"os"
 	"reflect"
 	"sync"
@@ -17,7 +16,6 @@ import (
 	"github.com/aristanetworks/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"golang.org/x/sync/errgroup"
 )
 
 type dumpInfo struct {
@@ -69,11 +67,10 @@ func newDumpInfo() *dumpInfo {
 	}
 }
 
-func runDump(ctx context.Context, group *errgroup.Group) {
+func runDump(ctx context.Context) {
 	dumpInfo := newDumpInfo()
 	dumpInfo.doneGroup.Add(1)
-	inventory := device.NewInventory(ctx, group,
-		pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
+	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
 		glog.Fatal(err)
@@ -85,13 +82,5 @@ func runDump(ctx context.Context, group *errgroup.Group) {
 		}
 	}
 	glog.V(2).Info("Dump Collector is running")
-	go func() {
-		// Watch for errors.
-		err := group.Wait()
-		if err == nil {
-			err = errors.New("device routines returned unexpectedly")
-		}
-		glog.Fatal(err)
-	}()
 	dumpInfo.doneGroup.Wait()
 }

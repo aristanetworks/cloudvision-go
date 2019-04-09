@@ -7,7 +7,6 @@ package libmain
 import (
 	"bytes"
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"runtime"
@@ -84,29 +83,30 @@ func Main() {
 	// is sane.
 	validateConfig()
 
-	group, ctx := errgroup.WithContext(context.Background())
 	if *mock {
-		runMock(ctx, group)
+		runMock(context.Background())
 		return
 	}
 	if *dump {
-		runDump(ctx, group)
+		runDump(context.Background())
 		return
 	}
-	runMain(ctx, group)
+	runMain(context.Background())
 }
 
-func runMain(ctx context.Context, group *errgroup.Group) {
+func runMain(ctx context.Context) {
 	gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
 	if err != nil {
 		glog.Fatal(err)
 	}
 	// Create inventory.
-	inventory := device.NewInventory(ctx, group, gnmiClient)
+	inventory := device.NewInventory(ctx, gnmiClient)
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
 		glog.Fatal(err)
 	}
+
+	group, ctx := errgroup.WithContext(ctx)
 	for _, info := range devices {
 		err := inventory.Add(info.ID, info.Device)
 		if err != nil {
@@ -115,6 +115,13 @@ func runMain(ctx context.Context, group *errgroup.Group) {
 		if manager, ok := info.Device.(device.Manager); ok {
 			group.Go(func() error {
 				return manager.Manage(inventory)
+			})
+		} else {
+			group.Go(func() error {
+				select {
+				case <-ctx.Done():
+					return nil
+				}
 			})
 		}
 	}
@@ -125,16 +132,9 @@ func runMain(ctx context.Context, group *errgroup.Group) {
 		}
 	}
 	glog.V(2).Info("Collector is running")
-	errChan := make(chan error)
-	go func() {
-		// Watch for errors.
-		err := group.Wait()
-		if err == nil {
-			err = errors.New("device routines returned unexpectedly")
-		}
-		errChan <- err
-	}()
-	glog.Fatal(<-errChan)
+	if err := group.Wait(); err != nil {
+		glog.Fatal(err)
+	}
 }
 
 // Return a formatted list of available devices.

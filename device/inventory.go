@@ -14,7 +14,6 @@ import (
 	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -32,13 +31,12 @@ type deviceConn struct {
 	cancel            context.CancelFunc
 	rawGNMIClient     gnmi.GNMIClient
 	wrappedGNMIClient *gNMIClientWrapper
-	providerGroup     *errgroup.Group
+	group             sync.WaitGroup
 }
 
 // inventory implements the Inventory interface.
 type inventory struct {
 	ctx           context.Context
-	group         *errgroup.Group
 	rawGNMIClient gnmi.GNMIClient
 	devices       map[string]*deviceConn
 	lock          sync.Mutex
@@ -80,10 +78,6 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	}
 }
 
-func (dc *deviceConn) handleErrors() error {
-	return dc.providerGroup.Wait()
-}
-
 // Add adds a device to the inventory, opens up any gNMI connections
 // required by the device's providers, and then starts its providers.
 func (i *inventory) Add(key string, device Device) error {
@@ -94,9 +88,7 @@ func (i *inventory) Add(key string, device Device) error {
 	}
 
 	dc := &deviceConn{device: device}
-	ctx, cancel := context.WithCancel(i.ctx)
-	dc.providerGroup, dc.ctx = errgroup.WithContext(ctx)
-	dc.cancel = cancel
+	dc.ctx, dc.cancel = context.WithCancel(i.ctx)
 
 	i.devices[key] = dc
 
@@ -117,23 +109,25 @@ func (i *inventory) Add(key string, device Device) error {
 		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, key, pt.OpenConfig()))
 
 		// Start the providers.
-		dc.providerGroup.Go(func() error {
-			return p.Run(dc.ctx)
-		})
-	}
-
-	// Watch for provider errors in the provider errgroup and
-	// propagate them up to the inventory errgroup.
-	if len(providers) != 0 {
-		i.group.Go(func() error {
-			return dc.handleErrors()
-		})
+		dc.group.Add(1)
+		go func(p provider.Provider) {
+			err := p.Run(dc.ctx)
+			if err != nil {
+				glog.Errorf("Device %s provider %T exiting with error %v", key, p, err)
+			}
+			dc.group.Done()
+		}(p)
 	}
 
 	// Send periodic updates of device-level metadata.
-	i.group.Go(func() error {
-		return dc.sendPeriodicUpdates()
-	})
+	dc.group.Add(1)
+	go func() {
+		err := dc.sendPeriodicUpdates()
+		if err != nil {
+			glog.Errorf("Error updating device metadata for device %s: %v", key, err)
+		}
+		dc.group.Done()
+	}()
 
 	glog.V(2).Infof("Added device %s", key)
 	return nil
@@ -148,12 +142,10 @@ func (i *inventory) Delete(key string) error {
 	}
 
 	// Cancel the device context and delete the device from the device
-	// map. We don't have to worry about propagating errors up to the
-	// inventory errgroup, since handleErrors will do that. We just need
-	// to make sure this device's providers are finished before deleting
-	// the device.
+	// map. We need to make sure this device's providers are finished
+	// before deleting the device.
 	dc.cancel()
-	_ = dc.providerGroup.Wait()
+	dc.group.Wait()
 	delete(i.devices, key)
 	glog.V(2).Infof("Deleted device %s", key)
 	return nil
@@ -170,12 +162,10 @@ func (i *inventory) Get(key string) (Device, bool) {
 }
 
 // NewInventory creates an Inventory.
-func NewInventory(ctx context.Context, group *errgroup.Group,
-	gnmiClient gnmi.GNMIClient) Inventory {
+func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient) Inventory {
 	inv := &inventory{
 		ctx:           ctx,
 		devices:       make(map[string]*deviceConn),
-		group:         group,
 		rawGNMIClient: gnmiClient,
 	}
 	return inv
