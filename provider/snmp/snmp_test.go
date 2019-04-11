@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
@@ -55,6 +56,10 @@ func mockget(oids []string,
 	for _, pdu := range r {
 		pkt.Variables = append(pkt.Variables, *pdu)
 	}
+	// If the response map is empty, return a noSuchObject.
+	if len(r) == 0 {
+		pkt.Variables = []gosnmp.SnmpPDU{*pdu(oid, gosnmp.NoSuchObject, nil)}
+	}
 	return pkt, nil
 }
 func mockwalk(oid string, walker gosnmp.WalkFunc,
@@ -80,6 +85,9 @@ func mockPoll(t *testing.T, s *Snmp, tc pollTestCase) {
 	}
 	s.walker = func(oid string, walker gosnmp.WalkFunc) error {
 		return mockwalk(oid, walker, tc.responses)
+	}
+	s.now = func() time.Time {
+		return time.Unix(1554954972, 0)
 	}
 
 	srs, err := tc.pollFn()
@@ -125,6 +133,9 @@ func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
 	}
 	s.walker = func(oid string, walker gosnmp.WalkFunc) error {
 		return mockwalk(oid, walker, tc.responses)
+	}
+	s.now = func() time.Time {
+		return time.Unix(1554954972, 0)
 	}
 	s.deviceID = ""
 	did, err := s.DeviceID()
@@ -522,12 +533,19 @@ func TestSnmp(t *testing.T) {
 				snmpSysName: []*gosnmp.SnmpPDU{
 					pdu(snmpSysName, octstr, []byte("device123.sjc.aristanetworks.com")),
 				},
+				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
+					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
+				},
+				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{
+					pdu(snmpSnmpEngineTime, integer, 1622557),
+				},
 			},
 			expected: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
 					update(pgnmi.Path("system", "state", "hostname"), strval("device123")),
 					update(pgnmi.Path("system", "state", "domain-name"),
 						strval("sjc.aristanetworks.com")),
+					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332415)),
 				},
 			},
 		},
@@ -808,10 +826,36 @@ func TestSnmp(t *testing.T) {
 				snmpSysName: []*gosnmp.SnmpPDU{
 					pdu(snmpSysName, octstr, []byte("deviceABC")),
 				},
+				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
+					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
+				},
+				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{
+					pdu(snmpSnmpEngineTime, integer, 1622557),
+				},
 			},
 			expected: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
 					update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
+					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332415)),
+				},
+			},
+		},
+		{
+			name:   "updateSystemStateUpTimeOnly",
+			pollFn: s.updateSystemState,
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysName: []*gosnmp.SnmpPDU{
+					pdu(snmpSysName, octstr, []byte("deviceABC")),
+				},
+				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
+					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
+				},
+				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{},
+			},
+			expected: &gnmi.SetRequest{
+				Replace: []*gnmi.Update{
+					update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
+					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332356)),
 				},
 			},
 		},

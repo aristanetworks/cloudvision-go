@@ -37,6 +37,7 @@ const (
 	counter             = gosnmp.Counter32
 	counter64           = gosnmp.Counter64
 	integer             = gosnmp.Integer
+	timeticks           = gosnmp.TimeTicks
 	octstrTypeString    = "STRING"
 	hexstrTypeString    = "Hex-STRING"
 	integerTypeString   = "INTEGER"
@@ -44,6 +45,7 @@ const (
 	counter64TypeString = "Counter64"
 	getString           = "GET"
 	walkString          = "WALK"
+	timeticksString     = "Timeticks"
 )
 
 // PDU creation wrapper.

@@ -106,8 +106,9 @@ const (
 	snmpLldpV2StatsRxPortFramesErrors  = ".1.3.111.2.802.1.1.13.1.2.7.1.4"
 	snmpLldpV2StatsTxPortFramesTotal   = ".1.3.111.2.802.1.1.13.1.2.6.1.3"
 	snmpLldpV2StatsTxPortTable         = ".1.3.111.2.802.1.1.13.1.2.6"
+	snmpSnmpEngineTime                 = ".1.3.6.1.6.3.10.2.1.3"
 	snmpSysName                        = ".1.3.6.1.2.1.1.5.0"
-	snmpSysUpTime                      = ".1.3.6.1.2.1.1.3.0"
+	snmpSysUpTimeInstance              = ".1.3.6.1.2.1.1.3.0"
 )
 
 var snmpErrMap = map[gosnmp.SNMPError]string{
@@ -183,6 +184,13 @@ func uintval(u interface{}) *gnmi.TypedValue {
 	return nil
 }
 
+func intval(u interface{}) *gnmi.TypedValue {
+	if v, err := provider.ToInt64(u); err == nil {
+		return pgnmi.Intval(v)
+	}
+	return nil
+}
+
 // Snmp contains everything needed to implement an SNMP provider.
 type Snmp struct {
 	errc   chan error
@@ -218,6 +226,9 @@ type Snmp struct {
 	// Alternative Walk() and Get() for mock testing.
 	getter func([]string) (*gosnmp.SnmpPacket, error)
 	walker func(string, gosnmp.WalkFunc) error
+
+	// Alternative time.Now() for mock testing.
+	now func() time.Time
 }
 
 func (s *Snmp) snmpNetworkInit() error {
@@ -258,7 +269,7 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 			s.deviceID, pkt, errstr)
 	}
 
-	s.lastAlive = time.Now()
+	s.lastAlive = s.now()
 
 	return pkt, err
 }
@@ -308,7 +319,7 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 		return err
 	}
 	glog.V(3).Infof("Device %s: walk complete (OID = %s)", s.deviceID, rootOid)
-	s.lastAlive = time.Now()
+	s.lastAlive = s.now()
 	return err
 }
 
@@ -427,7 +438,7 @@ func (s *Snmp) Alive() (bool, error) {
 	if time.Since(s.lastAlive) < s.pollInterval {
 		return true, nil
 	}
-	_, err := s.get(snmpSysUpTime)
+	_, err := s.get(snmpSysUpTimeInstance)
 	if err != nil {
 		return false, err
 	}
@@ -619,6 +630,9 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	defer s.providerLock.Unlock()
 	glog.V(9).Infof("Device %s: updateSystemState", s.deviceID)
 	setReq := new(gnmi.SetRequest)
+	var upd []*gnmi.Update
+
+	// get hostname
 	sysName, err := s.getString(snmpSysName)
 	if err != nil || sysName == "" {
 		// Try lldpLocSysName if sysName isn't there.
@@ -627,22 +641,64 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 			return nil, err
 		}
 	}
+	if sysName != "" {
+		hostname, domainName := splitSysName(sysName)
 
-	if sysName == "" {
-		// Didn't get anything useful. Don't return a SetRequest.
+		hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
+		upd = appendUpdates(upd, hn)
+		if domainName != "" {
+			upd = appendUpdates(upd,
+				update(pgnmi.Path("system", "state", "domain-name"),
+					strval(domainName)))
+		}
+	}
+
+	// Get boot-time by subtracting the target device's uptime from
+	// the Collector's current time. This isn't really correct--the
+	// boot time we produce is a blend of UNIX time on the Collector
+	// and UNIX time on the target device (which may not be in sync),
+	// and the target device's time may be recorded well before the
+	// Collector's. There doesn't seem to be a great way to get the
+	// device's time using SNMP. Assuming the two devices are
+	// roughly in sync, though, this shouldn't be disastrous.
+	var bootTime int64
+	pdu, err := s.getFirstPDU(snmpSnmpEngineTime)
+	if err != nil {
+		return nil, err
+	}
+	if oidExists(*pdu) {
+		t, err := provider.ToInt64(pdu.Value)
+		if err != nil {
+			return nil, err
+		}
+		if t != 0 {
+			bootTime = s.now().Unix() - t
+		}
+	} else {
+		pdu, err = s.getFirstPDU(snmpSysUpTimeInstance)
+		if err != nil {
+			return nil, err
+		}
+		if oidExists(*pdu) {
+			t, err := provider.ToInt64(pdu.Value)
+			if err != nil {
+				return nil, err
+			}
+			if t != 0 {
+				bootTime = s.now().Unix() - t/100
+			}
+		}
+	}
+	if bootTime != 0 {
+		upd = appendUpdates(upd, update(pgnmi.Path("system", "state", "boot-time"),
+			intval(bootTime)))
+	}
+
+	// Didn't get anything useful. Don't return a SetRequest.
+	if len(upd) == 0 {
 		return nil, nil
 	}
 
-	hostname, domainName := splitSysName(sysName)
-
-	hn := update(pgnmi.Path("system", "state", "hostname"), strval(hostname))
-	var upd []*gnmi.Update
-	upd = appendUpdates(upd, hn)
-	if domainName != "" {
-		upd = appendUpdates(upd,
-			update(pgnmi.Path("system", "state", "domain-name"),
-				strval(domainName)))
-	}
 	setReq.Replace = upd
 
 	glog.V(9).Infof("Device %s: updateSystemState produced %d updates",
@@ -1180,6 +1236,7 @@ func NewSNMPProvider(address string, community string,
 		mock:          mock,
 		getter:        gsnmp.Get,
 		walker:        gsnmp.BulkWalk,
+		now:           time.Now,
 	}
 	return s
 }
