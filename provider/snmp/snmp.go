@@ -33,6 +33,7 @@ const (
 	snmpEntPhysicalSerialNum           = ".1.3.6.1.2.1.47.1.1.1.1.11"
 	snmpEntPhysicalSoftwareRev         = ".1.3.6.1.2.1.47.1.1.1.1.10"
 	snmpEntPhysicalTable               = ".1.3.6.1.2.1.47.1.1.1.1"
+	snmpHrSystemUptime                 = ".1.3.6.1.2.1.25.1.1.0"
 	snmpIfTable                        = ".1.3.6.1.2.1.2.2"
 	snmpIfDescr                        = ".1.3.6.1.2.1.2.2.1.2"
 	snmpIfType                         = ".1.3.6.1.2.1.2.2.1.3"
@@ -106,7 +107,6 @@ const (
 	snmpLldpV2StatsRxPortFramesErrors  = ".1.3.111.2.802.1.1.13.1.2.7.1.4"
 	snmpLldpV2StatsTxPortFramesTotal   = ".1.3.111.2.802.1.1.13.1.2.6.1.3"
 	snmpLldpV2StatsTxPortTable         = ".1.3.111.2.802.1.1.13.1.2.6"
-	snmpSnmpEngineTime                 = ".1.3.6.1.6.3.10.2.1.3"
 	snmpSysName                        = ".1.3.6.1.2.1.1.5.0"
 	snmpSysUpTimeInstance              = ".1.3.6.1.2.1.1.3.0"
 )
@@ -662,20 +662,11 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	// device's time using SNMP. Assuming the two devices are
 	// roughly in sync, though, this shouldn't be disastrous.
 	var bootTime int64
-	pdu, err := s.getFirstPDU(snmpSnmpEngineTime)
-	if err != nil {
-		return nil, err
-	}
-	if oidExists(*pdu) {
-		t, err := provider.ToInt64(pdu.Value)
-		if err != nil {
-			return nil, err
+	for _, uptimeOid := range []string{snmpHrSystemUptime, snmpSysUpTimeInstance} {
+		if bootTime != 0 {
+			break
 		}
-		if t != 0 {
-			bootTime = s.now().Unix() - t
-		}
-	} else {
-		pdu, err = s.getFirstPDU(snmpSysUpTimeInstance)
+		pdu, err := s.getFirstPDU(uptimeOid)
 		if err != nil {
 			return nil, err
 		}

@@ -533,11 +533,11 @@ func TestSnmp(t *testing.T) {
 				snmpSysName: []*gosnmp.SnmpPDU{
 					pdu(snmpSysName, octstr, []byte("device123.sjc.aristanetworks.com")),
 				},
+				snmpHrSystemUptime: []*gosnmp.SnmpPDU{
+					pdu(snmpHrSystemUptime, timeticks, 162275519),
+				},
 				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
 					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
-				},
-				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{
-					pdu(snmpSnmpEngineTime, integer, 1622557),
 				},
 			},
 			expected: &gnmi.SetRequest{
@@ -545,7 +545,7 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.Path("system", "state", "hostname"), strval("device123")),
 					update(pgnmi.Path("system", "state", "domain-name"),
 						strval("sjc.aristanetworks.com")),
-					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332415)),
+					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332217)),
 				},
 			},
 		},
@@ -829,14 +829,14 @@ func TestSnmp(t *testing.T) {
 				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
 					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
 				},
-				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{
-					pdu(snmpSnmpEngineTime, integer, 1622557),
+				snmpHrSystemUptime: []*gosnmp.SnmpPDU{
+					pdu(snmpHrSystemUptime, timeticks, 162275519),
 				},
 			},
 			expected: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
 					update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
-					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332415)),
+					update(pgnmi.Path("system", "state", "boot-time"), intval(1553332217)),
 				},
 			},
 		},
@@ -850,7 +850,7 @@ func TestSnmp(t *testing.T) {
 				snmpSysUpTimeInstance: []*gosnmp.SnmpPDU{
 					pdu(snmpSysUpTimeInstance, timeticks, 162261667),
 				},
-				snmpSnmpEngineTime: []*gosnmp.SnmpPDU{},
+				snmpHrSystemUptime: []*gosnmp.SnmpPDU{},
 			},
 			expected: &gnmi.SetRequest{
 				Replace: []*gnmi.Update{
