@@ -13,9 +13,9 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
-	"github.com/aristanetworks/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/sirupsen/logrus"
 )
 
 type dumpInfo struct {
@@ -73,14 +73,14 @@ func runDump(ctx context.Context) {
 	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 	for _, info := range devices {
 		err := inventory.Add(info.ID, info.Device)
 		if err != nil {
-			glog.Fatalf("Error in inventory.Add(): %v", err)
+			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}
 	}
-	glog.V(2).Info("Dump Collector is running")
+	logrus.Info("Dump Collector is running")
 	dumpInfo.doneGroup.Wait()
 }

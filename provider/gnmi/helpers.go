@@ -10,9 +10,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -109,7 +109,7 @@ func pollOnce(ctx context.Context, client gnmi.GNMIClient,
 	}
 	for _, setreq := range setreqs {
 		_, err = client.Set(ctx, setreq)
-		glog.V(9).Infof("pollOnce: gNMI Set: error = %s", err)
+		logrus.Tracef("pollOnce: gNMI Set: error = %s", err)
 		if err != nil {
 			return err
 		}

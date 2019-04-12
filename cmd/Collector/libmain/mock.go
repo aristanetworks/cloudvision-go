@@ -16,10 +16,10 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
-	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/fatih/color"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/sirupsen/logrus"
 )
 
 type mockInfo struct {
@@ -134,19 +134,19 @@ func runMock(ctx context.Context) {
 	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 	mockInfo.initDevices(devices)
 	for _, info := range devices {
 		err := inventory.Add(info.ID, info.Device)
 		if err != nil {
-			glog.Fatalf("Error in inventory.Add(): %v", err)
+			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}
 	}
-	glog.V(2).Info("Mock Collector is running")
+	logrus.Info("Mock Collector is running")
 	errChan := make(chan error)
 	err = mockInfo.waitForUpdates(errChan, *mockTimeout)
 	if err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 }

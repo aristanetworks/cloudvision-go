@@ -8,9 +8,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
 
-	"github.com/aristanetworks/glog"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
@@ -60,10 +60,11 @@ func (p *Gnmi) Run(ctx context.Context) error {
 			switch resp := response.Response.(type) {
 			case *gnmi.SubscribeResponse_Error:
 				// Not sure if this is recoverable so it doesn't return and hope things get better
-				glog.Errorf("gNMI SubscribeResponse Error: %v", resp.Error.Message)
+				log.Log(p).Errorf(
+					"gNMI SubscribeResponse Error: %v", resp.Error.Message)
 			case *gnmi.SubscribeResponse_SyncResponse:
 				if !resp.SyncResponse {
-					glog.Errorf("gNMI sync failed")
+					log.Log(p).Errorf("gNMI sync failed")
 				}
 			case *gnmi.SubscribeResponse_Update:
 				// One SetRequest per update:

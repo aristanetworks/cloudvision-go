@@ -6,12 +6,13 @@ package device
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	"github.com/aristanetworks/cloudvision-go/version"
-	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -70,7 +71,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 					dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 				} else {
 					did, _ := dc.device.DeviceID()
-					glog.V(2).Infof("Device %s is not alive", did)
+					log.Log(dc.device).Infof("Device %s is not alive", did)
 				}
 			} else {
 				return err
@@ -101,7 +102,18 @@ func (i *inventory) Add(key string, device Device) error {
 	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
 		key, false)
 
+	logFileName := key + ".log"
+	err = log.InitLogging(logFileName, device)
+	if err != nil {
+		return fmt.Errorf("Error setting up logging for device %s: %v", key, err)
+	}
+
 	for _, p := range providers {
+		err = log.InitLogging(logFileName, p)
+		if err != nil {
+			return fmt.Errorf("Error setting up logging for provider %#v: %v", p, err)
+		}
+
 		pt, ok := p.(provider.GNMIProvider)
 		if !ok {
 			return errors.New("unexpected provider type; need GNMIProvider")
@@ -114,7 +126,7 @@ func (i *inventory) Add(key string, device Device) error {
 		go func(p provider.Provider) {
 			err := p.Run(dc.ctx)
 			if err != nil {
-				glog.Errorf("Device %s provider %T exiting with error %v", key, p, err)
+				log.Log(p).Errorf("Provider exiting with error %v", err)
 			}
 			dc.group.Done()
 		}(p)
@@ -125,12 +137,12 @@ func (i *inventory) Add(key string, device Device) error {
 	go func() {
 		err := dc.sendPeriodicUpdates()
 		if err != nil {
-			glog.Errorf("Error updating device metadata for device %s: %v", key, err)
+			log.Log(device).Errorf("Error updating device metadata: %v", err)
 		}
 		dc.group.Done()
 	}()
 
-	glog.V(2).Infof("Added device %s", key)
+	log.Log(device).Infof("Added device %s", key)
 	return nil
 }
 
@@ -148,7 +160,7 @@ func (i *inventory) Delete(key string) error {
 	dc.cancel()
 	dc.group.Wait()
 	delete(i.devices, key)
-	glog.V(2).Infof("Deleted device %s", key)
+	log.Log(dc.device).Infof("Deleted device %s", key)
 	return nil
 }
 

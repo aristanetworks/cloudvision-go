@@ -16,17 +16,24 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/version"
-	"github.com/aristanetworks/glog"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/fsnotify/fsnotify"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
 var (
 	v    = flag.Bool("version", false, "Print the version number")
 	help = flag.Bool("help", false, "Print program options")
+
+	// Logging config
+	logLevel = flag.String("logLevel", "info", "Log level verbosity "+
+		"(available levels: trace, debug, info, warning, error, fatal, panic)")
+	logDir = flag.String("logDir", "", "If specified, one log file per device will be created"+
+		" and written in the directory. Otherwise logs will be written to stderr.")
 
 	// Device config
 	deviceName = flag.String("device", "",
@@ -85,6 +92,8 @@ func Main() {
 	// is sane.
 	validateConfig()
 
+	initLogging()
+
 	if *mock {
 		runMock(context.Background())
 		return
@@ -96,22 +105,34 @@ func Main() {
 	runMain(context.Background())
 }
 
+func initLogging() {
+	log.SetLogDir(*logDir)
+	if lv, err := logrus.ParseLevel(*logLevel); err != nil {
+		logrus.Fatal(err)
+	} else {
+		logrus.SetLevel(lv)
+	}
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableColors: true,
+	})
+}
+
 func runMain(ctx context.Context) {
 	gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
 	if err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 	// Create inventory.
 	inventory := device.NewInventory(ctx, gnmiClient)
 	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	group, ctx := errgroup.WithContext(ctx)
 	err = inventory.Update(devices)
 	if err != nil {
-		glog.Fatalf("Error in inventory.Update(): %v", err)
+		logrus.Fatalf("Error in inventory.Update(): %v", err)
 	}
 	for _, info := range devices {
 		if manager, ok := info.Device.(device.Manager); ok {
@@ -131,9 +152,9 @@ func runMain(ctx context.Context) {
 	group.Go(func() error {
 		return watchConfig(*deviceConfigFile, inventory)
 	})
-	glog.V(2).Info("Collector is running")
+	logrus.Info("Collector is running")
 	if err := group.Wait(); err != nil {
-		glog.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
 
@@ -166,23 +187,23 @@ func addHelp() error {
 func validateConfig() {
 	// A device or a device config must be specified unless we're running with -h
 	if *deviceName == "" && *deviceConfigFile == "" {
-		glog.Fatal("-device or -config must be specified.")
+		logrus.Fatal("-device or -config must be specified.")
 	}
 
 	if *deviceConfigFile != "" && *deviceName != "" {
-		glog.Fatal("-config and -device should not be both specified.")
+		logrus.Fatal("-config and -device should not be both specified.")
 	}
 
 	if !*mock && len(mockFeature) > 0 {
-		glog.Fatal("-mockFeature is only valid in mock mode")
+		logrus.Fatal("-mockFeature is only valid in mock mode")
 	}
 
 	if *mock && *dump {
-		glog.Fatal("-mock and -dump should not be both specified")
+		logrus.Fatal("-mock and -dump should not be both specified")
 	}
 
 	if *dump && *dumpFile == "" {
-		glog.Fatal("-dumpFile must be specified in dump mode")
+		logrus.Fatal("-dumpFile must be specified in dump mode")
 	}
 }
 
@@ -210,12 +231,12 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 				if event.Name == configPath {
 					devices, err := device.CreateDevices("", configPath, nil)
 					if err != nil {
-						glog.Errorf("Error creating devices from watched config: %v", err)
+						logrus.Errorf("Error creating devices from watched config: %v", err)
 						continue
 					}
 					err = inventory.Update(devices)
 					if err != nil {
-						glog.Errorf("Error updating inventory from watched config: %v", err)
+						logrus.Errorf("Error updating inventory from watched config: %v", err)
 						continue
 					}
 				}

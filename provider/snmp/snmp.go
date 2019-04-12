@@ -8,19 +8,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"net"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
+	"github.com/sirupsen/logrus"
 
-	"github.com/aristanetworks/glog"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"
 )
@@ -172,7 +171,7 @@ func strval(s interface{}) *gnmi.TypedValue {
 		}
 		return pgnmi.Strval(str)
 	default:
-		glog.Fatalf("Unexpected type in strval: %T", s)
+		logrus.Fatalf("Unexpected type in strval: %T", s)
 	}
 	return nil
 }
@@ -245,7 +244,7 @@ func (s *Snmp) snmpNetworkInit() error {
 }
 
 func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
-	glog.V(3).Infof("Device %s: get (OID = %s)", s.deviceID, oid)
+	log.Log(s).Debugf("get (OID = %s)", oid)
 	if s.getter == nil {
 		return nil, errors.New("SNMP getter not set")
 	}
@@ -253,8 +252,7 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 	s.connectionLock.Lock()
 	defer s.connectionLock.Unlock()
 	pkt, err := s.getter([]string{oid})
-	glog.V(3).Infof("Device %s: get complete (OID = %s): pkt = %v, err = %v",
-		s.deviceID, oid, pkt, err)
+	log.Log(s).Debugf("get complete (OID = %s): pkt = %v, err = %v", oid, pkt, err)
 	if err != nil {
 		return nil, err
 	}
@@ -265,8 +263,7 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 		if !ok {
 			errstr = "Unknown error"
 		}
-		return nil, fmt.Errorf("Device %s: Error in packet (%v): %v",
-			s.deviceID, pkt, errstr)
+		return nil, fmt.Errorf("Error in packet (%v): %v", pkt, errstr)
 	}
 
 	s.lastAlive = s.now()
@@ -307,7 +304,7 @@ func (s *Snmp) getString(oid string) (string, error) {
 }
 
 func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
-	glog.V(3).Infof("Device %s: walk (OID = %s)", s.deviceID, rootOid)
+	log.Log(s).Debugf("walk (OID = %s)", rootOid)
 	if s.walker == nil {
 		return errors.New("SNMP walker not set")
 	}
@@ -318,7 +315,7 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 	if err != nil {
 		return err
 	}
-	glog.V(3).Infof("Device %s: walk complete (OID = %s)", s.deviceID, rootOid)
+	log.Log(s).Debugf("walk complete (OID = %s)", rootOid)
 	s.lastAlive = s.now()
 	return err
 }
@@ -333,7 +330,7 @@ func (s *Snmp) getSerialNumber() (string, error) {
 
 	// Get the serial number corresponding to the index whose class
 	// type is chassis(3).
-	glog.V(9).Infof("Device %s: getSerialNumber", s.deviceID)
+	log.Log(s).Tracef("getSerialNumber")
 	entPhysicalWalk := func(data gosnmp.SnmpPDU) error {
 		// If we're finished, throw a pseudo-error to indicate to the
 		// walker that no more walking is required.
@@ -373,12 +370,12 @@ func (s *Snmp) getSerialNumber() (string, error) {
 			return "", err
 		}
 	}
-	glog.V(9).Infof("Device %s: getSerialNumber complete (serial = %v)", s.deviceID, serial)
+	log.Log(s).Tracef("getSerialNumber complete (serial = %v)", serial)
 	return serial, nil
 }
 
 func (s *Snmp) getChassisID() (string, error) {
-	glog.V(9).Infof("Device %s: getChassisID", s.deviceID)
+	log.Log(s).Tracef("getChassisID")
 	pdu, err := s.getFirstPDU(snmpLldpLocChassisIDSubtype)
 	if err != nil || !oidExists(*pdu) {
 		return "", err
@@ -389,14 +386,13 @@ func (s *Snmp) getChassisID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	glog.V(9).Infof("Device %s: getChassisID (chassisID = %v)",
-		s.deviceID, chassisID(pkt.Value.([]byte), subtype))
+	log.Log(s).Tracef("getChassisID (chassisID = %v)", chassisID(pkt.Value.([]byte), subtype))
 	return chassisID(pkt.Value.([]byte), subtype), nil
 }
 
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
-	glog.V(9).Info("Snmp.DeviceID")
+	log.Log(s).Trace("Snmp.DeviceID")
 	if err := s.snmpNetworkInit(); err != nil {
 		return "", fmt.Errorf("Error connecting to device: %v", err)
 	}
@@ -423,7 +419,7 @@ func (s *Snmp) DeviceID() (string, error) {
 
 	// The device didn't give us a serial number. Use the device
 	// address instead. It's not great but better than nothing.
-	glog.Infof("Failed to retrieve serial number for device '%s'; "+
+	log.Log(s).Infof("Failed to retrieve serial number for device '%s'; "+
 		"using address for device ID", s.gsnmp.Target)
 	s.deviceID = s.gsnmp.Target
 	return s.gsnmp.Target, nil
@@ -431,7 +427,7 @@ func (s *Snmp) DeviceID() (string, error) {
 
 // Alive checks if device is still alive if poll interval has passed.
 func (s *Snmp) Alive() (bool, error) {
-	glog.V(3).Infof("Device %s: Alive", s.deviceID)
+	log.Log(s).Debugf("Alive")
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}
@@ -457,8 +453,7 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 	// Get/set interface name from index. If there's no mapping, just return and
 	// wait for the mapping to show up.
 	baseOid, index, err := oidSplitEnd(pdu.Name)
-	glog.V(9).Infof("Device %s: handleInterfacePDU (OID = %s)",
-		s.deviceID, pdu.Name)
+	log.Log(s).Tracef("handleInterfacePDU (OID = %s)", pdu.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -578,7 +573,7 @@ func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 	interfaceIndex := make(map[string]string)
 	s.providerLock.Lock()
 	defer s.providerLock.Unlock()
-	glog.V(9).Infof("Device %s: updateInterfaces", s.deviceID)
+	log.Log(s).Tracef("updateInterfaces")
 	// Clear interfaceName map for each new poll. It should be
 	// protected by the lock, because updateLldp needs it, too. :(
 	s.interfaceName = make(map[string]bool)
@@ -599,21 +594,18 @@ func (s *Snmp) updateInterfaces() ([]*gnmi.SetRequest, error) {
 		return nil, err
 	}
 
-	glog.V(9).Infof("Device %s: updateInterfaces finished ifTable",
-		s.deviceID)
+	log.Log(s).Tracef("updateInterfaces finished ifTable")
 
 	// ifXTable
 	if err := s.walk(snmpIfXTable, intfWalk); err != nil {
 		return nil, err
 	}
 
-	glog.V(9).Infof("Device %s: updateInterfaces finished ifXTable",
-		s.deviceID)
+	log.Log(s).Tracef("updateInterfaces finished ifXTable")
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("interfaces", "interface")}
 	setReq.Replace = updates
-	glog.V(9).Infof("Device %s: updateInterfaces produced %d updates",
-		s.deviceID, len(updates))
+	log.Log(s).Tracef("updateInterfaces produced %d updates", len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -628,7 +620,7 @@ func splitSysName(sysName string) (string, string) {
 func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 	s.providerLock.Lock()
 	defer s.providerLock.Unlock()
-	glog.V(9).Infof("Device %s: updateSystemState", s.deviceID)
+	log.Log(s).Tracef("updateSystemState")
 	setReq := new(gnmi.SetRequest)
 	var upd []*gnmi.Update
 
@@ -692,8 +684,7 @@ func (s *Snmp) updateSystemState() ([]*gnmi.SetRequest, error) {
 
 	setReq.Replace = upd
 
-	glog.V(9).Infof("Device %s: updateSystemState produced %d updates",
-		s.deviceID, len(upd))
+	log.Log(s).Tracef("updateSystemState produced %d updates", len(upd))
 
 	return []*gnmi.SetRequest{setReq}, nil
 }
@@ -816,8 +807,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 	if err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: handleLldpPDU (OID = %s)",
-		s.deviceID, pdu.Name)
+	log.Log(s).Tracef("handleLldpPDU (OID = %s)", pdu.Name)
 
 	// If we haven't yet seen this local interface, add it to our list.
 	intfName := ""
@@ -941,7 +931,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	s.providerLock.Lock()
 	defer s.providerLock.Unlock()
-	glog.V(9).Infof("Device %s: updateLldp", s.deviceID)
+	log.Log(s).Tracef("updateLldp")
 
 	// Unset local chassis ID subtype.
 	s.lldpLocChassisIDSubtype = ""
@@ -977,8 +967,7 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(locSysData, updater); err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: updateLldp finished lldpLocalSystemData",
-		s.deviceID)
+	log.Log(s).Tracef("updateLldp finished lldpLocalSystemData")
 	// XXX NOTE: Ultimately we'll want to add a proper mechanism for discovering which
 	// MIBs the target device supports. Here we could just request lldpV2LocSysName
 	// to see if the device supports V2. But for now just try a different version
@@ -991,19 +980,16 @@ func (s *Snmp) updateLldp() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(remTable, updater); err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: updateLldp finished lldpRemoteSystemsData",
-		s.deviceID)
+	log.Log(s).Tracef("updateLldp finished lldpRemoteSystemsData")
 
 	if err := s.walk(statsRoot, updater); err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: updateLldp finished lldpStatistics",
-		s.deviceID)
+	log.Log(s).Tracef("updateLldp finished lldpStatistics")
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("lldp")}
 	setReq.Replace = updates
-	glog.V(9).Infof("Device %s: updateLldp produced %d updates",
-		s.deviceID, len(updates))
+	log.Log(s).Tracef("updateLldp produced %d updates", len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -1028,8 +1014,7 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 	if err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: handleEntityMibPDU (OID = %s)",
-		s.deviceID, pdu.Name)
+	log.Log(s).Tracef("handleEntityMibPDU (OID = %s)", pdu.Name)
 
 	updates := make([]*gnmi.Update, 0)
 	if _, ok := entityIndexMap[index]; !ok {
@@ -1101,7 +1086,7 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 	s.providerLock.Lock()
 	defer s.providerLock.Unlock()
-	glog.V(9).Infof("Device %s: updatePlatform", s.deviceID)
+	log.Log(s).Tracef("updatePlatform")
 
 	entityIndexMap := make(map[string]bool)
 	setReq := new(gnmi.SetRequest)
@@ -1119,13 +1104,11 @@ func (s *Snmp) updatePlatform() ([]*gnmi.SetRequest, error) {
 	if err := s.walk(snmpEntPhysicalTable, updater); err != nil {
 		return nil, err
 	}
-	glog.V(9).Infof("Device %s: updatePlatform finished entPhysicalTable",
-		s.deviceID)
+	log.Log(s).Tracef("updatePlatform finished entPhysicalTable")
 
 	setReq.Delete = []*gnmi.Path{pgnmi.Path("components")}
 	setReq.Replace = updates
-	glog.V(9).Infof("Device %s: updatePlatform produced %d updates",
-		s.deviceID, len(updates))
+	log.Log(s).Tracef("updatePlatform produced %d updates", len(updates))
 	return []*gnmi.SetRequest{setReq}, nil
 }
 
@@ -1144,8 +1127,7 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			glog.Infof("SNMP provider for device %v is finished",
-				s.deviceID)
+			log.Log(s).Infof("SNMP provider is finished")
 			return
 		case err := <-s.errc:
 			// XXX NOTE: We should probably return for some errors.
@@ -1153,7 +1135,7 @@ func (s *Snmp) handleErrors(ctx context.Context) {
 			// may fail if it takes place after an interface change that
 			// hasn't yet showed up in an interface poll, since LLDP
 			// interfaces also have to be present in interfaces/interface.
-			glog.Errorf("Failure in SNMP -> gNMI stream for device %v: %v", s.deviceID, err)
+			log.Log(s).Errorf("Failure in SNMP -> gNMI stream: %v", err)
 		}
 	}
 }
@@ -1163,12 +1145,12 @@ func (s *Snmp) Run(ctx context.Context) error {
 	if s.client == nil {
 		return errors.New("Run called before InitGNMI")
 	}
-	glog.V(3).Infof("Device %s: Run", s.deviceID)
+	log.Log(s).Debugf("Run")
 
 	if err := s.snmpNetworkInit(); err != nil {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
-	glog.V(3).Infof("Device %s: gosnmp.Connect complete", s.deviceID)
+	log.Log(s).Debugf("gosnmp.Connect complete")
 
 	// Do periodic state updates.
 	go pgnmi.PollForever(ctx, s.client, s.pollInterval,
@@ -1209,9 +1191,6 @@ func NewSNMPProvider(address string, community string,
 		Timeout:            time.Duration(2) * time.Second,
 		Logger:             nil,
 		MaxRepetitions:     12,
-	}
-	if verbose {
-		gsnmp.Logger = log.New(os.Stdout, "", 0)
 	}
 	if v3Params != nil {
 		gsnmp.MsgFlags = v3Params.Level
