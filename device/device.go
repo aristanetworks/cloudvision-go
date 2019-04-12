@@ -40,7 +40,12 @@ type registrationInfo struct {
 	options map[string]Option
 }
 
-var deviceMap = map[string]registrationInfo{}
+var (
+	deviceMap = map[string]registrationInfo{}
+	// DeviceIDFile is the path to output file used to associate
+	// device IDs with device configuration.
+	DeviceIDFile string
+)
 
 // Register registers a function that can create a new Device
 // of the given name.

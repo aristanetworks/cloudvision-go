@@ -179,6 +179,12 @@ func (i *inventory) Update(devices []*Info) error {
 			}
 		}
 	}
+	if DeviceIDFile != "" {
+		err := DumpDeviceIDs(devices, DeviceIDFile)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

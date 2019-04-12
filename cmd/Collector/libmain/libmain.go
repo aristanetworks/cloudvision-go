@@ -109,11 +109,11 @@ func runMain(ctx context.Context) {
 	}
 
 	group, ctx := errgroup.WithContext(ctx)
+	err = inventory.Update(devices)
+	if err != nil {
+		glog.Fatalf("Error in inventory.Update(): %v", err)
+	}
 	for _, info := range devices {
-		err := inventory.Add(info.ID, info.Device)
-		if err != nil {
-			glog.Fatalf("Error in inventory.Add(): %v", err)
-		}
 		if manager, ok := info.Device.(device.Manager); ok {
 			group.Go(func() error {
 				return manager.Manage(inventory)
@@ -127,12 +127,7 @@ func runMain(ctx context.Context) {
 			})
 		}
 	}
-	if *deviceIDFile != "" {
-		err := device.DumpDeviceIDs(devices, *deviceIDFile)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
+	device.DeviceIDFile = *deviceIDFile
 	group.Go(func() error {
 		return watchConfig(*deviceConfigFile, inventory)
 	})
