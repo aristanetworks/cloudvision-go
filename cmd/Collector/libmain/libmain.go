@@ -18,9 +18,9 @@ import (
 	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/version"
+	"github.com/aristanetworks/fsnotify"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
-	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
