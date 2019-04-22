@@ -11,7 +11,7 @@ GOFMT := gofmt
 GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
 GOFILES := find . -name '*.go' ! -path './vendor/*' ! -name '*.pb.go'
 GOPKGVERSION := $(shell git rev-parse HEAD)
-GOLDFLAGS := -ldflags="-s -w -X github.com/aristanetworks/cloudvision-go/version.Version=$(GOPKGVERSION)"
+GOLDFLAGS := -ldflags="-s -w -X github.com/aristanetworks/cloudvision-go/version.Version=$(GOPKGVERSION) -X github.com/aristanetworks/cloudvision-go/version.CollectorVersion=$(GOPKGVERSION)"
 # Supply defaults if not provided
 GOOS ?= linux
 GOARCH ?= 386

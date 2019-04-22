@@ -74,7 +74,14 @@ func Main() {
 
 	// Print version.
 	if *v {
-		fmt.Println(version.Version, runtime.Version())
+		vs := []string{version.CollectorVersion, runtime.Version()}
+
+		// If the package version is different than the Collector version then we should
+		// print the package version as well.
+		if version.CollectorVersion != version.Version {
+			vs = append(vs, version.Version)
+		}
+		fmt.Println(strings.Join(vs, " "))
 		return
 	}
 

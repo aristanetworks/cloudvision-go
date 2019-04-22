@@ -7,3 +7,7 @@ package version
 
 // Version is the GOPKGVERSION. It is "dev" by default and set during the build.
 var Version = "dev"
+
+// CollectorVersion is the version of the Collector. It is "dev" by default and
+// set during the build.
+var CollectorVersion = "dev"
