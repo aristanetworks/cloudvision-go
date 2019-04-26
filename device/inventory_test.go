@@ -20,7 +20,10 @@ func TestInventoryBasic(t *testing.T) {
 	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor))
 	expectedDevice := testDevice{}
 	deviceID := "dummy"
-	err := inventory.Add(deviceID, expectedDevice)
+	err := inventory.Add(&Info{
+		Device: expectedDevice,
+		ID:     deviceID,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

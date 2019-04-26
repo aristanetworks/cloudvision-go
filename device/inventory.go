@@ -20,7 +20,7 @@ import (
 
 // An Inventory maintains a set of devices.
 type Inventory interface {
-	Add(key string, device Device) error
+	Add(device *Info) error
 	Delete(key string) error
 	Get(key string) (Device, bool)
 	Update(devices []*Info) error
@@ -28,7 +28,7 @@ type Inventory interface {
 
 // deviceConn contains a device and its gNMI connections.
 type deviceConn struct {
-	device            Device
+	deviceInfo        *Info
 	ctx               context.Context
 	cancel            context.CancelFunc
 	rawGNMIClient     gnmi.GNMIClient
@@ -48,7 +48,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(time.Second)
 	ctx := metadata.AppendToOutgoingContext(dc.ctx,
 		collectorVersionMetadata, version.Version)
-	if _, ok := dc.device.(Manager); ok {
+	if _, ok := dc.deviceInfo.Device.(Manager); ok {
 		// ManagementSystem is a system managing other devices which itself
 		// shouldn't be treated as an actual streaming device in CloudVision.
 		ctx = metadata.AppendToOutgoingContext(ctx,
@@ -64,14 +64,14 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			if alive, err := dc.device.Alive(); err == nil {
+			if alive, err := dc.deviceInfo.Device.Alive(); err == nil {
 				if alive {
 					ctx := metadata.AppendToOutgoingContext(dc.ctx,
 						deviceLivenessMetadata, "true")
 					dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 				} else {
-					did, _ := dc.device.DeviceID()
-					log.Log(dc.device).Infof("Device %s is not alive", did)
+					did, _ := dc.deviceInfo.Device.DeviceID()
+					log.Log(dc.deviceInfo.Device).Infof("Device %s is not alive", did)
 				}
 			} else {
 				return err
@@ -82,30 +82,30 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 
 // Add adds a device to the inventory, opens up any gNMI connections
 // required by the device's providers, and then starts its providers.
-func (i *inventory) Add(key string, device Device) error {
+func (i *inventory) Add(device *Info) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	if _, ok := i.devices[key]; ok {
+	if _, ok := i.devices[device.ID]; ok {
 		return nil
 	}
 
-	dc := &deviceConn{device: device}
+	dc := &deviceConn{deviceInfo: device}
 	dc.ctx, dc.cancel = context.WithCancel(i.ctx)
 
-	i.devices[key] = dc
+	i.devices[device.ID] = dc
 
-	providers, err := device.Providers()
+	providers, err := device.Device.Providers()
 	if err != nil {
 		return err
 	}
 	dc.rawGNMIClient = i.rawGNMIClient
 	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
-		key, false)
+		device.ID, device.Config.Address, false)
 
-	logFileName := key + ".log"
-	err = log.InitLogging(logFileName, device)
+	logFileName := device.ID + ".log"
+	err = log.InitLogging(logFileName, device.Device)
 	if err != nil {
-		return fmt.Errorf("Error setting up logging for device %s: %v", key, err)
+		return fmt.Errorf("Error setting up logging for device %s: %v", device.ID, err)
 	}
 
 	for _, p := range providers {
@@ -119,7 +119,8 @@ func (i *inventory) Add(key string, device Device) error {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
 
-		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, key, pt.OpenConfig()))
+		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt,
+			device.ID, device.Config.Address, pt.OpenConfig()))
 
 		// Start the providers.
 		dc.group.Add(1)
@@ -137,12 +138,12 @@ func (i *inventory) Add(key string, device Device) error {
 	go func() {
 		err := dc.sendPeriodicUpdates()
 		if err != nil {
-			log.Log(device).Errorf("Error updating device metadata: %v", err)
+			log.Log(device.Device).Errorf("Error updating device metadata: %v", err)
 		}
 		dc.group.Done()
 	}()
 
-	log.Log(device).Infof("Added device %s", key)
+	log.Log(device.Device).Infof("Added device %s", device.ID)
 	return nil
 }
 
@@ -160,7 +161,7 @@ func (i *inventory) Delete(key string) error {
 	dc.cancel()
 	dc.group.Wait()
 	delete(i.devices, key)
-	log.Log(dc.device).Infof("Deleted device %s", key)
+	log.Log(dc.deviceInfo.Device).Infof("Deleted device %s", key)
 	return nil
 }
 
@@ -171,13 +172,13 @@ func (i *inventory) Get(key string) (Device, bool) {
 	if !ok {
 		return nil, ok
 	}
-	return d.device, ok
+	return d.deviceInfo.Device, ok
 }
 
 func (i *inventory) Update(devices []*Info) error {
 	idToDevice := map[string]Device{}
 	for _, info := range devices {
-		err := i.Add(info.ID, info.Device)
+		err := i.Add(info)
 		if err != nil {
 			return err
 		}

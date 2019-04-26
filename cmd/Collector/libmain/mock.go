@@ -138,7 +138,7 @@ func runMock(ctx context.Context) {
 	}
 	mockInfo.initDevices(devices)
 	for _, info := range devices {
-		err := inventory.Add(info.ID, info.Device)
+		err := inventory.Add(info)
 		if err != nil {
 			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}

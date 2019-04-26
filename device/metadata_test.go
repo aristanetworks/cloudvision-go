@@ -16,6 +16,7 @@ func TestNewMetadata(t *testing.T) {
 
 	boolTrue := true
 	deviceType := "Target"
+	deviceAddress := "1.1.1.1"
 
 	for _, tc := range []struct {
 		desc       string
@@ -29,11 +30,13 @@ func TestNewMetadata(t *testing.T) {
 				context.Background(),
 				deviceIDMetadata, "id",
 				typeCheckMetadata, "true",
+				deviceAddressMetadata, deviceAddress,
 				openConfigMetadata, "true"),
 			md: Metadata{
-				DeviceID:   "id",
-				OpenConfig: true,
-				TypeCheck:  true,
+				DeviceID:      "id",
+				OpenConfig:    true,
+				TypeCheck:     true,
+				DeviceAddress: deviceAddress,
 			},
 		},
 		{
@@ -42,15 +45,17 @@ func TestNewMetadata(t *testing.T) {
 				context.Background(),
 				deviceIDMetadata, "id",
 				typeCheckMetadata, "true",
+				deviceAddressMetadata, deviceAddress,
 				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
 			md: Metadata{
-				DeviceID:   "id",
-				OpenConfig: true,
-				DeviceType: &deviceType,
-				Alive:      &boolTrue,
-				TypeCheck:  true,
+				DeviceID:      "id",
+				OpenConfig:    true,
+				DeviceType:    &deviceType,
+				Alive:         &boolTrue,
+				TypeCheck:     true,
+				DeviceAddress: deviceAddress,
 			},
 		},
 		{
@@ -58,6 +63,7 @@ func TestNewMetadata(t *testing.T) {
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
 				typeCheckMetadata, "true",
+				deviceAddressMetadata, deviceAddress,
 				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
@@ -68,6 +74,7 @@ func TestNewMetadata(t *testing.T) {
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
 				typeCheckMetadata, "true",
+				deviceAddressMetadata, deviceAddress,
 				deviceIDMetadata, "id",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),
@@ -78,6 +85,18 @@ func TestNewMetadata(t *testing.T) {
 			ctx: metadata.AppendToOutgoingContext(
 				context.Background(),
 				deviceIDMetadata, "id",
+				deviceAddressMetadata, deviceAddress,
+				openConfigMetadata, "true",
+				deviceTypeMetadata, deviceType,
+				deviceLivenessMetadata, "true"),
+			shouldFail: true,
+		},
+		{
+			desc: "missing deviceAddress",
+			ctx: metadata.AppendToOutgoingContext(
+				context.Background(),
+				deviceIDMetadata, "id",
+				typeCheckMetadata, "true",
 				openConfigMetadata, "true",
 				deviceTypeMetadata, deviceType,
 				deviceLivenessMetadata, "true"),

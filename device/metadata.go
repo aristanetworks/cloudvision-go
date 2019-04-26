@@ -21,6 +21,7 @@ type Metadata struct {
 	OpenConfig       bool
 	DeviceType       *string
 	Alive            *bool
+	DeviceAddress    string
 	CollectorVersion string
 }
 
@@ -30,6 +31,7 @@ const (
 	typeCheckMetadata        = "typeCheck"
 	deviceTypeMetadata       = "deviceType"
 	deviceLivenessMetadata   = "deviceLiveness"
+	deviceAddressMetadata    = "deviceAddress"
 	collectorVersionMetadata = "collectorVersion"
 )
 
@@ -68,6 +70,13 @@ func newMetadata(md metadata.MD) (Metadata, error) {
 	if len(openConfigVal) != 1 {
 		return ret, errors.Errorf("Context should have openConfig metadata")
 	}
+
+	deviceAddressVal := md.Get(deviceAddressMetadata)
+	if len(deviceAddressVal) != 1 {
+		return ret, errors.Errorf("Context should have device address metadata")
+	}
+	ret.DeviceAddress = deviceAddressVal[0]
+
 	ret.OpenConfig, err = strconv.ParseBool(openConfigVal[0])
 	if err != nil {
 		return ret, errors.Errorf("Error parsing openConfig value: %v", err)
