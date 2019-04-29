@@ -51,7 +51,7 @@ func (td testDevice) Providers() ([]provider.Provider, error) {
 }
 
 // NewTestDevice returns a dummy device for testing.
-func NewTestDevice(map[string]string) (Device, error) {
+func NewTestDevice(Config) (Device, error) {
 	return testDevice{}, nil
 }
 

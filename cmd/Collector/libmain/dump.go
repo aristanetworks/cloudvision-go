@@ -71,7 +71,7 @@ func runDump(ctx context.Context) {
 	dumpInfo := newDumpInfo()
 	dumpInfo.doneGroup.Add(1)
 	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
-	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	devices, err := device.CreateDevices(newDeviceConfig(), *deviceConfigFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}

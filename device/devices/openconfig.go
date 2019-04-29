@@ -21,10 +21,6 @@ import (
 func init() {
 	// Set options
 	options := map[string]device.Option{
-		"address": device.Option{
-			Description: "gNMI server host/port",
-			Required:    true,
-		},
 		"paths": device.Option{
 			Description: "gNMI subscription path (comma-separated if multiple)",
 			Default:     "/",
@@ -131,10 +127,6 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 	config := &gnmi.Config{}
 	var err error
-	config.Addr, err = device.GetStringOption("address", opt)
-	if err != nil {
-		return nil, err
-	}
 	config.Username, err = device.GetStringOption("username", opt)
 	if err != nil {
 		return nil, err
@@ -167,29 +159,30 @@ func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 }
 
 // newOpenConfig returns an openconfig device.
-func newOpenConfig(opt map[string]string) (device.Device, error) {
-	deviceID, err := device.GetStringOption("device_id", opt)
+func newOpenConfig(config device.Config) (device.Device, error) {
+	deviceID, err := device.GetStringOption("device_id", config.Options)
 	if err != nil {
 		return nil, err
 	}
-	gNMIPaths, err := device.GetStringOption("paths", opt)
+	gNMIPaths, err := device.GetStringOption("paths", config.Options)
 	if err != nil {
 		return nil, err
 	}
 	openconfig := &openconfigDevice{}
-	config, err := parseGNMIOptions(opt)
+	c, err := parseGNMIOptions(config.Options)
 	if err != nil {
 		return nil, err
 	}
-	client, err := gnmi.Dial(config)
+	c.Addr = config.Address
+	client, err := gnmi.Dial(c)
 	if err != nil {
 		return nil, err
 	}
 	openconfig.gNMIClient = client
-	openconfig.config = config
+	openconfig.config = c
 	openconfig.deviceID = deviceID
 
-	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, strings.Split(gNMIPaths, ","))
+	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, c, strings.Split(gNMIPaths, ","))
 
 	return openconfig, nil
 }

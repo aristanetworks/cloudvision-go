@@ -29,7 +29,7 @@ type Manager interface {
 }
 
 // Creator returns a new instance of a Device.
-type Creator = func(map[string]string) (Device, error)
+type Creator = func(Config) (Device, error)
 
 // registrationInfo contains all the information about a device that's
 // knowable before it's instantiated: its name, its factory function,
@@ -70,18 +70,18 @@ func Registered() (keys []string) {
 	return
 }
 
-// Create takes a config map, sanitizes the provided config, and returns
-// a Device.
-func Create(name string, config map[string]string) (Device, error) {
-	registrationInfo, ok := deviceMap[name]
+// newDevice takes a device config, sanitizes it, and returns a Device.
+func newDevice(config Config) (Device, error) {
+	registrationInfo, ok := deviceMap[config.Device]
 	if !ok {
-		return nil, fmt.Errorf("Device '%v' not found", name)
+		return nil, fmt.Errorf("Device '%v' not found", config.Device)
 	}
-	sanitizedConfig, err := SanitizedOptions(registrationInfo.options, config)
+	var err error
+	config.Options, err = SanitizedOptions(registrationInfo.options, config.Options)
 	if err != nil {
 		return nil, err
 	}
-	return registrationInfo.creator(sanitizedConfig)
+	return registrationInfo.creator(config)
 }
 
 // OptionHelp returns the options and associated help strings of the
@@ -102,38 +102,28 @@ type Info struct {
 }
 
 func (i *Info) String() string {
-	var options []string
-	for k, v := range i.Config.Options {
-		options = append(options, fmt.Sprintf("deviceoption: %s=%s", k, v))
-	}
-	optStr := strings.Join(options, ", ")
-	return fmt.Sprintf("Device %s {device: %s, %s}", i.ID, i.Config.Device, optStr)
+	return fmt.Sprintf("Device %s {%s}", i.ID, i.Config.String())
 }
 
-func createDevice(name string, options map[string]string) (*Info, error) {
-	config := Config{
-		Device:  name,
-		Options: options,
-	}
-	d, err := Create(name, options)
+func newDeviceInfo(config Config) (*Info, error) {
+	d, err := newDevice(config)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating device '%v': %v",
-			config.Device, err)
+		return nil, fmt.Errorf("Failed creating device '%v': %v", config.Device, err)
 	}
 	did, err := d.DeviceID()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"Error getting device ID from Device %s with options %v: %v", name, options, err)
+			"Error getting device ID from Device Config %s: %v", config.String(), err)
 	}
 	return &Info{Config: config, ID: did, Device: d}, nil
 }
 
 // CreateDevices returns a list of Info from either a single target device or a config file.
-func CreateDevices(name, configPath string, options map[string]string) ([]*Info, error) {
+func CreateDevices(config *Config, configPath string) ([]*Info, error) {
 	var infos []*Info
 	// Single configured device
-	if name != "" {
-		info, err := createDevice(name, options)
+	if config != nil {
+		info, err := newDeviceInfo(*config)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +137,7 @@ func CreateDevices(name, configPath string, options map[string]string) ([]*Info,
 		}
 		errStrs := []string{}
 		for _, config := range readConfigs {
-			info, err := createDevice(config.Device, config.Options)
+			info, err := newDeviceInfo(config)
 			if err != nil {
 				errStrs = append(errStrs, err.Error())
 			} else {

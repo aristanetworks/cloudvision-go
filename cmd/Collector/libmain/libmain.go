@@ -38,6 +38,7 @@ var (
 	// Device config
 	deviceName = flag.String("device", "",
 		"Device type (available devices: "+deviceList()+")")
+	address          = flag.String("address", "", "Device address")
 	deviceOptions    = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
 	deviceIDFile     = flag.String("dumpDeviceIDFile", "",
@@ -124,6 +125,17 @@ func initLogging() {
 	})
 }
 
+func newDeviceConfig() *device.Config {
+	if *deviceName == "" {
+		return nil
+	}
+	return &device.Config{
+		Device:  *deviceName,
+		Address: *address,
+		Options: deviceOptions,
+	}
+}
+
 func runMain(ctx context.Context) {
 	gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
 	if err != nil {
@@ -131,7 +143,7 @@ func runMain(ctx context.Context) {
 	}
 	// Create inventory.
 	inventory := device.NewInventory(ctx, gnmiClient)
-	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	devices, err := device.CreateDevices(newDeviceConfig(), *deviceConfigFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -201,6 +213,10 @@ func validateConfig() {
 		logrus.Fatal("-config and -device should not be both specified.")
 	}
 
+	if (*address == "" && *deviceName != "") || (*address != "" && *deviceName == "") {
+		logrus.Fatal("-address and -device should be both specified.")
+	}
+
 	if !*mock && len(mockFeature) > 0 {
 		logrus.Fatal("-mockFeature is only valid in mock mode")
 	}
@@ -236,7 +252,7 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 					return nil
 				}
 				if event.Name == configPath {
-					devices, err := device.CreateDevices("", configPath, nil)
+					devices, err := device.CreateDevices(nil, configPath)
 					if err != nil {
 						logrus.Errorf("Error creating devices from watched config: %v", err)
 						continue
