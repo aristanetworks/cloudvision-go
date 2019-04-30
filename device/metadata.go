@@ -72,10 +72,9 @@ func newMetadata(md metadata.MD) (Metadata, error) {
 	}
 
 	deviceAddressVal := md.Get(deviceAddressMetadata)
-	if len(deviceAddressVal) != 1 {
-		return ret, errors.Errorf("Context should have device address metadata")
+	if len(deviceAddressVal) != 0 {
+		ret.DeviceAddress = deviceAddressVal[0]
 	}
-	ret.DeviceAddress = deviceAddressVal[0]
 
 	ret.OpenConfig, err = strconv.ParseBool(openConfigVal[0])
 	if err != nil {

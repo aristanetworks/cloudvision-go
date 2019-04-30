@@ -23,13 +23,11 @@ type gNMIClientWrapper struct {
 	deviceID   string
 	openConfig bool
 	typeCheck  bool
-	address    string
 }
 
 func (g *gNMIClientWrapper) updatedContext(ctx context.Context) context.Context {
 	return metadata.AppendToOutgoingContext(ctx,
 		deviceIDMetadata, g.deviceID,
-		deviceAddressMetadata, g.address,
 		openConfigMetadata, strconv.FormatBool(g.openConfig),
 		typeCheckMetadata, strconv.FormatBool(g.typeCheck))
 }
@@ -55,12 +53,11 @@ func (g *gNMIClientWrapper) Subscribe(ctx context.Context,
 }
 
 func newGNMIClientWrapper(client gnmi.GNMIClient, provider provider.Provider,
-	deviceID, address string, openconfig bool) *gNMIClientWrapper {
+	deviceID string, openconfig bool) *gNMIClientWrapper {
 	wrapper := &gNMIClientWrapper{
 		client:     client,
 		deviceID:   deviceID,
 		openConfig: openconfig,
-		address:    address,
 		typeCheck:  openconfig,
 	}
 	// This special case only is for Gnmi provider which doesn't

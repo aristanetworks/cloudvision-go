@@ -58,6 +58,8 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		ctx = metadata.AppendToOutgoingContext(ctx,
 			deviceTypeMetadata, "target")
 	}
+	ctx = metadata.AppendToOutgoingContext(ctx,
+		deviceAddressMetadata, dc.deviceInfo.Config.Address)
 	dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 	for {
 		select {
@@ -99,8 +101,7 @@ func (i *inventory) Add(device *Info) error {
 		return err
 	}
 	dc.rawGNMIClient = i.rawGNMIClient
-	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
-		device.ID, device.Config.Address, false)
+	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil, device.ID, false)
 
 	logFileName := device.ID + ".log"
 	err = log.InitLogging(logFileName, device.Device)
@@ -119,8 +120,7 @@ func (i *inventory) Add(device *Info) error {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
 
-		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt,
-			device.ID, device.Config.Address, pt.OpenConfig()))
+		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, device.ID, pt.OpenConfig()))
 
 		// Start the providers.
 		dc.group.Add(1)
