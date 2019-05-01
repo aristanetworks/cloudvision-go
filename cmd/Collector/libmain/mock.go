@@ -132,13 +132,13 @@ func newMockInfo(featureToPath map[string]string) *mockInfo {
 func runMock(ctx context.Context) {
 	mockInfo := newMockInfo(mockFeature)
 	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
-	devices, err := device.CreateDevices(newDeviceConfig(), *deviceConfigFile)
+	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	mockInfo.initDevices(devices)
 	for _, info := range devices {
-		err := inventory.Add(info)
+		err := inventory.Add(info.ID, info.Device)
 		if err != nil {
 			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}

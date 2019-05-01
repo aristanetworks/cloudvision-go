@@ -25,11 +25,7 @@ func runOptionsTest(t *testing.T, tc optionsTestCase) {
 		t.Fatalf("Error sanitizing options: %v", err)
 	}
 
-	s, err := newSnmp(device.Config{
-		Device:  "snmp",
-		Options: so,
-		Address: "1.1.1.1",
-	})
+	s, err := newSnmp(so)
 	if err != nil {
 		if tc.expectedError == nil {
 			t.Fatalf("Unexpected error in newSnmp: %v", err)
@@ -68,13 +64,14 @@ func runOptionsTest(t *testing.T, tc optionsTestCase) {
 // the specified value.
 func selectOpt(keys ...string) map[string]string {
 	options := map[string]string{
-		"v": "3",
-		"l": "authPriv",
-		"a": "sha",
-		"A": "apass",
-		"x": "des",
-		"X": "xpass",
-		"u": "user",
+		"v":       "3",
+		"address": "1.1.1.1",
+		"l":       "authPriv",
+		"a":       "sha",
+		"A":       "apass",
+		"x":       "des",
+		"X":       "xpass",
+		"u":       "user",
 	}
 	out := make(map[string]string)
 	for _, k := range keys {
@@ -119,22 +116,24 @@ func TestOptions(t *testing.T) {
 		{
 			name: "v2 sane",
 			options: map[string]string{
-				"v": "2c",
-				"c": "public",
+				"v":       "2c",
+				"c":       "public",
+				"address": "1.1.1.1",
 			},
 			expectedVersion: gosnmp.Version2c,
 		},
 		{
 			name: "v2 missing community",
 			options: map[string]string{
-				"v": "2c",
+				"v":       "2c",
+				"address": "1.1.1.1",
 			},
 			expectedError: errors.New("Configuration error for device " +
 				"1.1.1.1: community string required for version 2c"),
 		},
 		{
 			name:            "v3 authPriv sane",
-			options:         selectOpt("v", "l", "a", "A", "x", "X", "u"),
+			options:         selectOpt("v", "address", "l", "a", "A", "x", "X", "u"),
 			expectedVersion: gosnmp.Version3,
 			expectedV3Params: &psnmp.V3Params{
 				SecurityModel: gosnmp.UserSecurityModel,
@@ -144,7 +143,7 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:            "v3 authNoPriv",
-			options:         selectOpt("v", "l=authNoPriv", "a", "A", "u"),
+			options:         selectOpt("v", "address", "l=authNoPriv", "a", "A", "u"),
 			expectedVersion: gosnmp.Version3,
 			expectedV3Params: &psnmp.V3Params{
 				SecurityModel: gosnmp.UserSecurityModel,
@@ -154,7 +153,7 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:            "v3 noAuthNoPriv",
-			options:         selectOpt("v", "l=noAuthNoPriv", "u"),
+			options:         selectOpt("v", "address", "l=noAuthNoPriv", "u"),
 			expectedVersion: gosnmp.Version3,
 			expectedV3Params: &psnmp.V3Params{
 				SecurityModel: gosnmp.UserSecurityModel,
@@ -164,27 +163,27 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:    "v3 no username",
-			options: selectOpt("v", "l"),
+			options: selectOpt("v", "address", "l"),
 			expectedError: errors.New("Configuration error for device " +
 				"1.1.1.1: v3 is configured, so a username is required"),
 		},
 		{
 			name:    "v3 auth missing auth proto",
-			options: selectOpt("v", "l", "A", "x", "X", "u"),
+			options: selectOpt("v", "address", "l", "A", "x", "X", "u"),
 			expectedError: errors.New("Configuration error for device " +
 				"1.1.1.1: auth is configured, so an authentication protocol " +
 				"must be specified"),
 		},
 		{
 			name:    "v3 priv missing priv proto",
-			options: selectOpt("v", "l", "a", "A", "X", "u"),
+			options: selectOpt("v", "address", "l", "a", "A", "X", "u"),
 			expectedError: errors.New("Configuration error for device " +
 				"1.1.1.1: privacy is configured, so a privacy protocol " +
 				"must be specified"),
 		},
 		{
 			name:    "v3 auth missing auth key",
-			options: selectOpt("v", "l", "a", "x", "X", "u"),
+			options: selectOpt("v", "address", "l", "a", "x", "X", "u"),
 			expectedError: errors.New("Configuration error for device " +
 				"1.1.1.1: auth is configured, so an authentication " +
 				"key must be specified"),

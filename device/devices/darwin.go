@@ -67,8 +67,8 @@ func (d *darwin) Providers() ([]provider.Provider, error) {
 }
 
 // NewDarwinDevice instantiates a MacBook device.
-func NewDarwinDevice(config device.Config) (device.Device, error) {
-	pollInterval, err := device.GetDurationOption("pollInterval", config.Options)
+func NewDarwinDevice(options map[string]string) (device.Device, error) {
+	pollInterval, err := device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, err
 	}

@@ -5,9 +5,7 @@
 package device
 
 import (
-	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
@@ -15,19 +13,8 @@ import (
 
 // Config represents a single device configuration.
 type Config struct {
-	Address string            `yaml:"Address,omitempty"`
 	Device  string            `yaml:"Device,omitempty"`
 	Options map[string]string `yaml:"Options,omitempty"`
-}
-
-func (c *Config) String() string {
-	var fields []string
-	fields = append(fields, fmt.Sprintf("device: %s", c.Device))
-	fields = append(fields, fmt.Sprintf("address: %s", c.Address))
-	for k, v := range c.Options {
-		fields = append(fields, fmt.Sprintf("deviceoption: %s=%s", k, v))
-	}
-	return strings.Join(fields, ", ")
 }
 
 // ReadConfigs reads the config file at the specified path,
@@ -49,9 +36,6 @@ func readConfigsFromBytes(yamlFile []byte) ([]Config, error) {
 	for _, config := range configs {
 		if config.Device == "" {
 			return nil, errors.Errorf("Device must be specified")
-		}
-		if config.Address == "" {
-			return nil, errors.Errorf("Address must be specified")
 		}
 	}
 	return configs, nil

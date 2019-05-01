@@ -23,7 +23,6 @@ func TestReadConfigsFromBytes(t *testing.T) {
 		{description: "basic device",
 			input: []byte(`
          -  Device: test
-            Address: address
             Options:
                a: b
                c: d`),
@@ -36,14 +35,6 @@ func TestReadConfigsFromBytes(t *testing.T) {
                a: b
                c: d`),
 			err: errors.New("Device must be specified"),
-		},
-		{description: "device with no address",
-			input: []byte(`
-         -  Device: test
-         -  Options:
-               a: b
-               c: d`),
-			err: errors.New("Address must be specified"),
 		},
 	}
 	for _, testCase := range testCases {

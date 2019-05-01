@@ -24,6 +24,10 @@ var options = map[string]device.Option{
 	"A": device.Option{
 		Description: "SNMPv3 authentication key",
 	},
+	"address": device.Option{
+		Description: "Hostname or address of device",
+		Required:    true,
+	},
 	"port": device.Option{
 		Description: "Device SNMP port to use",
 		Default:     "161",
@@ -190,58 +194,61 @@ func (s *snmp) deviceConfigErr(err error) error {
 // XXX NOTE: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
-func newSnmp(config device.Config) (device.Device, error) {
+func newSnmp(options map[string]string) (device.Device, error) {
 	s := &snmp{}
 	var err error
 
-	s.address = config.Address
+	s.address, err = device.GetAddressOption("address", options)
+	if err != nil {
+		return nil, err
+	}
 
-	s.authKey, err = device.GetStringOption("A", config.Options)
+	s.authKey, err = device.GetStringOption("A", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.authProto, err = device.GetStringOption("a", config.Options)
+	s.authProto, err = device.GetStringOption("a", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.community, err = device.GetStringOption("c", config.Options)
+	s.community, err = device.GetStringOption("c", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.level, err = device.GetStringOption("l", config.Options)
+	s.level, err = device.GetStringOption("l", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.pollInterval, err = device.GetDurationOption("pollInterval", config.Options)
+	s.pollInterval, err = device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.privacyKey, err = device.GetStringOption("X", config.Options)
+	s.privacyKey, err = device.GetStringOption("X", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.privacyProto, err = device.GetStringOption("x", config.Options)
+	s.privacyProto, err = device.GetStringOption("x", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.securityName, err = device.GetStringOption("u", config.Options)
+	s.securityName, err = device.GetStringOption("u", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.verbose, err = device.GetBoolOption("verbose", config.Options)
+	s.verbose, err = device.GetBoolOption("verbose", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.version, err = device.GetStringOption("v", config.Options)
+	s.version, err = device.GetStringOption("v", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
 	}
