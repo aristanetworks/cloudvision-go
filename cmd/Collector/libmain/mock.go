@@ -94,13 +94,11 @@ func (m *mockInfo) printResults(seenAll bool) {
 	w.Flush()
 }
 
-func (m *mockInfo) initDevices(devices []*device.Info) {
-	for _, info := range devices {
-		m.lock.Lock()
-		m.seenUpdates[info.ID] = map[string]bool{}
-		m.idToInfo[info.ID] = info
-		m.lock.Unlock()
-	}
+func (m *mockInfo) initDevice(info *device.Info) {
+	m.lock.Lock()
+	m.seenUpdates[info.ID] = map[string]bool{}
+	m.idToInfo[info.ID] = info
+	m.lock.Unlock()
 }
 
 func (m *mockInfo) waitForUpdates(errChan chan error, timeout time.Duration) error {
@@ -131,14 +129,22 @@ func newMockInfo(featureToPath map[string]string) *mockInfo {
 
 func runMock(ctx context.Context) {
 	mockInfo := newMockInfo(mockFeature)
-	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
-	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	inventory, err := device.NewInventory(ctx,
+		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest), *backupFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	mockInfo.initDevices(devices)
-	for _, info := range devices {
-		err := inventory.Add(info.ID, info.Device)
+	configs, err := createDeviceConfigs()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	for _, config := range configs {
+		info, err := device.NewDeviceInfo(config)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		mockInfo.initDevice(info)
+		err = inventory.Add(info)
 		if err != nil {
 			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}

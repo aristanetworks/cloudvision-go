@@ -9,7 +9,7 @@ GOTEST_FLAGS := -cover -race -count 1
 GOLINT := golint
 GOFMT := gofmt
 GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
-GOFILES := find . -name '*.go' ! -path './vendor/*' ! -name '*.pb.go'
+GOFILES := find . -name '*.go' ! -name '*.pb.go' ! -name '*gen.go'
 GOPKGVERSION := $(shell git rev-parse HEAD)
 GOLDFLAGS := -ldflags="-s -w -X github.com/aristanetworks/cloudvision-go/version.Version=$(GOPKGVERSION) -X github.com/aristanetworks/cloudvision-go/version.CollectorVersion=$(GOPKGVERSION)"
 # Supply defaults if not provided
@@ -22,6 +22,9 @@ install:
 	$(GO) install ./...
 
 check: vet fmtcheck lint test
+
+gen:
+	cd device/gen && go generate
 
 jenkins: check
 
@@ -44,4 +47,4 @@ lint:
 test:
 	$(GO) test $(GOTEST_FLAGS) -timeout=$(TEST_TIMEOUT) ./...
 
-.PHONY: all check fmtcheck jenkins lint test vet
+.PHONY: all check fmtcheck jenkins lint test vet gen

@@ -9,6 +9,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -16,18 +17,25 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
+	"github.com/aristanetworks/cloudvision-go/device/gen"
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/aristanetworks/fsnotify"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
-	v    = flag.Bool("version", false, "Print the version number")
-	help = flag.Bool("help", false, "Print program options")
+	v          = flag.Bool("version", false, "Print the version number")
+	help       = flag.Bool("help", false, "Print program options")
+	backupFile = flag.String("backupFile", "", "Path to inventory server backup file")
 
 	// Logging config
 	logLevel = flag.String("logLevel", "info", "Log level verbosity "+
@@ -40,8 +48,6 @@ var (
 		"Device type (available devices: "+deviceList()+")")
 	deviceOptions    = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
-	deviceIDFile     = flag.String("dumpDeviceIDFile", "",
-		"Path to output file used to associate device IDs with device configuration")
 
 	// MockCollector config
 	mock        = flag.Bool("mock", false, "Run Collector in mock mode")
@@ -58,6 +64,10 @@ var (
 	// gNMI server config
 	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
 		"Address of gNMI server")
+
+	// grpc server config
+	grpcAddr = flag.String("grpcAddr", "",
+		"gRPC server address. If unspecified, server will not run.")
 )
 
 // Main is the "real" main.
@@ -130,39 +140,66 @@ func runMain(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	// Create inventory.
-	inventory := device.NewInventory(ctx, gnmiClient)
-	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	inventory, err := device.NewInventory(ctx, gnmiClient, *backupFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-
 	group, ctx := errgroup.WithContext(ctx)
-	err = inventory.Update(devices)
+	configs, err := createDeviceConfigs()
 	if err != nil {
-		logrus.Fatalf("Error in inventory.Update(): %v", err)
+		logrus.Fatal(err)
 	}
-	for _, info := range devices {
-		if manager, ok := info.Device.(device.Manager); ok {
-			group.Go(func() error {
-				return manager.Manage(inventory)
-			})
-		} else {
-			group.Go(func() error {
-				select {
-				case <-ctx.Done():
-					return nil
-				}
-			})
+	for _, config := range configs {
+		info, err := device.NewDeviceInfo(config)
+		if err != nil {
+			logrus.Fatalf("Error in device.NewDeviceInfo(): %v", err)
 		}
+		err = inventory.Add(info)
+		if err != nil {
+			logrus.Fatalf("Error in inventory.Add(): %v", err)
+		}
+		group.Go(func() error {
+			select {
+			case <-ctx.Done():
+				return nil
+			}
+		})
 	}
-	device.DeviceIDFile = *deviceIDFile
 	group.Go(func() error {
 		return watchConfig(*deviceConfigFile, inventory)
 	})
+
+	if *grpcAddr != "" {
+		grpcServer, listener, err := newGRPCServer(*grpcAddr, inventory)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		group.Go(func() error { return grpcServer.Serve(listener) })
+	}
+
 	logrus.Info("Collector is running")
 	if err := group.Wait(); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func createDeviceConfigs() ([]*device.Config, error) {
+	configs := []*device.Config{}
+	if *deviceName != "" {
+		configs = append(configs, &device.Config{
+			Device:  *deviceName,
+			Options: deviceOptions,
+		})
+	}
+
+	if *deviceConfigFile != "" {
+		readConfigs, err := device.ReadConfigs(*deviceConfigFile)
+		if err != nil {
+			return nil, err
+		}
+		configs = append(configs, readConfigs...)
+	}
+	return configs, nil
 }
 
 // Return a formatted list of available devices.
@@ -192,11 +229,6 @@ func addHelp() error {
 }
 
 func validateConfig() {
-	// A device or a device config must be specified unless we're running with -h
-	if *deviceName == "" && *deviceConfigFile == "" {
-		logrus.Fatal("-device or -config must be specified.")
-	}
-
 	if *deviceConfigFile != "" && *deviceName != "" {
 		logrus.Fatal("-config and -device should not be both specified.")
 	}
@@ -211,6 +243,10 @@ func validateConfig() {
 
 	if *dump && *dumpFile == "" {
 		logrus.Fatal("-dumpFile must be specified in dump mode")
+	}
+
+	if *backupFile != "" && *grpcAddr == "" {
+		logrus.Fatal("-backupFile should not be specified without -grpcAddr")
 	}
 }
 
@@ -236,15 +272,23 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 					return nil
 				}
 				if event.Name == configPath {
-					devices, err := device.CreateDevices("", configPath, nil)
+					configs, err := createDeviceConfigs()
 					if err != nil {
-						logrus.Errorf("Error creating devices from watched config: %v", err)
+						logrus.Errorf("Error creating device configs from watched config: %v", err)
 						continue
 					}
-					err = inventory.Update(devices)
-					if err != nil {
-						logrus.Errorf("Error updating inventory from watched config: %v", err)
-						continue
+					for _, config := range configs {
+						info, err := device.NewDeviceInfo(config)
+						if err != nil {
+							logrus.Errorf(
+								"Error creating device info from device config: %v", err)
+							continue
+						}
+						err = inventory.Add(info)
+						if err != nil {
+							logrus.Errorf("Error adding device to inventory: %v", err)
+							continue
+						}
 					}
 				}
 			case err, ok := <-watcher.Errors:
@@ -260,4 +304,19 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 	// we have to watch the entire directory to pick up changes to symlinks
 	watcher.Add(configDir)
 	return group.Wait()
+}
+
+func newGRPCServer(address string,
+	inventory device.Inventory) (*grpc.Server, net.Listener, error) {
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return nil, nil, err
+	}
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(grpc_validator.UnaryServerInterceptor()),
+	)
+	gen.RegisterDeviceInventoryServer(grpcServer, device.NewInventoryService(inventory))
+	reflection.Register(grpcServer)
+	healthpb.RegisterHealthServer(grpcServer, health.NewServer())
+	return grpcServer, listener, nil
 }

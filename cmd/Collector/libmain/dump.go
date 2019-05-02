@@ -70,13 +70,21 @@ func newDumpInfo() *dumpInfo {
 func runDump(ctx context.Context) {
 	dumpInfo := newDumpInfo()
 	dumpInfo.doneGroup.Add(1)
-	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
-	devices, err := device.CreateDevices(*deviceName, *deviceConfigFile, deviceOptions)
+	inventory, err := device.NewInventory(ctx,
+		pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest), *backupFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	for _, info := range devices {
-		err := inventory.Add(info.ID, info.Device)
+	configs, err := createDeviceConfigs()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	for _, config := range configs {
+		info, err := device.NewDeviceInfo(config)
+		if err != nil {
+			logrus.Fatalf("Error in device.NewDeviceInfo(): %v", err)
+		}
+		err = inventory.Add(info)
 		if err != nil {
 			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}

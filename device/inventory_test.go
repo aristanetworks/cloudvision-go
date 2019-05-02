@@ -17,27 +17,30 @@ func TestInventoryBasic(t *testing.T) {
 	processor := func(ctx context.Context, req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 		return nil, nil
 	}
-	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor))
-	expectedDevice := testDevice{}
-	deviceID := "dummy"
-	err := inventory.Add(deviceID, expectedDevice)
+	inventory, err := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor), "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	actualDevice, ok := inventory.Get(deviceID)
-	if !ok {
-		t.Fatalf("Device '%s' not found in inventory", deviceID)
+	expectedDevice := testDevice{}
+	deviceID := "dummy"
+	err = inventory.Add(&Info{Device: expectedDevice, ID: deviceID})
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(expectedDevice, actualDevice) {
+	actualDevice, err := inventory.Get(deviceID)
+	if err != nil {
+		t.Fatalf("Device '%s' not found in inventory: %v", deviceID, err)
+	}
+	if !reflect.DeepEqual(expectedDevice, actualDevice.Device) {
 		t.Fatalf("Added device different from retrieved device\nAdded: %v\nRetrieved: %v",
-			expectedDevice, actualDevice)
+			expectedDevice, actualDevice.Device)
 	}
 	err = inventory.Delete(deviceID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, ok = inventory.Get(deviceID)
-	if ok {
+	_, err = inventory.Get(deviceID)
+	if err == nil {
 		t.Fatalf("Device '%s' is found in inventory after deletion", deviceID)
 	}
 }

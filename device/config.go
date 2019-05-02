@@ -5,9 +5,10 @@
 package device
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 
-	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -17,26 +18,43 @@ type Config struct {
 	Options map[string]string `yaml:"Options,omitempty"`
 }
 
-// ReadConfigs reads the config file at the specified path,
-// optionally extracting just the specified devices.
-func ReadConfigs(configPath string) ([]Config, error) {
-	yamlFile, err := ioutil.ReadFile(configPath)
+func (c *Config) validate() error {
+	if c.Device == "" {
+		return fmt.Errorf("Device in config cannot be empty")
+	}
+	return nil
+}
+
+// ReadConfigs generates device configs from the config file at the specified path.
+func ReadConfigs(configPath string) ([]*Config, error) {
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
-	return readConfigsFromBytes(yamlFile)
+	return readConfigsFromBytes(data)
 }
 
-func readConfigsFromBytes(yamlFile []byte) ([]Config, error) {
-	configs := []Config{}
-	err := yaml.Unmarshal(yamlFile, &configs)
+func readConfigsFromBytes(data []byte) ([]*Config, error) {
+	configs := []*Config{}
+	err := yaml.Unmarshal(data, &configs)
 	if err != nil {
 		return nil, err
 	}
 	for _, config := range configs {
-		if config.Device == "" {
-			return nil, errors.Errorf("Device must be specified")
+		err := config.validate()
+		if err != nil {
+			return nil, err
 		}
 	}
 	return configs, nil
+}
+
+// WriteConfigs writes a list of Config to the specified path.
+func WriteConfigs(configPath string, configs []*Config) error {
+	f, err := os.Create(configPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return yaml.NewEncoder(f).Encode(&configs)
 }

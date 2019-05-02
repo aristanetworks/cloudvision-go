@@ -1,0 +1,64 @@
+// Copyright (c) 2019 Arista Networks, Inc.
+// Use of this source code is governed by the Apache License 2.0
+// that can be found in the COPYING file.
+
+syntax = "proto3";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+option go_package = "gen";
+
+message DeviceConfig {
+   map<string, string> options = 1;
+   string deviceType = 2 [(validator.field) = {regex: ".+"}];
+}
+
+// DeviceConfigs is used to marshal a list of DeviceConfig in a config file as
+// protobuf doesn't support top level list type.
+message DeviceConfigs {
+   repeated DeviceConfig deviceConfigs = 1;
+}
+
+message DeviceInfo {
+   // deviceConfig is empty if the device is created without using DeviceConfig.
+   DeviceConfig deviceConfig = 1;
+   string deviceID = 2 [(validator.field) = {regex: ".+"}];
+}
+
+message AddRequest {
+   DeviceConfig deviceConfig = 1 [(validator.field) = {msg_exists : true}];
+}
+
+message AddResponse {
+   DeviceInfo deviceInfo = 1 [(validator.field) = {msg_exists : true}];
+}
+
+message DeleteRequest {
+   string deviceID = 1 [(validator.field) = {regex: ".+"}];
+}
+
+message DeleteResponse {}
+
+message GetRequest {
+   string deviceID = 1 [(validator.field) = {regex: ".+"}];
+}
+
+message GetResponse {
+   DeviceInfo deviceInfo = 1 [(validator.field) = {msg_exists : true}];
+}
+
+message ListRequest {}
+
+message ListResponse {
+   repeated DeviceInfo deviceInfos = 1;
+}
+
+service DeviceInventory {
+
+  rpc Add(AddRequest) returns (AddResponse);
+
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+
+  rpc Get(GetRequest) returns (GetResponse);
+
+  rpc List(ListRequest) returns (ListResponse);
+}
