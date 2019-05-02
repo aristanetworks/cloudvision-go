@@ -144,6 +144,23 @@ func GetAddressOption(optionName string,
 	return addrs[0].String(), nil
 }
 
+// GetPortOption returns the option specified by optionName as a validated
+// port number.
+func GetPortOption(optionName string, options map[string]string) (string, error) {
+	p, ok := options[optionName]
+	if !ok {
+		return "", fmt.Errorf("No option '%s'", optionName)
+	}
+	port, err := strconv.Atoi(p)
+	if err != nil {
+		return "", err
+	}
+	if port < 0 || port > 65535 {
+		return "", fmt.Errorf("Invalid port number %d", port)
+	}
+	return p, nil
+}
+
 // GetDurationOption returns the option specified by optionName as a
 // time.Duration.
 func GetDurationOption(optionName string,
