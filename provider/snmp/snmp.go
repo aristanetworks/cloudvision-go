@@ -1177,11 +1177,11 @@ type V3Params struct {
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
-func NewSNMPProvider(address string, community string,
+func NewSNMPProvider(address string, port uint16, community string,
 	pollInt time.Duration, version gosnmp.SnmpVersion,
 	v3Params *V3Params, verbose bool, mock bool) provider.GNMIProvider {
 	gsnmp := &gosnmp.GoSNMP{
-		Port:               161,
+		Port:               port,
 		Version:            version,
 		Retries:            3,
 		ExponentialTimeout: true,

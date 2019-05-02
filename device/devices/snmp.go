@@ -7,6 +7,7 @@ package devices
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,6 +77,7 @@ type snmp struct {
 	community    string
 	level        string
 	pollInterval time.Duration
+	port         uint16
 	privacyKey   string
 	privacyProto string
 	securityName string
@@ -228,6 +230,16 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, s.deviceConfigErr(err)
 	}
 
+	port, err := device.GetPortOption("port", options)
+	if err != nil {
+		return nil, s.deviceConfigErr(err)
+	}
+	portint, err := strconv.Atoi(port)
+	if err != nil {
+		return nil, s.deviceConfigErr(err)
+	}
+	s.port = uint16(portint)
+
 	s.privacyKey, err = device.GetStringOption("X", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
@@ -259,7 +271,7 @@ func newSnmp(options map[string]string) (device.Device, error) {
 
 	s.v, s.v3Params = s.formatOptions()
 
-	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.community,
+	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.port, s.community,
 		s.pollInterval, s.v, s.v3Params, s.verbose, false)
 
 	return s, nil
