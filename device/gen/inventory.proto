@@ -3,13 +3,12 @@
 // that can be found in the COPYING file.
 
 syntax = "proto3";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
 
 option go_package = "gen";
 
 message DeviceConfig {
    map<string, string> options = 1;
-   string deviceType = 2 [(validator.field) = {regex: ".+"}];
+   string deviceType = 2;
 }
 
 // DeviceConfigs is used to marshal a list of DeviceConfig in a config file as
@@ -21,29 +20,29 @@ message DeviceConfigs {
 message DeviceInfo {
    // deviceConfig is empty if the device is created without using DeviceConfig.
    DeviceConfig deviceConfig = 1;
-   string deviceID = 2 [(validator.field) = {regex: ".+"}];
+   string deviceID = 2;
 }
 
 message AddRequest {
-   DeviceConfig deviceConfig = 1 [(validator.field) = {msg_exists : true}];
+   DeviceConfig deviceConfig = 1;
 }
 
 message AddResponse {
-   DeviceInfo deviceInfo = 1 [(validator.field) = {msg_exists : true}];
+   DeviceInfo deviceInfo = 1;
 }
 
 message DeleteRequest {
-   string deviceID = 1 [(validator.field) = {regex: ".+"}];
+   string deviceID = 1;
 }
 
 message DeleteResponse {}
 
 message GetRequest {
-   string deviceID = 1 [(validator.field) = {regex: ".+"}];
+   string deviceID = 1;
 }
 
 message GetResponse {
-   DeviceInfo deviceInfo = 1 [(validator.field) = {msg_exists : true}];
+   DeviceInfo deviceInfo = 1;
 }
 
 message ListRequest {}

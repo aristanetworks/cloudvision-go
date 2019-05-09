@@ -132,6 +132,9 @@ func (dc *deviceConn) runProviders() error {
 func (i *inventory) Add(info *Info) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
+	if info.ID == "" {
+		return fmt.Errorf("ID in device.Info cannot be empty")
+	}
 	if _, ok := i.devices[info.ID]; ok {
 		return nil
 	}
@@ -171,6 +174,9 @@ func (i *inventory) Add(info *Info) error {
 func (i *inventory) Delete(key string) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
+	if key == "" {
+		return fmt.Errorf("key in inventory.Delete cannot be empty")
+	}
 	dc, ok := i.devices[key]
 	if !ok {
 		return nil
@@ -189,6 +195,9 @@ func (i *inventory) Delete(key string) error {
 func (i *inventory) Get(key string) (*Info, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
+	if key == "" {
+		return nil, fmt.Errorf("key in inventory.Get cannot be empty")
+	}
 	d, ok := i.devices[key]
 	if !ok {
 		return nil, fmt.Errorf("Device %s not found", key)

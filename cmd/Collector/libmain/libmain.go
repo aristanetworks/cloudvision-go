@@ -23,7 +23,6 @@ import (
 	"github.com/aristanetworks/fsnotify"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -312,9 +311,7 @@ func newGRPCServer(address string,
 	if err != nil {
 		return nil, nil, err
 	}
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(grpc_validator.UnaryServerInterceptor()),
-	)
+	grpcServer := grpc.NewServer()
 	gen.RegisterDeviceInventoryServer(grpcServer, device.NewInventoryService(inventory))
 	reflection.Register(grpcServer)
 	healthpb.RegisterHealthServer(grpcServer, health.NewServer())
