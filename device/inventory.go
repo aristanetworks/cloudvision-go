@@ -7,6 +7,7 @@ package device
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -234,6 +235,12 @@ func (i *inventory) backup() error {
 func (i *inventory) restore() error {
 	if i.backupFile == "" {
 		return nil
+	}
+	if _, err := os.Stat(i.backupFile); os.IsNotExist(err) {
+		_, err = os.Create(i.backupFile)
+		return err
+	} else if err != nil {
+		return err
 	}
 	configs, err := ReadConfigs(i.backupFile)
 	if err != nil {
