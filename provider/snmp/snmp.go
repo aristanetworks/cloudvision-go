@@ -473,7 +473,7 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 			strval(pdu.Value))
 	case snmpIfType:
 		u = update(pgnmi.IntfStatePath(intfName, "type"),
-			strval(openconfig.InterfaceType(pdu.Value.(int))))
+			strval("iana-if-type:"+openconfig.InterfaceType(pdu.Value.(int))))
 	case snmpIfMtu:
 		v, err := provider.ToUint64(pdu.Value)
 		if err != nil {
@@ -1057,7 +1057,8 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 		}
 		if class != "" {
 			updates = appendUpdates(updates,
-				update(pgnmi.PlatformComponentStatePath(index, "type"), strval(class)))
+				update(pgnmi.PlatformComponentStatePath(index, "type"),
+					strval("openconfig-platform-types:"+class)))
 		}
 	case snmpEntPhysicalDescr:
 		updates = appendUpdates(updates,
