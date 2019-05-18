@@ -30,11 +30,6 @@ func (td testDevice) Providers() ([]provider.Provider, error) {
 	return nil, nil
 }
 
-// newTestDevice returns a dummy device for testing.
-func newTestDevice(map[string]string) (device.Device, error) {
-	return testDevice{}, nil
-}
-
 type testManager struct{}
 
 func (tm testManager) Alive() (bool, error) {

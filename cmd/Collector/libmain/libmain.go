@@ -98,7 +98,9 @@ func Main() {
 	// if requested.
 	if *help {
 		if *deviceName != "" {
-			addHelp()
+			if err := addHelp(); err != nil {
+				logrus.Fatal(err)
+			}
 		}
 		flag.Usage()
 		return
@@ -158,10 +160,8 @@ func runMain(ctx context.Context) {
 			logrus.Fatalf("Error in inventory.Add(): %v", err)
 		}
 		group.Go(func() error {
-			select {
-			case <-ctx.Done():
-				return nil
-			}
+			<-ctx.Done()
+			return nil
 		})
 	}
 	group.Go(func() error {
@@ -301,7 +301,9 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 		}
 	})
 	// we have to watch the entire directory to pick up changes to symlinks
-	watcher.Add(configDir)
+	if err = watcher.Add(configDir); err != nil {
+		return err
+	}
 	return group.Wait()
 }
 

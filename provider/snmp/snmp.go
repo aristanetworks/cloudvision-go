@@ -165,7 +165,7 @@ func strval(s interface{}) *gnmi.TypedValue {
 		}
 		return pgnmi.Strval(t)
 	case []byte:
-		str := string(bytesToSanitizedString(t))
+		str := bytesToSanitizedString(t)
 		if str == "" {
 			return nil
 		}

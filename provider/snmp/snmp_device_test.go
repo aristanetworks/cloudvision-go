@@ -36,13 +36,6 @@ type deviceTestCase struct {
 	polls          int
 }
 
-type snmpReqType string
-
-const (
-	get      string = "get"
-	bulkwalk string = "bulkwalk"
-)
-
 // walkMap represents a walk of an SNMP tree as a map from OID
 // to the set of PDUs returned by the walk that are rooted at the
 // specified OID.

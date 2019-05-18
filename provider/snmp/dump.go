@@ -37,15 +37,15 @@ const (
 	counter             = gosnmp.Counter32
 	counter64           = gosnmp.Counter64
 	integer             = gosnmp.Integer
-	timeticks           = gosnmp.TimeTicks
+	timeticks           = gosnmp.TimeTicks // nolint: deadcode
 	octstrTypeString    = "STRING"
 	hexstrTypeString    = "Hex-STRING"
 	integerTypeString   = "INTEGER"
 	counterTypeString   = "Counter32"
 	counter64TypeString = "Counter64"
-	getString           = "GET"
-	walkString          = "WALK"
-	timeticksString     = "Timeticks"
+	getString           = "GET"       // nolint: deadcode
+	walkString          = "WALK"      // nolint: deadcode
+	timeticksString     = "Timeticks" // nolint: deadcode
 )
 
 // PDU creation wrapper.
@@ -109,16 +109,16 @@ func pduFromString(s string) *gosnmp.SnmpPDU {
 	case counter64TypeString:
 		pduType = counter64
 		v, _ := strconv.ParseUint(val, 10, 64)
-		value = uint64(v)
+		value = v
 	default:
 		return nil
 	}
 	return pdu(oid, pduType, value)
 }
 
-// Convert a set of formatted SNMP responses (as returned by
-// snmpwalk -v3 -O ne <target> <oid>) to PDUs.
-func pdusFromString(s string) []*gosnmp.SnmpPDU {
+// PDUsFromString converts a set of formatted SNMP responses (as
+// returned by snmpwalk -v3 -O ne <target> <oid>) to PDUs.
+func PDUsFromString(s string) []*gosnmp.SnmpPDU {
 	pdus := make([]*gosnmp.SnmpPDU, 0)
 	for _, line := range strings.Split(s, "\n") {
 		pdu := pduFromString(line)

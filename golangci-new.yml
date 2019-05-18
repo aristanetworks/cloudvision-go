@@ -1,0 +1,15 @@
+issues:
+  # Show only issues from the last commit.
+  # It's not practical to fix all existing issues when introducing a new linter.
+  # NOTE: we do not want to use --new here. That can make all patches pass the gerrit
+  # gate if an unstaged file is generated before golangci-lint runs.
+  new-from-rev: HEAD~1
+
+  exclude:
+    # Linter: errcheck
+    # Almost all programs ignore errors on these functions and in most cases it's ok
+    - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"
+
+linters:
+  enable:
+    - errcheck

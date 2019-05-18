@@ -1,0 +1,14 @@
+linters-settings:
+  lll:
+    line-length: 100
+    tab-width: 4
+
+linters:
+  enable:
+    - deadcode
+    - golint
+    - gosimple
+    - ineffassign
+    - lll
+    - staticcheck
+    - unconvert

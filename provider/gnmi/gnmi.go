@@ -68,7 +68,10 @@ func (p *Gnmi) Run(ctx context.Context) error {
 				}
 			case *gnmi.SubscribeResponse_Update:
 				// One SetRequest per update:
-				p.outClient.Set(ctx, &gnmi.SetRequest{Update: resp.Update.Update})
+				_, err := p.outClient.Set(ctx, &gnmi.SetRequest{Update: resp.Update.Update})
+				if err != nil {
+					return err
+				}
 			}
 		case err := <-errChan:
 			return fmt.Errorf("Error from gNMI connection: %v", err)

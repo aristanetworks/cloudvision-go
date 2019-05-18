@@ -553,7 +553,7 @@ func TestSnmp(t *testing.T) {
 			name:   "updatePlatformBasic",
 			pollFn: s.updatePlatform,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalTable: pdusFromString(basicEntPhysicalTableResponse),
+				snmpEntPhysicalTable: PDUsFromString(basicEntPhysicalTableResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("components")},
@@ -623,8 +623,8 @@ func TestSnmp(t *testing.T) {
 			name:   "updateInterfacesBasic",
 			pollFn: s.updateInterfaces,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpIfTable:  pdusFromString(basicIfTableResponse),
-				snmpIfXTable: pdusFromString(basicIfXTableResponse),
+				snmpIfTable:  PDUsFromString(basicIfTableResponse),
+				snmpIfXTable: PDUsFromString(basicIfXTableResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
@@ -694,9 +694,9 @@ func TestSnmp(t *testing.T) {
 			name:   "updateLldpBasic",
 			pollFn: s.updateLldp,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpLldpLocalSystemData: pdusFromString(basicLldpLocalSystemDataResponse),
-				snmpLldpRemTable:        pdusFromString(basicLldpRemTableResponse),
-				snmpLldpStatistics:      pdusFromString(basicLldpStatisticsResponse),
+				snmpLldpLocalSystemData: PDUsFromString(basicLldpLocalSystemDataResponse),
+				snmpLldpRemTable:        PDUsFromString(basicLldpRemTableResponse),
+				snmpLldpStatistics:      PDUsFromString(basicLldpStatisticsResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
@@ -781,7 +781,7 @@ func TestSnmp(t *testing.T) {
 			name:   "updateLldpOmitInactiveIntfs",
 			pollFn: s.updateLldp,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpLldpLocalSystemData: pdusFromString(inactiveIntfLldpLocalSystemDataResponse),
+				snmpLldpLocalSystemData: PDUsFromString(inactiveIntfLldpLocalSystemDataResponse),
 				snmpLldpRemTable:        []*gosnmp.SnmpPDU{},
 				snmpLldpStatistics:      []*gosnmp.SnmpPDU{},
 			},
@@ -814,7 +814,7 @@ func TestSnmp(t *testing.T) {
 			name:   "updateLldpStringChassisID",
 			pollFn: s.updateLldp,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpLldpLocalSystemData: pdusFromString(lldpLocalSystemDataResponseStringID),
+				snmpLldpLocalSystemData: PDUsFromString(lldpLocalSystemDataResponseStringID),
 				snmpLldpRemTable:        []*gosnmp.SnmpPDU{},
 				snmpLldpStatistics:      []*gosnmp.SnmpPDU{},
 			},
@@ -883,7 +883,7 @@ func TestSnmpLldpV2(t *testing.T) {
 			name:   "lldpV2IntfSetup",
 			pollFn: s.updateInterfaces,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpIfTable:  pdusFromString(basicLldpV2IntfSetupResponse),
+				snmpIfTable:  PDUsFromString(basicLldpV2IntfSetupResponse),
 				snmpIfXTable: []*gosnmp.SnmpPDU{},
 			},
 			expected: &gnmi.SetRequest{
@@ -905,9 +905,9 @@ func TestSnmpLldpV2(t *testing.T) {
 			name:   "updateLldpV2Basic",
 			pollFn: s.updateLldp,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpLldpV2LocalSystemData: pdusFromString(basicLldpV2LocalSystemDataResponse),
-				snmpLldpV2RemTable:        pdusFromString(basicLldpV2RemTableResponse),
-				snmpLldpV2Statistics:      pdusFromString(basicLldpV2StatisticsResponse),
+				snmpLldpV2LocalSystemData: PDUsFromString(basicLldpV2LocalSystemDataResponse),
+				snmpLldpV2RemTable:        PDUsFromString(basicLldpV2RemTableResponse),
+				snmpLldpV2Statistics:      PDUsFromString(basicLldpV2StatisticsResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
@@ -991,24 +991,24 @@ func TestDeviceID(t *testing.T) {
 		{
 			name: "deviceIDArista",
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalClass:     pdusFromString(entPhysClassAristaResponse),
-				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumAristaResponse),
+				snmpEntPhysicalClass:     PDUsFromString(entPhysClassAristaResponse),
+				snmpEntPhysicalSerialNum: PDUsFromString(entPhysSerialNumAristaResponse),
 			},
 			expected: "JSH11420017",
 		},
 		{
 			name: "deviceIDN9K",
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalClass:     pdusFromString(entPhysClassN9KResponse),
-				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumN9KResponse),
+				snmpEntPhysicalClass:     PDUsFromString(entPhysClassN9KResponse),
+				snmpEntPhysicalSerialNum: PDUsFromString(entPhysSerialNumN9KResponse),
 			},
 			expected: "SAL1817R822",
 		},
 		{
 			name: "noChassisFound",
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalClass:     pdusFromString(entPhysClassDefaultResponse),
-				snmpEntPhysicalSerialNum: pdusFromString(entPhysSerialNumDefaultResponse),
+				snmpEntPhysicalClass:     PDUsFromString(entPhysClassDefaultResponse),
+				snmpEntPhysicalSerialNum: PDUsFromString(entPhysSerialNumDefaultResponse),
 			},
 			expected: "JSH11420018",
 		},
@@ -1029,8 +1029,8 @@ func TestIfTable64Bit(t *testing.T) {
 			name:   "updateInterfaces64BitFirstPoll",
 			pollFn: s.updateInterfaces,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpIfTable:  pdusFromString(ifTable64BitResponse),
-				snmpIfXTable: pdusFromString(ifXTable64BitResponse),
+				snmpIfTable:  PDUsFromString(ifTable64BitResponse),
+				snmpIfXTable: PDUsFromString(ifXTable64BitResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},
@@ -1068,8 +1068,8 @@ func TestIfTable64Bit(t *testing.T) {
 			name:   "updateInterfaces64BitSecondPoll",
 			pollFn: s.updateInterfaces,
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpIfTable:  pdusFromString(ifTable64BitResponse),
-				snmpIfXTable: pdusFromString(ifXTable64BitResponse),
+				snmpIfTable:  PDUsFromString(ifTable64BitResponse),
+				snmpIfXTable: PDUsFromString(ifXTable64BitResponse),
 			},
 			expected: &gnmi.SetRequest{
 				Delete: []*gnmi.Path{pgnmi.Path("interfaces", "interface")},

@@ -6,7 +6,14 @@ GO := go
 
 TEST_TIMEOUT := 60s
 GOTEST_FLAGS := -cover -race -count 1
-GOLINT := golint
+LINT_GOGC := GOGC=50 # Reduce golangci-lint's memory usage
+LINT := $(LINT_GOGC) golangci-lint run
+LINTFLAGS ?= --deadline=10m --skip-files=/gen\.go$$ --exclude-use-default=false --print-issued-lines --print-linter-name --out-format=colored-line-number --disable-all --max-same-issues=0 --max-issues-per-linter=0
+LINTCONFIG := --config golangci.yml
+LINTNEWCONFIG := --config golangci-new.yml
+LINTEXTRAFLAGS ?=
+# XXX TODO: We may want to only lint changed packages in the future. For now it's not a big deal to lint everything.
+LINTPKGS := ./...
 GOFMT := gofmt
 GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
 GOFILES := find . -name '*.go' ! -name '*.pb.go' ! -name '*gen.go'
@@ -40,7 +47,12 @@ vet:
 	$(GO) vet ./...
 
 lint:
-	lint=`$(GODIRS) | xargs -L 1 $(GOLINT) | fgrep -v .pb.go`; if test -n "$$lint"; then echo "$$lint"; exit 1; fi
+	@# golangci installed from source doesn't support version, so don't fail the target
+	-$(LINT) --version
+	$(LINT) $(LINTFLAGS) --disable-all --enable=deadcode --tests=false $(LINTEXTRAFLAGS) $(LINT_PKGS)
+	$(LINT) $(LINTCONFIG) $(LINTFLAGS) $(LINTEXTRAFLAGS) $(LINT_PKGS)
+	$(LINT) $(LINTNEWCONFIG) $(LINTFLAGS) $(LINTEXTRAFLAGS) $(LINT_PKGS)
+#	lint=`$(GODIRS) | xargs -L 1 $(GOLINT) | fgrep -v .pb.go`; if test -n "$$lint"; then echo "$$lint"; exit 1; fi
 # The above is ugly, but unfortunately golint doesn't exit 1 when it finds
 # lint.  See https://github.com/golang/lint/issues/65
 
