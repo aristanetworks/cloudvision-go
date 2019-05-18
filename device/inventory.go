@@ -59,7 +59,9 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		ctx = metadata.AppendToOutgoingContext(ctx,
 			deviceTypeMetadata, "target")
 	}
-	dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
+	if _, err := dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{}); err != nil {
+		return err
+	}
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -69,7 +71,10 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 				if alive {
 					ctx := metadata.AppendToOutgoingContext(dc.ctx,
 						deviceLivenessMetadata, "true")
-					dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
+					_, err = dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
+					if err != nil {
+						return err
+					}
 				} else {
 					did, _ := dc.info.Device.DeviceID()
 					log.Log(dc.info.Device).Infof("Device %s is not alive", did)
