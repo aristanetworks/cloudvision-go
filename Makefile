@@ -4,24 +4,25 @@
 
 GO := go
 
-TEST_TIMEOUT := 60s
-GOTEST_FLAGS := -cover -race -count 1
-LINT_GOGC := GOGC=50 # Reduce golangci-lint's memory usage
-LINT := $(LINT_GOGC) golangci-lint run
-LINTFLAGS ?= --deadline=10m --skip-files=/gen\.go$$ --exclude-use-default=false --print-issued-lines --print-linter-name --out-format=colored-line-number --disable-all --max-same-issues=0 --max-issues-per-linter=0
-LINTCONFIG := --config golangci.yml
-LINTNEWCONFIG := --config golangci-new.yml
-LINTEXTRAFLAGS ?=
-# XXX TODO: We may want to only lint changed packages in the future. For now it's not a big deal to lint everything.
-LINTPKGS := ./...
 GOFMT := gofmt
-GODIRS := find . -type d ! -path './.git/*' ! -path './vendor/*'
-GOFILES := find . -name '*.go' ! -name '*.pb.go' ! -name '*gen.go'
+GODIRS := go list ./... | grep -v ".*/smi"
+GOFILES := find . -name '*.go' ! -name '*.pb.go' ! -name '*gen.go' ! -name '*.l.go' ! -name '*.y.go'
 GOPKGVERSION := $(shell git rev-parse HEAD)
 GOLDFLAGS := -ldflags="-s -w -X github.com/aristanetworks/cloudvision-go/version.Version=$(GOPKGVERSION) -X github.com/aristanetworks/cloudvision-go/version.CollectorVersion=$(GOPKGVERSION)"
 # Supply defaults if not provided
 GOOS ?= linux
 GOARCH ?= 386
+
+TEST_TIMEOUT := 60s
+GOTEST_FLAGS := -cover -race -count 1
+LINT_GOGC := GOGC=50 # Reduce golangci-lint's memory usage
+LINT := $(LINT_GOGC) golangci-lint run
+LINTFLAGS ?= --deadline=10m --skip-files="device/gen/gen\.go$$" --skip-files="provider/snmp/smi/.*" --exclude-use-default=false --print-issued-lines --print-linter-name --out-format=colored-line-number --disable-all --max-same-issues=0 --max-issues-per-linter=0
+LINTCONFIG := --config golangci.yml
+LINTNEWCONFIG := --config golangci-new.yml
+LINTEXTRAFLAGS ?=
+# XXX TODO: We may want to only lint changed packages in the future. For now it's not a big deal to lint everything.
+LINT_PKGS := ./...
 
 all: install
 
@@ -33,6 +34,9 @@ check: vet fmtcheck lint test
 gen:
 	cd device/gen && go generate
 
+smigen:
+	cd provider/snmp/smi && golex -o lexer.l.go lexer.l && goyacc -o parser.y.go -v "" parser.y
+
 jenkins: check
 
 fmtcheck:
@@ -43,8 +47,9 @@ fmtcheck:
 	fi
 	$(GOFILES) -exec ./check_line_len.awk {} +
 
+# Ignore smi package for now.
 vet:
-	$(GO) vet ./...
+	$(GO) vet $(shell $(GODIRS))
 
 lint:
 	@# golangci installed from source doesn't support version, so don't fail the target
@@ -59,4 +64,4 @@ lint:
 test:
 	$(GO) test $(GOTEST_FLAGS) -timeout=$(TEST_TIMEOUT) ./...
 
-.PHONY: all check fmtcheck jenkins lint test vet gen
+.PHONY: all check fmtcheck jenkins lint test vet gen smigen
