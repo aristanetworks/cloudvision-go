@@ -136,7 +136,11 @@ func initLogging() {
 }
 
 func runMain(ctx context.Context) {
-	gnmiClient, err := agnmi.Dial(&agnmi.Config{Addr: *gnmiServerAddr})
+	gnmiCfg := &agnmi.Config{
+		Addr:        *gnmiServerAddr,
+		DialOptions: []grpc.DialOption{grpc.WithBlock()},
+	}
+	gnmiClient, err := agnmi.Dial(gnmiCfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
