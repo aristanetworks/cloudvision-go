@@ -63,6 +63,13 @@ func Path(element ...string) *gnmi.Path {
 	return p
 }
 
+// PathAppend parses the specified elements into gnmi.PathElems
+// and appends them to the provided gnmi.Path, returning a new
+// copy.
+func PathAppend(path *gnmi.Path, element ...string) *gnmi.Path {
+	return agnmi.JoinPaths(path, Path(element...))
+}
+
 // gNMI TypedValues: Everything is converted to a JsonVal for now
 // because those code paths are more mature in the gopenconfig code.
 func jsonValue(v interface{}) *gnmi.TypedValue {

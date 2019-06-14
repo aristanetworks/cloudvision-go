@@ -25,6 +25,15 @@ type Store interface {
 	GetTabular(oid string, indexes ...Index) ([]*gosnmp.SnmpPDU, error)
 }
 
+// NewStore returns a new Store.
+func NewStore(mibStore smi.Store) (Store, error) {
+	return &store{
+		scalars:  make(map[string]*gosnmp.SnmpPDU),
+		columns:  make(map[string]*columnStore),
+		mibStore: mibStore,
+	}, nil
+}
+
 // allIndexMap maps the value of a set of indexes to a PDU. We store
 // them by all indexes rather than just the value of the index in
 // question because it allows for much faster set arithmetic.
@@ -58,14 +67,6 @@ type store struct {
 	lock     sync.RWMutex
 }
 
-func NewStore(mibStore smi.Store) (Store, error) {
-	return &store{
-		scalars:  make(map[string]*gosnmp.SnmpPDU),
-		columns:  make(map[string]*columnStore),
-		mibStore: mibStore,
-	}, nil
-}
-
 func (s *store) addScalar(p *gosnmp.SnmpPDU, o *smi.Object) error {
 	s.scalars[o.Oid] = p
 	return nil
@@ -74,6 +75,14 @@ func (s *store) addScalar(p *gosnmp.SnmpPDU, o *smi.Object) error {
 func indexValues(pdu *gosnmp.SnmpPDU, o *smi.Object) []string {
 	ss := strings.Split(pdu.Name, ".")
 	return ss[(len(ss) - len(o.Parent.Indexes)):]
+}
+
+func IndexValues(mibStore smi.Store, pdu *gosnmp.SnmpPDU) []string {
+	o := mibStore.GetObject(pdu.Name)
+	if o == nil {
+		return nil
+	}
+	return indexValues(pdu, o)
 }
 
 func (s *store) addTabular(p *gosnmp.SnmpPDU, o *smi.Object) error {
