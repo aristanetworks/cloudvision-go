@@ -21,13 +21,13 @@ type store struct {
 
 // NewStore returns a Store.
 func NewStore(files ...string) (Store, error) {
-	modules, err := parseFiles(files...)
+	parseModules, err := parseFiles(files...)
 	if err != nil {
 		return nil, err
 	}
 
 	store := &store{
-		modules: modules,
+		modules: make(map[string]*Module),
 		oids:    make(map[string]*Object),
 		names:   make(map[string]*Object),
 	}
@@ -36,12 +36,13 @@ func NewStore(files ...string) (Store, error) {
 	// fixes we have to make that are easier to do once the store
 	// already exists, such as resolving OIDs and certain indexes.
 	resolvedModules := map[string]bool{}
-	for mk, _ := range modules {
-		if err := resolveModuleOIDs(mk, store, resolvedModules); err != nil {
+	for moduleName, pm := range parseModules {
+		if err := resolveModule(moduleName, store, parseModules,
+			resolvedModules); err != nil {
 			return nil, err
 		}
+		store.modules[moduleName] = createModule(pm)
 	}
-
 	return store, nil
 }
 
@@ -89,19 +90,19 @@ func (s *store) GetObject(oid string) *Object {
 	return s.names[oid]
 }
 
-func resolveOID(object *Object, store *store) error {
+func resolveOID(po *parseObject, store *store) error {
 	// If we've already resolved this one, don't do it again unless
 	// this is a newer version of an object we've already resolved.
-	if o, ok := store.names[object.Name]; ok {
-		if object.Module == o.Module ||
-			moduleUpgrade(object.Module, object.Name) == o.Module ||
-			moduleUpgrade(object.Module, object.Name) != object.Module {
+	if o, ok := store.names[po.object.Name]; ok {
+		if po.object.Module == o.Module ||
+			moduleUpgrade(po.object.Module, po.object.Name) == o.Module ||
+			moduleUpgrade(po.object.Module, po.object.Name) != po.object.Module {
 			return nil
 		}
 	}
 
 	newOid := []string{}
-	for _, subid := range strings.Split(object.Oid, ".") {
+	for _, subid := range strings.Split(po.object.Oid, ".") {
 		if _, err := strconv.Atoi(subid); err != nil {
 			if subid == "iso" {
 				newOid = append(newOid, "1")
@@ -109,7 +110,7 @@ func resolveOID(object *Object, store *store) error {
 				p, ok := store.names[subid]
 				if !ok {
 					return fmt.Errorf("Could not find OID for '%s', module '%s'",
-						subid, object.Module)
+						subid, po.object.Module)
 				}
 				newOid = append(newOid, p.Oid)
 			}
@@ -117,21 +118,37 @@ func resolveOID(object *Object, store *store) error {
 			newOid = append(newOid, subid)
 		}
 	}
-	object.Oid = strings.Join(newOid, ".")
+	po.object.Oid = strings.Join(newOid, ".")
 
-	store.names[object.Name] = object
-	store.oids[object.Oid] = object
-
+	store.names[po.object.Name] = po.object
+	store.oids[po.object.Oid] = po.object
 	return nil
 }
 
-func resolveTreeOIDs(object *Object, store *store, keepgoing bool) error {
-	if err := resolveOID(object, store); err != nil && !keepgoing {
+// Pull in the indexes for AUGMENTS rows.
+func resolveIndexes(po *parseObject, store *store) error {
+	if po.object.Kind != KindRow || po.augments == "" {
+		return nil
+	}
+	ao, ok := store.names[po.augments]
+	if !ok {
+		return fmt.Errorf("Could not find augmented object: %s", po.augments)
+	}
+	po.object.Indexes = make([]string, len(ao.Indexes))
+	copy(po.object.Indexes, ao.Indexes)
+	return nil
+}
+
+func resolveTree(po *parseObject, store *store, keepgoing bool) error {
+	if err := resolveOID(po, store); err != nil && !keepgoing {
+		return err
+	}
+	if err := resolveIndexes(po, store); err != nil && !keepgoing {
 		return err
 	}
 
-	for _, child := range object.Children {
-		if err := resolveTreeOIDs(child, store, keepgoing); err != nil &&
+	for _, child := range po.children {
+		if err := resolveTree(child, store, keepgoing); err != nil &&
 			!keepgoing {
 			return err
 		}
@@ -143,21 +160,23 @@ func resolveTreeOIDs(object *Object, store *store, keepgoing bool) error {
 // Once the parsing is finished we have OIDs that look like
 // {hrSystem 1}. To get the full numeric OIDs we have to resolve
 // the text part to its numeric value.
-func resolveModuleOIDs(moduleName string, store *store,
+func resolveModule(moduleName string, store *store,
+	parseModules map[string]*parseModule,
 	resolvedModules map[string]bool) error {
 	if _, ok := resolvedModules[moduleName]; ok {
 		return nil
 	}
 
-	module, ok := store.modules[moduleName]
+	pm, ok := parseModules[moduleName]
 	if !ok {
 		return fmt.Errorf("Can't resolve unparsed module '%s'", moduleName)
 	}
 
 	// Resolve any modules this module imports.
-	for _, imp := range module.Imports {
+	for _, imp := range pm.imports {
 		mr := moduleUpgrade(imp.Module, imp.Object)
-		if err := resolveModuleOIDs(mr, store, resolvedModules); err != nil {
+		if err := resolveModule(mr, store, parseModules,
+			resolvedModules); err != nil {
 			return err
 		}
 	}
@@ -165,8 +184,8 @@ func resolveModuleOIDs(moduleName string, store *store,
 	// Try twice to resolve each OID, in case they're declared out of
 	// order in the MIB.
 	for pass := 1; pass <= 2; pass++ {
-		for _, obj := range module.ObjectTree {
-			if err := resolveTreeOIDs(obj, store, pass != 2); err != nil &&
+		for _, obj := range pm.objectTree {
+			if err := resolveTree(obj, store, pass != 2); err != nil &&
 				pass == 2 {
 				return err
 			}
@@ -176,4 +195,16 @@ func resolveModuleOIDs(moduleName string, store *store,
 	resolvedModules[moduleName] = true
 
 	return nil
+}
+
+func createModule(pm *parseModule) *Module {
+	m := &Module{
+		Name:       pm.name,
+		ObjectTree: []*Object{},
+		Imports:    pm.imports,
+	}
+	for _, o := range pm.objectTree {
+		m.ObjectTree = append(m.ObjectTree, o.object)
+	}
+	return m
 }

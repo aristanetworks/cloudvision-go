@@ -122,7 +122,7 @@ func sanitized(s string) string {
 type lexer struct {
 	*lex.Lexer
 	sc      int
-	modules map[string]*Module
+	modules map[string]*parseModule
 }
 
 type Token struct {
@@ -10215,5 +10215,5 @@ func newLexer(text string) (*lexer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &lexer{lx, 0, make(map[string]*Module)}, nil
+	return &lexer{lx, 0, make(map[string]*parseModule)}, nil
 }

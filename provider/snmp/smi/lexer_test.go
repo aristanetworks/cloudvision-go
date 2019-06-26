@@ -1,7 +1,6 @@
 package smi
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -328,5 +327,4 @@ func TestLexerOnMIBs(t *testing.T) {
 			break
 		}
 	}
-	fmt.Println("Read", i, "lines of IF-MIB")
 }

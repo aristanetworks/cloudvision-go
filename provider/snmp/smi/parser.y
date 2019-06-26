@@ -9,11 +9,12 @@ import (
 
 %union{
     token Token
+    augments string
     description string
     imports []Import
     importIDs []string
     indexes []string
-    modules []*Module
+    modules []*parseModule
     object *parseObject
     objects []*parseObject
     objectMap map[string]*parseObject
@@ -129,12 +130,12 @@ mibFile : modules
         {
             // Add modules to the module map stored in the lexer
             for _, m := range $$.modules {
-                yylex.(*lexer).modules[m.Name] = m
+                yylex.(*lexer).modules[m.name] = m
             }
             // Clear object, module data from yys
             $$.objectMap = make(map[string]*parseObject)
             $$.objects = []*parseObject{}
-            $$.modules = []*Module{}
+            $$.modules = []*parseModule{}
         }
         |
         ;
@@ -145,14 +146,14 @@ modules : module
 
 module : moduleName moduleOid definitions COLON_COLON_EQUAL BEGIN exportsClause linkagePart declarationPart END
        {
-           m := &Module{
-               Imports: $7.imports,
-               Name: $1.val,
-               ObjectTree: []*Object{},
+           m := &parseModule{
+               imports: $7.imports,
+               name: $1.val,
+               objectTree: []*parseObject{},
            }
            for _, o := range $8.objects {
-               m.ObjectTree = append(m.ObjectTree, o.object)
-               o.setModule(m.Name)
+               m.objectTree = append(m.objectTree, o)
+               o.setModule(m.name)
            }
            $$.addModule(m)
        }
@@ -460,6 +461,7 @@ objectTypeClause : LOWERCASE_IDENTIFIER OBJECT_TYPE SYNTAX Syntax UnitsPart MaxO
                          },
                          decl: declObjectType,
                          table: $4.table,
+                         augments: $14.augments,
                      }
                  }
                  ;
@@ -717,9 +719,21 @@ Access : LOWERCASE_IDENTIFIER
        ;
 
 IndexPart : PIB_INDEX '{' Entry '}'
+          {
+             $$.augments = ""
+          }
           | AUGMENTS '{' Entry '}'
+          {
+             $$.augments = $3.subidentifiers[0]
+          }
           | EXTENDS '{' Entry '}'
+          {
+             $$.augments = ""
+          }
           |
+          {
+             $$.augments = ""
+          }
           ;
 
 MibIndex : INDEX '{' IndexTypes '}'

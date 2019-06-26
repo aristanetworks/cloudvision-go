@@ -202,11 +202,12 @@ func TestParser(t *testing.T) {
 				Access: AccessNotAccessible,
 				Description: "An entry containing additional management " +
 					"information applicable to a particular interface.",
-				Kind:   KindRow,
-				Module: "IF-MIB",
-				Name:   "ifXEntry",
-				Oid:    "1.3.6.1.2.1.31.1.1.1",
-				Status: StatusCurrent,
+				Indexes: []string{"ifIndex"},
+				Kind:    KindRow,
+				Module:  "IF-MIB",
+				Name:    "ifXEntry",
+				Oid:     "1.3.6.1.2.1.31.1.1.1",
+				Status:  StatusCurrent,
 			},
 		},
 		{

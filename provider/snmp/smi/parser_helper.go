@@ -8,57 +8,6 @@ import (
 	"strings"
 )
 
-// parseObject is effectively an augmented Object. It contains all
-// the information the parser needs for a given SMI object that
-// doesn't make sense to include in the Object itself.
-type parseObject struct {
-	object         *Object
-	parent         *parseObject
-	children       []*parseObject
-	table          bool
-	subidentifiers []string
-	decl           decl
-}
-
-type decl int
-
-const (
-	declUnknown decl = iota
-	declImplicitType
-	declTypeAssignment
-	declImplSequenceOf
-	declValueAssignment
-	declObjectType
-	declObjectIdentity
-	declModuleIdentity
-	declNotificationType
-	declTrapType
-	declObjectGroup
-	declNotificationGroup
-	declModuleCompliance
-	declAgentCapabilities
-	declTextualConvention
-	declMacro
-	declComplGroup
-	declComplObject
-	declImplObject
-	declModule
-	declExtension
-	declTypedef
-	declObject
-	declScalar
-	declTable
-	declRow
-	declColumn
-	declNotification
-	declGroup
-	declCompliance
-	declIdentity
-	declClass
-	declAttribute
-	declEvent
-)
-
 func (po *parseObject) setKind() {
 	if po.object.Kind != KindUnknown {
 		return
@@ -120,7 +69,6 @@ func (yys *yySymType) linkToParent(po *parseObject) {
 		po.object.Parent = o.object
 		po.parent = o
 	}
-
 }
 
 func (yys *yySymType) addObject(po *parseObject) {
@@ -147,9 +95,9 @@ func (yys *yySymType) addObject(po *parseObject) {
 	}
 }
 
-func (yys *yySymType) addModule(module *Module) {
+func (yys *yySymType) addModule(module *parseModule) {
 	if yys.modules == nil {
-		yys.modules = []*Module{}
+		yys.modules = []*parseModule{}
 	}
 	if module == nil {
 		return
@@ -269,7 +217,7 @@ func moduleUpgrade(module, object string) string {
 	return module
 }
 
-func parseFile(filename string) (map[string]*Module, error) {
+func parseFile(filename string) (map[string]*parseModule, error) {
 	yyErrorVerbose = true
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -285,8 +233,8 @@ func parseFile(filename string) (map[string]*Module, error) {
 	return lx.modules, nil
 }
 
-func parseFiles(files ...string) (map[string]*Module, error) {
-	modules := make(map[string]*Module)
+func parseFiles(files ...string) (map[string]*parseModule, error) {
+	modules := make(map[string]*parseModule)
 	for _, f := range files {
 		err := filepath.Walk(f,
 			func(path string, info os.FileInfo, err error) error {

@@ -166,3 +166,61 @@ func strToStatus(s string) Status {
 	}
 	return StatusUnknown
 }
+
+// parseObject is effectively an augmented Object. It contains all
+// the information the parser needs for a given SMI object that
+// doesn't make sense to include in the Object itself.
+type parseObject struct {
+	object         *Object
+	parent         *parseObject
+	children       []*parseObject
+	table          bool
+	subidentifiers []string
+	decl           decl
+	augments       string
+}
+
+type parseModule struct {
+	name       string
+	objectTree []*parseObject
+	imports    []Import
+}
+
+type decl int
+
+const (
+	declUnknown decl = iota
+	declImplicitType
+	declTypeAssignment
+	declImplSequenceOf
+	declValueAssignment
+	declObjectType
+	declObjectIdentity
+	declModuleIdentity
+	declNotificationType
+	declTrapType
+	declObjectGroup
+	declNotificationGroup
+	declModuleCompliance
+	declAgentCapabilities
+	declTextualConvention
+	declMacro
+	declComplGroup
+	declComplObject
+	declImplObject
+	declModule
+	declExtension
+	declTypedef
+	declObject
+	declScalar
+	declTable
+	declRow
+	declColumn
+	declNotification
+	declGroup
+	declCompliance
+	declIdentity
+	declClass
+	declAttribute
+	declEvent
+)
