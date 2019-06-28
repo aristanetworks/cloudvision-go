@@ -32,9 +32,8 @@ import (
 )
 
 var (
-	v          = flag.Bool("version", false, "Print the version number")
-	help       = flag.Bool("help", false, "Print program options")
-	backupFile = flag.String("backupFile", "", "Path to inventory server backup file")
+	v    = flag.Bool("version", false, "Print the version number")
+	help = flag.Bool("help", false, "Print program options")
 
 	// Logging config
 	logLevel = flag.String("logLevel", "info", "Log level verbosity "+
@@ -145,7 +144,7 @@ func runMain(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	// Create inventory.
-	inventory, err := device.NewInventory(ctx, gnmiClient, *backupFile)
+	inventory := device.NewInventory(ctx, gnmiClient)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -246,10 +245,6 @@ func validateConfig() {
 
 	if *dump && *dumpFile == "" {
 		logrus.Fatal("-dumpFile must be specified in dump mode")
-	}
-
-	if *backupFile != "" && *grpcAddr == "" {
-		logrus.Fatal("-backupFile should not be specified without -grpcAddr")
 	}
 }
 

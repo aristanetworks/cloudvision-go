@@ -17,13 +17,10 @@ func TestInventoryBasic(t *testing.T) {
 	processor := func(ctx context.Context, req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 		return nil, nil
 	}
-	inventory, err := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor))
 	expectedDevice := testDevice{}
 	deviceID := "dummy"
-	err = inventory.Add(&Info{Device: expectedDevice, ID: deviceID})
+	err := inventory.Add(&Info{Device: expectedDevice, ID: deviceID})
 	if err != nil {
 		t.Fatal(err)
 	}

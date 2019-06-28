@@ -70,11 +70,8 @@ func newDumpInfo() *dumpInfo {
 func runDump(ctx context.Context) {
 	dumpInfo := newDumpInfo()
 	dumpInfo.doneGroup.Add(1)
-	inventory, err := device.NewInventory(ctx,
-		pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest), *backupFile)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	inventory := device.NewInventory(ctx,
+		pgnmi.NewSimpleGNMIClient(dumpInfo.processRequest))
 	configs, err := createDeviceConfigs()
 	if err != nil {
 		logrus.Fatal(err)

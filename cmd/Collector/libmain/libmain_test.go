@@ -55,13 +55,10 @@ func newTestManager(map[string]string) (device.Device, error) {
 
 func TestGRPCServer(t *testing.T) {
 	ctx := context.Background()
-	inventory, err := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(
+	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(
 		func(context.Context, *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 			return nil, nil
-		}), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+		}))
 	grpcServer, listener, err := newGRPCServer("localhost:0", inventory)
 	if err != nil {
 		t.Fatal(err)

@@ -7,7 +7,6 @@ package device
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -43,7 +42,6 @@ type inventory struct {
 	rawGNMIClient gnmi.GNMIClient
 	devices       map[string]*deviceConn
 	lock          sync.Mutex
-	backupFile    string
 }
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
@@ -174,7 +172,7 @@ func (i *inventory) Add(info *Info) error {
 	}
 
 	log.Log(info.Device).Infof("Added device %s", info.ID)
-	return i.backup()
+	return nil
 }
 
 func (i *inventory) Delete(key string) error {
@@ -195,7 +193,7 @@ func (i *inventory) Delete(key string) error {
 	dc.group.Wait()
 	delete(i.devices, key)
 	log.Log(dc.info.Device).Infof("Deleted device %s", key)
-	return i.backup()
+	return nil
 }
 
 func (i *inventory) Get(key string) (*Info, error) {
@@ -219,54 +217,12 @@ func (i *inventory) List() []*Info {
 	return ret
 }
 
-func (i *inventory) backup() error {
-	if i.backupFile == "" {
-		return nil
-	}
-	var configs []*Config
-	for _, conn := range i.devices {
-		if conn.info.Config != nil {
-			configs = append(configs, conn.info.Config)
-		}
-	}
-	return WriteConfigs(i.backupFile, configs)
-}
-
-func (i *inventory) restore() error {
-	if i.backupFile == "" {
-		return nil
-	}
-	if _, err := os.Stat(i.backupFile); os.IsNotExist(err) {
-		_, err = os.Create(i.backupFile)
-		return err
-	} else if err != nil {
-		return err
-	}
-	configs, err := ReadConfigs(i.backupFile)
-	if err != nil {
-		return err
-	}
-	for _, config := range configs {
-		info, err := NewDeviceInfo(config)
-		if err != nil {
-			return err
-		}
-		err = i.Add(info)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // NewInventory creates an Inventory.
-func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
-	backupFile string) (Inventory, error) {
+func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient) Inventory {
 	inv := &inventory{
 		ctx:           ctx,
 		devices:       make(map[string]*deviceConn),
 		rawGNMIClient: gnmiClient,
-		backupFile:    backupFile,
 	}
-	return inv, inv.restore()
+	return inv
 }
