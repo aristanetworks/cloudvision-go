@@ -151,7 +151,16 @@ func bytesToSanitizedString(b []byte) string {
 		if b[i] < 32 || b[i] > 126 {
 			continue
 		}
-		out[j] = b[i]
+
+		// Replace square brackets with parentheses.
+		c := b[i]
+		if c == '[' {
+			c = '('
+		} else if c == ']' {
+			c = ')'
+		}
+
+		out[j] = c
 		j++
 	}
 	return string(out[:j])

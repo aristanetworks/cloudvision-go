@@ -221,7 +221,6 @@ var basicIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.10.2001610 = Counter32: 0
 .1.3.6.1.2.1.2.2.1.10.5000000 = Counter32: 0
 `
-
 var basicIfXTableResponse = `
 .1.3.6.1.2.1.31.1.1.1.1.3001 = STRING: Ethernet3/1
 .1.3.6.1.2.1.31.1.1.1.1.3002 = STRING: Ethernet3/2
@@ -1133,6 +1132,11 @@ func TestStrval(t *testing.T) {
 			name: "bytes with newline",
 			in:   []byte{'a', 'b', '\n', 'c'},
 			out:  pgnmi.Strval("abc"),
+		},
+		{
+			name: "square brackets",
+			in:   []byte("A B [C D][]"),
+			out:  pgnmi.Strval("A B (C D)()"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

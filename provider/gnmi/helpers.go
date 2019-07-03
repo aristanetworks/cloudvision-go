@@ -57,7 +57,7 @@ func Unmarshal(val *gnmi.TypedValue) interface{} {
 func Path(element ...string) *gnmi.Path {
 	p, err := agnmi.ParseGNMIElements(element)
 	if err != nil {
-		panic(fmt.Sprintf("Unable to parse GNMI elements: %v", element))
+		panic(fmt.Sprintf("Unable to parse GNMI elements in path %v: %s", element, err))
 	}
 	p.Element = nil
 	return p
