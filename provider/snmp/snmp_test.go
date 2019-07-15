@@ -231,7 +231,7 @@ var basicIfXTableResponse = `
 .1.3.6.1.2.1.31.1.1.1.12.3001 = Counter64: 1303028
 .1.3.6.1.2.1.31.1.1.1.12.3002 = Counter64: 5498034
 .1.3.6.1.2.1.31.1.1.1.12.999011 = Counter64: 210209
-.1.3.6.1.2.1.31.1.1.1.12.1000001 = Counter64: 17708654
+.1.3.6.1.2.1.31.1.1.1.12.1000001 = Counter64: 142240878356
 .1.3.6.1.2.1.31.1.1.1.12.2001610 = Counter64: 0
 .1.3.6.1.2.1.31.1.1.1.12.5000000 = Counter64: 0
 `
@@ -681,7 +681,7 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.IntfStateCountersPath("Management1/1", "out-multicast-pkts"),
 						uintval(210209)),
 					update(pgnmi.IntfStateCountersPath("Port-Channel1", "out-multicast-pkts"),
-						uintval(17708654)),
+						uintval(142240878356)),
 					update(pgnmi.IntfStateCountersPath("Vlan1610", "out-multicast-pkts"),
 						uintval(0)),
 					update(pgnmi.IntfStateCountersPath("Loopback0", "out-multicast-pkts"),
