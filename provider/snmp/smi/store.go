@@ -57,6 +57,11 @@ func (s *store) GetObject(oid string) *Object {
 
 	// Numeric OID
 	if strings.Contains(oid, ".") {
+		// Remove leading "." if there is one.
+		if oid[0] == '.' {
+			oid = oid[1:]
+		}
+
 		// Remove trailing ".0" for scalars.
 		ss = strings.Split(oid, ".")
 		scalar := false

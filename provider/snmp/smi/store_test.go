@@ -84,6 +84,16 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
+			name: "interfaces numeric with leading '.'",
+			oid:  ".1.3.6.1.2.1.2",
+			expectedObject: &Object{
+				Kind:   KindObject,
+				Module: "IF-MIB",
+				Name:   "interfaces",
+				Oid:    "1.3.6.1.2.1.2",
+			},
+		},
+		{
 			name: "IF-MIB::interfaces",
 			oid:  "IF-MIB::interfaces",
 			expectedObject: &Object{
