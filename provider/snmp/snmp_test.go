@@ -253,10 +253,10 @@ var lldpLocalSystemDataResponseStringID = `
 `
 
 var basicLldpRemTableResponse = `
-.1.0.8802.1.1.2.1.4.1.1.4.0.1.1 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.1.1 = INTEGER: 5
 .1.0.8802.1.1.2.1.4.1.1.4.0.451.3 = INTEGER: 4
 .1.0.8802.1.1.2.1.4.1.1.4.0.451.4 = INTEGER: 4
-.1.0.8802.1.1.2.1.4.1.1.5.0.1.1 = Hex-STRING: 00 1C 73 0C 97 60
+.1.0.8802.1.1.2.1.4.1.1.5.0.1.1 = Hex-STRING: 01 AC 14 87 34
 .1.0.8802.1.1.2.1.4.1.1.5.0.451.3 = Hex-STRING: 02 82 9B 3E E5 FA
 .1.0.8802.1.1.2.1.4.1.1.5.0.451.4 = Hex-STRING: 02 82 9B 3E E5 FA
 .1.0.8802.1.1.2.1.4.1.1.6.0.1.1 = INTEGER: 5
@@ -728,7 +728,7 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.LldpNeighborStatePath("Management1/1", "1", "id"),
 						strval("1")),
 					update(pgnmi.LldpNeighborStatePath("Management1/1", "1", "chassis-id-type"),
-						strval("MAC_ADDRESS")),
+						strval("NETWORK_ADDRESS")),
 					update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "id"), strval("3")),
 					update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id-type"),
 						strval("MAC_ADDRESS")),
@@ -736,7 +736,7 @@ func TestSnmp(t *testing.T) {
 					update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "4", "chassis-id-type"),
 						strval("MAC_ADDRESS")),
 					update(pgnmi.LldpNeighborStatePath("Management1/1", "1", "chassis-id"),
-						strval("00:1c:73:0c:97:60")),
+						strval("172.20.135.52")),
 					update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id"),
 						strval("02:82:9b:3e:e5:fa")),
 					update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "4", "chassis-id"),
@@ -1137,6 +1137,11 @@ func TestStrval(t *testing.T) {
 			name: "square brackets",
 			in:   []byte("A B [C D][]"),
 			out:  pgnmi.Strval("A B (C D)()"),
+		},
+		{
+			name: "unconverted SNMP network address",
+			in:   []byte{0x01, 0xAC, 0x14, 0x87, 0x34},
+			out:  pgnmi.Strval("4"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

@@ -770,13 +770,30 @@ func macFromBytes(s []byte) string {
 	return net.HardwareAddr(s).String()
 }
 
+// Return IP address from string or byte string.
+func ipFromBytes(s []byte) string {
+	// bytes case
+	if len(s) == 5 && int(s[0]) == 1 {
+		// IPv4
+		return net.IPv4(s[1], s[2], s[3], s[4]).String()
+	} else if len(s) == 17 && int(s[0]) == 2 {
+		// IPv6
+		return net.IP(s[1:]).String()
+	}
+
+	return string(s)
+}
+
 var chassisIDSubtypeMacAddress = openconfig.LLDPChassisIDType(4)
+var chassisIDSubtypeNetworkAddress = openconfig.LLDPChassisIDType(5)
 
 func chassisID(b []byte, subtype string) string {
 	if subtype == chassisIDSubtypeMacAddress {
 		return macFromBytes(b)
+	} else if subtype == chassisIDSubtypeNetworkAddress {
+		return ipFromBytes(b)
 	}
-	return string(b)
+	return bytesToSanitizedString(b)
 }
 
 func (s *Snmp) locChassisID(b []byte) string {
