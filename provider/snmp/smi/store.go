@@ -84,7 +84,7 @@ func (s *store) GetObject(oid string) *Object {
 			if o, ok = s.oids[strings.Join(ss[:i], ".")]; ok {
 				if o.Kind != KindColumn {
 					return nil
-				} else if o.Parent == nil || len(o.Parent.Indexes) != len(ss)-i {
+				} else if o.Parent == nil {
 					return nil
 				}
 				return o

@@ -77,12 +77,35 @@ func indexValues(pdu *gosnmp.SnmpPDU, o *smi.Object) []string {
 	return ss[(len(ss) - len(o.Parent.Indexes)):]
 }
 
+// IndexValues returns the index portion of the OID of the specified
+// PDU.
 func IndexValues(mibStore smi.Store, pdu *gosnmp.SnmpPDU) []string {
 	o := mibStore.GetObject(pdu.Name)
 	if o == nil {
 		return nil
 	}
 	return indexValues(pdu, o)
+}
+
+// IndexValueByName returns the value of the index specified by
+// indexName in the OID of the provided PDU.
+func IndexValueByName(mibStore smi.Store, pdu *gosnmp.SnmpPDU,
+	indexName string) (string, error) {
+	// XXX TODO: Right now we assume that an index occupies a single
+	// OID component, i.e., does not span any periods in the OID.
+	// This assumption is not correct: String indexes, for example,
+	// may span many OID components. We need to teach this method
+	// to understand such cases.
+	o := mibStore.GetObject(pdu.Name)
+	if o == nil {
+		return "", fmt.Errorf("No object for OID '%s'", pdu.Name)
+	}
+	for i, iname := range o.Parent.Indexes {
+		if indexName == iname {
+			return indexValues(pdu, o)[i], nil
+		}
+	}
+	return "", fmt.Errorf("No index '%s' for OID '%s'", indexName, pdu.Name)
 }
 
 func (s *store) addTabular(p *gosnmp.SnmpPDU, o *smi.Object) error {

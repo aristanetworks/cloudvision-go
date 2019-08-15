@@ -314,16 +314,6 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			name:           "lldpRemChassisId with too many indexes",
-			oid:            "1.0.8802.1.1.2.1.4.1.1.5.1.2.3.4",
-			expectedObject: nil,
-		},
-		{
-			name:           "lldpRemChassisId with too few indexes",
-			oid:            "1.0.8802.1.1.2.1.4.1.1.5.1.2",
-			expectedObject: nil,
-		},
-		{
 			name: "entPhysicalTable",
 			oid:  "ENTITY-MIB::entPhysicalTable",
 			expectedObject: &Object{
