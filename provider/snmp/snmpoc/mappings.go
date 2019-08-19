@@ -1,11 +1,13 @@
 package snmpoc
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"net"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
@@ -17,6 +19,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/soniah/gosnmp"
 )
+
+// A Mapper contains some logic for producing gNMI updates based on the
+// contents of a pdu.Store and a mapper data cache.
+type Mapper = func(smi.Store, pdu.Store, *sync.Map) ([]*gnmi.Update, error)
 
 // A ValueProcessor takes an arbitrary value and returns a
 // gnmi.TypedValue, possibly doing additional processing first.
@@ -31,9 +37,9 @@ func strval(s interface{}) *gnmi.TypedValue {
 	return pgnmi.Strval(t)
 }
 
-// Remove all but ASCII characters 32-126 to keep the JSON
-// unmarshaler happy.
-func bytesToSanitizedString(b []byte) string {
+// BytesToSanitizedString removes all but ASCII characters 32-126 to
+// keep the JSON unmarshaler happy.
+func BytesToSanitizedString(b []byte) string {
 	out := make([]byte, len(b))
 	j := 0
 	for i := 0; i < len(b); i++ {
@@ -67,7 +73,7 @@ func sanitizedString(s interface{}) string {
 	case string:
 		return t
 	case []byte:
-		return bytesToSanitizedString(t)
+		return BytesToSanitizedString(t)
 	default:
 		logrus.Fatalf("Unexpected type in sanitizedString: %T", s)
 	}
@@ -103,7 +109,8 @@ func scalarMapper(ps pdu.Store, path string, oid string,
 }
 
 func scalarMapperFn(path, oid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
+	return func(ss smi.Store, ps pdu.Store,
+		md *sync.Map) ([]*gnmi.Update, error) {
 		u, err := scalarMapper(ps, path, oid, vp)
 		if err != nil {
 			return nil, err
@@ -124,6 +131,17 @@ func getTabular(ps pdu.Store, oid string) ([]*gosnmp.SnmpPDU, error) {
 	}
 
 	return pdus, nil
+}
+
+// SNMPErrCodes maps the SNMP error codes to their corresponding
+// text descriptions.
+var SNMPErrCodes = map[gosnmp.SNMPError]string{
+	0: "noError", 1: "tooBig", 2: "noSuchName", 3: "badValue",
+	4: "readOnly", 5: "genErr", 6: "noAccess", 7: "wrongType",
+	8: "wrongLength", 9: "wrongEncoding", 10: "wrongValue",
+	11: "noCreation", 12: "inconsistentValue", 13: "resourceUnavailable",
+	14: "commitFailed", 15: "undoFailed", 16: "authorizationError",
+	17: "notWritable", 18: "inconsistentName",
 }
 
 // Some implementations will return a hostname only, while others
@@ -163,15 +181,19 @@ func processBootTime(x interface{}) *gnmi.TypedValue {
 	return intval(now().Unix() - t/100)
 }
 
-func setIndexStringMappings(ss smi.Store, ps pdu.Store, kvs KVStore,
-	oid, indexName, mappingName string) error {
-	m := kvs.Get(mappingName)
-	if m != nil {
+func setIndexStringMappings(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, oid, indexName, mappingName string) error {
+	_, ok := mapperData.Load(mappingName)
+	if ok {
 		return nil
 	}
 
-	kvs.Set(mappingName, make(map[string]string))
-	mp := kvs.Get(mappingName).(map[string]string)
+	mapperData.Store(mappingName, make(map[string]string))
+	mp, ok := mapperData.Load(mappingName)
+	if !ok {
+		return fmt.Errorf("Failed to load mappingName '%s' from mapperData",
+			mappingName)
+	}
 
 	pdus, err := getTabular(ps, oid)
 	if err != nil {
@@ -184,32 +206,34 @@ func setIndexStringMappings(ss smi.Store, ps pdu.Store, kvs KVStore,
 			return err
 		}
 		val := sanitizedString(p.Value)
-		mp[indexVal] = val
+		mp.(map[string]string)[indexVal] = val
 	}
 	return nil
 }
 
-func getKVStringMapping(kvs KVStore, mappingName,
-	key string) (string, error) {
-	m := kvs.Get(mappingName)
-	if m == nil {
-		return "", fmt.Errorf("No mapping for '%s' in kvs", mappingName)
+func getMapperStringMapping(mapperData *sync.Map,
+	mappingName, key string) (string, error) {
+	m, ok := mapperData.Load(mappingName)
+	if !ok {
+		return "", fmt.Errorf("No mapping for '%s' in mapperData", mappingName)
 	}
 	mp := m.(map[string]string)
 	return mp[key], nil
 }
 
 // interface helpers
-func getIntfName(kvs KVStore, ifIndex string) (string, error) {
-	return getKVStringMapping(kvs, "intfName", ifIndex)
+func getIntfName(mapperData *sync.Map, ifIndex string) (string, error) {
+	return getMapperStringMapping(mapperData, "intfName", ifIndex)
 }
 
-func setIntfNames(ss smi.Store, ps pdu.Store, kvs KVStore) error {
-	return setIndexStringMappings(ss, ps, kvs, "ifDescr", "ifIndex", "intfName")
+func setIntfNames(ss smi.Store, ps pdu.Store, mapperData *sync.Map) error {
+	return setIndexStringMappings(ss, ps, mapperData, "ifDescr",
+		"ifIndex", "intfName")
 }
 
 // generic mapper for PDUs from ifTable
-func ifTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string,
+func ifTableMapper(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, path string,
 	oid string, vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -219,13 +243,13 @@ func ifTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string,
 	updates := []*gnmi.Update{}
 	for _, p := range pdus {
 		ifIndex := pdu.IndexValues(ss, p)[0]
-		ifDescr, err := getIntfName(kvs, ifIndex)
+		ifDescr, err := getIntfName(mapperData, ifIndex)
 		if err != nil || ifDescr == "" {
-			if err = setIntfNames(ss, ps, kvs); err != nil {
+			if err = setIntfNames(ss, ps, mapperData); err != nil {
 				return nil, err
 			}
 		}
-		ifDescr, err = getIntfName(kvs, ifIndex)
+		ifDescr, err = getIntfName(mapperData, ifIndex)
 		if err != nil {
 			return nil, err
 		}
@@ -239,17 +263,22 @@ func ifTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string,
 }
 
 func ifTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
-		return ifTableMapper(ss, ps, kvs, path, oid, vp)
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map) ([]*gnmi.Update, error) {
+		return ifTableMapper(ss, ps, mapperData, path, oid, vp)
 	}
 }
 
 // Build a map from lldpLocPortNum -> ifDescr.
-func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store, kvs KVStore) error {
-	m := kvs.Get("lldpLocPortNum")
-	if m == nil {
-		kvs.Set("lldpLocPortNum", make(map[string]string))
-		m = kvs.Get("lldpLocPortNum")
+func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map) error {
+	m, ok := mapperData.Load("lldpLocPortNum")
+	if !ok {
+		mapperData.Store("lldpLocPortNum", make(map[string]string))
+		m, ok = mapperData.Load("lldpLocPortNum")
+		if !ok {
+			return errors.New("Failed to load lldpLocPortNum from mapperData")
+		}
 	}
 
 	mp := m.(map[string]string)
@@ -290,28 +319,30 @@ func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store, kvs KVStore) error {
 	return nil
 }
 
-func getInterfaceFromLldpPortNum(ss smi.Store, ps pdu.Store, kvs KVStore,
-	port string) (string, error) {
-	m := kvs.Get("lldpLocPortNum")
-	if m == nil {
-		if err := buildLldpLocPortNumMap(ss, ps, kvs); err != nil {
+func getInterfaceFromLldpPortNum(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, port string) (string, error) {
+	_, ok := mapperData.Load("lldpLocPortNum")
+	if !ok {
+		if err := buildLldpLocPortNumMap(ss, ps, mapperData); err != nil {
 			return "", err
 		}
 	}
-	m = kvs.Get("lldpLocPortNum")
-	if m == nil {
-		return "", fmt.Errorf("lldpLocPortNum doesn't exist in kv store")
+	m, ok := mapperData.Load("lldpLocPortNum")
+	if !ok {
+		return "", fmt.Errorf("lldpLocPortNum doesn't exist in mapperData")
 	}
 	mp := m.(map[string]string)
 	intfName, ok := mp[port]
 	if !ok {
-		return "", nil // XXX fmt.Errorf("No interface for lldpLocPortNum %s", port)
+		// XXX NOTE: We probably want to ignore failures here, but this
+		// shouldn't really happen. Maybe log?
+		return "", nil
 	}
 	return intfName, nil
 }
 
-// Return MAC address from string or hex byte string.
-func macFromBytes(s []byte) string {
+// MacFromBytes returns a MAC address from a string or hex byte string.
+func MacFromBytes(s []byte) string {
 	// string case
 	if len(s) == 17 {
 		return string(s)
@@ -321,8 +352,8 @@ func macFromBytes(s []byte) string {
 	return net.HardwareAddr(s).String()
 }
 
-// Return IP address from string or byte string.
-func ipFromBytes(s []byte) string {
+// IPFromBytes returns an IP address from a string or byte string.
+func IPFromBytes(s []byte) string {
 	// bytes case
 	if len(s) == 5 && int(s[0]) == 1 {
 		// IPv4
@@ -338,9 +369,9 @@ func ipFromBytes(s []byte) string {
 func processChassisId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	switch subtype {
 	case 4:
-		return macFromBytes(p.Value.([]byte)), nil
+		return MacFromBytes(p.Value.([]byte)), nil
 	case 5:
-		return ipFromBytes(p.Value.([]byte)), nil
+		return IPFromBytes(p.Value.([]byte)), nil
 	}
 	return string(p.Value.([]byte)), nil
 }
@@ -348,14 +379,14 @@ func processChassisId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 func processPortId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	switch subtype {
 	case 3:
-		return macFromBytes(p.Value.([]byte)), nil
+		return MacFromBytes(p.Value.([]byte)), nil
 	case 4:
-		return ipFromBytes(p.Value.([]byte)), nil
+		return IPFromBytes(p.Value.([]byte)), nil
 	}
 	return string(p.Value.([]byte)), nil
 }
 
-func lldpChassisIdMapper(ss smi.Store, ps pdu.Store, kvs KVStore,
+func lldpChassisIdMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 	path, idOid, subtypeOid string, vp ValueProcessor) ([]*gnmi.Update, error) {
 	pcid, err := ps.GetScalar(idOid)
 	if err != nil {
@@ -374,12 +405,13 @@ func lldpChassisIdMapper(ss smi.Store, ps pdu.Store, kvs KVStore,
 }
 
 func lldpChassisIdFn(path, idOid, subtypeOid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
-		return lldpChassisIdMapper(ss, ps, kvs, path, idOid, subtypeOid, vp)
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map) ([]*gnmi.Update, error) {
+		return lldpChassisIdMapper(ss, ps, mapperData, path, idOid, subtypeOid, vp)
 	}
 }
 
-func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore,
+func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 	path string, oid string, vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -391,7 +423,7 @@ func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore,
 	for _, p := range pdus {
 		lldpPortNum := pdu.IndexValues(ss, p)[0]
 		// Get interface name corresponding to this port number.
-		intfName, err := getInterfaceFromLldpPortNum(ss, ps, kvs, lldpPortNum)
+		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
 		if err != nil {
 			return nil, err
 		} else if intfName == "" {
@@ -405,8 +437,9 @@ func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore,
 }
 
 func lldpLocPortTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
-		return lldpLocPortTableMapper(ss, ps, kvs, path, oid, vp)
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map) ([]*gnmi.Update, error) {
+		return lldpLocPortTableMapper(ss, ps, mapperData, path, oid, vp)
 	}
 }
 
@@ -460,7 +493,8 @@ func processLldpRemTableVal(ps pdu.Store, p *gosnmp.SnmpPDU, oid,
 	return "", fmt.Errorf("processLldpRemTableVal shouldn't get here, oid = %s", oid)
 }
 
-func lldpRemTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string, oid string,
+func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, path string, oid string,
 	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -490,7 +524,7 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string, oi
 		}
 
 		// get the interface name corresponding to this lldpRemLocalPortNum
-		intfName, err := getInterfaceFromLldpPortNum(ss, ps, kvs, lldpPortNum)
+		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
 		if err != nil {
 			return nil, err
 		}
@@ -512,8 +546,9 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string, oi
 }
 
 func lldpRemTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
-		return lldpRemTableMapper(ss, ps, kvs, path, oid, vp)
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map) ([]*gnmi.Update, error) {
+		return lldpRemTableMapper(ss, ps, mapperData, path, oid, vp)
 	}
 }
 
@@ -547,7 +582,8 @@ func processEntPhysicalTableVal(oid string, pdu *gosnmp.SnmpPDU) (interface{}, e
 	return class, nil
 }
 
-func entPhysicalMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string, oid string,
+func entPhysicalMapper(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, path string, oid string,
 	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -583,8 +619,9 @@ func entPhysicalMapper(ss smi.Store, ps pdu.Store, kvs KVStore, path string, oid
 }
 
 func entPhysicalTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
-	return func(ss smi.Store, ps pdu.Store, kvs KVStore) ([]*gnmi.Update, error) {
-		return entPhysicalMapper(ss, ps, kvs, path, oid, vp)
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map) ([]*gnmi.Update, error) {
+		return entPhysicalMapper(ss, ps, mapperData, path, oid, vp)
 	}
 }
 
@@ -804,8 +841,7 @@ var (
 		"entPhysicalHardwareRev", strval)
 )
 
-// DefaultMappings defines an ordered set of mappings per supported path.
-var DefaultMappings = map[string][]Mapper{
+var defaultMappings = map[string][]Mapper{
 	// interface
 	"/interfaces/interface[name=name]/name":               []Mapper{interfaceName},
 	"/interfaces/interface[name=name]/state/name":         []Mapper{interfaceStateName},
@@ -895,4 +931,13 @@ var DefaultMappings = map[string][]Mapper{
 	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/" +
 		"system-description": []Mapper{lldpInterfaceNeighborSystemDescription,
 		lldpV2InterfaceNeighborSystemDescription},
+}
+
+// DefaultMappings returns an ordered set of mappings per supported path.
+func DefaultMappings() map[string][]Mapper {
+	dm := make(map[string][]Mapper)
+	for k, v := range defaultMappings {
+		dm[k] = v
+	}
+	return dm
 }
