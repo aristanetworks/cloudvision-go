@@ -352,6 +352,19 @@ func TestStore(t *testing.T) {
 				err: errors.New("No corresponding object in MIB store for OID 1.2.3.4.5"),
 			},
 		},
+		{
+			name: "scalar instance",
+			adds: []*gosnmp.SnmpPDU{
+				pdu("1.3.6.1.2.1.1.3.0", gosnmp.TimeTicks, 1234),
+			},
+			get: testGet{
+				oid:    "sysUpTimeInstance",
+				scalar: true,
+				expectedPDUs: []*gosnmp.SnmpPDU{
+					pdu("1.3.6.1.2.1.1.3.0", gosnmp.TimeTicks, 1234),
+				},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			runStoreTest(t, store, tc)

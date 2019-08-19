@@ -159,6 +159,10 @@ func (s *store) Add(p *gosnmp.SnmpPDU) error {
 	switch o.Kind {
 	case smi.KindScalar:
 		return s.addScalar(p, o)
+	case smi.KindObject:
+		if o.Parent != nil && o.Parent.Kind == smi.KindScalar {
+			return s.addScalar(p, o)
+		}
 	case smi.KindColumn:
 		return s.addTabular(p, o)
 	}
@@ -183,7 +187,8 @@ func (s *store) GetScalar(oid string) (*gosnmp.SnmpPDU, error) {
 		return nil,
 			fmt.Errorf("No corresponding object in MIB store for OID %s", oid)
 	}
-	if o.Kind != smi.KindScalar {
+	if o.Kind != smi.KindScalar &&
+		(o.Parent != nil && o.Parent.Kind != smi.KindScalar) {
 		return nil,
 			fmt.Errorf("Object for OID %s is not a scalar (%d)", oid, o.Kind)
 	}
