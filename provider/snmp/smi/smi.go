@@ -183,6 +183,7 @@ type parseObject struct {
 type parseModule struct {
 	name       string
 	objectTree []*parseObject
+	orphans    []*parseObject
 	imports    []Import
 }
 

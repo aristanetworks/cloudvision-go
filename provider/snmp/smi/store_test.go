@@ -9,6 +9,8 @@ type parserTestCase struct {
 	name           string
 	oid            string
 	expectedObject *Object
+	checkParent    bool
+	parentName     string
 }
 
 func checkEqual(t *testing.T, o, exp *Object) {
@@ -49,6 +51,9 @@ func checkEqual(t *testing.T, o, exp *Object) {
 func runParserTest(t *testing.T, store Store, tc parserTestCase) {
 	o := store.GetObject(tc.oid)
 	checkEqual(t, o, tc.expectedObject)
+	if tc.checkParent && tc.parentName != o.Parent.Name {
+		t.Fatalf("Expected parent '%s'. Got '%s'.", tc.parentName, o.Parent.Name)
+	}
 }
 
 func TestParser(t *testing.T) {
@@ -365,6 +370,30 @@ func TestParser(t *testing.T) {
 				Oid:    "1.3.6.1.2.1.25.1.1",
 				Status: StatusCurrent,
 			},
+		},
+		{
+			name: "sysUpTimeInstance",
+			oid:  "sysUpTimeInstance",
+			expectedObject: &Object{
+				Kind:   KindObject,
+				Module: "DISMAN-EVENT-MIB",
+				Name:   "sysUpTimeInstance",
+				Oid:    "1.3.6.1.2.1.1.3.0",
+			},
+			checkParent: true,
+			parentName:  "sysUpTime",
+		},
+		{
+			name: "sysUpTimeInstance numeric",
+			oid:  "1.3.6.1.2.1.1.3.0",
+			expectedObject: &Object{
+				Kind:   KindObject,
+				Module: "DISMAN-EVENT-MIB",
+				Name:   "sysUpTimeInstance",
+				Oid:    "1.3.6.1.2.1.1.3.0",
+			},
+			checkParent: true,
+			parentName:  "sysUpTime",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

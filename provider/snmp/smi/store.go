@@ -62,19 +62,16 @@ func (s *store) GetObject(oid string) *Object {
 			oid = oid[1:]
 		}
 
-		// Remove trailing ".0" for scalars.
-		ss = strings.Split(oid, ".")
-		scalar := false
-		if ss[len(ss)-1] == "0" {
-			oid = strings.Join(ss[:(len(ss)-1)], ".")
-			scalar = true
-		}
 		o, ok := s.oids[oid]
 		if ok {
 			return o
 		}
-		if scalar {
-			return nil
+
+		// Remove trailing ".0" for scalars.
+		ss = strings.Split(oid, ".")
+		if ss[len(ss)-1] == "0" {
+			oid = strings.Join(ss[:(len(ss)-1)], ".")
+			return s.oids[oid]
 		}
 
 		// Start removing possible index values from the OID.
@@ -183,6 +180,17 @@ func resolveModule(moduleName string, store *store,
 		if err := resolveModule(mr, store, parseModules,
 			resolvedModules); err != nil {
 			return err
+		}
+	}
+
+	// Link orphans to parent objects.
+	for _, orphan := range pm.orphans {
+		if len(strings.Split(orphan.object.Oid, ".")) > 0 {
+			parentName := strings.Split(orphan.object.Oid, ".")[0]
+			if o, ok := store.names[parentName]; ok {
+				o.Children = append(o.Children, orphan.object)
+				orphan.object.Parent = o
+			}
 		}
 	}
 

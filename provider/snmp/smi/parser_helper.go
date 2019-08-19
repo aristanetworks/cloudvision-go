@@ -68,6 +68,8 @@ func (yys *yySymType) linkToParent(po *parseObject) {
 		o.children = append(o.children, po)
 		po.object.Parent = o.object
 		po.parent = o
+	} else {
+		yys.orphans = append(yys.orphans, po)
 	}
 }
 
@@ -77,6 +79,9 @@ func (yys *yySymType) addObject(po *parseObject) {
 	}
 	if yys.objectMap == nil {
 		yys.objectMap = make(map[string]*parseObject)
+	}
+	if yys.orphans == nil {
+		yys.orphans = []*parseObject{}
 	}
 	if po == nil {
 		return

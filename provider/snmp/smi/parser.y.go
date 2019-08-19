@@ -24,6 +24,7 @@ type yySymType struct {
 	object         *parseObject
 	objects        []*parseObject
 	objectMap      map[string]*parseObject
+	orphans        []*parseObject
 	status         Status
 	table          bool
 	val            string
@@ -246,7 +247,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line parser.y:1027
+//line parser.y:1033
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -1022,7 +1023,7 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:130
+//line parser.y:131
 		{
 			// Add modules to the module map stored in the lexer
 			for _, m := range yyVAL.modules {
@@ -1030,69 +1031,74 @@ yydefault:
 			}
 			// Clear object, module data from yys
 			yyVAL.objectMap = make(map[string]*parseObject)
+			yyVAL.orphans = []*parseObject{}
 			yyVAL.objects = []*parseObject{}
 			yyVAL.modules = []*parseModule{}
 		}
 	case 5:
 		yyDollar = yyS[yypt-9 : yypt+1]
-//line parser.y:148
+//line parser.y:150
 		{
 			m := &parseModule{
 				imports:    yyDollar[7].imports,
 				name:       yyDollar[1].val,
 				objectTree: []*parseObject{},
+				orphans:    []*parseObject{},
 			}
 			for _, o := range yyDollar[8].objects {
 				m.objectTree = append(m.objectTree, o)
 				o.setModule(m.name)
 			}
+			for _, o := range yyDollar[8].orphans {
+				m.orphans = append(m.orphans, o)
+			}
 			yyVAL.addModule(m)
 		}
 	case 10:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:171
+//line parser.y:177
 		{
 			yyVAL.imports = yyDollar[1].imports
 		}
 	case 11:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:175
+//line parser.y:181
 		{
 			yyVAL.imports = nil
 		}
 	case 12:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:181
+//line parser.y:187
 		{
 			yyVAL.imports = yyDollar[2].imports
 		}
 	case 15:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:191
+//line parser.y:197
 		{
 			yyVAL.imports = yyDollar[1].imports
 		}
 	case 16:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:195
+//line parser.y:201
 		{
 			yyVAL.imports = nil
 		}
 	case 17:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:201
+//line parser.y:207
 		{
 			yyVAL.imports = yyDollar[1].imports
 		}
 	case 18:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:205
+//line parser.y:211
 		{
 			yyVAL.imports = append(yyDollar[1].imports, yyDollar[2].imports...)
 		}
 	case 19:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:211
+//line parser.y:217
 		{
 			yyVAL.imports = []Import{}
 			for _, id := range yyDollar[1].importIDs {
@@ -1102,115 +1108,115 @@ yydefault:
 		}
 	case 20:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:221
+//line parser.y:227
 		{
 			yyVAL.importIDs = []string{yyDollar[1].token.literal}
 		}
 	case 21:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:225
+//line parser.y:231
 		{
 			yyVAL.importIDs = append(yyDollar[1].importIDs, yyDollar[3].token.literal)
 		}
 	case 49:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:266
+//line parser.y:272
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 52:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:276
+//line parser.y:282
 		{
 			(&yyVAL).addObject(yyDollar[1].object)
 		}
 	case 53:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:280
+//line parser.y:286
 		{
 			(&yyVAL).addObject(yyDollar[2].object)
 		}
 	case 54:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:286
+//line parser.y:292
 		{
 			(&yyVAL).setDecl(declTypeAssignment)
 		}
 	case 55:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:290
+//line parser.y:296
 		{
 			(&yyVAL).setDecl(declValueAssignment)
 		}
 	case 56:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:294
+//line parser.y:300
 		{
 			(&yyVAL).setDecl(declIdentity)
 		}
 	case 57:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:298
+//line parser.y:304
 		{
 			(&yyVAL).setDecl(declObjectType)
 		}
 	case 58:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:302
+//line parser.y:308
 		{
 			(&yyVAL).setDecl(declTrapType)
 		}
 	case 59:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:306
+//line parser.y:312
 		{
 			(&yyVAL).setDecl(declNotificationType)
 		}
 	case 60:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:310
+//line parser.y:316
 		{
 			(&yyVAL).setDecl(declModuleIdentity)
 		}
 	case 61:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:314
+//line parser.y:320
 		{
 			(&yyVAL).setDecl(declModuleCompliance)
 		}
 	case 62:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:318
+//line parser.y:324
 		{
 			(&yyVAL).setDecl(declObjectGroup)
 		}
 	case 63:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:322
+//line parser.y:328
 		{
 			(&yyVAL).setDecl(declNotificationGroup)
 		}
 	case 64:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:326
+//line parser.y:332
 		{
 			(&yyVAL).setDecl(declAgentCapabilities)
 		}
 	case 79:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:352
+//line parser.y:358
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 80:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:356
+//line parser.y:362
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 81:
 		yyDollar = yyS[yypt-7 : yypt+1]
-//line parser.y:362
+//line parser.y:368
 		{
 			yyVAL.object = &parseObject{
 				object: &Object{
@@ -1221,13 +1227,13 @@ yydefault:
 		}
 	case 98:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:401
+//line parser.y:407
 		{
 			yyVAL.table = yyDollar[1].table
 		}
 	case 99:
 		yyDollar = yyS[yypt-9 : yypt+1]
-//line parser.y:405
+//line parser.y:411
 		{
 			yyVAL.table = yyDollar[9].table
 			yyVAL.status = strToStatus(yyDollar[4].val)
@@ -1235,13 +1241,13 @@ yydefault:
 		}
 	case 101:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:414
+//line parser.y:420
 		{
 			yyVAL.table = true
 		}
 	case 116:
 		yyDollar = yyS[yypt-21 : yypt+1]
-//line parser.y:452
+//line parser.y:458
 		{
 			yyVAL.object = &parseObject{
 				object: &Object{
@@ -1259,25 +1265,25 @@ yydefault:
 		}
 	case 117:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:470
+//line parser.y:476
 		{
 			yyVAL.val = yyDollar[2].val
 		}
 	case 148:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:540
+//line parser.y:546
 		{
 			yyVAL.val = yyDollar[2].token.literal
 		}
 	case 149:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:544
+//line parser.y:550
 		{
 			yyVAL.val = yyDollar[2].token.literal
 		}
 	case 151:
 		yyDollar = yyS[yypt-16 : yypt+1]
-//line parser.y:554
+//line parser.y:560
 		{
 			yyVAL.object = &parseObject{
 				object: &Object{
@@ -1289,49 +1295,49 @@ yydefault:
 		}
 	case 242:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:702
+//line parser.y:708
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 249:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:722
+//line parser.y:728
 		{
 			yyVAL.augments = ""
 		}
 	case 250:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:726
+//line parser.y:732
 		{
 			yyVAL.augments = yyDollar[3].subidentifiers[0]
 		}
 	case 251:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:730
+//line parser.y:736
 		{
 			yyVAL.augments = ""
 		}
 	case 252:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:734
+//line parser.y:740
 		{
 			yyVAL.augments = ""
 		}
 	case 253:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:740
+//line parser.y:746
 		{
 			yyVAL.indexes = yyDollar[3].indexes
 		}
 	case 254:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:744
+//line parser.y:750
 		{
 			yyVAL.indexes = nil
 		}
 	case 255:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:750
+//line parser.y:756
 		{
 			if yyDollar[1].val != "" {
 				yyVAL.indexes = []string{yyDollar[1].val}
@@ -1339,7 +1345,7 @@ yydefault:
 		}
 	case 256:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:756
+//line parser.y:762
 		{
 			if yyDollar[3].val != "" {
 				yyVAL.indexes = append(yyDollar[1].indexes, yyDollar[3].val)
@@ -1347,79 +1353,79 @@ yydefault:
 		}
 	case 258:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:765
+//line parser.y:771
 		{
 			yyVAL.val = strings.Join(yyDollar[1].subidentifiers, " ")
 		}
 	case 288:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:838
+//line parser.y:844
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 291:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:850
+//line parser.y:856
 		{
 			yyVAL.subidentifiers = []string{yyDollar[1].val}
 		}
 	case 292:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:854
+//line parser.y:860
 		{
 			yyVAL.subidentifiers = append(yyDollar[1].subidentifiers, yyDollar[2].val)
 		}
 	case 293:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:860
+//line parser.y:866
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 294:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:864
+//line parser.y:870
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 295:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:868
+//line parser.y:874
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 296:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:872
+//line parser.y:878
 		{
 			yyVAL.val = yyDollar[3].token.literal
 		}
 	case 297:
 		yyDollar = yyS[yypt-6 : yypt+1]
-//line parser.y:876
+//line parser.y:882
 		{
 			yyVAL.val = yyDollar[1].token.literal
 		}
 	case 303:
 		yyDollar = yyS[yypt-12 : yypt+1]
-//line parser.y:893
+//line parser.y:899
 		{
 			// XXX TODO
 		}
 	case 304:
 		yyDollar = yyS[yypt-12 : yypt+1]
-//line parser.y:899
+//line parser.y:905
 		{
 			// XXX TODO
 		}
 	case 305:
 		yyDollar = yyS[yypt-12 : yypt+1]
-//line parser.y:905
+//line parser.y:911
 		{
 			/// XXX TODO
 		}
 	case 334:
 		yyDollar = yyS[yypt-14 : yypt+1]
-//line parser.y:971
+//line parser.y:977
 		{
 			// XXX TODO
 		}

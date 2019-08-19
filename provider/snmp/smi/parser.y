@@ -18,6 +18,7 @@ import (
     object *parseObject
     objects []*parseObject
     objectMap map[string]*parseObject
+    orphans []*parseObject
     status Status
     table bool
     val string
@@ -134,6 +135,7 @@ mibFile : modules
             }
             // Clear object, module data from yys
             $$.objectMap = make(map[string]*parseObject)
+            $$.orphans = []*parseObject{}
             $$.objects = []*parseObject{}
             $$.modules = []*parseModule{}
         }
@@ -150,10 +152,14 @@ module : moduleName moduleOid definitions COLON_COLON_EQUAL BEGIN exportsClause 
                imports: $7.imports,
                name: $1.val,
                objectTree: []*parseObject{},
+               orphans: []*parseObject{},
            }
            for _, o := range $8.objects {
                m.objectTree = append(m.objectTree, o)
                o.setModule(m.name)
+           }
+           for _, o := range $8.orphans {
+               m.orphans = append(m.orphans, o)
            }
            $$.addModule(m)
        }
