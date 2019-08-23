@@ -18,6 +18,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+const heartbeatInterval = 10 * time.Second
+
 // An Inventory maintains a set of devices.
 type Inventory interface {
 	Add(deviceInfo *Info) error
@@ -45,7 +47,7 @@ type inventory struct {
 }
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(heartbeatInterval)
 	ctx := metadata.AppendToOutgoingContext(dc.ctx,
 		collectorVersionMetadata, version.Version)
 	if _, ok := dc.info.Device.(Manager); ok {
