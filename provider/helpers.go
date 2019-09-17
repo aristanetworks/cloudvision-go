@@ -9,7 +9,7 @@ import (
 	"math"
 )
 
-// ToInt64 converts an interface to a int64.
+// ToInt64 converts an interface{} to an int64.
 func ToInt64(valIntf interface{}) (int64, error) {
 	var val int64
 	switch t := valIntf.(type) {
@@ -43,7 +43,13 @@ func ToInt64(valIntf interface{}) (int64, error) {
 	return val, nil
 }
 
-// ToUint64 converts an interface to a uint64.
+// ToInt convert an interface{} to an int.
+func ToInt(valIntf interface{}) (int, error) {
+	v, err := ToInt64(valIntf)
+	return int(v), err
+}
+
+// ToUint64 converts an interface{} to a uint64.
 func ToUint64(valIntf interface{}) (uint64, error) {
 	var val uint64
 	switch t := valIntf.(type) {

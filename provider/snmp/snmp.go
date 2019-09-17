@@ -166,6 +166,18 @@ func bytesToSanitizedString(b []byte) string {
 	return string(out[:j])
 }
 
+// Convert an interface{} representing an SNMP 1-based type value to an
+// int. Values may come in as ints or uints, but we want ints for
+// indexing. If the conversion fails we return 0, which should be OK
+// because an index value should never be 0 otherwise.
+func sanitizedTypeVal(x interface{}) int {
+	v, err := provider.ToInt(x)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
 func strval(s interface{}) *gnmi.TypedValue {
 	switch t := s.(type) {
 	case string:
@@ -352,7 +364,7 @@ func (s *Snmp) getSerialNumber() (string, error) {
 		}
 		// If the physical class is "chassis", this is the index we want.
 		if baseOid == snmpEntPhysicalClass {
-			if data.Value.(int) == snmpEntPhysicalClassTypeChassis {
+			if sanitizedTypeVal(data.Value) == snmpEntPhysicalClassTypeChassis {
 				chassisIndex = index
 			}
 		}
@@ -390,7 +402,7 @@ func (s *Snmp) getChassisID() (string, error) {
 		return "", err
 	}
 
-	subtype := openconfig.LLDPChassisIDType(pdu.Value.(int))
+	subtype := openconfig.LLDPChassisIDType(sanitizedTypeVal(pdu.Value))
 	pkt, err := s.getFirstPDU(snmpLldpLocChassisID)
 	if err != nil {
 		return "", err
@@ -482,7 +494,7 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 			strval(pdu.Value))
 	case snmpIfType:
 		u = update(pgnmi.IntfStatePath(intfName, "type"),
-			strval("iana-if-type:"+openconfig.InterfaceType(pdu.Value.(int))))
+			strval("iana-if-type:"+openconfig.InterfaceType(sanitizedTypeVal(pdu.Value))))
 	case snmpIfMtu:
 		v, err := provider.ToUint64(pdu.Value)
 		if err != nil {
@@ -496,10 +508,10 @@ func (s *Snmp) handleInterfacePDU(pdu gosnmp.SnmpPDU,
 		s.ifX = true
 	case snmpIfAdminStatus:
 		u = update(pgnmi.IntfStatePath(intfName, "admin-status"),
-			strval(openconfig.IntfAdminStatus(pdu.Value.(int))))
+			strval(openconfig.IntfAdminStatus(sanitizedTypeVal(pdu.Value))))
 	case snmpIfOperStatus:
 		u = update(pgnmi.IntfStatePath(intfName, "oper-status"),
-			strval(openconfig.IntfOperStatus(pdu.Value.(int))))
+			strval(openconfig.IntfOperStatus(sanitizedTypeVal(pdu.Value))))
 	case snmpIfInOctets:
 		if !s.ifX {
 			u = update(pgnmi.IntfStateCountersPath(intfName, "in-octets"),
@@ -894,7 +906,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 		v := s.locChassisID(pdu.Value.([]byte))
 		u = update(pgnmi.LldpStatePath("chassis-id"), strval(v))
 	case snmpLldpLocChassisIDSubtype, snmpLldpV2LocChassisIDSubtype:
-		s.lldpLocChassisIDSubtype = openconfig.LLDPChassisIDType(pdu.Value.(int))
+		s.lldpLocChassisIDSubtype = openconfig.LLDPChassisIDType(sanitizedTypeVal(pdu.Value))
 		u = update(pgnmi.LldpStatePath("chassis-id-type"),
 			strval(s.lldpLocChassisIDSubtype))
 	case snmpLldpLocSysName, snmpLldpV2LocSysName:
@@ -927,7 +939,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id"),
 			strval(v))
 	case snmpLldpRemPortIDSubtype, snmpLldpV2RemPortIDSubtype:
-		v := openconfig.LLDPPortIDType(pdu.Value.(int))
+		v := openconfig.LLDPPortIDType(sanitizedTypeVal(pdu.Value))
 		seen.remotePortID[remoteKey{intfName, remoteID}] = v
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "port-id-type"),
 			strval(v))
@@ -937,7 +949,7 @@ func (s *Snmp) handleLldpPDU(pdu gosnmp.SnmpPDU, seen *lldpSeen) ([]*gnmi.Update
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id"),
 			strval(v))
 	case snmpLldpRemChassisIDSubtype, snmpLldpV2RemChassisIDSubtype:
-		v := openconfig.LLDPChassisIDType(pdu.Value.(int))
+		v := openconfig.LLDPChassisIDType(sanitizedTypeVal(pdu.Value))
 		seen.remoteID[remoteKey{intfName, remoteID}] = v
 		u = update(pgnmi.LldpNeighborStatePath(intfName, remoteID, "chassis-id-type"),
 			strval(v))
@@ -1058,7 +1070,7 @@ func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
 
 	switch baseOid {
 	case snmpEntPhysicalClass:
-		v := pdu.Value.(int)
+		v := sanitizedTypeVal(pdu.Value)
 		// OpenConfig's OPENCONFIG_HARDWARE_COMPONENT type identities don't
 		// map perfectly to SNMP's PhysicalClass values. If we see a
 		// PhysicalClass value of other(1), unknown(2), container(5), or

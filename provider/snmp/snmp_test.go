@@ -359,6 +359,12 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
 `
 
+// Make the chassis ID subtype a uint rather than an int.
+var uintChassisIDTypeLldpLocalSystemDataResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = Counter32: 4
+.1.0.8802.1.1.2.1.3.2.0 = Hex-STRING: 00 1C 73 03 13 36
+`
+
 var entPhysClassAristaResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.5.1 = INTEGER: chassis(3)
 .1.3.6.1.2.1.47.1.1.1.1.5.100002001 = INTEGER: container(5)
@@ -493,6 +499,18 @@ var entPhysSerialNumDefaultResponse = `
 .1.3.6.1.2.1.47.1.1.1.1.11.100002106 = STRING: JPE13351729
 .1.3.6.1.2.1.47.1.1.1.1.11.100002151 = STRING: JPE15253426
 .1.3.6.1.2.1.47.1.1.1.1.11.100002152 = STRING: JPE15253614
+`
+
+var lldpChassisIDTypeDefaultResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
+`
+
+var lldpChassisIDTypeUintResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = Counter32: 4
+`
+
+var lldpChassisIDDefaultResponse = `
+.1.0.8802.1.1.2.1.3.2.0 = Hex-STRING: 00 1C 73 03 13 36
 `
 
 var ifTable64BitResponse = `
@@ -825,6 +843,24 @@ func TestSnmp(t *testing.T) {
 			},
 		},
 		{
+			name:   "updateLldpChassisIDUint",
+			pollFn: s.updateLldp,
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpLldpLocalSystemData: PDUsFromString(
+					uintChassisIDTypeLldpLocalSystemDataResponse),
+				snmpLldpRemTable:   []*gosnmp.SnmpPDU{},
+				snmpLldpStatistics: []*gosnmp.SnmpPDU{},
+			},
+			expected: &gnmi.SetRequest{
+				Delete: []*gnmi.Path{pgnmi.Path("lldp")},
+				Replace: []*gnmi.Update{
+					update(pgnmi.LldpStatePath("chassis-id-type"),
+						strval(openconfig.LLDPChassisIDType(4))),
+					update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
+				},
+			},
+		},
+		{
 			name:   "updateSystemStateHostnameOnly",
 			pollFn: s.updateSystemState,
 			responses: map[string][]*gosnmp.SnmpPDU{
@@ -1010,6 +1046,26 @@ func TestDeviceID(t *testing.T) {
 				snmpEntPhysicalSerialNum: PDUsFromString(entPhysSerialNumDefaultResponse),
 			},
 			expected: "JSH11420018",
+		},
+		{
+			name: "lldpChassisID",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpEntPhysicalClass:        []*gosnmp.SnmpPDU{},
+				snmpEntPhysicalSerialNum:    []*gosnmp.SnmpPDU{},
+				snmpLldpLocChassisIDSubtype: PDUsFromString(lldpChassisIDTypeDefaultResponse),
+				snmpLldpLocChassisID:        PDUsFromString(lldpChassisIDDefaultResponse),
+			},
+			expected: "00:1c:73:03:13:36",
+		},
+		{
+			name: "lldpChassisIDUint",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpEntPhysicalClass:        []*gosnmp.SnmpPDU{},
+				snmpEntPhysicalSerialNum:    []*gosnmp.SnmpPDU{},
+				snmpLldpLocChassisIDSubtype: PDUsFromString(lldpChassisIDTypeUintResponse),
+				snmpLldpLocChassisID:        PDUsFromString(lldpChassisIDDefaultResponse),
+			},
+			expected: "00:1c:73:03:13:36",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
