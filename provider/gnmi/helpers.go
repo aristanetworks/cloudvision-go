@@ -123,6 +123,7 @@ func pollOnce(ctx context.Context, client gnmi.GNMIClient,
 		_, err = client.Set(ctx, setreq)
 		logrus.Tracef("pollOnce: gNMI Set: error = %s", err)
 		if err != nil {
+			logrus.Tracef("pollOnce: gNMI Set error: SetRequest = %s", setreq)
 			return err
 		}
 	}

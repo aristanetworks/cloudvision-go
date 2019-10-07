@@ -1042,7 +1042,16 @@ func (s *Snmp) updateInterfacesAndLldp() ([]*gnmi.SetRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	return append(intfSR, lldpSR...), nil
+
+	// interface and lldp updates must be combined into a single SetRequest, since the lldp
+	// model has leafrefs into the interface model. Otherwise a SetRequest that results in
+	// a delete on an interface that's in /lldp/interfaces, for example, will return an error.
+	combinedSR := new(gnmi.SetRequest)
+	for _, sr := range append(intfSR, lldpSR...) {
+		combinedSR.Delete = append(combinedSR.Delete, sr.Delete...)
+		combinedSR.Replace = append(combinedSR.Replace, sr.Replace...)
+	}
+	return []*gnmi.SetRequest{combinedSR}, nil
 }
 
 func (s *Snmp) handleEntityMibPDU(pdu gosnmp.SnmpPDU,
