@@ -41,6 +41,10 @@ var options = map[string]device.Option{
 		Default:     "authPriv",
 		Pattern:     `noAuthNoPriv|authNoPriv|authPriv`,
 	},
+	"mibs": device.Option{
+		Description: "Comma-separated list of mib files/directories",
+		Required:    true,
+	},
 	"pollInterval": device.Option{
 		Description: "Polling interval, with unit suffix (s/m/h)",
 		Default:     "20s",
@@ -52,10 +56,6 @@ var options = map[string]device.Option{
 		Description: "SNMP version (2c|3)",
 		Pattern:     `2c|3`,
 		Default:     "2c",
-	},
-	"verbose": device.Option{
-		Description: "Log SNMP operations (true/false)",
-		Default:     "false",
 	},
 	"x": device.Option{
 		Description: "SNMPv3 privacy protocol",
@@ -76,13 +76,13 @@ type snmp struct {
 	authProto    string
 	community    string
 	level        string
+	mibs         []string
 	pollInterval time.Duration
 	port         uint16
 	privacyKey   string
 	privacyProto string
 	securityName string
 	systemID     string
-	verbose      bool
 	version      string
 	v3Params     *psnmp.V3Params
 	v            gosnmp.SnmpVersion
@@ -225,6 +225,11 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, s.deviceConfigErr(err)
 	}
 
+	s.mibs, err = device.GetStringListOption("mibs", options)
+	if err != nil {
+		return nil, s.deviceConfigErr(err)
+	}
+
 	s.pollInterval, err = device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
@@ -255,11 +260,6 @@ func newSnmp(options map[string]string) (device.Device, error) {
 		return nil, s.deviceConfigErr(err)
 	}
 
-	s.verbose, err = device.GetBoolOption("verbose", options)
-	if err != nil {
-		return nil, s.deviceConfigErr(err)
-	}
-
 	s.version, err = device.GetStringOption("v", options)
 	if err != nil {
 		return nil, s.deviceConfigErr(err)
@@ -272,7 +272,7 @@ func newSnmp(options map[string]string) (device.Device, error) {
 	s.v, s.v3Params = s.formatOptions()
 
 	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.port, s.community,
-		s.pollInterval, s.v, s.v3Params, s.verbose, false)
+		s.pollInterval, s.v, s.v3Params, s.mibs, false)
 
 	return s, nil
 }

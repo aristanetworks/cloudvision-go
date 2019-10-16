@@ -365,10 +365,16 @@ func runTranslatorTest(t *testing.T, mibStore smi.Store, tc translatorTestCase) 
 		return time.Unix(1554954972, 0)
 	}
 
-	// Call translator.Updates and check the translator's output.
-	setReqs, err := trans.Updates(context.Background(), tc.updatePaths)
+	setReqs := []*gnmi.SetRequest{}
+	client := pgnmi.NewSimpleGNMIClient(func(ctx context.Context,
+		req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
+		setReqs = append(setReqs, req)
+		return nil, nil
+	})
+	// Call translator.Poll and check the translator's output.
+	err = trans.Poll(context.Background(), client, tc.updatePaths)
 	if err != nil {
-		t.Fatalf("Failure in translator.run: %v", err)
+		t.Fatalf("Failure in translator.Poll: %v", err)
 	}
 	(&tc).checkSetRequests(t, setReqs)
 }
@@ -410,7 +416,7 @@ func TestTranslator(t *testing.T) {
 			name:        "updatePlatformBasic",
 			updatePaths: []string{"^/components/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
-				"entPhysicalTable": PDUsFromString(basicEntPhysicalTableResponse),
+				"entPhysicalEntry": PDUsFromString(basicEntPhysicalTableResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
 				&gnmi.SetRequest{

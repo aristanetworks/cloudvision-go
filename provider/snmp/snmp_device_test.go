@@ -17,6 +17,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"
 	"google.golang.org/grpc"
@@ -170,7 +171,7 @@ func (m *testGNMIClient) Set(ctx context.Context, in *gnmi.SetRequest,
 				if m.pollsRemaining == 0 {
 					m.cancel()
 				}
-				return nil, nil
+				break
 			}
 		}
 	}
@@ -187,33 +188,42 @@ func (m *testGNMIClient) Subscribe(ctx context.Context,
 // the request types we care about and the provider error handling,
 // they should be correct enough for the provider to behave the same
 // way it would to a real response.
-func testget(oids []string, wm walkMap) (*gosnmp.SnmpPacket, error) {
-	pkt := &gosnmp.SnmpPacket{}
-	if len(oids) > 1 {
-		panic("testget doesn't support multiple OIDs")
+func testget(oids []string, mibStore smi.Store, wm walkMap) (*gosnmp.SnmpPacket, error) {
+	pkt := &gosnmp.SnmpPacket{
+		Variables: []gosnmp.SnmpPDU{},
 	}
-	oid := oids[0]
-	pdus, ok := wm[oid]
-	if !ok {
-		pkt.Variables = []gosnmp.SnmpPDU{
-			gosnmp.SnmpPDU{
-				Name:  oid,
-				Type:  gosnmp.NoSuchObject,
-				Value: nil,
-			},
+	for _, oid := range oids {
+		o := mibStore.GetObject(oid)
+		if o == nil {
+			return nil, fmt.Errorf("No object %s", oid)
 		}
-		return pkt, nil
-	}
-	for _, p := range pdus {
-		pkt.Variables = append(pkt.Variables, *p)
+		noid := "." + o.Oid
+		pdus, ok := wm[noid]
+		if !ok {
+			pkt.Variables = append(pkt.Variables,
+				gosnmp.SnmpPDU{
+					Name:  noid,
+					Type:  gosnmp.NoSuchObject,
+					Value: nil,
+				},
+			)
+			return pkt, nil
+		}
+		for _, p := range pdus {
+			pkt.Variables = append(pkt.Variables, *p)
+		}
 	}
 	return pkt, nil
 }
 
-func testwalk(oid string, walker gosnmp.WalkFunc, wm walkMap) error {
-	pdus, ok := wm[oid]
+func testwalk(oid string, walker gosnmp.WalkFunc, mibStore smi.Store, wm walkMap) error {
+	o := mibStore.GetObject(oid)
+	if o == nil {
+		return fmt.Errorf("No object %s", oid)
+	}
+	noid := "." + o.Oid
+	pdus, ok := wm[noid]
 	if !ok {
-
 		return nil
 	}
 	for _, pdu := range pdus {
@@ -240,7 +250,7 @@ func newTestGNMIClient(cancel context.CancelFunc,
 func newSNMPProvider(client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
 	p := NewSNMPProvider("whatever", 161, "stuff", 10*time.Millisecond,
-		gosnmp.Version2c, nil, false, true)
+		gosnmp.Version2c, nil, []string{"smi/mibs"}, true)
 
 	// Set up provider with special getter + walker, keeping track of
 	// which poll we're on.
@@ -251,7 +261,7 @@ func newSNMPProvider(client *testGNMIClient,
 		if poll >= client.polls {
 			poll = client.polls - 1
 		}
-		return testget(oids, walkMaps[poll])
+		return testget(oids, p.(*Snmp).mibStore, walkMaps[poll])
 	}
 	p.(*Snmp).walker = func(oid string, walker gosnmp.WalkFunc) error {
 		client.lock.Lock()
@@ -260,7 +270,7 @@ func newSNMPProvider(client *testGNMIClient,
 		if poll >= client.polls {
 			poll = client.polls - 1
 		}
-		return testwalk(oid, walker, walkMaps[poll])
+		return testwalk(oid, walker, p.(*Snmp).mibStore, walkMaps[poll])
 	}
 	return p
 }

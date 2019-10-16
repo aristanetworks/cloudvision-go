@@ -16,7 +16,6 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/pdu"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/sirupsen/logrus"
 	"github.com/soniah/gosnmp"
 )
 
@@ -74,8 +73,6 @@ func sanitizedString(s interface{}) string {
 		return t
 	case []byte:
 		return BytesToSanitizedString(t)
-	default:
-		logrus.Fatalf("Unexpected type in sanitizedString: %T", s)
 	}
 	return ""
 }
@@ -525,7 +522,7 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 
 		// get the interface name corresponding to this lldpRemLocalPortNum
 		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
-		if err != nil {
+		if err != nil || intfName == "" {
 			return nil, err
 		}
 		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, intfName, lldpRemIndex))

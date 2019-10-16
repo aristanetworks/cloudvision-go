@@ -26,12 +26,14 @@ func NewTranslator(mibStore smi.Store, gs *gosnmp.GoSNMP) (*Translator, error) {
 	return &Translator{
 		Getter:                 gs.Get,
 		gosnmp:                 gs,
+		gosnmpLock:             &sync.Mutex{},
 		Logger:                 &nonlogger{},
 		mapperData:             &sync.Map{},
 		Mappings:               DefaultMappings(),
 		mibStore:               mibStore,
 		pathsMappingGroups:     make(map[string]map[string]*mappingGroup),
 		pduStore:               ps,
+		pollLock:               &sync.Mutex{},
 		successfulMappings:     make(map[string]Mapper),
 		successfulMappingsLock: &sync.RWMutex{},
 		Walker:                 gs.BulkWalk,
@@ -105,8 +107,11 @@ type Translator struct {
 
 	// gosnmp state
 	gosnmp          *gosnmp.GoSNMP
-	gosnmpLock      sync.Mutex
+	gosnmpLock      *sync.Mutex
 	gosnmpConnected bool
+
+	// to ensure non-overlapping polls
+	pollLock *sync.Mutex
 
 	// logging
 	Logger Logger
@@ -115,6 +120,68 @@ type Translator struct {
 	Mock   bool
 	Getter func([]string) (*gosnmp.SnmpPacket, error)
 	Walker func(string, gosnmp.WalkFunc) error
+}
+
+// Poll generates a set of updates for the paths specified. It
+// accepts exact paths and regular expressions. Any path in the
+// translator's mapping list that matches the provided expression
+// is added to the set of updates to produce. It performs a poll for
+// any required SNMP data and translates that data into gNMI updates,
+// which it then transmits via the provided gNMI client's Set method.
+func (t *Translator) Poll(ctx context.Context, client gnmi.GNMIClient,
+	paths []string) error {
+	t.pollLock.Lock()
+	defer t.pollLock.Unlock()
+
+	mappingGroups, err := t.mappingGroupsFromPaths(paths)
+	if err != nil {
+		return err
+	}
+
+	if len(mappingGroups) == 0 {
+		return errors.New("no models to translate")
+	}
+
+	// Clear data stores in preparation for filling them up again.
+	if err := t.pduStore.Clear(); err != nil {
+		return err
+	}
+	t.mapperData.Range(func(k interface{}, v interface{}) bool {
+		// Ideally we could just do t.mapperData = &sync.Map{} but
+		// the compiler says this is unsafe, so we have to use Range.
+		t.mapperData.Delete(k)
+		return true
+	})
+
+	// Produce updates for each mapping group.
+	var wg sync.WaitGroup
+	setReqCh := make(chan *gnmi.SetRequest, len(mappingGroups))
+	errc := make(chan error)
+	for _, mg := range mappingGroups {
+		wg.Add(1)
+		go t.mappingGroupUpdates(ctx, mg, &wg, setReqCh, errc)
+	}
+
+	done := make(chan bool)
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case sr := <-setReqCh:
+			if _, err := client.Set(ctx, sr); err != nil {
+				return err
+			}
+		case <-done:
+			return nil
+		case err := <-errc:
+			return err
+		}
+	}
 }
 
 // updates produces updates for the provided set of paths.
@@ -131,6 +198,7 @@ func (t *Translator) updates(paths []string) ([]*gnmi.Update, error) {
 				return nil, err
 			}
 			updates = append(updates, u...)
+			continue
 		}
 
 		// Otherwise, try each mapping in order.
@@ -162,9 +230,9 @@ var supportedModels = map[string]*model{
 		snmpWalkOIDs: []string{"ifTable", "ifXTable"},
 	},
 	"system": &model{
-		name:         "system",
-		rootPath:     "/system",
-		snmpWalkOIDs: []string{"sysName", "lldpLocSysName", "hrSystemUptime", "sysUpTimeInstance"},
+		name:        "system",
+		rootPath:    "/system",
+		snmpGetOIDs: []string{"sysName", "lldpLocSysName", "hrSystemUptime", "sysUpTimeInstance"},
 	},
 	"lldp": &model{
 		name:         "lldp",
@@ -176,7 +244,7 @@ var supportedModels = map[string]*model{
 	"platform": &model{
 		name:         "platform",
 		rootPath:     "/components",
-		snmpWalkOIDs: []string{"entPhysicalTable"},
+		snmpWalkOIDs: []string{"entPhysicalEntry"},
 	},
 }
 
@@ -214,10 +282,9 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 	if !t.gosnmpConnected && !t.Mock {
 		if err := t.gosnmp.Connect(); err != nil {
 			return err
-		} else {
-			t.gosnmpConnected = true
-			t.Logger.Infoln("gosnmp.Connect complete")
 		}
+		t.gosnmpConnected = true
+		t.Logger.Infoln("gosnmp.Connect complete")
 	}
 
 	// Get SNMP data for each model in this mappingGroup.
@@ -374,58 +441,4 @@ func (t *Translator) mappingGroupsFromPaths(paths []string) (map[string]*mapping
 	t.pathsMappingGroups[pathHash] = reducedMg
 
 	return reducedMg, nil
-}
-
-// Updates produces a set of updates for the paths specified. It
-// accepts exact paths and regular expressions. Any path in the
-// translator's mapping list that matches the provided expression
-// is added to the set of updates to produce. This method returns a
-// gNMI SetRequest rather than just updates because the SetRequest
-// allows us to include Deletes and Replaces, which is a natural way
-// to express the replacement of a subtree produced by a new poll.
-func (t *Translator) Updates(ctx context.Context,
-	paths []string) ([]*gnmi.SetRequest, error) {
-	mappingGroups, err := t.mappingGroupsFromPaths(paths)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(mappingGroups) == 0 {
-		return nil, errors.New("No models to translate.")
-	}
-
-	// Clear data stores in preparation for filling them up again.
-	if err := t.pduStore.Clear(); err != nil {
-		return nil, err
-	}
-	t.mapperData = &sync.Map{}
-
-	// Produce updates for each mapping group.
-	var wg sync.WaitGroup
-	setReqCh := make(chan *gnmi.SetRequest, len(mappingGroups))
-	errc := make(chan error)
-	for _, mg := range mappingGroups {
-		wg.Add(1)
-		go t.mappingGroupUpdates(ctx, mg, &wg, setReqCh, errc)
-	}
-
-	done := make(chan bool)
-	go func() {
-		wg.Wait()
-		close(setReqCh)
-		close(done)
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case <-done:
-		srs := []*gnmi.SetRequest{}
-		for sr := range setReqCh {
-			srs = append(srs, sr)
-		}
-		return srs, nil
-	case err := <-errc:
-		return nil, err
-	}
 }
