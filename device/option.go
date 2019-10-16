@@ -9,6 +9,7 @@ import (
 	"net"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -170,4 +171,15 @@ func GetDurationOption(optionName string,
 		return 0, fmt.Errorf("No option '%s'", optionName)
 	}
 	return time.ParseDuration(o)
+}
+
+// GetStringListOption returns the option specified by optionName as
+// a string slice.
+func GetStringListOption(optionName string,
+	options map[string]string) ([]string, error) {
+	o, ok := options[optionName]
+	if !ok {
+		return nil, fmt.Errorf("No option '%s'", optionName)
+	}
+	return strings.Split(o, ","), nil
 }
