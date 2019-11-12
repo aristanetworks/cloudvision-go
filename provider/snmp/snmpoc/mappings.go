@@ -363,7 +363,7 @@ func IPFromBytes(s []byte) string {
 	return string(s)
 }
 
-func processChassisId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
+func processChassisID(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	switch subtype {
 	case 4:
 		return MacFromBytes(p.Value.([]byte)), nil
@@ -373,7 +373,7 @@ func processChassisId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	return string(p.Value.([]byte)), nil
 }
 
-func processPortId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
+func processPortID(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	switch subtype {
 	case 3:
 		return MacFromBytes(p.Value.([]byte)), nil
@@ -383,7 +383,7 @@ func processPortId(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	return string(p.Value.([]byte)), nil
 }
 
-func lldpChassisIdMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
+func lldpChassisIDMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 	path, idOid, subtypeOid string, vp ValueProcessor) ([]*gnmi.Update, error) {
 	pcid, err := ps.GetScalar(idOid)
 	if err != nil {
@@ -394,17 +394,17 @@ func lldpChassisIdMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 		return nil, err
 	}
 	v := pst.Value.(int)
-	cid, err := processChassisId(pcid, v)
+	cid, err := processChassisID(pcid, v)
 	if err != nil {
 		return nil, err
 	}
 	return []*gnmi.Update{update(pgnmi.PathFromString(path), vp(cid))}, nil
 }
 
-func lldpChassisIdFn(path, idOid, subtypeOid string, vp ValueProcessor) Mapper {
+func lldpChassisIDFn(path, idOid, subtypeOid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
 		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return lldpChassisIdMapper(ss, ps, mapperData, path, idOid, subtypeOid, vp)
+		return lldpChassisIDMapper(ss, ps, mapperData, path, idOid, subtypeOid, vp)
 	}
 }
 
@@ -483,9 +483,9 @@ func processLldpRemTableVal(ps pdu.Store, p *gosnmp.SnmpPDU, oid,
 
 	v := pdus[0].Value.(int)
 	if oid == "lldpRemChassisId" || oid == "lldpV2RemChassisId" {
-		return processChassisId(p, v)
+		return processChassisID(p, v)
 	} else if oid == "lldpRemPortId" || oid == "lldpV2RemPortId" {
-		return processPortId(p, v)
+		return processPortID(p, v)
 	}
 	return "", fmt.Errorf("processLldpRemTableVal shouldn't get here, oid = %s", oid)
 }
@@ -527,8 +527,8 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 		}
 		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, intfName, lldpRemIndex))
 
-		neighborId := lldpIDRegex.MatchString(path)
-		if (oid == "lldpRemPortId" || oid == "lldpV2RemPortId") && neighborId {
+		neighborID := lldpIDRegex.MatchString(path)
+		if (oid == "lldpRemPortId" || oid == "lldpV2RemPortId") && neighborID {
 			updates = append(updates, update(fullPath, vp(lldpRemIndex)))
 			continue
 		}
@@ -717,15 +717,15 @@ var (
 	lldpInterfaceConfigPath         = lldpInterfacePath + "config/"
 	lldpInterfaceNeighborsPath      = lldpInterfacePath + "neighbors/neighbor[id=%s]/"
 	lldpInterfaceNeighborsStatePath = lldpInterfaceNeighborsPath + "state/"
-	lldpChassisId                   = lldpChassisIdFn(lldpStatePath+"chassis-id",
+	lldpChassisID                   = lldpChassisIDFn(lldpStatePath+"chassis-id",
 		"lldpLocChassisId", "lldpLocChassisIdSubtype", strval)
-	lldpV2ChassisId = lldpChassisIdFn(lldpStatePath+"chassis-id",
+	lldpV2ChassisID = lldpChassisIDFn(lldpStatePath+"chassis-id",
 		"lldpV2LocChassisId", "lldpV2LocChassisIdSubtype", strval)
-	lldpChassisIdType = scalarMapperFn(lldpStatePath+"chassis-id-type",
+	lldpChassisIDType = scalarMapperFn(lldpStatePath+"chassis-id-type",
 		"lldpLocChassisIdSubtype", func(x interface{}) *gnmi.TypedValue {
 			return strval(openconfig.LLDPChassisIDType(x.(int)))
 		})
-	lldpV2ChassisIdType = scalarMapperFn(lldpStatePath+"chassis-id-type",
+	lldpV2ChassisIDType = scalarMapperFn(lldpStatePath+"chassis-id-type",
 		"lldpV2LocChassisIdSubtype", func(x interface{}) *gnmi.TypedValue {
 			return strval(openconfig.LLDPChassisIDType(x.(int)))
 		})
@@ -773,31 +773,31 @@ var (
 		"lldpStatsRxPortTLVsUnrecognizedTotal", uintval)
 	lldpV2InterfaceTlvUnknown = lldpLocPortTableMapperFn(lldpInterfaceCountersPath+"tlv-unknown",
 		"lldpV2StatsRxPortTLVsUnrecognizedTotal", uintval)
-	lldpInterfaceNeighborPortId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"port-id",
+	lldpInterfaceNeighborPortID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"port-id",
 		"lldpRemPortId", strval)
-	lldpV2InterfaceNeighborPortId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"port-id",
+	lldpV2InterfaceNeighborPortID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"port-id",
 		"lldpV2RemPortId", strval)
-	lldpInterfaceNeighborId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"id",
+	lldpInterfaceNeighborID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"id",
 		"lldpRemPortId", strval)
-	lldpV2InterfaceNeighborId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"id",
+	lldpV2InterfaceNeighborID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+"id",
 		"lldpV2RemPortId", strval)
-	lldpInterfaceNeighborPortIdType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpInterfaceNeighborPortIDType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"port-id-type", "lldpRemPortIdSubtype", func(x interface{}) *gnmi.TypedValue {
 		return strval(openconfig.LLDPPortIDType(x.(int)))
 	})
-	lldpV2InterfaceNeighborPortIdType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpV2InterfaceNeighborPortIDType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"port-id-type", "lldpV2RemPortIdSubtype", func(x interface{}) *gnmi.TypedValue {
 		return strval(openconfig.LLDPPortIDType(x.(int)))
 	})
-	lldpInterfaceNeighborChassisId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpInterfaceNeighborChassisID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"chassis-id", "lldpRemChassisId", strval)
-	lldpV2InterfaceNeighborChassisId = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpV2InterfaceNeighborChassisID = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"chassis-id", "lldpV2RemChassisId", strval)
-	lldpInterfaceNeighborChassisIdType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpInterfaceNeighborChassisIDType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"chassis-id-type", "lldpRemChassisIdSubtype", func(x interface{}) *gnmi.TypedValue {
 		return strval(openconfig.LLDPChassisIDType(x.(int)))
 	})
-	lldpV2InterfaceNeighborChassisIdType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
+	lldpV2InterfaceNeighborChassisIDType = lldpRemTableMapperFn(lldpInterfaceNeighborsStatePath+
 		"chassis-id-type", "lldpV2RemChassisIdSubtype", func(x interface{}) *gnmi.TypedValue {
 		return strval(openconfig.LLDPChassisIDType(x.(int)))
 	})
@@ -886,8 +886,8 @@ var defaultMappings = map[string][]Mapper{
 		componentHardwareVersion},
 
 	//// lldp
-	"/lldp/state/chassis-id":         []Mapper{lldpChassisId, lldpV2ChassisId},
-	"/lldp/state/chassis-id-type":    []Mapper{lldpChassisIdType, lldpV2ChassisIdType},
+	"/lldp/state/chassis-id":         []Mapper{lldpChassisID, lldpV2ChassisID},
+	"/lldp/state/chassis-id-type":    []Mapper{lldpChassisIDType, lldpV2ChassisIDType},
 	"/lldp/state/system-name":        []Mapper{lldpSystemName, lldpV2SystemName},
 	"/lldp/state/system-description": []Mapper{lldpSystemDescription, lldpV2SystemDescription},
 	"/lldp/interfaces/interface[name=name]/" +
@@ -909,19 +909,19 @@ var defaultMappings = map[string][]Mapper{
 	"/lldp/interfaces/interface[name=name]/state/" +
 		"counters/tlv-unknown": []Mapper{lldpInterfaceTlvUnknown, lldpV2InterfaceTlvUnknown},
 	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/id": []Mapper{
-		lldpInterfaceNeighborId, lldpV2InterfaceNeighborId},
+		lldpInterfaceNeighborID, lldpV2InterfaceNeighborID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/port-id": []Mapper{lldpInterfaceNeighborPortId,
-		lldpV2InterfaceNeighborPortId},
+		"neighbor[id=id]/state/port-id": []Mapper{lldpInterfaceNeighborPortID,
+		lldpV2InterfaceNeighborPortID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/port-id-type": []Mapper{lldpInterfaceNeighborPortIdType,
-		lldpV2InterfaceNeighborPortIdType},
+		"neighbor[id=id]/state/port-id-type": []Mapper{lldpInterfaceNeighborPortIDType,
+		lldpV2InterfaceNeighborPortIDType},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/chassis-id": []Mapper{lldpInterfaceNeighborChassisId,
-		lldpV2InterfaceNeighborChassisId},
+		"neighbor[id=id]/state/chassis-id": []Mapper{lldpInterfaceNeighborChassisID,
+		lldpV2InterfaceNeighborChassisID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/chassis-id-type": []Mapper{lldpInterfaceNeighborChassisIdType,
-		lldpV2InterfaceNeighborChassisIdType},
+		"neighbor[id=id]/state/chassis-id-type": []Mapper{lldpInterfaceNeighborChassisIDType,
+		lldpV2InterfaceNeighborChassisIDType},
 	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/" +
 		"system-name": []Mapper{lldpInterfaceNeighborSystemName,
 		lldpV2InterfaceNeighborSystemName},
