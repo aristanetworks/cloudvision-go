@@ -255,10 +255,14 @@ var ifXTable64BitResponse = `
 
 // mockget and mockwalk are the SNMP get and walk routines used for
 // injecting mocked SNMP data into the polling routines.
-func mockget(oids []string,
-	responses map[string][]*gosnmp.SnmpPDU) (*gosnmp.SnmpPacket, error) {
+func mockget(oids []string, responses map[string][]*gosnmp.SnmpPDU,
+	mibStore smi.Store) (*gosnmp.SnmpPacket, error) {
 	pkt := &gosnmp.SnmpPacket{}
 	for _, oid := range oids {
+		obj := mibStore.GetObject(oid)
+		if obj != nil {
+			oid = obj.Name
+		}
 		r, ok := responses[oid]
 		if !ok || len(r) == 0 {
 			pkt.Variables = append(pkt.Variables, *PDU(oid, gosnmp.NoSuchObject, nil))
@@ -273,7 +277,12 @@ func mockget(oids []string,
 }
 
 func mockwalk(oid string, walker gosnmp.WalkFunc,
-	responses map[string][]*gosnmp.SnmpPDU) error {
+	responses map[string][]*gosnmp.SnmpPDU,
+	mibStore smi.Store) error {
+	obj := mibStore.GetObject(oid)
+	if obj != nil {
+		oid = obj.Name
+	}
 	pdus, ok := responses[oid]
 	if !ok {
 		return nil
@@ -356,10 +365,10 @@ func runTranslatorTest(t *testing.T, mibStore smi.Store, tc translatorTestCase) 
 		trans.Mappings = tc.mappings
 	}
 	trans.Getter = func(oids []string) (*gosnmp.SnmpPacket, error) {
-		return mockget(oids, tc.responses)
+		return mockget(oids, tc.responses, mibStore)
 	}
 	trans.Walker = func(oid string, walker gosnmp.WalkFunc) error {
-		return mockwalk(oid, walker, tc.responses)
+		return mockwalk(oid, walker, tc.responses, mibStore)
 	}
 	now = func() time.Time {
 		return time.Unix(1554954972, 0)

@@ -430,6 +430,20 @@ func (t *Translator) mappingGroupsFromPaths(paths []string) (map[string]*mapping
 					cmg := reducedMg[mg.name]
 					if _, ok := cmg.models[mod.name]; !ok {
 						cmg.models[mod.name] = mod.Copy()
+
+						// Swap text OIDs out for their numeric equivalents.
+						for i, oid := range cmg.models[mod.name].snmpGetOIDs {
+							obj := t.mibStore.GetObject(oid)
+							if obj != nil {
+								cmg.models[mod.name].snmpGetOIDs[i] = obj.Oid
+							}
+						}
+						for i, oid := range cmg.models[mod.name].snmpWalkOIDs {
+							obj := t.mibStore.GetObject(oid)
+							if obj != nil {
+								cmg.models[mod.name].snmpWalkOIDs[i] = obj.Oid
+							}
+						}
 					}
 					cmg.updatePaths[mod.name] = append(cmg.updatePaths[mod.name], p)
 				}
