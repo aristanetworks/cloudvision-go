@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // A Store contains the SMI parse tree and allows users to query
@@ -14,9 +15,11 @@ type Store interface {
 
 // store implements the Store interface.
 type store struct {
+	lock    *sync.RWMutex
 	modules map[string]*Module
 	oids    map[string]*Object
 	names   map[string]*Object
+	known   map[string]*Object
 }
 
 // NewStore returns a Store.
@@ -27,9 +30,11 @@ func NewStore(files ...string) (Store, error) {
 	}
 
 	store := &store{
+		lock:    &sync.RWMutex{},
 		modules: make(map[string]*Module),
 		oids:    make(map[string]*Object),
 		names:   make(map[string]*Object),
+		known:   make(map[string]*Object),
 	}
 
 	// After initially building the parse tree, there are certain
@@ -46,9 +51,28 @@ func NewStore(files ...string) (Store, error) {
 	return store, nil
 }
 
+func (s *store) checkKnown(oid string) *Object {
+	s.lock.RLock()
+	o, _ := s.known[oid]
+	s.lock.RUnlock()
+	return o
+}
+
+func (s *store) updateKnown(oid string, o *Object) {
+	s.lock.Lock()
+	s.known[oid] = o
+	s.lock.Unlock()
+}
+
 // GetObject takes a text or numeric object identifier and returns
 // the corresponding parsed Object, if one exists.
 func (s *store) GetObject(oid string) *Object {
+	// First check the cache.
+	if o := s.checkKnown(oid); o != nil {
+		return o
+	}
+	origOid := oid
+
 	// Text OID
 	ss := strings.Split(oid, "::")
 	if len(ss) >= 2 {
@@ -64,6 +88,7 @@ func (s *store) GetObject(oid string) *Object {
 
 		o, ok := s.oids[oid]
 		if ok {
+			s.updateKnown(origOid, o)
 			return o
 		}
 
@@ -71,7 +96,11 @@ func (s *store) GetObject(oid string) *Object {
 		ss = strings.Split(oid, ".")
 		if ss[len(ss)-1] == "0" {
 			oid = strings.Join(ss[:(len(ss)-1)], ".")
-			return s.oids[oid]
+			o, ok = s.oids[oid]
+			if ok {
+				s.updateKnown(origOid, o)
+			}
+			return o
 		}
 
 		// Start removing possible index values from the OID.
@@ -84,12 +113,18 @@ func (s *store) GetObject(oid string) *Object {
 				} else if o.Parent == nil {
 					return nil
 				}
+				s.updateKnown(origOid, o)
 				return o
 			}
 		}
 		return nil
 	}
-	return s.names[oid]
+
+	o, ok := s.names[oid]
+	if ok {
+		s.updateKnown(origOid, o)
+	}
+	return o
 }
 
 func resolveOID(po *parseObject, store *store) error {
