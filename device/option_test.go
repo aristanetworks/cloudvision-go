@@ -190,6 +190,15 @@ func stringSliceEqual(s1, s2 []string) bool {
 	return true
 }
 
+func equalOneOf(s1 string, s2 []string) bool {
+	for _, s := range s2 {
+		if s1 == s {
+			return true
+		}
+	}
+	return false
+}
+
 func TestGetOptionHelpers(t *testing.T) {
 	for _, tc := range []struct {
 		name         string
@@ -254,13 +263,13 @@ func TestGetOptionHelpers(t *testing.T) {
 	for _, tc := range []struct {
 		name            string
 		address         string
-		expectedAddress string
+		expectedAddress []string
 		errorExpected   bool
 	}{
 		{
 			name:            "1.1.1.1",
 			address:         "1.1.1.1",
-			expectedAddress: "1.1.1.1",
+			expectedAddress: []string{"1.1.1.1"},
 		},
 		{
 			name:          "1.1.1.1111",
@@ -275,7 +284,7 @@ func TestGetOptionHelpers(t *testing.T) {
 		{
 			name:            "hostname",
 			address:         "localhost",
-			expectedAddress: "127.0.0.1",
+			expectedAddress: []string{"127.0.0.1", "::1"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -287,7 +296,7 @@ func TestGetOptionHelpers(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if addr != tc.expectedAddress {
+			if !equalOneOf(addr, tc.expectedAddress) {
 				t.Fatalf("expected address: %s; got: %s", tc.expectedAddress, addr)
 			}
 		})
