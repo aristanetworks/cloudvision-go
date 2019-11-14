@@ -7,4 +7,4 @@ package gen
 // To run this command you need protoc:
 // brew install protobuf
 
-//go:generate protoc --proto_path=. --proto_path=${GOPATH}/src --go_out=plugins=grpc:. inventory.proto
+//go:generate protoc --proto_path=${GOPATH}/src --go_out=plugins=grpc,:${GOPATH}/src github.com/aristanetworks/cloudvision-go/device/inventory.proto

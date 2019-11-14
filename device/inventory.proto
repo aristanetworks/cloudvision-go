@@ -4,7 +4,9 @@
 
 syntax = "proto3";
 
-option go_package = "gen";
+package arista.cloudvision;
+
+option go_package = "github.com/aristanetworks/cloudvision-go/device/gen";
 
 message DeviceConfig {
    map<string, string> options = 1;
