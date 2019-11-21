@@ -141,7 +141,14 @@ func (i *inventory) Add(info *Info) error {
 	if info.ID == "" {
 		return fmt.Errorf("ID in device.Info cannot be empty")
 	}
-	if _, ok := i.devices[info.ID]; ok {
+	if dev, ok := i.devices[info.ID]; ok {
+		if info.Config.Device != dev.info.Config.Device {
+			return fmt.Errorf("Cannot add device '%s' (type '%s') to inventory; "+
+				"it already exists with a different type ('%s')",
+				info.ID, info.Config.Device, dev.info.Config.Device)
+		}
+		log.Log(info.Device).Infof("Device %s already exists (type '%s')\n",
+			info.ID, info.Config.Device)
 		return nil
 	}
 
