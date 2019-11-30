@@ -19,6 +19,8 @@ func (po *parseObject) setKind() {
 	case declObjectType:
 		if po.table {
 			po.object.Kind = KindTable
+		} else if po.object.Parent == nil {
+			break
 		} else if po.object.Parent.Kind == KindTable {
 			po.object.Kind = KindRow
 		} else if po.object.Parent.Kind == KindRow ||

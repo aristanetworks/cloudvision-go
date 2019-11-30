@@ -452,6 +452,17 @@ NamedBit : LOWERCASE_IDENTIFIER '(' NUMBER ')'
          ;
 
 objectIdentityClause : LOWERCASE_IDENTIFIER OBJECT_IDENTITY STATUS Status DESCRIPTION Text ReferPart COLON_COLON_EQUAL '{' objectIdentifier '}'
+                     {
+                         $$.object = &parseObject{
+                             object: &Object{
+                                 Description: $6.val,
+                                 Name: $1.token.literal,
+                                 Oid: strings.Join($10.subidentifiers, "."),
+                                 Status: strToStatus($4.val),
+                             },
+                             decl: declIdentity,
+                         }
+                     }
                      ;
 
 objectTypeClause : LOWERCASE_IDENTIFIER OBJECT_TYPE SYNTAX Syntax UnitsPart MaxOrPIBAccessPart SPPIPibReferencesPart SPPIPibTagPart STATUS Status descriptionClause SPPIErrorsPart ReferPart IndexPart MibIndex SPPIUniquePart DefValPart COLON_COLON_EQUAL '{' ObjectName '}'
@@ -476,6 +487,7 @@ descriptionClause : DESCRIPTION Text
                   {
                       $$.val = $2.val
                   }
+                  |
                   ;
 
 trapTypeClause : fuzzyLowercaseIdentifier TRAP_TYPE ENTERPRISE objectIdentifier VarPart DescrPart ReferPart COLON_COLON_EQUAL NUMBER
