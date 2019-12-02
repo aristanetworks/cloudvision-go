@@ -185,12 +185,7 @@ func setIndexStringMappings(ss smi.Store, ps pdu.Store,
 		return nil
 	}
 
-	mapperData.Store(mappingName, make(map[string]string))
-	mp, ok := mapperData.Load(mappingName)
-	if !ok {
-		return fmt.Errorf("Failed to load mappingName '%s' from mapperData",
-			mappingName)
-	}
+	mp := map[string]string{}
 
 	pdus, err := getTabular(ps, oid)
 	if err != nil {
@@ -203,8 +198,10 @@ func setIndexStringMappings(ss smi.Store, ps pdu.Store,
 			return err
 		}
 		val := sanitizedString(p.Value)
-		mp.(map[string]string)[indexVal] = val
+		mp[indexVal] = val
 	}
+
+	mapperData.Store(mappingName, mp)
 	return nil
 }
 
