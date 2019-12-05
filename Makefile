@@ -46,6 +46,7 @@ fmtcheck:
 		if test "$(shell $(GO) version | awk '{ print $$3 }')" != "devel"; then exit 1; fi; \
 	fi
 	$(GOFILES) -exec ./check_line_len.awk {} +
+	./check_copyright_notice.sh
 
 # Ignore smi package for now.
 vet:
