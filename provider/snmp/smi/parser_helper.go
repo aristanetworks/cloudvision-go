@@ -255,6 +255,11 @@ func parseFiles(files ...string) (map[string]*parseModule, error) {
 				if info.IsDir() {
 					return nil
 				}
+				// Don't try to parse files with extensions other than .mib/.MIB
+				ext := filepath.Ext(path)
+				if ext != "" && strings.ToLower(ext) != "mib" {
+					return nil
+				}
 				m, err := parseFile(path)
 				if err != nil {
 					return err

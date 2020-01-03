@@ -4,7 +4,12 @@
 
 package smi
 
-import "fmt"
+import (
+	"fmt"
+
+	// Ensure mibs package doesn't get pruned by dependency management systems
+	_ "github.com/aristanetworks/cloudvision-go/provider/snmp/smi/mibs"
+)
 
 // Object describes an SMI object.
 type Object struct {
