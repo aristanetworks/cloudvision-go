@@ -369,6 +369,17 @@ func TestStore(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "scalar instance with text OID",
+			adds: []*gosnmp.SnmpPDU{sysNamePDU("device123.x.y.z")},
+			get: testGet{
+				oid:    "sysName.0",
+				scalar: true,
+				expectedPDUs: []*gosnmp.SnmpPDU{
+					sysNamePDU("device123.x.y.z"),
+				},
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			runStoreTest(t, store, tc)

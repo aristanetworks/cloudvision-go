@@ -699,13 +699,13 @@ var (
 	// /system/state
 	systemStatePath     = "/system/state/"
 	systemStateHostname = scalarMapperFn(systemStatePath+"hostname",
-		"sysName", processSysName)
+		"sysName.0", processSysName)
 	systemStateHostnameLldp = scalarMapperFn(systemStatePath+"hostname",
-		"lldpLocSysName", processSysName)
+		"lldpLocSysName.0", processSysName)
 	systemStateDomainName = scalarMapperFn(systemStatePath+"domain-name",
-		"sysName", processDomainName)
+		"sysName.0", processDomainName)
 	systemStateBootTime64 = scalarMapperFn(systemStatePath+"boot-time",
-		"hrSystemUptime", processBootTime)
+		"hrSystemUptime.0", processBootTime)
 	systemStateBootTime32 = scalarMapperFn(systemStatePath+"boot-time",
 		"sysUpTimeInstance", processBootTime)
 

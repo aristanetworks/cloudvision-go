@@ -234,9 +234,10 @@ var supportedModels = map[string]*model{
 		snmpWalkOIDs: []string{"ifTable", "ifXTable"},
 	},
 	"system": &model{
-		name:        "system",
-		rootPath:    "/system",
-		snmpGetOIDs: []string{"sysName", "lldpLocSysName", "hrSystemUptime", "sysUpTimeInstance"},
+		name:     "system",
+		rootPath: "/system",
+		snmpGetOIDs: []string{"sysName.0", "lldpLocSysName.0", "hrSystemUptime.0",
+			"sysUpTimeInstance"},
 	},
 	"lldp": &model{
 		name:         "lldp",
@@ -440,6 +441,10 @@ func (t *Translator) mappingGroupsFromPaths(paths []string) (map[string]*mapping
 							obj := t.mibStore.GetObject(oid)
 							if obj != nil {
 								cmg.models[mod.name].snmpGetOIDs[i] = obj.Oid
+								// Add back ".0" for scalars
+								if oid[len(oid)-2:] == ".0" {
+									cmg.models[mod.name].snmpGetOIDs[i] += ".0"
+								}
 							}
 						}
 						for i, oid := range cmg.models[mod.name].snmpWalkOIDs {

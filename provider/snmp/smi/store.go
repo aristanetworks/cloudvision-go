@@ -100,9 +100,15 @@ func (s *store) GetObject(oid string) *Object {
 		ss = strings.Split(oid, ".")
 		if ss[len(ss)-1] == "0" {
 			oid = strings.Join(ss[:(len(ss)-1)], ".")
+
 			o, ok = s.oids[oid]
 			if ok {
 				s.updateKnown(origOid, o)
+			} else {
+				o, ok = s.names[oid]
+				if ok {
+					s.updateKnown(origOid, o)
+				}
 			}
 			return o
 		}
@@ -111,7 +117,13 @@ func (s *store) GetObject(oid string) *Object {
 		// If we find an object with a matching OID and the right
 		// number of indexes, return that.
 		for i := len(ss) - 1; i > 0; i-- {
-			if o, ok = s.oids[strings.Join(ss[:i], ".")]; ok {
+			o, ok = s.oids[strings.Join(ss[:i], ".")]
+
+			// Try it as a text OID, in case it was something like "sysName.0".
+			if !ok {
+				o, ok = s.names[strings.Join(ss[:i], ".")]
+			}
+			if ok {
 				if o.Kind != KindColumn {
 					return nil
 				} else if o.Parent == nil {
