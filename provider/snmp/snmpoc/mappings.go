@@ -25,7 +25,7 @@ import (
 
 // A Mapper contains some logic for producing gNMI updates based on the
 // contents of a pdu.Store and a mapper data cache.
-type Mapper = func(smi.Store, pdu.Store, *sync.Map) ([]*gnmi.Update, error)
+type Mapper = func(smi.Store, pdu.Store, *sync.Map, Logger) ([]*gnmi.Update, error)
 
 // A ValueProcessor takes an arbitrary value and returns a
 // gnmi.TypedValue, possibly doing additional processing first.
@@ -111,7 +111,7 @@ func scalarMapper(ps pdu.Store, path string, oid string,
 
 func scalarMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		md *sync.Map) ([]*gnmi.Update, error) {
+		md *sync.Map, logger Logger) ([]*gnmi.Update, error) {
 		u, err := scalarMapper(ps, path, oid, vp)
 		if err != nil {
 			return nil, err
@@ -231,7 +231,7 @@ func setIntfNames(ss smi.Store, ps pdu.Store, mapperData *sync.Map) error {
 
 // generic mapper for PDUs from ifTable
 func ifTableMapper(ss smi.Store, ps pdu.Store,
-	mapperData *sync.Map, path string,
+	mapperData *sync.Map, logger Logger, path string,
 	oid string, vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -262,8 +262,8 @@ func ifTableMapper(ss smi.Store, ps pdu.Store,
 
 func ifTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return ifTableMapper(ss, ps, mapperData, path, oid, vp)
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return ifTableMapper(ss, ps, mapperData, logger, path, oid, vp)
 	}
 }
 
@@ -309,7 +309,9 @@ func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
 			}
 			mp[portNum] = intfName
 		}
-		if len(mp) > 0 {
+
+		// If we haven't built up the full mapping, keep trying.
+		if len(mp) == len(ifDescrMap) {
 			return nil
 		}
 	}
@@ -385,7 +387,8 @@ func processPortID(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 }
 
 func lldpChassisIDMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
-	path, idOid, subtypeOid string, vp ValueProcessor) ([]*gnmi.Update, error) {
+	logger Logger, path, idOid, subtypeOid string,
+	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pcid, err := ps.GetScalar(idOid)
 	if err != nil {
 		return nil, err
@@ -404,13 +407,15 @@ func lldpChassisIDMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 
 func lldpChassisIDFn(path, idOid, subtypeOid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return lldpChassisIDMapper(ss, ps, mapperData, path, idOid, subtypeOid, vp)
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return lldpChassisIDMapper(ss, ps, mapperData, logger, path,
+			idOid, subtypeOid, vp)
 	}
 }
 
-func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
-	path string, oid string, vp ValueProcessor) ([]*gnmi.Update, error) {
+func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, logger Logger, path string, oid string,
+	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
 		return nil, err
@@ -436,8 +441,8 @@ func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 
 func lldpLocPortTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return lldpLocPortTableMapper(ss, ps, mapperData, path, oid, vp)
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return lldpLocPortTableMapper(ss, ps, mapperData, logger, path, oid, vp)
 	}
 }
 
@@ -492,7 +497,7 @@ func processLldpRemTableVal(ps pdu.Store, p *gosnmp.SnmpPDU, oid,
 }
 
 func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
-	mapperData *sync.Map, path string, oid string,
+	mapperData *sync.Map, logger Logger, path string, oid string,
 	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -523,8 +528,12 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 
 		// get the interface name corresponding to this lldpRemLocalPortNum
 		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
-		if err != nil || intfName == "" {
+		if err != nil {
 			return nil, err
+		} else if intfName == "" {
+			// Log error but keep going.
+			logger.Debugf("Failed to convert lldpRemLocaLPortNum '%s' to intf name", lldpPortNum)
+			continue
 		}
 		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, intfName, lldpRemIndex))
 
@@ -545,8 +554,8 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 
 func lldpRemTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return lldpRemTableMapper(ss, ps, mapperData, path, oid, vp)
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return lldpRemTableMapper(ss, ps, mapperData, logger, path, oid, vp)
 	}
 }
 
@@ -581,7 +590,7 @@ func processEntPhysicalTableVal(oid string, pdu *gosnmp.SnmpPDU) (interface{}, e
 }
 
 func entPhysicalMapper(ss smi.Store, ps pdu.Store,
-	mapperData *sync.Map, path string, oid string,
+	mapperData *sync.Map, logger Logger, path string, oid string,
 	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pdus, err := getTabular(ps, oid)
 	if err != nil || pdus == nil {
@@ -618,8 +627,8 @@ func entPhysicalMapper(ss smi.Store, ps pdu.Store,
 
 func entPhysicalTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
-		mapperData *sync.Map) ([]*gnmi.Update, error) {
-		return entPhysicalMapper(ss, ps, mapperData, path, oid, vp)
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return entPhysicalMapper(ss, ps, mapperData, logger, path, oid, vp)
 	}
 }
 

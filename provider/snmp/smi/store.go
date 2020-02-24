@@ -77,57 +77,42 @@ func (s *store) GetObject(oid string) *Object {
 	}
 	origOid := oid
 
-	// Text OID
+	// Remove module name from text OID
 	ss := strings.Split(oid, "::")
 	if len(ss) >= 2 {
 		oid = ss[1]
 	}
 
-	// Numeric OID
 	if strings.Contains(oid, ".") {
 		// Remove leading "." if there is one.
 		if oid[0] == '.' {
 			oid = oid[1:]
 		}
 
-		o, ok := s.oids[oid]
-		if ok {
-			s.updateKnown(origOid, o)
-			return o
-		}
-
-		// Remove trailing ".0" for scalars.
-		ss = strings.Split(oid, ".")
-		if ss[len(ss)-1] == "0" {
-			oid = strings.Join(ss[:(len(ss)-1)], ".")
-
-			o, ok = s.oids[oid]
-			if ok {
-				s.updateKnown(origOid, o)
-			} else {
-				o, ok = s.names[oid]
-				if ok {
-					s.updateKnown(origOid, o)
-				}
-			}
-			return o
-		}
+		var o *Object
+		var ok bool
 
 		// Start removing possible index values from the OID.
 		// If we find an object with a matching OID and the right
 		// number of indexes, return that.
-		for i := len(ss) - 1; i > 0; i-- {
-			o, ok = s.oids[strings.Join(ss[:i], ".")]
+		ss = strings.Split(oid, ".")
+		for i := len(ss); i > 0; i-- {
+			shortenedOid := strings.Join(ss[:i], ".")
+			// Try it as a numeric OID first.
+			o, ok = s.oids[shortenedOid]
 
-			// Try it as a text OID, in case it was something like "sysName.0".
+			// Then try it as a text OID.
 			if !ok {
-				o, ok = s.names[strings.Join(ss[:i], ".")]
+				o, ok = s.names[shortenedOid]
 			}
 			if ok {
-				if o.Kind != KindColumn {
-					return nil
-				} else if o.Parent == nil {
-					return nil
+				// If we've removed indexes, this should be either a column or a scalar.
+				if i < len(ss) {
+					if o.Kind != KindColumn && o.Kind != KindScalar {
+						return nil
+					} else if o.Parent == nil {
+						return nil
+					}
 				}
 				s.updateKnown(origOid, o)
 				return o

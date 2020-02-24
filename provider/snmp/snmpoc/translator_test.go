@@ -176,6 +176,35 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.453 = STRING: Ethernet3/3
 `
 
+var twoIntfIfTableResponse = `
+.1.3.6.1.2.1.2.2.1.1.3001 = INTEGER: 3001
+.1.3.6.1.2.1.2.2.1.1.3002 = INTEGER: 3002
+.1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
+.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
+`
+
+var twoIntfLldpLocalSystemDataResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
+.1.0.8802.1.1.2.1.3.2.0 = Hex-STRING: 00 1C 73 03 13 36
+.1.0.8802.1.1.2.1.3.3.0 = STRING: device123.sjc.aristanetworks.com
+.1.0.8802.1.1.2.1.3.4.0 = STRING: Arista Networks EOS version x.y.z
+.1.0.8802.1.1.2.1.3.7.1.2.3001 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3002 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.3.3001 = STRING: Ethernet3/1
+.1.0.8802.1.1.2.1.3.7.1.3.3002 = STRING: garbage12345
+`
+
+var twoIntfLldpRemTableResponse = `
+.1.0.8802.1.1.2.1.4.1.1.4.0.3001.3 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3002.4 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.5.0.3001.3 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3002.4 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.6.0.3001.3 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3002.4 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.7.0.3001.3 = STRING: p255p1
+.1.0.8802.1.1.2.1.4.1.1.7.0.3002.4 = STRING: macvlan-bond0
+`
+
 var basicLldpV2IntfSetupResponse = `
 .1.3.6.1.2.1.2.2.1.1.6 = INTEGER: 6
 .1.3.6.1.2.1.2.2.1.1.18 = INTEGER: 18
@@ -845,6 +874,50 @@ func TestTranslator(t *testing.T) {
 							strval("Ethernet3/2")),
 						update(pgnmi.LldpIntfStatePath("Ethernet3/2", "name"),
 							strval("Ethernet3/2")),
+					},
+				},
+			},
+		},
+		{
+			name:        "updateLldpUnknownPortDesc",
+			updatePaths: []string{"^/interfaces/", "^/lldp/"},
+			responses: map[string][]*gosnmp.SnmpPDU{
+				"ifTable":             PDUsFromString(twoIntfIfTableResponse),
+				"lldpLocalSystemData": PDUsFromString(twoIntfLldpLocalSystemDataResponse),
+				"lldpRemTable":        PDUsFromString(twoIntfLldpRemTableResponse),
+			},
+			expectedSetRequests: []*gnmi.SetRequest{
+				&gnmi.SetRequest{
+					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
+					Replace: []*gnmi.Update{
+						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+						update(pgnmi.IntfPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+						update(pgnmi.IntfConfigPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
+						update(pgnmi.IntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+						update(pgnmi.IntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+						update(pgnmi.IntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+						update(pgnmi.LldpStatePath("chassis-id-type"),
+							strval(openconfig.LLDPChassisIDType(4))),
+						update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
+						update(pgnmi.LldpStatePath("system-name"),
+							strval("device123.sjc.aristanetworks.com")),
+						update(pgnmi.LldpStatePath("system-description"),
+							strval("Arista Networks EOS version x.y.z")),
+						update(pgnmi.LldpIntfConfigPath("Ethernet3/1", "name"),
+							strval("Ethernet3/1")),
+						update(pgnmi.LldpIntfPath("Ethernet3/1", "name"),
+							strval("Ethernet3/1")),
+						update(pgnmi.LldpIntfStatePath("Ethernet3/1", "name"),
+							strval("Ethernet3/1")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "id"), strval("3")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id-type"),
+							strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id"),
+							strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id-type"),
+							strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id"),
+							strval("p255p1")),
 					},
 				},
 			},

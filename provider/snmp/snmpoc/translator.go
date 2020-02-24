@@ -197,7 +197,7 @@ func (t *Translator) updates(paths []string) ([]*gnmi.Update, error) {
 		mapping, ok := t.successfulMappings[path]
 		t.successfulMappingsLock.RUnlock()
 		if ok {
-			u, err := mapping(t.mibStore, t.pduStore, t.mapperData)
+			u, err := mapping(t.mibStore, t.pduStore, t.mapperData, t.Logger)
 			if err != nil {
 				return nil, err
 			}
@@ -211,7 +211,7 @@ func (t *Translator) updates(paths []string) ([]*gnmi.Update, error) {
 			return nil, fmt.Errorf("No mapping supplied for path %v", path)
 		}
 		for _, mapping := range mappings {
-			u, err := mapping(t.mibStore, t.pduStore, t.mapperData)
+			u, err := mapping(t.mibStore, t.pduStore, t.mapperData, t.Logger)
 			if err != nil {
 				return nil, err
 			} else if len(u) == 0 {

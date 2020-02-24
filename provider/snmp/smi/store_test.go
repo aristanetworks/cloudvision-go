@@ -399,6 +399,20 @@ func TestParser(t *testing.T) {
 			checkParent: true,
 			parentName:  "sysUpTime",
 		},
+		{
+			name: "non-scalar '0' index",
+			oid:  "lldpRemChassisId.0.436346880.0",
+			expectedObject: &Object{
+				Access: AccessReadOnly,
+				Description: "The string value used to identify the " +
+					"chassis component associated with the remote system.",
+				Kind:   KindColumn,
+				Module: "LLDP-MIB",
+				Name:   "lldpRemChassisId",
+				Oid:    "1.0.8802.1.1.2.1.4.1.1.5",
+				Status: StatusCurrent,
+			},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			runParserTest(t, store, tc)
