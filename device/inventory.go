@@ -60,8 +60,13 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		ctx = metadata.AppendToOutgoingContext(ctx,
 			deviceTypeMetadata, "target")
 	}
+	did, _ := dc.info.Device.DeviceID()
+
 	if _, err := dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{}); err != nil {
-		return err
+		if err != nil {
+			log.Log(dc.info.Device).Infof("Failed to send periodic "+
+				"update for device %v", did)
+		}
 	}
 	for {
 		select {
@@ -74,10 +79,11 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 						deviceLivenessMetadata, "true")
 					_, err = dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
 					if err != nil {
-						return err
+						// Don't give up if an update fails for some reason.
+						log.Log(dc.info.Device).Infof("Failed to send periodic "+
+							"update for device %v", did)
 					}
 				} else {
-					did, _ := dc.info.Device.DeviceID()
 					log.Log(dc.info.Device).Infof("Device %s is not alive", did)
 				}
 			} else {
