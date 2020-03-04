@@ -314,9 +314,14 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 		if err != nil {
 			t.Logger.Infof("Error getting OIDs %s: %s",
 				strings.Join(model.snmpGetOIDs, " "), err)
+			return nil
+		} else if pkt == nil {
+			t.Logger.Info("SNMP Get returned nil packet")
+			return nil
 		} else {
 			t.Logger.Debugf("SNMP Get complete. pkt = %v, err = %v", pkt, err)
 		}
+
 		if pkt.Error != gosnmp.NoError {
 			errstr, ok := SNMPErrCodes[pkt.Error]
 			if !ok {
