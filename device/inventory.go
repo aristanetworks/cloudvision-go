@@ -87,7 +87,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 					log.Log(dc.info.Device).Infof("Device %s is not alive", did)
 				}
 			} else {
-				return err
+				log.Log(dc.info.Device).Infof("Device %s is not alive", did)
 			}
 		}
 	}
