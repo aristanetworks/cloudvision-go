@@ -390,16 +390,24 @@ func lldpChassisIDMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map,
 	logger Logger, path, idOid, subtypeOid string,
 	vp ValueProcessor) ([]*gnmi.Update, error) {
 	pcid, err := ps.GetScalar(idOid)
-	if err != nil {
+	if err != nil || pcid == nil {
 		return nil, err
 	}
 	pst, err := ps.GetScalar(subtypeOid)
-	if err != nil || pst == nil { // XXX
+	if err != nil {
 		return nil, err
 	}
-	v := pst.Value.(int)
+
+	// We have seen implementations where walking lldpLocalSystemData
+	// doesn't return lldpLocChassisIdSubtype. Assume it's a macAddress
+	// and see if it works.
+	chassisSubtypeMacAddress := int(4)
+	v := chassisSubtypeMacAddress
+	if pst != nil {
+		v = pst.Value.(int)
+	}
 	cid, err := processChassisID(pcid, v)
-	if err != nil {
+	if err != nil || cid == "" {
 		return nil, err
 	}
 	return []*gnmi.Update{update(pgnmi.PathFromString(path), vp(cid))}, nil

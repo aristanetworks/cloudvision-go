@@ -162,6 +162,17 @@ var basicLldpStatisticsResponse = `
 .1.0.8802.1.1.2.1.2.7.1.2.454 = Counter32: 0
 `
 
+var lldpLocalSystemDataNoChassisSubtypeResponse = `
+.1.0.8802.1.1.2.1.3.2.0 = STRING: 50:87:89:a1:64:4f
+.1.0.8802.1.1.2.1.3.3.0 = STRING: device123.sjc.aristanetworks.com
+.1.0.8802.1.1.2.1.3.4.0 = STRING: Arista Networks EOS version x.y.z
+.1.0.8802.1.1.2.1.3.7.1.2.1 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.2 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.3.1 = STRING: Management1/1
+.1.0.8802.1.1.2.1.3.7.1.3.451 = STRING: Ethernet3/1
+.1.0.8802.1.1.2.1.3.7.1.3.452 = STRING: Ethernet3/2
+`
+
 // Include another interface, Ethernet3/3, that's inactive.
 var inactiveIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
@@ -1150,6 +1161,28 @@ func TestTranslator(t *testing.T) {
 							uintval(103001)),
 						update(pgnmi.IntfStateCountersPath("Ethernet3/2", "out-octets"),
 							uintval(103002)),
+					},
+				},
+			},
+		},
+		{
+			// chassis ID has no subtype
+			name:        "lldpStringChassisIDNoSubtype",
+			updatePaths: []string{"^/lldp/"},
+			responses: map[string][]*gosnmp.SnmpPDU{
+				"lldpLocalSystemData": PDUsFromString(lldpLocalSystemDataNoChassisSubtypeResponse),
+				"lldpRemTable":        []*gosnmp.SnmpPDU{},
+				"lldpStatistics":      []*gosnmp.SnmpPDU{},
+			},
+			expectedSetRequests: []*gnmi.SetRequest{
+				&gnmi.SetRequest{
+					Delete: []*gnmi.Path{pgnmi.Path("lldp")},
+					Replace: []*gnmi.Update{
+						update(pgnmi.LldpStatePath("chassis-id"), strval("50:87:89:a1:64:4f")),
+						update(pgnmi.LldpStatePath("system-name"),
+							strval("device123.sjc.aristanetworks.com")),
+						update(pgnmi.LldpStatePath("system-description"),
+							strval("Arista Networks EOS version x.y.z")),
 					},
 				},
 			},
