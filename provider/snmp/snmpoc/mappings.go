@@ -267,6 +267,19 @@ func ifTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	}
 }
 
+func alternateIntfName(intfName string) string {
+	if strings.Contains(intfName, "Ethernet") {
+		intfName = strings.Replace(intfName, "Ethernet", "Eth", 1)
+	} else if strings.Contains(intfName, "Eth") {
+		intfName = strings.Replace(intfName, "Eth", "Ethernet", 1)
+	} else if strings.Contains(intfName, "Mgmt") {
+		intfName = strings.Replace(intfName, "Mgmt", "Management", 1)
+	} else if strings.Contains(intfName, "Management") {
+		intfName = strings.Replace(intfName, "Management", "Mgmt", 1)
+	}
+	return intfName
+}
+
 // Build a map from lldpLocPortNum -> ifDescr.
 func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
 	mapperData *sync.Map) error {
@@ -305,7 +318,12 @@ func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
 			portNum := pdu.IndexValues(ss, p)[0]
 			intfName := string(p.Value.([]byte))
 			if _, ok := ifDescrMap[intfName]; !ok {
-				continue
+				// We've seen some implementations where the lldpLocPortTable interface
+				// name is an abbreviation of the the ifTable name.
+				intfName = alternateIntfName(intfName)
+				if _, ok = ifDescrMap[intfName]; !ok {
+					continue
+				}
 			}
 			mp[portNum] = intfName
 		}
@@ -442,7 +460,14 @@ func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store,
 		}
 
 		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, intfName))
-		updates = append(updates, update(fullPath, vp(p.Value)))
+
+		// If we're mapping to interface name, just use the intfName to make sure
+		// they match.
+		val := vp(p.Value)
+		if strings.HasSuffix(path, "name") {
+			val = vp(intfName)
+		}
+		updates = append(updates, update(fullPath, val))
 	}
 	return updates, nil
 }

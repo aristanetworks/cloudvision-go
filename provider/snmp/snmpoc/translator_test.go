@@ -191,7 +191,7 @@ var twoIntfIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.1.3001 = INTEGER: 3001
 .1.3.6.1.2.1.2.2.1.1.3002 = INTEGER: 3002
 .1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
-.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
+.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Management1/2
 `
 
 var twoIntfLldpLocalSystemDataResponse = `
@@ -201,8 +201,8 @@ var twoIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.4.0 = STRING: Arista Networks EOS version x.y.z
 .1.0.8802.1.1.2.1.3.7.1.2.3001 = INTEGER: 5
 .1.0.8802.1.1.2.1.3.7.1.2.3002 = INTEGER: 5
-.1.0.8802.1.1.2.1.3.7.1.3.3001 = STRING: Ethernet3/1
-.1.0.8802.1.1.2.1.3.7.1.3.3002 = STRING: garbage12345
+.1.0.8802.1.1.2.1.3.7.1.3.3001 = STRING: Eth3/1
+.1.0.8802.1.1.2.1.3.7.1.3.3002 = STRING: Mgmt1/2
 `
 
 var twoIntfLldpRemTableResponse = `
@@ -890,7 +890,7 @@ func TestTranslator(t *testing.T) {
 			},
 		},
 		{
-			name:        "updateLldpUnknownPortDesc",
+			name:        "updateLldpDifferentIntfName",
 			updatePaths: []string{"^/interfaces/", "^/lldp/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
 				"ifTable":             PDUsFromString(twoIntfIfTableResponse),
@@ -904,9 +904,11 @@ func TestTranslator(t *testing.T) {
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
 						update(pgnmi.IntfPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
 						update(pgnmi.IntfConfigPath("Ethernet3/1", "name"), strval("Ethernet3/1")),
-						update(pgnmi.IntfStatePath("Ethernet3/2", "name"), strval("Ethernet3/2")),
-						update(pgnmi.IntfPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
-						update(pgnmi.IntfConfigPath("Ethernet3/2", "name"), strval("Ethernet3/2")),
+						update(pgnmi.IntfStatePath("Management1/2", "name"),
+							strval("Management1/2")),
+						update(pgnmi.IntfPath("Management1/2", "name"), strval("Management1/2")),
+						update(pgnmi.IntfConfigPath("Management1/2", "name"),
+							strval("Management1/2")),
 						update(pgnmi.LldpStatePath("chassis-id-type"),
 							strval(openconfig.LLDPChassisIDType(4))),
 						update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
@@ -920,15 +922,31 @@ func TestTranslator(t *testing.T) {
 							strval("Ethernet3/1")),
 						update(pgnmi.LldpIntfStatePath("Ethernet3/1", "name"),
 							strval("Ethernet3/1")),
+						update(pgnmi.LldpIntfConfigPath("Management1/2", "name"),
+							strval("Management1/2")),
+						update(pgnmi.LldpIntfPath("Management1/2", "name"),
+							strval("Management1/2")),
+						update(pgnmi.LldpIntfStatePath("Management1/2", "name"),
+							strval("Management1/2")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "id"), strval("3")),
+						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "id"),
+							strval("4")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id-type"),
+							strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "chassis-id-type"),
 							strval("MAC_ADDRESS")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id"),
 							strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "chassis-id"),
+							strval("02:82:9b:3e:e5:fa")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id-type"),
+							strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "port-id-type"),
 							strval("INTERFACE_NAME")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id"),
 							strval("p255p1")),
+						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "port-id"),
+							strval("macvlan-bond0")),
 					},
 				},
 			},
