@@ -268,7 +268,31 @@ func ifTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 }
 
 func alternateIntfName(intfName string) string {
-	if strings.Contains(intfName, "Ethernet") {
+	if strings.Contains(intfName, "FortyGigabitEthernet") {
+		intfName = strings.Replace(intfName, "FortyGigabitEthernet", "Fo", 1)
+	} else if strings.Contains(intfName, "Fo") {
+		intfName = strings.Replace(intfName, "Fo", "FortyGigabitEthernet", 1)
+	} else if strings.Contains(intfName, "TenGigabitEthernet") {
+		intfName = strings.Replace(intfName, "TenGigabitEthernet", "Te", 1)
+	} else if strings.Contains(intfName, "Te") {
+		intfName = strings.Replace(intfName, "Te", "TenGigabitEthernet", 1)
+	} else if strings.Contains(intfName, "TwentyFiveGigE") {
+		intfName = strings.Replace(intfName, "TwentyFiveGigE", "Twe", 1)
+	} else if strings.Contains(intfName, "Twe") {
+		intfName = strings.Replace(intfName, "Twe", "TwentyFiveGigE", 1)
+	} else if strings.Contains(intfName, "TwoGigabitEthernet") {
+		intfName = strings.Replace(intfName, "TwoGigabitEthernet", "Tw", 1)
+	} else if strings.Contains(intfName, "Tw") {
+		intfName = strings.Replace(intfName, "Tw", "TwoGigabitEthernet", 1)
+	} else if strings.Contains(intfName, "FiveGigabitEthernet") {
+		intfName = strings.Replace(intfName, "FiveGigabitEthernet", "Fi", 1)
+	} else if strings.Contains(intfName, "Fi") {
+		intfName = strings.Replace(intfName, "Fi", "FiveGigabitEthernet", 1)
+	} else if strings.Contains(intfName, "GigabitEthernet") {
+		intfName = strings.Replace(intfName, "GigabitEthernet", "Gi", 1)
+	} else if strings.Contains(intfName, "Gi") {
+		intfName = strings.Replace(intfName, "Gi", "GigabitEthernet", 1)
+	} else if strings.Contains(intfName, "Ethernet") {
 		intfName = strings.Replace(intfName, "Ethernet", "Eth", 1)
 	} else if strings.Contains(intfName, "Eth") {
 		intfName = strings.Replace(intfName, "Eth", "Ethernet", 1)

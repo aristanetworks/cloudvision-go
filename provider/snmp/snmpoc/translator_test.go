@@ -190,8 +190,20 @@ var inactiveIntfLldpLocalSystemDataResponse = `
 var twoIntfIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.1.3001 = INTEGER: 3001
 .1.3.6.1.2.1.2.2.1.1.3002 = INTEGER: 3002
+.1.3.6.1.2.1.2.2.1.1.3003 = INTEGER: 3003
+.1.3.6.1.2.1.2.2.1.1.3004 = INTEGER: 3004
+.1.3.6.1.2.1.2.2.1.1.3005 = INTEGER: 3005
+.1.3.6.1.2.1.2.2.1.1.3006 = INTEGER: 3006
+.1.3.6.1.2.1.2.2.1.1.3007 = INTEGER: 3007
+.1.3.6.1.2.1.2.2.1.1.3008 = INTEGER: 3008
 .1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
 .1.3.6.1.2.1.2.2.1.2.3002 = STRING: Management1/2
+.1.3.6.1.2.1.2.2.1.2.3003 = STRING: GigabitEthernet0/1
+.1.3.6.1.2.1.2.2.1.2.3004 = STRING: TwoGigabitEthernet0/1
+.1.3.6.1.2.1.2.2.1.2.3005 = STRING: FiveGigabitEthernet0/1
+.1.3.6.1.2.1.2.2.1.2.3006 = STRING: TenGigabitEthernet0/1
+.1.3.6.1.2.1.2.2.1.2.3007 = STRING: TwentyFiveGigE0/1
+.1.3.6.1.2.1.2.2.1.2.3008 = STRING: FortyGigabitEthernet0/1
 `
 
 var twoIntfLldpLocalSystemDataResponse = `
@@ -201,19 +213,55 @@ var twoIntfLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.4.0 = STRING: Arista Networks EOS version x.y.z
 .1.0.8802.1.1.2.1.3.7.1.2.3001 = INTEGER: 5
 .1.0.8802.1.1.2.1.3.7.1.2.3002 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3003 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3004 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3005 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3006 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3007 = INTEGER: 5
+.1.0.8802.1.1.2.1.3.7.1.2.3008 = INTEGER: 5
 .1.0.8802.1.1.2.1.3.7.1.3.3001 = STRING: Eth3/1
 .1.0.8802.1.1.2.1.3.7.1.3.3002 = STRING: Mgmt1/2
+.1.0.8802.1.1.2.1.3.7.1.3.3003 = STRING: Gi0/1
+.1.0.8802.1.1.2.1.3.7.1.3.3004 = STRING: Tw0/1
+.1.0.8802.1.1.2.1.3.7.1.3.3005 = STRING: Fi0/1
+.1.0.8802.1.1.2.1.3.7.1.3.3006 = STRING: Te0/1
+.1.0.8802.1.1.2.1.3.7.1.3.3007 = STRING: Twe0/1
+.1.0.8802.1.1.2.1.3.7.1.3.3008 = STRING: Fo0/1
 `
 
 var twoIntfLldpRemTableResponse = `
 .1.0.8802.1.1.2.1.4.1.1.4.0.3001.3 = INTEGER: 4
 .1.0.8802.1.1.2.1.4.1.1.4.0.3002.4 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3003.5 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3004.6 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3005.7 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3006.8 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3007.9 = INTEGER: 4
+.1.0.8802.1.1.2.1.4.1.1.4.0.3008.10 = INTEGER: 4
 .1.0.8802.1.1.2.1.4.1.1.5.0.3001.3 = Hex-STRING: 02 82 9B 3E E5 FA
 .1.0.8802.1.1.2.1.4.1.1.5.0.3002.4 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3003.5 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3004.6 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3005.7 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3006.8 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3007.9 = Hex-STRING: 02 82 9B 3E E5 FA
+.1.0.8802.1.1.2.1.4.1.1.5.0.3008.10 = Hex-STRING: 02 82 9B 3E E5 FA
 .1.0.8802.1.1.2.1.4.1.1.6.0.3001.3 = INTEGER: 5
 .1.0.8802.1.1.2.1.4.1.1.6.0.3002.4 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3003.5 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3004.6 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3005.7 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3006.8 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3007.9 = INTEGER: 5
+.1.0.8802.1.1.2.1.4.1.1.6.0.3008.10 = INTEGER: 5
 .1.0.8802.1.1.2.1.4.1.1.7.0.3001.3 = STRING: p255p1
 .1.0.8802.1.1.2.1.4.1.1.7.0.3002.4 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3003.5 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3004.6 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3005.7 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3006.8 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3007.9 = STRING: macvlan-bond0
+.1.0.8802.1.1.2.1.4.1.1.7.0.3008.10 = STRING: macvlan-bond0
 `
 
 var basicLldpV2IntfSetupResponse = `
@@ -909,6 +957,42 @@ func TestTranslator(t *testing.T) {
 						update(pgnmi.IntfPath("Management1/2", "name"), strval("Management1/2")),
 						update(pgnmi.IntfConfigPath("Management1/2", "name"),
 							strval("Management1/2")),
+						update(pgnmi.IntfStatePath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.IntfPath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.IntfConfigPath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.IntfStatePath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.IntfPath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.IntfConfigPath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.IntfStatePath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.IntfPath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.IntfConfigPath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.IntfStatePath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.IntfPath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.IntfConfigPath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.IntfStatePath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.IntfPath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.IntfConfigPath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.IntfStatePath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
+						update(pgnmi.IntfPath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
+						update(pgnmi.IntfConfigPath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
 						update(pgnmi.LldpStatePath("chassis-id-type"),
 							strval(openconfig.LLDPChassisIDType(4))),
 						update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
@@ -928,25 +1012,122 @@ func TestTranslator(t *testing.T) {
 							strval("Management1/2")),
 						update(pgnmi.LldpIntfStatePath("Management1/2", "name"),
 							strval("Management1/2")),
-						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "id"), strval("3")),
+						update(pgnmi.LldpIntfConfigPath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.LldpIntfPath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.LldpIntfStatePath("GigabitEthernet0/1", "name"),
+							strval("GigabitEthernet0/1")),
+						update(pgnmi.LldpIntfConfigPath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfPath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfStatePath("TwoGigabitEthernet0/1", "name"),
+							strval("TwoGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfConfigPath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfPath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfStatePath("FiveGigabitEthernet0/1", "name"),
+							strval("FiveGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfConfigPath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfPath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfStatePath("TenGigabitEthernet0/1", "name"),
+							strval("TenGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfConfigPath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.LldpIntfPath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.LldpIntfStatePath("TwentyFiveGigE0/1", "name"),
+							strval("TwentyFiveGigE0/1")),
+						update(pgnmi.LldpIntfConfigPath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfPath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
+						update(pgnmi.LldpIntfStatePath("FortyGigabitEthernet0/1", "name"),
+							strval("FortyGigabitEthernet0/1")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "id"),
+							strval("3")),
 						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "id"),
 							strval("4")),
+						update(pgnmi.LldpNeighborStatePath("GigabitEthernet0/1", "5", "id"),
+							strval("5")),
+						update(pgnmi.LldpNeighborStatePath("TwoGigabitEthernet0/1", "6", "id"),
+							strval("6")),
+						update(pgnmi.LldpNeighborStatePath("FiveGigabitEthernet0/1", "7", "id"),
+							strval("7")),
+						update(pgnmi.LldpNeighborStatePath("TenGigabitEthernet0/1", "8", "id"),
+							strval("8")),
+						update(pgnmi.LldpNeighborStatePath("TwentyFiveGigE0/1", "9", "id"),
+							strval("9")),
+						update(pgnmi.LldpNeighborStatePath("FortyGigabitEthernet0/1", "10", "id"),
+							strval("10")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id-type"),
 							strval("MAC_ADDRESS")),
 						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "chassis-id-type"),
 							strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("GigabitEthernet0/1", "5",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("TwoGigabitEthernet0/1", "6",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("FiveGigabitEthernet0/1", "7",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("TenGigabitEthernet0/1", "8",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("TwentyFiveGigE0/1", "9",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("FortyGigabitEthernet0/1", "10",
+							"chassis-id-type"), strval("MAC_ADDRESS")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "chassis-id"),
 							strval("02:82:9b:3e:e5:fa")),
 						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "chassis-id"),
 							strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("GigabitEthernet0/1", "5",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("TwoGigabitEthernet0/1", "6",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("FiveGigabitEthernet0/1", "7",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("TenGigabitEthernet0/1", "8",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("TwentyFiveGigE0/1", "9",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
+						update(pgnmi.LldpNeighborStatePath("FortyGigabitEthernet0/1", "10",
+							"chassis-id"), strval("02:82:9b:3e:e5:fa")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id-type"),
 							strval("INTERFACE_NAME")),
 						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "port-id-type"),
 							strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("GigabitEthernet0/1", "5",
+							"port-id-type"), strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("TwoGigabitEthernet0/1", "6",
+							"port-id-type"), strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("FiveGigabitEthernet0/1", "7",
+							"port-id-type"), strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("TenGigabitEthernet0/1", "8",
+							"port-id-type"), strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("TwentyFiveGigE0/1", "9",
+							"port-id-type"), strval("INTERFACE_NAME")),
+						update(pgnmi.LldpNeighborStatePath("FortyGigabitEthernet0/1", "10",
+							"port-id-type"), strval("INTERFACE_NAME")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "port-id"),
 							strval("p255p1")),
 						update(pgnmi.LldpNeighborStatePath("Management1/2", "4", "port-id"),
 							strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("GigabitEthernet0/1", "5",
+							"port-id"), strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("TwoGigabitEthernet0/1", "6",
+							"port-id"), strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("FiveGigabitEthernet0/1", "7",
+							"port-id"), strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("TenGigabitEthernet0/1", "8",
+							"port-id"), strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("TwentyFiveGigE0/1", "9",
+							"port-id"), strval("macvlan-bond0")),
+						update(pgnmi.LldpNeighborStatePath("FortyGigabitEthernet0/1", "10",
+							"port-id"), strval("macvlan-bond0")),
 					},
 				},
 			},
