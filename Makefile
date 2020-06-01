@@ -29,15 +29,13 @@ all: install
 install:
 	$(GO) install ./...
 
-check: vet fmtcheck lint test
+check: vet fmtcheck test
 
 gen:
 	cd device/gen && go generate
 
 smigen:
 	cd provider/snmp/smi && golex -o lexer.l.go lexer.l && goyacc -o parser.y.go -v "" parser.y
-
-jenkins: check
 
 fmtcheck:
 	@if ! which $(GOFMT) >/dev/null; then echo Please install $(GOFMT); exit 1; fi
@@ -65,4 +63,4 @@ lint:
 test:
 	$(GO) test $(GOTEST_FLAGS) -timeout=$(TEST_TIMEOUT) ./...
 
-.PHONY: all check fmtcheck jenkins lint test vet gen smigen
+.PHONY: all check fmtcheck lint test vet gen smigen
