@@ -11,10 +11,7 @@ import (
 )
 
 func TestNewAccessTokenCredential(t *testing.T) {
-	cred, err := NewAccessTokenCredential("token")
-	if err != nil {
-		t.Fatalf("got unexpected error when creating credential: %s", err)
-	}
+	cred := NewAccessTokenCredential("token")
 	expectedMd := map[string]string{
 		"Authorization": "Bearer: token",
 	}
@@ -24,10 +21,5 @@ func TestNewAccessTokenCredential(t *testing.T) {
 	}
 	if !reflect.DeepEqual(expectedMd, md) {
 		t.Fatalf("got metadata %v but expected %v", md, expectedMd)
-	}
-
-	_, err = NewAccessTokenCredential("")
-	if err == nil {
-		t.Fatalf("got error %s when expected none", err)
 	}
 }

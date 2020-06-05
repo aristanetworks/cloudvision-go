@@ -31,9 +31,6 @@ func (a *accessTokenAuth) GetRequestMetadata(ctx context.Context,
 func (a *accessTokenAuth) RequireTransportSecurity() bool { return true }
 
 // NewAccessTokenCredential constructs a new credential from a token
-func NewAccessTokenCredential(token string) (credentials.PerRPCCredentials, error) {
-	if token == "" {
-		return nil, fmt.Errorf("token cannot be empty")
-	}
-	return &accessTokenAuth{bearerToken: fmt.Sprintf(bearerFmt, token)}, nil
+func NewAccessTokenCredential(token string) credentials.PerRPCCredentials {
+	return &accessTokenAuth{bearerToken: fmt.Sprintf(bearerFmt, token)}
 }
