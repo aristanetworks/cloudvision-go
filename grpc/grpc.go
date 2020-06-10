@@ -54,11 +54,11 @@ func NewAccessTokenCredential(token string) credentials.PerRPCCredentials {
 	return &accessTokenAuth{bearerToken: fmt.Sprintf(bearerFmt, token)}
 }
 
-// DialWithTokenAndCert dials a gRPC endpoint, target, with the credentials in tokenFile.
-// certFile is used as the root CA if supplied, else the host's root CA set is used.
-func DialWithTokenAndCert(ctx context.Context, target,
-	tokenFile, certFile string) (*grpc.ClientConn, error) {
-	dat, err := ioutil.ReadFile(tokenFile)
+// DialWithAuth dials a gRPC endpoint, target, with the provided
+// authentication config.
+func DialWithAuth(ctx context.Context, target string, auth *Auth) (
+	*grpc.ClientConn, error) {
+	dat, err := ioutil.ReadFile(auth.tokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read token file: %s", err)
 	}
@@ -73,8 +73,8 @@ func DialWithTokenAndCert(ctx context.Context, target,
 		MinVersion:   tls.VersionTLS12,
 	}
 
-	if certFile != "" {
-		c, err := ioutil.ReadFile(certFile)
+	if auth.caFile != "" {
+		c, err := ioutil.ReadFile(auth.caFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read cert file: %s", err)
 		}
