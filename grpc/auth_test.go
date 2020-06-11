@@ -6,10 +6,25 @@
 package grpc
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
 )
+
+func TestAccessTokenCredential(t *testing.T) {
+	cred := NewAccessTokenCredential("token")
+	expectedMd := map[string]string{
+		"Authorization": "Bearer: token",
+	}
+	md, err := cred.GetRequestMetadata(context.Background(), "this/is/a/test/uri")
+	if err != nil {
+		t.Fatalf("got unexpected error when retrieving metadata: %s", err)
+	}
+	if !reflect.DeepEqual(expectedMd, md) {
+		t.Fatalf("got metadata %v but expected %v", md, expectedMd)
+	}
+}
 
 func TestAuthFlag(t *testing.T) {
 	tcases := []struct {
