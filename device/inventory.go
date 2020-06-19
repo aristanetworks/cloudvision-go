@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aristanetworks/cloudvision-go/device/cvclient"
+	v1client "github.com/aristanetworks/cloudvision-go/device/cvclient/v1"
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
-	"github.com/aristanetworks/cloudvision-go/version"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/metadata"
 )
 
 const heartbeatInterval = 10 * time.Second
@@ -30,12 +30,11 @@ type Inventory interface {
 
 // deviceConn contains a device and its gNMI connections.
 type deviceConn struct {
-	info              *Info
-	ctx               context.Context
-	cancel            context.CancelFunc
-	rawGNMIClient     gnmi.GNMIClient
-	wrappedGNMIClient *gNMIClientWrapper
-	group             sync.WaitGroup
+	info     *Info
+	ctx      context.Context
+	cancel   context.CancelFunc
+	cvClient cvclient.CVClient
+	group    sync.WaitGroup
 }
 
 // inventory implements the Inventory interface.
@@ -48,43 +47,22 @@ type inventory struct {
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(heartbeatInterval)
-	ctx := metadata.AppendToOutgoingContext(dc.ctx,
-		collectorVersionMetadata, version.Version)
-	if _, ok := dc.info.Device.(Manager); ok {
-		// ManagementSystem is a system managing other devices which itself
-		// shouldn't be treated as an actual streaming device in CloudVision.
-		ctx = metadata.AppendToOutgoingContext(ctx,
-			deviceTypeMetadata, "managementSystem")
-	} else {
-		// Target is an ordinary device streaming to CloudVision.
-		ctx = metadata.AppendToOutgoingContext(ctx,
-			deviceTypeMetadata, "target")
-	}
 	did, _ := dc.info.Device.DeviceID()
 
-	if _, err := dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{}); err != nil {
-		if err != nil {
-			log.Log(dc.info.Device).Infof("Failed to send periodic "+
-				"update for device %v", did)
-		}
+	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
+		log.Log(dc.info.Device).Infof("Failed to send periodic "+
+			"update for device %v", did)
 	}
 	for {
 		select {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			if alive, err := dc.info.Device.Alive(); err == nil {
-				if alive {
-					ctx := metadata.AppendToOutgoingContext(dc.ctx,
-						deviceLivenessMetadata, "true")
-					_, err = dc.wrappedGNMIClient.Set(ctx, &gnmi.SetRequest{})
-					if err != nil {
-						// Don't give up if an update fails for some reason.
-						log.Log(dc.info.Device).Infof("Failed to send periodic "+
-							"update for device %v", did)
-					}
-				} else {
-					log.Log(dc.info.Device).Infof("Device %s is not alive", did)
+			if alive, err := dc.info.Device.Alive(); err == nil && alive {
+				if err := dc.cvClient.SendHeartbeat(dc.ctx, alive); err != nil {
+					// Don't give up if an update fails for some reason.
+					log.Log(dc.info.Device).Infof("Failed to send periodic "+
+						"update for device %v", did)
 				}
 			} else {
 				log.Log(dc.info.Device).Infof("Device %s is not alive", did)
@@ -96,9 +74,11 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 func (i *inventory) newDeviceConn(info *Info) *deviceConn {
 	dc := &deviceConn{info: info}
 	dc.ctx, dc.cancel = context.WithCancel(i.ctx)
-	dc.rawGNMIClient = i.rawGNMIClient
-	dc.wrappedGNMIClient = newGNMIClientWrapper(dc.rawGNMIClient, nil,
-		info.ID, false)
+	var isManager bool
+	if _, ok := info.Device.(Manager); ok {
+		isManager = true
+	}
+	dc.cvClient = v1client.NewV1Client(i.rawGNMIClient, info.ID, isManager)
 	return dc
 }
 
@@ -123,8 +103,7 @@ func (dc *deviceConn) runProviders() error {
 		if !ok {
 			return errors.New("unexpected provider type; need GNMIProvider")
 		}
-
-		pt.InitGNMI(newGNMIClientWrapper(dc.rawGNMIClient, pt, dc.info.ID, pt.OpenConfig()))
+		pt.InitGNMI(dc.cvClient.ForProvider(pt))
 
 		// Start the providers.
 		dc.group.Add(1)

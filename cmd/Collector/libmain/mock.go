@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	v1client "github.com/aristanetworks/cloudvision-go/device/cvclient/v1"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/fatih/color"
@@ -47,7 +48,7 @@ func (m *mockInfo) processRequest(ctx context.Context,
 		}()
 		return nil, nil
 	}
-	md, err := device.NewMetadataFromOutgoing(ctx)
+	md, err := v1client.NewMetadataFromOutgoing(ctx)
 	if err != nil {
 		return nil, err
 	}

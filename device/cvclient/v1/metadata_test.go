@@ -1,14 +1,14 @@
-// Copyright (c) 2019 Arista Networks, Inc.
+// Copyright (c) 2020 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
-package device
+package v1
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
-	"github.com/aristanetworks/goarista/test"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -93,8 +93,8 @@ func TestNewMetadata(t *testing.T) {
 				t.Fatalf("Test should have error but doesn't")
 			}
 			if !tc.shouldFail {
-				if diff := test.Diff(tc.md, data); diff != "" {
-					t.Fatalf("Unexpected metadata: Diff is %v", diff)
+				if !reflect.DeepEqual(tc.md, data) {
+					t.Fatalf("Unexpected metadata: expected: %v, received: %v", tc.md, data)
 				}
 			}
 		})
