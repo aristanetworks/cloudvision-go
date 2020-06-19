@@ -131,7 +131,7 @@ func newMockInfo(featureToPath map[string]string) *mockInfo {
 func runMock(ctx context.Context) {
 	mockInfo := newMockInfo(mockFeature)
 	inventory := device.NewInventory(ctx,
-		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest))
+		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest), newCVClient)
 	configs, err := createDeviceConfigs()
 	if err != nil {
 		logrus.Fatal(err)

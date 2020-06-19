@@ -147,6 +147,10 @@ func (d *darwin) OpenConfig() bool {
 	return true
 }
 
+func (d *darwin) Origin() string {
+	return "openconfig"
+}
+
 // NewDarwinProvider returns a darwin provider that registers a
 // Darwin device and streams interface statistics.
 func NewDarwinProvider(pollInterval time.Duration) provider.GNMIProvider {

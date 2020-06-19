@@ -37,6 +37,11 @@ func (p *Gnmi) OpenConfig() bool {
 	return true
 }
 
+// Origin indicates that the provider streams to an OpenConfig model.
+func (p *Gnmi) Origin() string {
+	return "openconfig"
+}
+
 // Run kicks off the provider.
 func (p *Gnmi) Run(ctx context.Context) error {
 	if !p.initialized {

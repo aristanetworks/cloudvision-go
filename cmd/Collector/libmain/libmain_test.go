@@ -58,7 +58,7 @@ func TestGRPCServer(t *testing.T) {
 	inventory := device.NewInventory(ctx, pgnmi.NewSimpleGNMIClient(
 		func(context.Context, *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 			return nil, nil
-		}))
+		}), newCVClient)
 	grpcServer, listener, err := newGRPCServer("localhost:0", inventory)
 	if err != nil {
 		t.Fatal(err)

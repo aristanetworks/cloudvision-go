@@ -16,13 +16,18 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/device/cvclient"
+	v1client "github.com/aristanetworks/cloudvision-go/device/cvclient/v1"
+	v2client "github.com/aristanetworks/cloudvision-go/device/cvclient/v2"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
 	"github.com/aristanetworks/cloudvision-go/device/gen"
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/version"
+
 	"github.com/aristanetworks/fsnotify"
 	aflag "github.com/aristanetworks/goarista/flag"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
+	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -66,6 +71,10 @@ var (
 	// grpc server config
 	grpcAddr = flag.String("grpcAddr", "",
 		"gRPC server address. If unspecified, server will not run.")
+
+	// protocol version
+	protoVersion = flag.String("protoversion", "v1",
+		"Protocol version to use for communicating with CV (must be v1 or v2.")
 )
 
 // Main is the "real" main.
@@ -134,6 +143,18 @@ func initLogging() {
 	})
 }
 
+// newCVClient returns a CVClient object for a given device.
+func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
+	var isManager bool
+	if _, ok := info.Device.(device.Manager); ok {
+		isManager = true
+	}
+	if *protoVersion == "v2" {
+		return v2client.NewV2Client(gc, info.ID, isManager)
+	}
+	return v1client.NewV1Client(gc, info.ID, isManager)
+}
+
 func runMain(ctx context.Context) {
 	gnmiCfg := &agnmi.Config{
 		Addr:        *gnmiServerAddr,
@@ -144,7 +165,7 @@ func runMain(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	// Create inventory.
-	inventory := device.NewInventory(ctx, gnmiClient)
+	inventory := device.NewInventory(ctx, gnmiClient, newCVClient)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -245,6 +266,10 @@ func validateConfig() {
 
 	if *dump && *dumpFile == "" {
 		logrus.Fatal("-dumpFile must be specified in dump mode")
+	}
+
+	if *protoVersion != "v1" && *protoVersion != "v2" {
+		logrus.Fatal("Protocol version must be either 'v1' or 'v2'")
 	}
 }
 

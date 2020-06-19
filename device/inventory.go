@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
-	v1client "github.com/aristanetworks/cloudvision-go/device/cvclient/v1"
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
+
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
 )
@@ -43,6 +43,7 @@ type inventory struct {
 	rawGNMIClient gnmi.GNMIClient
 	devices       map[string]*deviceConn
 	lock          sync.Mutex
+	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
 }
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
@@ -74,11 +75,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 func (i *inventory) newDeviceConn(info *Info) *deviceConn {
 	dc := &deviceConn{info: info}
 	dc.ctx, dc.cancel = context.WithCancel(i.ctx)
-	var isManager bool
-	if _, ok := info.Device.(Manager); ok {
-		isManager = true
-	}
-	dc.cvClient = v1client.NewV1Client(i.rawGNMIClient, info.ID, isManager)
+	dc.cvClient = i.clientFactory(i.rawGNMIClient, info)
 	return dc
 }
 
@@ -212,11 +209,13 @@ func (i *inventory) List() []*Info {
 }
 
 // NewInventory creates an Inventory.
-func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient) Inventory {
+func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
+	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient) Inventory {
 	inv := &inventory{
 		ctx:           ctx,
 		devices:       make(map[string]*deviceConn),
 		rawGNMIClient: gnmiClient,
+		clientFactory: clientFactory,
 	}
 	return inv
 }

@@ -16,6 +16,10 @@ type GNMIProvider interface {
 	InitGNMI(client gnmi.GNMIClient)
 
 	// OpenConfig indicates whether the provider wants OpenConfig
-	// type-checking.
+	// type-checking. Used only by v1 client.
 	OpenConfig() bool
+	// Origin of the YANG data model that this provider streams,
+	// should be one of "arista", "fmp", "openconfig". This method
+	// is used only by v2 client.
+	Origin() string
 }

@@ -335,6 +335,11 @@ func (s *Snmp) OpenConfig() bool {
 	return true
 }
 
+// Origin indicates that this provider streams to an OpenConfig model.
+func (s *Snmp) Origin() string {
+	return "openconfig"
+}
+
 func (s *Snmp) sendUpdates(ctx context.Context) error {
 	return s.translator.Poll(ctx, s.client, []string{".*"})
 }

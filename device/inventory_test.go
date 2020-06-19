@@ -9,7 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aristanetworks/cloudvision-go/device/cvclient"
+	v1client "github.com/aristanetworks/cloudvision-go/device/cvclient/v1"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
@@ -17,7 +20,10 @@ func TestInventoryBasic(t *testing.T) {
 	processor := func(ctx context.Context, req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
 		return nil, nil
 	}
-	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor))
+	inventory := NewInventory(context.Background(), pgnmi.NewSimpleGNMIClient(processor),
+		func(gc gnmi.GNMIClient, i *Info) cvclient.CVClient {
+			return v1client.NewV1Client(gc, i.ID, false)
+		})
 	expectedDevice := testDevice{}
 	deviceID := "dummy"
 	err := inventory.Add(&Info{Device: expectedDevice, ID: deviceID})
