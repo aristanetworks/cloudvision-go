@@ -74,9 +74,9 @@ func metadataPrefix() *gnmi.Path {
 }
 
 func (c *v2Client) metadataRequest() *gnmi.SetRequest {
-	deviceType := "arista-device_metadata.v1:DEVICE_TYPE_NETWORK_ELEMENT"
+	deviceType := "DEVICE_TYPE_NETWORK_ELEMENT"
 	if c.isMgmtSystem {
-		deviceType = "arista-device_metadata.v1:DEVICE_TYPE_DEVICE_MANAGER"
+		deviceType = "DEVICE_TYPE_DEVICE_MANAGER"
 	}
 	u := []*gnmi.Update{
 		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(deviceType)),

@@ -35,9 +35,9 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 }
 
 func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
-	dtype := "arista-device_metadata.v1:DEVICE_TYPE_NETWORK_ELEMENT"
+	dtype := "DEVICE_TYPE_NETWORK_ELEMENT"
 	if c.isMgmtSystem {
-		dtype = "arista-device_metadata.v1:DEVICE_TYPE_DEVICE_MANAGER"
+		dtype = "DEVICE_TYPE_DEVICE_MANAGER"
 	}
 	expData := map[string]interface{}{
 		"/device-metadata/state/metadata/type":              pgnmi.Strval(dtype),
