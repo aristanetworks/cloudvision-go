@@ -35,12 +35,8 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 }
 
 func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
-	dtype := "DEVICE_TYPE_NETWORK_ELEMENT"
-	if c.isMgmtSystem {
-		dtype = "DEVICE_TYPE_DEVICE_MANAGER"
-	}
 	expData := map[string]interface{}{
-		"/device-metadata/state/metadata/type":              pgnmi.Strval(dtype),
+		"/device-metadata/state/metadata/type":              pgnmi.Strval(c.deviceType),
 		"/device-metadata/state/metadata/collector-version": pgnmi.Strval(versionString),
 	}
 	return verifyUpdates(r, expData, true)
@@ -48,8 +44,8 @@ func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
 
 func TestMetadataRequest(t *testing.T) {
 	c := &v2Client{
-		deviceID:     "mycontroller",
-		isMgmtSystem: true,
+		deviceID:   "mycontroller",
+		deviceType: DeviceManager,
 	}
 	r := c.metadataRequest()
 	if err := verifyMetadataLeaves(r, c); err != nil {

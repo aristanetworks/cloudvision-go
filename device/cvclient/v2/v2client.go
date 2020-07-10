@@ -20,16 +20,23 @@ import (
 	"google.golang.org/grpc"
 )
 
+const (
+	// NetworkElement is a generic network device.
+	NetworkElement = "DEVICE_TYPE_NETWORK_ELEMENT"
+	// DeviceManager is a manager of network devices.
+	DeviceManager = "DEVICE_TYPE_DEVICE_MANAGER"
+)
+
 // versionString describes the version of the collector, the SDK, and the go runtime.
 // This is sent as device metadata to CV and can be used for debugging.
 var versionString = fmt.Sprintf("Collector version: %s, SDK version: %s, Go version: %s",
 	version.CollectorVersion, version.Version, runtime.Version())
 
 type v2Client struct {
-	gnmiClient   gnmi.GNMIClient // underlying raw GNMI client
-	deviceID     string
-	isMgmtSystem bool
-	origin       string
+	gnmiClient gnmi.GNMIClient // underlying raw GNMI client
+	deviceID   string
+	deviceType string
+	origin     string
 }
 
 // setTargetAndOrigin sets target and origin fields in a GNMI path based on values in c.
@@ -74,12 +81,8 @@ func metadataPrefix() *gnmi.Path {
 }
 
 func (c *v2Client) metadataRequest() *gnmi.SetRequest {
-	deviceType := "DEVICE_TYPE_NETWORK_ELEMENT"
-	if c.isMgmtSystem {
-		deviceType = "DEVICE_TYPE_DEVICE_MANAGER"
-	}
 	u := []*gnmi.Update{
-		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(deviceType)),
+		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(c.deviceType)),
 		pgnmi.Update(pgnmi.Path("collector-version"), pgnmi.Strval(versionString)),
 		// TODO: list of managed devices, management IP address.
 	}
@@ -116,20 +119,20 @@ func (c *v2Client) SendHeartbeat(ctx context.Context, alive bool) error {
 
 // NewV2Client returns a new client object for communication
 // with CV using the v2 protocol.
-func NewV2Client(gc gnmi.GNMIClient, deviceID string, isMgmtSystem bool) cvclient.CVClient {
+func NewV2Client(gc gnmi.GNMIClient, deviceID string, deviceType string) cvclient.CVClient {
 	return &v2Client{
-		gnmiClient:   gc,
-		deviceID:     deviceID,
-		isMgmtSystem: isMgmtSystem,
-		origin:       "arista",
+		gnmiClient: gc,
+		deviceID:   deviceID,
+		deviceType: deviceType,
+		origin:     "arista",
 	}
 }
 
 func (c *v2Client) ForProvider(p provider.GNMIProvider) cvclient.CVClient {
 	return &v2Client{
-		gnmiClient:   c.gnmiClient,
-		deviceID:     c.deviceID,
-		isMgmtSystem: c.isMgmtSystem,
-		origin:       p.Origin(),
+		gnmiClient: c.gnmiClient,
+		deviceID:   c.deviceID,
+		deviceType: c.deviceType,
+		origin:     p.Origin(),
 	}
 }

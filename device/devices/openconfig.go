@@ -128,6 +128,10 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 	return config["openconfig-system:hostname"] + "." + config["openconfig-system:domain-name"], nil
 }
 
+func (o *openconfigDevice) Type() string {
+	return ""
+}
+
 func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 	config := &gnmi.Config{}
 	var err error

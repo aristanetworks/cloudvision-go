@@ -16,6 +16,12 @@ type Device interface {
 	Alive() (bool, error)
 	DeviceID() (string, error)
 	Providers() ([]provider.Provider, error)
+	// Type should return the type of the device. The returned
+	// values should be one of the constants defined for the purpose
+	// in the cvclient/v2 package such as VirtualSwitch etc.
+	// If this method returns an empty string, a default value
+	// (NetworkElement) is used.
+	Type() string
 }
 
 // A Manager manages a device inventory, adding and deleting

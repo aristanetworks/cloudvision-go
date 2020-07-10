@@ -115,6 +115,10 @@ func (s *snmp) Providers() ([]provider.Provider, error) {
 	return []provider.Provider{s.snmpProvider}, nil
 }
 
+func (s *snmp) Type() string {
+	return ""
+}
+
 func (s *snmp) validateOptions() error {
 	if s.version == "2c" {
 		if s.community == "" {

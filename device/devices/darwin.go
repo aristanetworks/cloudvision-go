@@ -66,6 +66,10 @@ func (d *darwin) Providers() ([]provider.Provider, error) {
 	return []provider.Provider{d.provider}, nil
 }
 
+func (d *darwin) Type() string {
+	return ""
+}
+
 // NewDarwinDevice instantiates a MacBook device.
 func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	pollInterval, err := device.GetDurationOption("pollInterval", options)

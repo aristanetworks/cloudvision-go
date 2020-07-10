@@ -30,6 +30,10 @@ func (td testDevice) Providers() ([]provider.Provider, error) {
 	return nil, nil
 }
 
+func (td testDevice) Type() string {
+	return ""
+}
+
 type testManager struct{}
 
 func (tm testManager) Alive() (bool, error) {
@@ -42,6 +46,10 @@ func (tm testManager) DeviceID() (string, error) {
 
 func (tm testManager) Providers() ([]provider.Provider, error) {
 	return nil, nil
+}
+
+func (tm testManager) Type() string {
+	return ""
 }
 
 func (tm testManager) Manage(inv device.Inventory) error {
