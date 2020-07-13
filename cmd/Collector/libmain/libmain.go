@@ -150,15 +150,7 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 		isManager = true
 	}
 	if *protoVersion == "v2" {
-		deviceType := v2client.NetworkElement
-		if isManager {
-			deviceType = v2client.DeviceManager
-		} else {
-			if info.Device.Type() != "" {
-				deviceType = info.Device.Type()
-			}
-		}
-		return v2client.NewV2Client(gc, info.ID, deviceType)
+		return v2client.NewV2Client(gc, info.Device)
 	}
 	return v1client.NewV1Client(gc, info.ID, isManager)
 }

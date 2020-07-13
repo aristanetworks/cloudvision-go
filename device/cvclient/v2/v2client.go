@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
@@ -37,6 +38,7 @@ type v2Client struct {
 	deviceID   string
 	deviceType string
 	origin     string
+	device     device.Device
 }
 
 // setTargetAndOrigin sets target and origin fields in a GNMI path based on values in c.
@@ -84,8 +86,13 @@ func (c *v2Client) metadataRequest() *gnmi.SetRequest {
 	u := []*gnmi.Update{
 		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(c.deviceType)),
 		pgnmi.Update(pgnmi.Path("collector-version"), pgnmi.Strval(versionString)),
-		// TODO: list of managed devices, management IP address.
 	}
+	if ip := c.device.IPAddr(); ip != "" {
+		u = append(u,
+			pgnmi.Update(pgnmi.Path("ip-addr"), pgnmi.Strval(ip)),
+		)
+	}
+	// TODO: list of managed devices.
 	return &gnmi.SetRequest{
 		Prefix: metadataPrefix(),
 		Update: u,
@@ -119,12 +126,22 @@ func (c *v2Client) SendHeartbeat(ctx context.Context, alive bool) error {
 
 // NewV2Client returns a new client object for communication
 // with CV using the v2 protocol.
-func NewV2Client(gc gnmi.GNMIClient, deviceID string, deviceType string) cvclient.CVClient {
+func NewV2Client(gc gnmi.GNMIClient, dev device.Device) cvclient.CVClient {
+	deviceType := NetworkElement
+	if _, ok := dev.(device.Manager); ok {
+		deviceType = DeviceManager
+	} else {
+		if dev.Type() != "" {
+			deviceType = dev.Type()
+		}
+	}
+	deviceID, _ := dev.DeviceID()
 	return &v2Client{
 		gnmiClient: gc,
 		deviceID:   deviceID,
 		deviceType: deviceType,
 		origin:     "arista",
+		device:     dev,
 	}
 }
 

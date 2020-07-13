@@ -7,6 +7,7 @@ package devices
 import (
 	"errors"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -87,6 +88,7 @@ type snmp struct {
 	v3Params     *psnmp.V3Params
 	v            gosnmp.SnmpVersion
 	snmpProvider provider.GNMIProvider
+	mgmtIP       string
 }
 
 // XXX NOTE: For now, we return an error rather than just returning false. We
@@ -117,6 +119,17 @@ func (s *snmp) Providers() ([]provider.Provider, error) {
 
 func (s *snmp) Type() string {
 	return ""
+}
+
+func (s *snmp) IPAddr() string {
+	if s.mgmtIP == "" {
+		// Attempt to resolve management IP
+		ip, err := net.ResolveIPAddr("ip", s.address)
+		if err == nil {
+			s.mgmtIP = ip.String()
+		}
+	}
+	return s.mgmtIP
 }
 
 func (s *snmp) validateOptions() error {

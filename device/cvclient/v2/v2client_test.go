@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 
 	agnmi "github.com/aristanetworks/goarista/gnmi"
@@ -38,15 +39,35 @@ func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
 	expData := map[string]interface{}{
 		"/device-metadata/state/metadata/type":              pgnmi.Strval(c.deviceType),
 		"/device-metadata/state/metadata/collector-version": pgnmi.Strval(versionString),
+		"/device-metadata/state/metadata/ip-addr":           pgnmi.Strval(testDevice{}.IPAddr()),
 	}
 	return verifyUpdates(r, expData, true)
 }
 
+type testDevice struct{}
+
+func (td testDevice) DeviceID() (string, error) {
+	return "mycontroller", nil
+}
+
+func (td testDevice) Alive() (bool, error) {
+	return true, nil
+}
+
+func (td testDevice) Providers() ([]provider.Provider, error) {
+	return []provider.Provider{}, nil
+}
+
+func (td testDevice) Type() string {
+	return ""
+}
+
+func (td testDevice) IPAddr() string {
+	return "192.168.5.10"
+}
+
 func TestMetadataRequest(t *testing.T) {
-	c := &v2Client{
-		deviceID:   "mycontroller",
-		deviceType: DeviceManager,
-	}
+	c := NewV2Client(nil, testDevice{}).(*v2Client)
 	r := c.metadataRequest()
 	if err := verifyMetadataLeaves(r, c); err != nil {
 		t.Logf("Error verifying leaves in set request: %v", err)

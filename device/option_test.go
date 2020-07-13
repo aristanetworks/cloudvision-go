@@ -57,6 +57,10 @@ func (td testDevice) Type() string {
 	return ""
 }
 
+func (td testDevice) IPAddr() string {
+	return "192.168.5.6"
+}
+
 // NewTestDevice returns a dummy device for testing.
 func NewTestDevice(map[string]string) (Device, error) {
 	return testDevice{}, nil

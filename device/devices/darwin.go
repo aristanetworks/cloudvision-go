@@ -70,6 +70,14 @@ func (d *darwin) Type() string {
 	return ""
 }
 
+func (d *darwin) IPAddr() string {
+	// we recompute this every time since it can potentially change.
+	shCmd := `ifconfig $(route -n get 0.0.0.0 2>/dev/null | awk '/interface: / {print $2}') | ` +
+		`grep "inet " | grep -v 127.0.0.1 | awk '{print $2}'`
+	out, _ := exec.Command("/bin/sh", "-c", shCmd).Output()
+	return strings.TrimSpace(string(out))
+}
+
 // NewDarwinDevice instantiates a MacBook device.
 func NewDarwinDevice(options map[string]string) (device.Device, error) {
 	pollInterval, err := device.GetDurationOption("pollInterval", options)

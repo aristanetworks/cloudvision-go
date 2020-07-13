@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/aristanetworks/cloudvision-go/device"
@@ -81,6 +82,7 @@ type openconfigDevice struct {
 	gNMIClient   pb.GNMIClient
 	config       *gnmi.Config
 	deviceID     string
+	mgmtIP       string
 }
 
 func (o *openconfigDevice) Alive() (bool, error) {
@@ -130,6 +132,16 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 
 func (o *openconfigDevice) Type() string {
 	return ""
+}
+
+func (o *openconfigDevice) IPAddr() string {
+	if o.mgmtIP == "" {
+		tcpAddr, err := net.ResolveTCPAddr("tcp", o.config.Addr)
+		if err == nil {
+			o.mgmtIP = tcpAddr.IP.String()
+		}
+	}
+	return o.mgmtIP
 }
 
 func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {

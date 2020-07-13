@@ -22,6 +22,9 @@ type Device interface {
 	// If this method returns an empty string, a default value
 	// (NetworkElement) is used.
 	Type() string
+	// IPAddr should return the management IP address of the device.
+	// Return "" if this is not known.
+	IPAddr() string
 }
 
 // A Manager manages a device inventory, adding and deleting

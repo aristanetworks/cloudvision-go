@@ -34,6 +34,10 @@ func (td testDevice) Type() string {
 	return ""
 }
 
+func (td testDevice) IPAddr() string {
+	return "192.168.1.2"
+}
+
 type testManager struct{}
 
 func (tm testManager) Alive() (bool, error) {
@@ -54,6 +58,10 @@ func (tm testManager) Type() string {
 
 func (tm testManager) Manage(inv device.Inventory) error {
 	return inv.Add(&device.Info{Device: testDevice{}, ID: "aaa"})
+}
+
+func (tm testManager) IPAddr() string {
+	return "192.168.0.123"
 }
 
 // newTestManager returns a dummy device for testing.
