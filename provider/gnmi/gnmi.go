@@ -61,19 +61,29 @@ func (p *Gnmi) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case response := <-respChan:
+		case response, ok := <-respChan:
+			if !ok {
+				// channel closed, we received an io.EOF from the server.
+				log.Log(p).Infof("gNMI server closed subscription")
+				return fmt.Errorf("gNMI server closed subscription")
+			}
 			switch resp := response.Response.(type) {
 			case *gnmi.SubscribeResponse_Error:
 				// Not sure if this is recoverable so it doesn't return and hope things get better
-				log.Log(p).Errorf(
+				log.Log(p).Infof(
 					"gNMI SubscribeResponse Error: %v", resp.Error.Message)
 			case *gnmi.SubscribeResponse_SyncResponse:
 				if !resp.SyncResponse {
-					log.Log(p).Errorf("gNMI sync failed")
+					log.Log(p).Infof("gNMI sync failed")
 				}
 			case *gnmi.SubscribeResponse_Update:
 				// One SetRequest per update:
-				_, err := p.outClient.Set(ctx, &gnmi.SetRequest{Update: resp.Update.Update})
+				_, err := p.outClient.Set(ctx,
+					&gnmi.SetRequest{
+						Update: resp.Update.Update,
+						Delete: resp.Update.Delete,
+					},
+				)
 				if err != nil {
 					return err
 				}
