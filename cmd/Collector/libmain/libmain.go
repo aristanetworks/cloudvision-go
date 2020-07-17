@@ -166,9 +166,7 @@ func runMain(ctx context.Context) {
 	}
 	// Create inventory.
 	inventory := device.NewInventory(ctx, gnmiClient, newCVClient)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+
 	group, ctx := errgroup.WithContext(ctx)
 	configs, err := createDeviceConfigs()
 	if err != nil {
@@ -177,11 +175,14 @@ func runMain(ctx context.Context) {
 	for _, config := range configs {
 		info, err := device.NewDeviceInfo(config)
 		if err != nil {
-			logrus.Fatalf("Error in device.NewDeviceInfo(): %v", err)
+			logrus.Infof("Error in device.NewDeviceInfo(): %v. Dropping device.", err)
+			continue
 		}
 		err = inventory.Add(info)
 		if err != nil {
-			logrus.Fatalf("Error in inventory.Add(): %v", err)
+			logrus.Infof("Error in inventory.Add(): %v. Dropping device %s.",
+				err, info.ID)
+			continue
 		}
 		group.Go(func() error {
 			<-ctx.Done()
@@ -195,15 +196,16 @@ func runMain(ctx context.Context) {
 	if *grpcAddr != "" {
 		grpcServer, listener, err := newGRPCServer(*grpcAddr, inventory)
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Fatalf("Failed to start gRPC server: %v", err)
 		}
 		group.Go(func() error { return grpcServer.Serve(listener) })
 	}
 
 	logrus.Info("Collector is running")
 	if err := group.Wait(); err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("group returned with error: %v", err)
 	}
+	logrus.Infof("Collector is finished")
 }
 
 func createDeviceConfigs() ([]*device.Config, error) {
