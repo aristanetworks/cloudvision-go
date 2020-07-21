@@ -13,7 +13,6 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
-	"github.com/golang/protobuf/proto"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
 )
@@ -42,7 +41,7 @@ func (d *dumpInfo) processRequest(ctx context.Context,
 			return nil, err
 		}
 	}
-	err := proto.CompactText(d.file, req)
+	_, err := d.file.WriteString(req.String())
 	if err != nil {
 		return nil, err
 	}
