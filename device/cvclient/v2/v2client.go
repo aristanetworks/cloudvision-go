@@ -26,6 +26,8 @@ const (
 	NetworkElement = "DEVICE_TYPE_NETWORK_ELEMENT"
 	// DeviceManager is a manager of network devices.
 	DeviceManager = "DEVICE_TYPE_DEVICE_MANAGER"
+	// WirelessAP is a wireless access point device.
+	WirelessAP = "DEVICE_TYPE_WIRELESS_AP"
 )
 
 // versionString describes the version of the collector, the SDK, and the go runtime.
