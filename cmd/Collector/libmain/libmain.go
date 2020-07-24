@@ -21,6 +21,7 @@ import (
 	v2client "github.com/aristanetworks/cloudvision-go/device/cvclient/v2"
 	_ "github.com/aristanetworks/cloudvision-go/device/devices" // import all registered devices
 	"github.com/aristanetworks/cloudvision-go/device/gen"
+	agrpc "github.com/aristanetworks/cloudvision-go/grpc"
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/version"
 
@@ -75,6 +76,9 @@ var (
 	// protocol version
 	protoVersion = flag.String("protoversion", "v1",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
+
+	// authentication information
+	authInfo = agrpc.AuthFlag()
 )
 
 // Main is the "real" main.
@@ -160,10 +164,26 @@ func runMain(ctx context.Context) {
 		Addr:        *gnmiServerAddr,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}
+
+	var noAuth agrpc.Auth
+	if *authInfo != noAuth {
+		gnmiCfg.TLS = true
+		gnmiCfg.CAFile = authInfo.CAFile()
+		// XXX: agnmi.Dial does not use system cert pool if this is "", rather it disables the
+		// certificate validation option - this should be fixed.
+		clientCreds, err := authInfo.ClientCredentials()
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		gnmiCfg.DialOptions = append(gnmiCfg.DialOptions, clientCreds...)
+	}
+
 	gnmiClient, err := agnmi.Dial(gnmiCfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	logrus.Info("Connected")
+
 	// Create inventory.
 	inventory := device.NewInventory(ctx, gnmiClient, newCVClient)
 

@@ -15,7 +15,7 @@ import (
 func TestAccessTokenCredential(t *testing.T) {
 	cred := NewAccessTokenCredential("token")
 	expectedMd := map[string]string{
-		"Authorization": "Bearer: token",
+		"Authorization": "Bearer token",
 	}
 	md, err := cred.GetRequestMetadata(context.Background(), "this/is/a/test/uri")
 	if err != nil {

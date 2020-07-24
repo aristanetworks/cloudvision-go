@@ -54,7 +54,7 @@ type Auth struct {
 
 const (
 	authHeader = "Authorization"
-	bearerFmt  = "Bearer: %s"
+	bearerFmt  = "Bearer %s"
 )
 
 // acceptableCipherSuites is a list of safe ciphersuites that can should be used for
@@ -88,13 +88,13 @@ func (a *accessTokenCred) GetRequestMetadata(ctx context.Context,
 
 func (a *accessTokenCred) RequireTransportSecurity() bool { return true }
 
-// Configure returns the authentication configuration as a series of gRPC dial options.
-func (a *Auth) Configure() ([]grpc.DialOption, error) {
-	cfg := &tls.Config{
-		CipherSuites: acceptableCipherSuites,
-		MinVersion:   tls.VersionTLS12,
-	}
-	var opts []grpc.DialOption
+// CAFile returns the CA certificate file specified in Auth.
+func (a *Auth) CAFile() string {
+	return a.caFile
+}
+
+// ClientCredentials returns dial options corresponding to the client credentials.
+func (a *Auth) ClientCredentials() ([]grpc.DialOption, error) {
 	switch a.typ {
 	case "token":
 		b, err := ioutil.ReadFile(a.tokenFile)
@@ -105,12 +105,27 @@ func (a *Auth) Configure() ([]grpc.DialOption, error) {
 		if token == "" {
 			return nil, errors.New("token cannot be empty")
 		}
-		opts = append(opts, grpc.WithPerRPCCredentials(
-			NewAccessTokenCredential(token),
-		))
+		return []grpc.DialOption{
+			grpc.WithPerRPCCredentials(NewAccessTokenCredential(token)),
+		}, nil
 	default:
 		return nil, fmt.Errorf("unknown authentication scheme: %s", a.typ)
 	}
+}
+
+// Configure returns the authentication configuration as a series of gRPC dial options.
+func (a *Auth) Configure() ([]grpc.DialOption, error) {
+	cfg := &tls.Config{
+		CipherSuites: acceptableCipherSuites,
+		MinVersion:   tls.VersionTLS12,
+	}
+	var opts []grpc.DialOption
+
+	clCreds, err := a.ClientCredentials()
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, clCreds...)
 	if a.caFile != "" {
 		b, err := ioutil.ReadFile(a.caFile)
 		if err != nil {
