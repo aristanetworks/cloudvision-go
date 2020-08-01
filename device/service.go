@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/aristanetworks/cloudvision-go/device/gen"
+	"github.com/sirupsen/logrus"
 )
 
 type inventoryService struct {
@@ -22,6 +23,7 @@ func (i *inventoryService) Add(ctx context.Context,
 	if err != nil {
 		return ret, err
 	}
+	logrus.Infof("InventoryService: Add request: %v", req)
 	err = i.inventory.Add(info)
 	if err != nil {
 		return ret, err
@@ -34,6 +36,7 @@ func (i *inventoryService) Add(ctx context.Context,
 
 func (i *inventoryService) Delete(ctx context.Context,
 	req *gen.DeleteRequest) (*gen.DeleteResponse, error) {
+	logrus.Infof("InventoryService: Delete request: %v", req)
 	return &gen.DeleteResponse{}, i.inventory.Delete(req.DeviceID)
 }
 
