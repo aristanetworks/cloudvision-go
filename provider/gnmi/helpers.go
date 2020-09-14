@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	agnmi "github.com/aristanetworks/goarista/gnmi"
@@ -165,9 +166,24 @@ func PollForever(ctx context.Context, client gnmi.GNMIClient,
 // Helpers for creating gNMI paths for places of interest in the
 // OpenConfig tree.
 
+// MultiKeyList formats a gNMI list with multiple key-value pairs as a string
+func MultiKeyList(listName string, keysAndVals ...string) string {
+	if len(keysAndVals)%2 != 0 {
+		panic("multiKeyList needs even numbers of keys+vals.")
+	}
+	var sb strings.Builder
+	sb.WriteString(listName)
+	for i := 0; i < len(keysAndVals); i += 2 {
+		k := keysAndVals[i]
+		v := keysAndVals[i+1]
+		sb.WriteString(fmt.Sprintf("[%s=%s]", k, v))
+	}
+	return sb.String()
+}
+
 // ListWithKey formats a gNMI keyed list and key as a string.
 func ListWithKey(listName, keyName, key string) string {
-	return fmt.Sprintf("%s[%s=%s]", listName, keyName, key)
+	return MultiKeyList(listName, keyName, key)
 }
 
 // Interface paths of interest:
