@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // DialWithAuth dials a gRPC endpoint, target, with the provided
@@ -23,4 +24,17 @@ func DialWithAuth(ctx context.Context, target string, auth *Auth, opts ...grpc.D
 	}
 	opts = append(opts, grpc.WithBlock())
 	return grpc.DialContext(ctx, target, append(opts, authOpts...)...)
+}
+
+// DialWithToken dials a gRPC endpoint, target, with the provided
+// token and dial options.
+func DialWithToken(ctx context.Context, target, token string, opts ...grpc.DialOption) (
+	*grpc.ClientConn, error) {
+
+	opts = append(opts,
+		grpc.WithBlock(),
+		grpc.WithPerRPCCredentials(NewAccessTokenCredential(token)),
+		grpc.WithTransportCredentials(credentials.NewTLS(TLSConfig())),
+	)
+	return grpc.DialContext(ctx, target, opts...)
 }

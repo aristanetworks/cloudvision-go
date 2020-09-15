@@ -74,6 +74,14 @@ type accessTokenCred struct {
 	bearerToken string
 }
 
+// TLSConfig returns a *tls.Config with sane defaults
+func TLSConfig() *tls.Config {
+	return &tls.Config{
+		CipherSuites: acceptableCipherSuites,
+		MinVersion:   tls.VersionTLS12,
+	}
+}
+
 // NewAccessTokenCredential constructs a new per-RPC credential from a token.
 func NewAccessTokenCredential(token string) credentials.PerRPCCredentials {
 	return &accessTokenCred{bearerToken: fmt.Sprintf(bearerFmt, token)}
@@ -115,10 +123,7 @@ func (a *Auth) ClientCredentials() ([]grpc.DialOption, error) {
 
 // Configure returns the authentication configuration as a series of gRPC dial options.
 func (a *Auth) Configure() ([]grpc.DialOption, error) {
-	cfg := &tls.Config{
-		CipherSuites: acceptableCipherSuites,
-		MinVersion:   tls.VersionTLS12,
-	}
+	cfg := TLSConfig()
 	var opts []grpc.DialOption
 
 	clCreds, err := a.ClientCredentials()
