@@ -178,6 +178,7 @@ func runMain(ctx context.Context) {
 		gnmiCfg.DialOptions = append(gnmiCfg.DialOptions, clientCreds...)
 	}
 
+	logrus.Infof("Connecting to gNMI server %+v", gnmiCfg)
 	gnmiClient, err := agnmi.Dial(gnmiCfg)
 	if err != nil {
 		logrus.Fatal(err)
