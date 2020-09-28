@@ -51,8 +51,8 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	did, _ := dc.info.Device.DeviceID()
 
 	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
-		log.Log(dc.info.Device).Infof("Failed to send periodic "+
-			"update for device %v", did)
+		log.Log(dc.info.Device).Infof("Error sending device metadata "+
+			"for device %v: %v", did, err)
 	}
 	for {
 		select {
@@ -62,8 +62,8 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 			if alive, err := dc.info.Device.Alive(); err == nil && alive {
 				if err := dc.cvClient.SendHeartbeat(dc.ctx, alive); err != nil {
 					// Don't give up if an update fails for some reason.
-					log.Log(dc.info.Device).Infof("Failed to send periodic "+
-						"update for device %v", did)
+					log.Log(dc.info.Device).Infof("Error sending periodic "+
+						"update for device %v: %v", did, err)
 				}
 			} else {
 				log.Log(dc.info.Device).Infof("Device %s is not alive", did)
