@@ -73,6 +73,12 @@ var (
 	grpcAddr = flag.String("grpcAddr", "",
 		"gRPC server address. If unspecified, server will not run.")
 
+	certFile = flag.String("certfile", "", "Path to client TLS certificate file")
+
+	keyFile = flag.String("keyfile", "", "Path to client TLS private key file")
+
+	tlsFlag = flag.Bool("tls", false, "Enable TLS")
+
 	// protocol version
 	protoVersion = flag.String("protoversion", "v1",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
@@ -162,6 +168,9 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 func runMain(ctx context.Context) {
 	gnmiCfg := &agnmi.Config{
 		Addr:        *gnmiServerAddr,
+		CertFile:    *certFile,
+		KeyFile:     *keyFile,
+		TLS:         *tlsFlag,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}
 
