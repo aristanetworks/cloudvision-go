@@ -76,6 +76,38 @@ func PathFromString(path string) *gnmi.Path {
 	return Path(agnmi.SplitPath(path)...)
 }
 
+// PathMatch returns true if the path `path` matches the
+// provided path pattern `pattern`.
+func PathMatch(path, pattern *gnmi.Path) bool {
+	if len(path.Elem) != len(pattern.Elem) {
+		return false
+	}
+
+	for i, e := range path.Elem {
+		pe := pattern.Elem[i]
+		if pe.Name != "*" && e.Name != pe.Name {
+			return false
+		}
+		if len(e.Key) < len(pe.Key) {
+			return false
+		}
+
+		// For each key in path, pattern should have an exact match,
+		// a wildcard, or no key specified (same as wildcard).
+		for ek, ev := range e.Key {
+			pev, ok := pe.Key[ek]
+			if !ok {
+				continue
+			}
+			if pev == "*" || ev == pev {
+				continue
+			}
+			return false
+		}
+	}
+	return true
+}
+
 // gNMI TypedValues: Everything is converted to a JsonVal for now
 // because those code paths are more mature in the gopenconfig code.
 func jsonValue(v interface{}) *gnmi.TypedValue {

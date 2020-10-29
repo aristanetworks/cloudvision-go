@@ -14,6 +14,102 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
+func TestGNMIPatchMatch(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		path    string
+		pattern string
+		result  bool
+	}{
+		{
+			name:    "simple exact",
+			path:    "/a/b/c",
+			pattern: "/a/b/c",
+			result:  true,
+		},
+		{
+			name:    "simple exact no match",
+			path:    "/a/b/c",
+			pattern: "/a/b/z",
+			result:  false,
+		},
+		{
+			name:    "simple pattern too short",
+			path:    "/a/b/c",
+			pattern: "/a/b",
+			result:  false,
+		},
+		{
+			name:    "simple pattern too long",
+			path:    "/a/b/c",
+			pattern: "/a/b/c/d",
+			result:  false,
+		},
+		{
+			name:    "wildcard elem",
+			path:    "/a/b/c",
+			pattern: "/a/*/c",
+			result:  true,
+		},
+		{
+			name:    "wildcard final elem",
+			path:    "/a/b/c",
+			pattern: "/a/b/*",
+			result:  true,
+		},
+		{
+			name:    "list exact",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[foo=X][bar=Y]/c",
+			result:  true,
+		},
+		{
+			name:    "list exact no match",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[foo=A][bar=Y]/c",
+			result:  false,
+		},
+		{
+			name:    "list implicit key wildcard",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b/c",
+			result:  true,
+		},
+		{
+			name:    "list explicit full key wildcard",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[foo=*][bar=*]/c",
+			result:  true,
+		},
+		{
+			name:    "list explicit partial key wildcard",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[foo=*][bar=Y]/c",
+			result:  true,
+		},
+		{
+			name:    "list explicit partial key implicit wildcard",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[bar=Y]/c",
+			result:  true,
+		},
+		{
+			name:    "list explicit partial key wildcard no match",
+			path:    "/a/b[foo=X][bar=Y]/c",
+			pattern: "/a/b[foo=*][bar=B]/c",
+			result:  false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := PathMatch(PathFromString(tc.path), PathFromString(tc.pattern))
+			if res != tc.result {
+				t.Fatalf("Expected %v, got %v. path: %s, pattern: %s",
+					tc.result, res, tc.path, tc.pattern)
+			}
+		})
+	}
+}
+
 func TestUnmarshal(t *testing.T) {
 	// requires gnmi.ModelData to be updated to a protov2 model
 	// "since the v1 lib was deprecated
