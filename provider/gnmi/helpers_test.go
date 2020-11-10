@@ -14,6 +14,64 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
+func TestGNMIPathJoin(t *testing.T) {
+	simpleOriginTargetPrefix := PathFromString("/a/b/c")
+	simpleOriginTargetPrefix.Origin = "openconfig"
+	simpleOriginTargetPrefix.Target = "ABC123"
+	simpleOriginTargetPath := PathFromString("/d/e/f")
+	simpleOriginTargetPath.Origin = "openconfig"
+	simpleOriginTargetPath.Target = "ABC123"
+	simpleJoinedPath := PathFromString("a/b/c/d/e/f")
+	simpleJoinedPath.Origin = "openconfig"
+	simpleJoinedPath.Target = "ABC123"
+
+	for _, tc := range []struct {
+		name   string
+		p1     *gnmi.Path
+		p2     *gnmi.Path
+		result *gnmi.Path
+	}{
+		{
+			name:   "basic",
+			p1:     PathFromString("/a/b/c"),
+			p2:     PathFromString("/d/e/f"),
+			result: PathFromString("/a/b/c/d/e/f"),
+		},
+		{
+			name:   "key in prefix",
+			p1:     PathFromString("/a/b[x=foo][y=bar]/c"),
+			p2:     PathFromString("/d/e/f"),
+			result: PathFromString("/a/b[x=foo][y=bar]/c/d/e/f"),
+		},
+		{
+			name:   "key in path",
+			p1:     PathFromString("/a/b[x=foo][y=bar]/c"),
+			p2:     PathFromString("/d/e[k=baz]/f"),
+			result: PathFromString("/a/b[x=foo][y=bar]/c/d/e[k=baz]/f"),
+		},
+		{
+			name:   "origin, target in prefix",
+			p1:     simpleOriginTargetPrefix,
+			p2:     PathFromString("/d/e/f"),
+			result: simpleJoinedPath,
+		},
+		{
+			name:   "origin, target in path",
+			p1:     PathFromString("a/b/c"),
+			p2:     simpleOriginTargetPath,
+			result: simpleJoinedPath,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := PathJoin(tc.p1, tc.p2)
+			if !reflect.DeepEqual(tc.result, res) {
+				t.Fatalf("Expected %v, got %v. p1: %s, p2: %s",
+					tc.result, res, tc.p1, tc.p2)
+			}
+		})
+	}
+}
+
 func TestGNMIPatchMatch(t *testing.T) {
 	for _, tc := range []struct {
 		name    string

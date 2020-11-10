@@ -108,6 +108,28 @@ func PathMatch(path, pattern *gnmi.Path) bool {
 	return true
 }
 
+// PathJoin combines two gNMI paths into one.
+func PathJoin(p1, p2 *gnmi.Path) *gnmi.Path {
+	path := &gnmi.Path{
+		Elem: []*gnmi.PathElem{},
+	}
+	if p1 != nil {
+		path.Origin = p1.Origin
+		path.Target = p1.Target
+		path.Elem = p1.Elem
+	}
+	if p2 != nil {
+		if path.Origin == "" {
+			path.Origin = p2.Origin
+		}
+		if path.Target == "" {
+			path.Target = p2.Target
+		}
+		path.Elem = append(path.Elem, p2.Elem...)
+	}
+	return path
+}
+
 // gNMI TypedValues: Everything is converted to a JsonVal for now
 // because those code paths are more mature in the gopenconfig code.
 func jsonValue(v interface{}) *gnmi.TypedValue {
