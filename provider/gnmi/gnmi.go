@@ -79,6 +79,7 @@ func (p *Gnmi) Run(ctx context.Context) error {
 			case *gnmi.SubscribeResponse_Update:
 				// One SetRequest per update:
 				sr := &gnmi.SetRequest{
+					Prefix: resp.Update.Prefix,
 					Update: resp.Update.Update,
 					Delete: resp.Update.Delete,
 				}

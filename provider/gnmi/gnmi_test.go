@@ -124,12 +124,13 @@ func gnmiDelete(paths []string) []*gnmi.Path {
 	return d
 }
 
-func newSubscribeResponse(ts int64, updates []*gnmi.Update,
-	deletes []*gnmi.Path) *gnmi.SubscribeResponse {
+func newSubscribeResponse(ts int64, prefix *gnmi.Path,
+	updates []*gnmi.Update, deletes []*gnmi.Path) *gnmi.SubscribeResponse {
 	return &gnmi.SubscribeResponse{
 		Response: &gnmi.SubscribeResponse_Update{
 			Update: &gnmi.Notification{
 				Timestamp: ts,
+				Prefix:    prefix,
 				Update:    updates,
 				Delete:    deletes,
 			},
@@ -148,6 +149,7 @@ func TestGNMIProvider(t *testing.T) {
 			subResps: []*gnmi.SubscribeResponse{
 				newSubscribeResponse(
 					435, //timestamp
+					nil,
 					[]*gnmi.Update{
 						gnmiUpdate("/u/l1", "x"),
 						gnmiUpdate("/u/l2", "y"),
@@ -157,6 +159,31 @@ func TestGNMIProvider(t *testing.T) {
 			},
 			setReqs: []*gnmi.SetRequest{
 				{
+					Update: []*gnmi.Update{
+						gnmiUpdate("/u/l1", "x"),
+						gnmiUpdate("/u/l2", "y"),
+					},
+					Delete: gnmiDelete([]string{"/d1", "/d2"}),
+				},
+			},
+			paths: []string{"/"},
+		},
+		{
+			name: "handle prefix",
+			subResps: []*gnmi.SubscribeResponse{
+				newSubscribeResponse(
+					435, //timestamp
+					PathFromString("/prefix"),
+					[]*gnmi.Update{
+						gnmiUpdate("/u/l1", "x"),
+						gnmiUpdate("/u/l2", "y"),
+					},
+					gnmiDelete([]string{"/d1", "/d2"}),
+				),
+			},
+			setReqs: []*gnmi.SetRequest{
+				{
+					Prefix: PathFromString("/prefix"),
 					Update: []*gnmi.Update{
 						gnmiUpdate("/u/l1", "x"),
 						gnmiUpdate("/u/l2", "y"),
