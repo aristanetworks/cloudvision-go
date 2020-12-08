@@ -78,14 +78,12 @@ func (p *Gnmi) Run(ctx context.Context) error {
 				}
 			case *gnmi.SubscribeResponse_Update:
 				// One SetRequest per update:
-				_, err := p.outClient.Set(ctx,
-					&gnmi.SetRequest{
-						Update: resp.Update.Update,
-						Delete: resp.Update.Delete,
-					},
-				)
-				if err != nil {
-					return err
+				sr := &gnmi.SetRequest{
+					Update: resp.Update.Update,
+					Delete: resp.Update.Delete,
+				}
+				if _, err := p.outClient.Set(ctx, sr); err != nil {
+					log.Log(p).Infof("Error on Set: %v", err)
 				}
 			}
 		case err := <-errChan:
