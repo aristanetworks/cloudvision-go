@@ -64,8 +64,8 @@ func (p *Gnmi) Run(ctx context.Context) error {
 		case response, ok := <-respChan:
 			if !ok {
 				// channel closed, we received an io.EOF from the server.
-				log.Log(p).Infof("gNMI server closed subscription")
-				return fmt.Errorf("gNMI server closed subscription")
+				log.Log(p).Infof("gNMI target closed subscription")
+				return fmt.Errorf("gNMI target closed subscription")
 			}
 			switch resp := response.Response.(type) {
 			case *gnmi.SubscribeResponse_Error:
@@ -73,7 +73,9 @@ func (p *Gnmi) Run(ctx context.Context) error {
 				log.Log(p).Infof(
 					"gNMI SubscribeResponse Error: %v", resp.Error.Message)
 			case *gnmi.SubscribeResponse_SyncResponse:
-				if !resp.SyncResponse {
+				if resp.SyncResponse {
+					log.Log(p).Debug("gNMI sync_response")
+				} else {
 					log.Log(p).Infof("gNMI sync failed")
 				}
 			case *gnmi.SubscribeResponse_Update:
@@ -83,6 +85,7 @@ func (p *Gnmi) Run(ctx context.Context) error {
 					Update: resp.Update.Update,
 					Delete: resp.Update.Delete,
 				}
+				log.Log(p).Debugf("SetRequest: %+v", sr)
 				if _, err := p.outClient.Set(ctx, sr); err != nil {
 					log.Log(p).Infof("Error on Set: %v", err)
 				}

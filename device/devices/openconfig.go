@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/goarista/gnmi"
@@ -198,6 +199,7 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 		return nil, err
 	}
 	config.DialOptions = []grpc.DialOption{grpc.WithBlock()}
+	log.Log(openconfig).Infof("Dialing gNMI target device: %+v", config)
 	client, err := gnmi.Dial(config)
 	if err != nil {
 		return nil, err
