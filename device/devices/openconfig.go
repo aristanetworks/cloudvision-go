@@ -14,9 +14,9 @@ import (
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
-
 	"github.com/aristanetworks/goarista/gnmi"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"google.golang.org/grpc"
 )
 
 func init() {
@@ -197,6 +197,7 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 	if err != nil {
 		return nil, err
 	}
+	config.DialOptions = []grpc.DialOption{grpc.WithBlock()}
 	client, err := gnmi.Dial(config)
 	if err != nil {
 		return nil, err
