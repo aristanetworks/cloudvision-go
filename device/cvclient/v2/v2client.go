@@ -48,7 +48,9 @@ func (c *v2Client) setTargetAndOrigin(p *gnmi.Path) *gnmi.Path {
 	if p == nil {
 		p = &gnmi.Path{}
 	}
-	p.Target = c.deviceID
+	if p.Target == "" {
+		p.Target = c.deviceID
+	}
 	if p.Origin == "" {
 		// set default origin if not set by provider.
 		p.Origin = c.origin
