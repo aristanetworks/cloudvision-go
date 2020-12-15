@@ -7,6 +7,7 @@ package gnmi
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
@@ -49,23 +50,42 @@ func (p *Gnmi) Run(ctx context.Context) error {
 	}
 	respChan := make(chan *gnmi.SubscribeResponse)
 	errChan := make(chan error)
-	ctx = agnmi.NewContext(ctx, p.cfg)
+	actx := agnmi.NewContext(ctx, p.cfg)
+	childCtx, cancel := context.WithCancel(actx)
+	defer cancel()
 
 	subscribeOptions := &agnmi.SubscribeOptions{
 		Mode:       "stream",
 		StreamMode: "target_defined",
 		Paths:      agnmi.SplitPaths(p.paths),
 	}
-	go agnmi.Subscribe(ctx, p.inClient, subscribeOptions, respChan, errChan)
+
+	// Initialize retry timer in case we need to redial, but stop it
+	// immediately.
+	retryTimer := time.NewTimer(time.Second * 60 * 60)
+	retryTimer.Stop()
+
+	go agnmi.Subscribe(childCtx, p.inClient, subscribeOptions, respChan, errChan)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-retryTimer.C:
+			retryTimer.Stop()
+			respChan = make(chan *gnmi.SubscribeResponse)
+			childCtx, cancel = context.WithCancel(actx)
+			defer cancel()
+			go agnmi.Subscribe(childCtx, p.inClient, subscribeOptions,
+				respChan, errChan)
 		case response, ok := <-respChan:
 			if !ok {
-				// channel closed, we received an io.EOF from the server.
-				log.Log(p).Infof("gNMI target closed subscription")
-				return fmt.Errorf("gNMI target closed subscription")
+				// Channel closed--we got an io.EOF from the server. Cancel
+				// the last subscription's context and schedule a retry.
+				log.Log(p).Info("gNMI target closed subscription")
+				cancel()
+				retryTimer.Reset(5 * time.Second)
+				continue
 			}
 			switch resp := response.Response.(type) {
 			case *gnmi.SubscribeResponse_Error:
@@ -86,7 +106,7 @@ func (p *Gnmi) Run(ctx context.Context) error {
 					Delete: resp.Update.Delete,
 				}
 				log.Log(p).Debugf("SetRequest: %+v", sr)
-				if _, err := p.outClient.Set(ctx, sr); err != nil {
+				if _, err := p.outClient.Set(childCtx, sr); err != nil {
 					log.Log(p).Infof("Error on Set: %v", err)
 				}
 			}

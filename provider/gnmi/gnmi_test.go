@@ -19,12 +19,14 @@ import (
 // inClient is a mock gNMI client that will stream out a pre-determined set of
 // subscribe responses
 type inClient struct {
+	cancel    context.CancelFunc
 	responses []*gnmi.SubscribeResponse
 	t         *testing.T
 }
 
 // inSubClient is the GNMI_SubcribeClient returned by inClient.Subscribe.
 type inSubClient struct {
+	cancel    context.CancelFunc
 	responses []*gnmi.SubscribeResponse
 	grpc.ClientStream
 }
@@ -37,6 +39,7 @@ func (sc *inSubClient) Send(*gnmi.SubscribeRequest) error {
 // Recv returns pre-determined Subscribe Responses one by one.
 func (sc *inSubClient) Recv() (*gnmi.SubscribeResponse, error) {
 	if len(sc.responses) == 0 {
+		sc.cancel()
 		return nil, io.EOF
 	}
 	r := sc.responses[0]
@@ -66,7 +69,7 @@ func (c *inClient) Subscribe(ctx context.Context,
 	opts ...grpc.CallOption) (gnmi.GNMI_SubscribeClient, error) {
 	resp := c.responses
 	c.responses = nil // so we don't send the same responses again.
-	return &inSubClient{responses: resp}, nil
+	return &inSubClient{cancel: c.cancel, responses: resp}, nil
 }
 
 // outClient is a mock gNMI client that verifies that a pre-determined
@@ -196,12 +199,14 @@ func TestGNMIProvider(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			incl := &inClient{t: t, responses: tc.subResps}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			incl := &inClient{cancel: cancel, t: t, responses: tc.subResps}
 			outcl := &outClient{t: t, requests: tc.setReqs}
 			cfg := &agnmi.Config{}
 			p := NewGNMIProvider(incl, cfg, tc.paths)
 			p.InitGNMI(outcl)
-			_ = p.Run(context.Background())
+			_ = p.Run(ctx)
 		})
 	}
 }
