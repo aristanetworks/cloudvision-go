@@ -13,6 +13,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
+	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/version"
@@ -72,6 +73,7 @@ func (c *v2Client) Get(ctx context.Context, in *gnmi.GetRequest,
 func (c *v2Client) Set(ctx context.Context, in *gnmi.SetRequest,
 	opts ...grpc.CallOption) (*gnmi.SetResponse, error) {
 	in.Prefix = c.setTargetAndOrigin(in.Prefix)
+	log.Log(c).Debugf("v2Client: SetRequest: %v", in)
 	return c.gnmiClient.Set(ctx, in, opts...)
 }
 
