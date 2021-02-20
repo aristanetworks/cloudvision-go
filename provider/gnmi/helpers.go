@@ -165,6 +165,27 @@ func Update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 	}
 }
 
+// pathElemCopy creates a new copy of a gNMI PathElem slice.
+func pathElemCopy(elems []*gnmi.PathElem) []*gnmi.PathElem {
+	newElems := make([]*gnmi.PathElem, len(elems))
+	for i, elem := range elems {
+		newElems[i] = &gnmi.PathElem{Name: elem.Name, Key: make(map[string]string, len(elem.Key))}
+		for k, v := range elem.Key {
+			newElems[i].Key[k] = v
+		}
+	}
+	return newElems
+}
+
+// PathCopy creates a new copy of a gNMI PathElem slice.
+func PathCopy(oldPath *gnmi.Path) *gnmi.Path {
+	return &gnmi.Path{
+		Origin: oldPath.Origin,
+		Elem:   pathElemCopy(oldPath.Elem),
+		Target: oldPath.Target,
+	}
+}
+
 // A PollFn polls a target device and returns a slice of gNMI SetRequests.
 type PollFn func() ([]*gnmi.SetRequest, error)
 

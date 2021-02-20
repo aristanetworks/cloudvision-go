@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestGNMIPathJoin(t *testing.T) {
@@ -165,6 +166,35 @@ func TestGNMIPatchMatch(t *testing.T) {
 					tc.result, res, tc.path, tc.pattern)
 			}
 		})
+	}
+}
+
+func TestGNMIPathCopy(t *testing.T) {
+	oldPath := &gnmi.Path{
+		Origin: "foo",
+		Elem: []*gnmi.PathElem{
+			&gnmi.PathElem{
+				Name: "elem1",
+				Key:  map[string]string{"key1": "val1", "key2": "val2"},
+			},
+			&gnmi.PathElem{
+				Name: "elem2",
+			},
+		},
+		Target: "bar",
+	}
+	newPath := PathCopy(oldPath)
+	if !proto.Equal(oldPath, newPath) {
+		t.Fatalf("old path %v != new path %v", oldPath.String(), newPath.String())
+	}
+	// Now make sure that even though values are the same, pointers are not.
+	if &oldPath == &newPath {
+		t.Fatal("old path address == new path address")
+	}
+	for i, pe := range oldPath.Elem {
+		if &pe == &newPath.Elem[i] {
+			t.Fatal("old path elem address == new path elem address")
+		}
 	}
 }
 
