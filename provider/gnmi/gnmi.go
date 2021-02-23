@@ -91,7 +91,7 @@ func (p *Gnmi) Run(ctx context.Context) error {
 			case *gnmi.SubscribeResponse_Error:
 				// Not sure if this is recoverable so it doesn't return and hope things get better
 				log.Log(p).Infof(
-					"gNMI SubscribeResponse Error: %v", resp.Error.Message)
+					"gNMI SubscribeResponse Error: %v", resp.Error.Message) // nolint: staticcheck
 			case *gnmi.SubscribeResponse_SyncResponse:
 				if resp.SyncResponse {
 					log.Log(p).Debug("gNMI sync_response")

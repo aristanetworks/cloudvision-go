@@ -60,7 +60,7 @@ func Path(element ...string) *gnmi.Path {
 	if err != nil {
 		panic(fmt.Sprintf("Unable to parse GNMI elements in path %v: %s", element, err))
 	}
-	p.Element = nil
+	p.Element = nil //nolint: staticcheck
 	return p
 }
 
