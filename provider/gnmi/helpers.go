@@ -167,6 +167,9 @@ func Update(path *gnmi.Path, val *gnmi.TypedValue) *gnmi.Update {
 
 // pathElemCopy creates a new copy of a gNMI PathElem slice.
 func pathElemCopy(elems []*gnmi.PathElem) []*gnmi.PathElem {
+	if elems == nil {
+		return nil
+	}
 	newElems := make([]*gnmi.PathElem, len(elems))
 	for i, elem := range elems {
 		newElems[i] = &gnmi.PathElem{Name: elem.Name, Key: make(map[string]string, len(elem.Key))}
@@ -179,6 +182,9 @@ func pathElemCopy(elems []*gnmi.PathElem) []*gnmi.PathElem {
 
 // PathCopy creates a new copy of a gNMI PathElem slice.
 func PathCopy(oldPath *gnmi.Path) *gnmi.Path {
+	if oldPath == nil {
+		return nil
+	}
 	return &gnmi.Path{
 		Origin: oldPath.Origin,
 		Elem:   pathElemCopy(oldPath.Elem),

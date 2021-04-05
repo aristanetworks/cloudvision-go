@@ -170,31 +170,54 @@ func TestGNMIPatchMatch(t *testing.T) {
 }
 
 func TestGNMIPathCopy(t *testing.T) {
-	oldPath := &gnmi.Path{
-		Origin: "foo",
-		Elem: []*gnmi.PathElem{
-			&gnmi.PathElem{
-				Name: "elem1",
-				Key:  map[string]string{"key1": "val1", "key2": "val2"},
-			},
-			&gnmi.PathElem{
-				Name: "elem2",
+	for name, tc := range map[string]struct {
+		path *gnmi.Path
+	}{
+		"nil path": {
+			path: nil,
+		},
+		"nil elems": {
+			path: &gnmi.Path{
+				Origin: "foo",
+				Elem:   nil,
+				Target: "bar",
 			},
 		},
-		Target: "bar",
-	}
-	newPath := PathCopy(oldPath)
-	if !proto.Equal(oldPath, newPath) {
-		t.Fatalf("old path %v != new path %v", oldPath.String(), newPath.String())
-	}
-	// Now make sure that even though values are the same, pointers are not.
-	if &oldPath == &newPath {
-		t.Fatal("old path address == new path address")
-	}
-	for i, pe := range oldPath.Elem {
-		if &pe == &newPath.Elem[i] {
-			t.Fatal("old path elem address == new path elem address")
-		}
+		"multiple elements": {
+			path: &gnmi.Path{
+				Origin: "foo",
+				Elem: []*gnmi.PathElem{
+					&gnmi.PathElem{
+						Name: "elem1",
+						Key:  map[string]string{"key1": "val1", "key2": "val2"},
+					},
+					&gnmi.PathElem{
+						Name: "elem2",
+					},
+				},
+				Target: "bar",
+			},
+		},
+	} {
+		oldPath := tc.path
+		t.Run(name, func(t *testing.T) {
+			newPath := PathCopy(oldPath)
+			if !proto.Equal(oldPath, newPath) {
+				t.Fatalf("old path %v != new path %v", oldPath.String(), newPath.String())
+			}
+			// Now make sure that even though values are the same, pointers are not.
+			if &oldPath == &newPath {
+				t.Fatal("old path address == new path address")
+			}
+			if oldPath != nil {
+				for i, pe := range oldPath.Elem {
+					if &pe == &newPath.Elem[i] {
+						t.Fatal("old path elem address == new path elem address")
+					}
+				}
+			}
+
+		})
 	}
 }
 
