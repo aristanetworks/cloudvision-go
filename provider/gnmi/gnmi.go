@@ -7,10 +7,12 @@ package gnmi
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
+	"golang.org/x/sync/errgroup"
 
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 
@@ -43,16 +45,68 @@ func (p *Gnmi) Origin() string {
 	return "openconfig"
 }
 
+func (p *Gnmi) subscribeAndSet(ctx context.Context,
+	subscribeOptions *agnmi.SubscribeOptions) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	ctx = agnmi.NewContext(ctx, p.cfg)
+	respCh := make(chan *gnmi.SubscribeResponse)
+	errg, ctx := errgroup.WithContext(ctx)
+
+	// producer: subscribe to target
+	errg.Go(func() error {
+		log.Log(p).Infof("gNMI subscribeOptions: %+v, config: %+v",
+			subscribeOptions, p.cfg)
+		return agnmi.SubscribeErr(ctx, p.inClient, subscribeOptions, respCh)
+	})
+
+	// consumer: receive SubscribeResponses, send SetRequests
+	errg.Go(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case response, ok := <-respCh:
+				if !ok {
+					log.Log(p).Info("gNMI target closed subscription")
+					return io.EOF
+				}
+				switch resp := response.Response.(type) {
+				case *gnmi.SubscribeResponse_Error:
+					// Not sure if this is recoverable; keep going and
+					// hope things get better.
+					log.Log(p).Infof("gNMI SubscribeResponse Error: %v",
+						resp.Error.Message) // nolint: staticcheck
+				case *gnmi.SubscribeResponse_SyncResponse:
+					if resp.SyncResponse {
+						log.Log(p).Info("gNMI sync_response")
+					} else {
+						log.Log(p).Infof("gNMI sync failed")
+					}
+				case *gnmi.SubscribeResponse_Update:
+					// One SetRequest per update:
+					sr := &gnmi.SetRequest{
+						Prefix: resp.Update.Prefix,
+						Update: resp.Update.Update,
+						Delete: resp.Update.Delete,
+					}
+					log.Log(p).Debugf("SetRequest: %+v", sr)
+					if _, err := p.outClient.Set(ctx, sr); err != nil {
+						log.Log(p).Infof("Error on Set: %v", err)
+					}
+				}
+			}
+		}
+	})
+
+	return errg.Wait()
+}
+
 // Run kicks off the provider.
 func (p *Gnmi) Run(ctx context.Context) error {
 	if !p.initialized {
 		return fmt.Errorf("provider is uninitialized")
 	}
-	respChan := make(chan *gnmi.SubscribeResponse)
-	errChan := make(chan error)
-	actx := agnmi.NewContext(ctx, p.cfg)
-	childCtx, cancel := context.WithCancel(actx)
-	defer cancel()
 
 	subscribeOptions := &agnmi.SubscribeOptions{
 		Mode:       "stream",
@@ -60,58 +114,25 @@ func (p *Gnmi) Run(ctx context.Context) error {
 		Paths:      agnmi.SplitPaths(p.paths),
 	}
 
-	// Initialize retry timer in case we need to redial, but stop it
-	// immediately.
-	retryTimer := time.NewTimer(time.Second * 60 * 60)
-	retryTimer.Stop()
+	// Initialize retry timer, setting it to one nanosecond so we can
+	// go straight into the retry loop.
+	retryTimer := time.NewTimer(time.Nanosecond)
 
-	go agnmi.Subscribe(childCtx, p.inClient, subscribeOptions, respChan, errChan)
-
+	// Retry loop
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		case <-retryTimer.C:
-			retryTimer.Stop()
-			respChan = make(chan *gnmi.SubscribeResponse)
-			childCtx, cancel = context.WithCancel(actx)
-			defer cancel()
-			go agnmi.Subscribe(childCtx, p.inClient, subscribeOptions,
-				respChan, errChan)
-		case response, ok := <-respChan:
-			if !ok {
-				// Channel closed--we got an io.EOF from the server. Cancel
-				// the last subscription's context and schedule a retry.
-				log.Log(p).Info("gNMI target closed subscription")
-				cancel()
-				retryTimer.Reset(5 * time.Second)
-				continue
-			}
-			switch resp := response.Response.(type) {
-			case *gnmi.SubscribeResponse_Error:
-				// Not sure if this is recoverable so it doesn't return and hope things get better
-				log.Log(p).Infof(
-					"gNMI SubscribeResponse Error: %v", resp.Error.Message) // nolint: staticcheck
-			case *gnmi.SubscribeResponse_SyncResponse:
-				if resp.SyncResponse {
-					log.Log(p).Debug("gNMI sync_response")
-				} else {
-					log.Log(p).Infof("gNMI sync failed")
-				}
-			case *gnmi.SubscribeResponse_Update:
-				// One SetRequest per update:
-				sr := &gnmi.SetRequest{
-					Prefix: resp.Update.Prefix,
-					Update: resp.Update.Update,
-					Delete: resp.Update.Delete,
-				}
-				log.Log(p).Debugf("SetRequest: %+v", sr)
-				if _, err := p.outClient.Set(childCtx, sr); err != nil {
-					log.Log(p).Infof("Error on Set: %v", err)
+			// Subscribe, hopefully forever.
+			if err := p.subscribeAndSet(ctx, subscribeOptions); err != nil {
+				if err != io.EOF {
+					return err
 				}
 			}
-		case err := <-errChan:
-			return fmt.Errorf("Error from gNMI connection: %v", err)
+			// The server closed the connection with no error. Schedule a retry.
+			log.Log(p).Info("gNMI subscription disconnected, retrying...")
+			retryTimer.Reset(5 * time.Second)
 		}
 	}
 }
