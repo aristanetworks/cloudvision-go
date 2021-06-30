@@ -56,7 +56,7 @@ func (tm testManager) Type() string {
 	return ""
 }
 
-func (tm testManager) Manage(inv device.Inventory) error {
+func (tm testManager) Manage(ctx context.Context, inv device.Inventory) error {
 	return inv.Add(&device.Info{Device: testDevice{}, ID: "aaa"})
 }
 

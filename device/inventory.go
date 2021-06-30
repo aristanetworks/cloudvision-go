@@ -154,7 +154,7 @@ func (i *inventory) Add(info *Info) error {
 	if manager, ok := info.Device.(Manager); ok {
 		dc.group.Add(1)
 		go func() {
-			err := manager.Manage(i)
+			err := manager.Manage(dc.ctx, i)
 			if err != nil {
 				log.Log(info.Device).Errorf("Error in manager.Manage: %v", err)
 			}
@@ -179,7 +179,8 @@ func (i *inventory) Delete(key string) error {
 
 	// Cancel the device context and delete the device from the device
 	// map. We need to make sure this device's providers are finished
-	// before deleting the device.
+	// before deleting the device. We also need to make sure Manager device
+	// has manage go routine closed too.
 	dc.cancel()
 	dc.group.Wait()
 	delete(i.devices, key)

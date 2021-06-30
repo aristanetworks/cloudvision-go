@@ -5,6 +5,7 @@
 package device
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -31,7 +32,7 @@ type Device interface {
 // devices as appropriate.
 type Manager interface {
 	Device
-	Manage(inventory Inventory) error
+	Manage(ctx context.Context, inventory Inventory) error
 }
 
 // Creator returns a new instance of a Device.
