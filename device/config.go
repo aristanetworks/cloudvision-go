@@ -14,8 +14,9 @@ import (
 
 // Config represents a single device configuration.
 type Config struct {
-	Device  string            `yaml:"Device,omitempty"`
-	Options map[string]string `yaml:"Options,omitempty"`
+	Device   string            `yaml:"Device,omitempty"`
+	NoStream bool              `yaml:"NoStream,omitempty"`
+	Options  map[string]string `yaml:"Options,omitempty"`
 }
 
 func (c *Config) validate() error {

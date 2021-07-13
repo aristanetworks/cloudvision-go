@@ -124,13 +124,13 @@ func (i *inventory) Add(info *Info) error {
 		return fmt.Errorf("ID in device.Info cannot be empty")
 	}
 	if dev, ok := i.devices[info.ID]; ok {
-		if info.Config.Device != dev.info.Config.Device {
+		if info.Config != nil && info.Config.Device != dev.info.Config.Device {
 			return fmt.Errorf("Cannot add device '%s' (type '%s') to inventory; "+
 				"it already exists with a different type ('%s')",
 				info.ID, info.Config.Device, dev.info.Config.Device)
 		}
-		log.Log(info.Device).Infof("Device %s already exists (type '%s')\n",
-			info.ID, info.Config.Device)
+		log.Log(info.Device).Infof("Device %s already exists with Config %+v\n",
+			info.ID, info.Config)
 		return nil
 	}
 
@@ -142,14 +142,16 @@ func (i *inventory) Add(info *Info) error {
 	}
 
 	// Send periodic updates of device-level metadata.
-	dc.group.Add(1)
-	go func() {
-		err := dc.sendPeriodicUpdates()
-		if err != nil {
-			log.Log(info.Device).Errorf("Error updating device metadata: %v", err)
-		}
-		dc.group.Done()
-	}()
+	if info.Config == nil || !info.Config.NoStream {
+		dc.group.Add(1)
+		go func() {
+			err := dc.sendPeriodicUpdates()
+			if err != nil {
+				log.Log(info.Device).Errorf("Error updating device metadata: %v", err)
+			}
+			dc.group.Done()
+		}()
+	}
 
 	if manager, ok := info.Device.(Manager); ok {
 		dc.group.Add(1)

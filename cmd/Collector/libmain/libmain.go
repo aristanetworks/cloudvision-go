@@ -52,6 +52,8 @@ var (
 		"Device type (available devices: "+deviceList()+")")
 	deviceOptions    = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
+	noStream         = flag.Bool("nostream", false,
+		"If set, updates aren't streamed for specified device")
 
 	// MockCollector config
 	mock        = flag.Bool("mock", false, "Run Collector in mock mode")
@@ -241,8 +243,9 @@ func createDeviceConfigs() ([]*device.Config, error) {
 	configs := []*device.Config{}
 	if *deviceName != "" {
 		configs = append(configs, &device.Config{
-			Device:  *deviceName,
-			Options: deviceOptions,
+			Device:   *deviceName,
+			NoStream: *noStream,
+			Options:  deviceOptions,
 		})
 	}
 
@@ -285,6 +288,10 @@ func addHelp() error {
 func validateConfig() {
 	if *deviceConfigFile != "" && *deviceName != "" {
 		logrus.Fatal("-config and -device should not be both specified.")
+	}
+
+	if *noStream && *deviceName == "" {
+		logrus.Fatal("device name must be specified if -nostream is set true")
 	}
 
 	if !*mock && len(mockFeature) > 0 {
