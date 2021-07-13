@@ -114,9 +114,10 @@ func OptionHelp(deviceName string) (map[string]string, error) {
 
 // Info contains the running state of an instantiated device.
 type Info struct {
-	ID     string
-	Device Device
-	Config *Config
+	ID      string
+	Context context.Context
+	Device  Device
+	Config  *Config
 }
 
 func (i *Info) String() string {

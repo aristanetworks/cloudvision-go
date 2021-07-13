@@ -74,7 +74,12 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 
 func (i *inventory) newDeviceConn(info *Info) *deviceConn {
 	dc := &deviceConn{info: info}
-	dc.ctx, dc.cancel = context.WithCancel(i.ctx)
+	// Take any metadata associated with the device context.
+	if info.Context != nil {
+		dc.ctx, dc.cancel = context.WithCancel(info.Context)
+	} else {
+		dc.ctx, dc.cancel = context.WithCancel(i.ctx)
+	}
 	dc.cvClient = i.clientFactory(i.rawGNMIClient, info)
 	return dc
 }
