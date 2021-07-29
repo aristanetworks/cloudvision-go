@@ -8,12 +8,9 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/aristanetworks/cloudvision-go/internal/redirector"
 )
 
 // DialWithAuth dials a gRPC endpoint, target, with the provided
@@ -26,21 +23,7 @@ func DialWithAuth(ctx context.Context, target string, auth *Auth, opts ...grpc.D
 		return nil, fmt.Errorf("failed to configuration authentication scheme: %s", err)
 	}
 	opts = append(opts, grpc.WithBlock())
-	opts = append(opts, authOpts...)
-
-	if os.Getenv("CLOUDVISION_REGIONAL_REDIRECT") != "false" {
-		targets, err := redirector.Resolve(ctx, target, opts...)
-		if err != nil {
-			return nil, err
-		}
-		// pick the first host until we have HA, if there are no hosts returned
-		// just continue with the original target.
-		if len(targets) > 1 {
-			target = targets[0]
-		}
-	}
-
-	return grpc.DialContext(ctx, target, opts...)
+	return grpc.DialContext(ctx, target, append(opts, authOpts...)...)
 }
 
 // DialWithToken dials a gRPC endpoint, target, with the provided
@@ -53,18 +36,5 @@ func DialWithToken(ctx context.Context, target, token string, opts ...grpc.DialO
 		grpc.WithPerRPCCredentials(NewAccessTokenCredential(token)),
 		grpc.WithTransportCredentials(credentials.NewTLS(TLSConfig())),
 	)
-
-	if os.Getenv("CLOUDVISION_REGIONAL_REDIRECT") != "false" {
-		targets, err := redirector.Resolve(ctx, target, opts...)
-		if err != nil {
-			return nil, err
-		}
-		// pick the first host until we have HA, if there are no hosts returned
-		// just continue with the original target.
-		if len(targets) > 1 {
-			target = targets[0]
-		}
-	}
-
 	return grpc.DialContext(ctx, target, opts...)
 }
