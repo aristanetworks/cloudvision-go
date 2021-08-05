@@ -12,3 +12,10 @@ linters:
     - lll
     - staticcheck
     - unconvert
+
+issues:
+  exclude-rules:
+    - linters:
+        - lll
+      # Exclude line length limits for go:generate statements as they can't be split.
+      source: "^//go:generate "
