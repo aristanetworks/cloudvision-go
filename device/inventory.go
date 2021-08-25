@@ -15,7 +15,8 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/pkg/errors"
+
+	"google.golang.org/grpc"
 )
 
 const heartbeatInterval = 10 * time.Second
@@ -28,12 +29,16 @@ type Inventory interface {
 	List() []*Info
 }
 
-// deviceConn contains a device and its gNMI connections.
+// InventoryOption configures how we create the Inventory.
+type InventoryOption func(*inventory)
+
+// deviceConn contains a device and its gNMI/gRPC connections.
 type deviceConn struct {
 	info     *Info
 	ctx      context.Context
 	cancel   context.CancelFunc
 	cvClient cvclient.CVClient
+	grpcConn *grpc.ClientConn
 	group    sync.WaitGroup
 }
 
@@ -41,6 +46,7 @@ type deviceConn struct {
 type inventory struct {
 	ctx           context.Context
 	rawGNMIClient gnmi.GNMIClient
+	grpcConn      *grpc.ClientConn
 	devices       map[string]*deviceConn
 	lock          sync.Mutex
 	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
@@ -73,14 +79,19 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 }
 
 func (i *inventory) newDeviceConn(info *Info) *deviceConn {
-	dc := &deviceConn{info: info}
+	dc := &deviceConn{
+		cvClient: i.clientFactory(i.rawGNMIClient, info),
+		grpcConn: i.grpcConn,
+		info:     info,
+	}
+
 	// Take any metadata associated with the device context.
 	if info.Context != nil {
 		dc.ctx, dc.cancel = context.WithCancel(info.Context)
 	} else {
 		dc.ctx, dc.cancel = context.WithCancel(i.ctx)
 	}
-	dc.cvClient = i.clientFactory(i.rawGNMIClient, info)
+
 	return dc
 }
 
@@ -101,11 +112,14 @@ func (dc *deviceConn) runProviders() error {
 			return fmt.Errorf("Error setting up logging for provider %#v: %v", p, err)
 		}
 
-		pt, ok := p.(provider.GNMIProvider)
-		if !ok {
-			return errors.New("unexpected provider type; need GNMIProvider")
+		switch pt := p.(type) {
+		case provider.GNMIProvider:
+			pt.InitGNMI(dc.cvClient.ForProvider(pt))
+		case provider.GRPCProvider:
+			pt.InitGRPC(dc.grpcConn)
+		default:
+			return fmt.Errorf("unexpected provider type %T", p)
 		}
-		pt.InitGNMI(dc.cvClient.ForProvider(pt))
 
 		// Start the providers.
 		dc.group.Add(1)
@@ -216,14 +230,46 @@ func (i *inventory) List() []*Info {
 	return ret
 }
 
-// NewInventory creates an Inventory.
-func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
-	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient) Inventory {
+// WithGNMIClient sets a gNMI client on the Inventory.
+func WithGNMIClient(c gnmi.GNMIClient) InventoryOption {
+	return func(i *inventory) {
+		i.rawGNMIClient = c
+	}
+}
+
+// WithGRPCConn sets a gRPC connection on the Inventory.
+func WithGRPCConn(c *grpc.ClientConn) InventoryOption {
+	return func(i *inventory) {
+		i.grpcConn = c
+	}
+}
+
+// WithClientFactory sets a client factory on the Inventory.
+func WithClientFactory(
+	f func(gnmi.GNMIClient, *Info) cvclient.CVClient) InventoryOption {
+	return func(i *inventory) {
+		i.clientFactory = f
+	}
+}
+
+// NewInventoryWithOptions creates an Inventory with the supplied options.
+func NewInventoryWithOptions(ctx context.Context,
+	options ...InventoryOption) Inventory {
 	inv := &inventory{
-		ctx:           ctx,
-		devices:       make(map[string]*deviceConn),
-		rawGNMIClient: gnmiClient,
-		clientFactory: clientFactory,
+		ctx:     ctx,
+		devices: make(map[string]*deviceConn),
+	}
+	for _, opt := range options {
+		opt(inv)
 	}
 	return inv
+}
+
+// NewInventory creates an Inventory.
+// Deprecated: Use NewInventoryWithOptions instead.
+func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
+	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient) Inventory {
+	return NewInventoryWithOptions(ctx,
+		WithGNMIClient(gnmiClient),
+		WithClientFactory(clientFactory))
 }

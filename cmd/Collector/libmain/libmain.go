@@ -71,9 +71,13 @@ var (
 	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
 		"Address of gNMI server")
 
-	// grpc server config
+	// gRPC server config
+	grpcServerAddr = flag.String("grpcServerAddr", "",
+		"Address of gRPC server")
+
+	// local gRPC server config for inventory service
 	grpcAddr = flag.String("grpcAddr", "",
-		"gRPC server address. If unspecified, server will not run.")
+		"Collector gRPC server address (if unspecified, server will not run)")
 
 	// Auth config
 	caFile   = flag.String("cafile", "", "Path to CA file")
@@ -176,16 +180,30 @@ func runMain(ctx context.Context) {
 	}
 
 	var noAuth agrpc.Auth
+	opts := []device.InventoryOption{
+		device.WithClientFactory(newCVClient),
+	}
 	if *authInfo != noAuth {
 		gnmiCfg.TLS = true
 		gnmiCfg.CAFile = authInfo.CAFile()
-		// XXX: agnmi.Dial does not use system cert pool if this is "", rather it disables the
-		// certificate validation option - this should be fixed.
+		// XXX: agnmi.Dial does not use system cert pool if this is "",
+		// rather it disables the certificate validation option - this
+		// should be fixed.
 		clientCreds, err := authInfo.ClientCredentials()
 		if err != nil {
 			logrus.Fatal(err)
 		}
 		gnmiCfg.DialOptions = append(gnmiCfg.DialOptions, clientCreds...)
+	}
+
+	if *grpcServerAddr != "" {
+		logrus.Infof("Connecting to gRPC server %+v", authInfo)
+		conn, err := agrpc.DialWithAuth(ctx, *grpcServerAddr, authInfo)
+		if err != nil {
+			logrus.Fatalf("DialWithAuth error: %v", err)
+		}
+		logrus.Info("Connected")
+		opts = append(opts, device.WithGRPCConn(conn))
 	}
 
 	logrus.Infof("Connecting to gNMI server %+v", gnmiCfg)
@@ -194,9 +212,10 @@ func runMain(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	logrus.Info("Connected")
+	opts = append(opts, device.WithGNMIClient(gnmiClient))
 
 	// Create inventory.
-	inventory := device.NewInventory(ctx, gnmiClient, newCVClient)
+	inventory := device.NewInventoryWithOptions(ctx, opts...)
 
 	group, ctx := errgroup.WithContext(ctx)
 	configs, err := createDeviceConfigs()

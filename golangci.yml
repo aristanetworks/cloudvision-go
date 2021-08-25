@@ -2,6 +2,9 @@ linters-settings:
   lll:
     line-length: 100
     tab-width: 4
+  gosimple:
+    excludes:
+      - S1017
 
 linters:
   enable:
