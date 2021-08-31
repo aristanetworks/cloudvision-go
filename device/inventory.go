@@ -135,7 +135,7 @@ func (i *inventory) Add(info *Info) error {
 				info.ID, info.Config.Device, dev.info.Config.Device)
 		}
 		log.Log(info.Device).Infof("Device %s already exists with Config %+v\n",
-			info.ID, info.Config)
+			info.ID, dev.info.Config)
 		return nil
 	}
 
