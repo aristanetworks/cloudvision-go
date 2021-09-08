@@ -19,3 +19,7 @@ issues:
         - lll
       # Exclude line length limits for go:generate statements as they can't be split.
       source: "^//go:generate "
+    - linters:
+        - gosimple
+      # Exclude nonsensical strings.Replace message for snmpoc/mappings.go
+      text: "S1017:"
