@@ -41,6 +41,7 @@ func init() {
 // should this hook be triggered, and Fire() is called on every call global logging function
 // like logrus.Info() just before the logs are written to the logger's output io.Writer.
 type logger struct {
+	sync.Mutex
 	logDir string
 
 	// map from uintptr of struct instances to io.Writer
@@ -71,6 +72,8 @@ func (l *logger) Fire(entry *logrus.Entry) error {
 	}
 	// inject information about the caller in the logs
 	entry.Data[string(callerKey)] = reflect.TypeOf(caller)
+	l.Lock()
+	defer l.Unlock()
 	entry.Logger.Out = out.(io.Writer)
 	return nil
 }
