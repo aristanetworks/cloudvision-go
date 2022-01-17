@@ -171,6 +171,7 @@ var now = time.Now
 // Collector's. There doesn't seem to be a great way to get the
 // device's time using SNMP. Assuming the two devices are
 // roughly in sync, though, this shouldn't be disastrous.
+// Convert it to nanoseconds as expected by the openconfig model
 func processBootTime(x interface{}) *gnmi.TypedValue {
 	t, err := provider.ToInt64(x)
 	if err != nil {
@@ -179,7 +180,7 @@ func processBootTime(x interface{}) *gnmi.TypedValue {
 	if t == 0 {
 		return nil
 	}
-	return intval(now().Unix() - t/100)
+	return intval(now().UnixNano() - t*10000000)
 }
 
 func setIndexStringMappings(ss smi.Store, ps pdu.Store,
