@@ -253,8 +253,7 @@ func TestUnmarshal(t *testing.T) {
 			exp: uint64(42),
 		},
 		"BoolVal": {
-			val: &gnmi.TypedValue{
-				Value: &gnmi.TypedValue_BoolVal{BoolVal: true}},
+			val: Boolval(true),
 			exp: true,
 		},
 		"BytesVal": {
