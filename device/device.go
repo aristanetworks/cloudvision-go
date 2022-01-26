@@ -95,9 +95,8 @@ func NewDeviceInfo(config *Config) (*Info, error) {
 	}
 	did, err := d.DeviceID()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"Error getting device ID from Device %s with options %v: %v",
-			config.Device, config.Options, err)
+		return nil, fmt.Errorf("Error getting device ID from Device %s: %w",
+			config.Device, err)
 	}
 	return &Info{Device: d, ID: did, Config: config}, nil
 }

@@ -224,7 +224,8 @@ var lldpChassisIDDefaultResponse = `
 
 func TestDeviceID(t *testing.T) {
 	s := &Snmp{
-		mock: true,
+		mock:  true,
+		gsnmp: &gosnmp.GoSNMP{Target: "1.2.3.4"},
 	}
 	for _, tc := range []deviceIDTestCase{
 		{
@@ -260,6 +261,22 @@ func TestDeviceID(t *testing.T) {
 				snmpLldpLocChassisID:        PDUsFromString(lldpChassisIDDefaultResponse),
 			},
 			expected: "00:1c:73:03:13:36",
+		},
+		{
+			name: "badChassisIDType",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpEntPhysicalClass:     []*gosnmp.SnmpPDU{},
+				snmpEntPhysicalSerialNum: []*gosnmp.SnmpPDU{},
+				snmpLldpLocChassisIDSubtype: []*gosnmp.SnmpPDU{{
+					Name:  ".1.3.6.1.6.3.15.1.1.3.0",
+					Type:  gosnmp.Counter32,
+					Value: uint(12345),
+				}},
+				snmpLldpLocChassisID:          []*gosnmp.SnmpPDU{},
+				snmpLldpV2LocChassisIDSubtype: []*gosnmp.SnmpPDU{},
+				snmpLldpV2LocChassisID:        []*gosnmp.SnmpPDU{},
+			},
+			expected: "1.2.3.4",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

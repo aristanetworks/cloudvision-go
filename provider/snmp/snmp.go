@@ -31,6 +31,7 @@ const (
 	snmpLldpV2LocChassisID        = ".1.3.111.2.802.1.1.13.1.3.2.0"
 	snmpLldpV2LocChassisIDSubtype = ".1.3.111.2.802.1.1.13.1.3.1.0"
 	snmpSysUpTimeInstance         = ".1.3.6.1.2.1.1.3.0"
+	snmpUsmStatsUnknownUserNames  = ".1.3.6.1.6.3.15.1.1.3.0"
 )
 
 // Split the final index off an OID and return it along with the remaining OID.
@@ -79,27 +80,32 @@ func (s *Snmp) snmpNetworkInit() error {
 
 	s.connectionLock.Lock()
 	defer s.connectionLock.Unlock()
-	err := s.tgsnmp.Connect()
-	if err != nil {
+	if err := s.tgsnmp.Connect(); err != nil {
 		return err
 	}
 
-	err = s.gsnmp.Connect()
-
-	s.initialized = err == nil
-	return err
-}
-
-func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
-	log.Log(s).Debugf("get (OID = %s)", oid)
-	if s.getter == nil {
-		return nil, errors.New("SNMP getter not set")
+	if err := s.gsnmp.Connect(); err != nil {
+		return err
 	}
 
-	s.connectionLock.Lock()
-	defer s.connectionLock.Unlock()
+	// Do an initial Get. If auth fails, give up before we start.
+	pkt, err := s.unsafeGet(snmpSysUpTimeInstance)
+	if err != nil {
+		return err
+	} else if len(pkt.Variables) > 0 {
+		pdu := pkt.Variables[0]
+		if oidExists(pdu) && pdu.Name == snmpUsmStatsUnknownUserNames {
+			return fmt.Errorf("unknown username, can't proceed: %s", pdu.Name)
+		}
+	}
+
+	s.initialized = true
+	return nil
+}
+
+// get, but without a lock. Don't use this.
+func (s *Snmp) unsafeGet(oid string) (*gosnmp.SnmpPacket, error) {
 	pkt, err := s.getter([]string{oid})
-	log.Log(s).Debugf("get complete (OID = %s): pkt = %v, err = %v", oid, pkt, err)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +118,26 @@ func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
 		}
 		return nil, fmt.Errorf("Error in packet (%v): %v", pkt, errstr)
 	}
+	return pkt, nil
+}
+
+func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
+	log.Log(s).Debugf("get (OID = %s)", oid)
+	if s.getter == nil {
+		return nil, errors.New("SNMP getter not set")
+	}
+
+	s.connectionLock.Lock()
+	defer s.connectionLock.Unlock()
+
+	pkt, err := s.unsafeGet(oid)
+	if err != nil {
+		return nil, err
+	}
 
 	s.lastAlive = s.now()
 
-	return pkt, err
+	return pkt, nil
 }
 
 func oidExists(pdu gosnmp.SnmpPDU) bool {
@@ -231,7 +253,13 @@ func (s *Snmp) getChassisID() (string, error) {
 			return "", err
 		}
 		if oidExists(*pdu) {
-			subtype = openconfig.LLDPChassisIDType(pdu.Value.(int))
+			v, ok := pdu.Value.(int)
+			if !ok {
+				log.Log(s).Errorf("Unexpected type '%T' for PDU value: %v"+
+					" (req OID=%v)", pdu.Value, pdu.Value, subtypeOID)
+				continue
+			}
+			subtype = openconfig.LLDPChassisIDType(v)
 			break
 		}
 	}
@@ -245,9 +273,15 @@ func (s *Snmp) getChassisID() (string, error) {
 			return "", err
 		}
 		if oidExists(*pdu) {
+			v, ok := pdu.Value.([]byte)
+			if !ok {
+				log.Log(s).Errorf("Unexpected type '%T' for PDU value: %v "+
+					"(OID=%v)", pdu.Value, pdu.Value, oid)
+				continue
+			}
 			log.Log(s).Tracef("getChassisID (chassisID = %v)",
-				chassisID(pdu.Value.([]byte), subtype))
-			return chassisID(pdu.Value.([]byte), subtype), nil
+				chassisID(v, subtype))
+			return chassisID(v, subtype), nil
 		}
 	}
 	log.Log(s).Traceln("getChassisID: no chassis ID")
@@ -258,7 +292,8 @@ func (s *Snmp) getChassisID() (string, error) {
 func (s *Snmp) DeviceID() (string, error) {
 	log.Log(s).Trace("Snmp.DeviceID")
 	if err := s.snmpNetworkInit(); err != nil {
-		return "", fmt.Errorf("Error connecting to device: %v", err)
+		return "", fmt.Errorf("Error connecting to device %q: %w",
+			s.gsnmp.Target, err)
 	}
 
 	if s.deviceID != "" {
@@ -444,6 +479,8 @@ func NewSNMPProvider(address string, port uint16, community string,
 		walker:       gsnmp.BulkWalk,
 		now:          time.Now,
 	}
+	log.Log(s).Debugf("NewSNMPProvider, address: %v, version: %v",
+		address, version)
 
 	return s
 }
