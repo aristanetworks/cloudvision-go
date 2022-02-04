@@ -26,7 +26,11 @@ func TestInventoryBasic(t *testing.T) {
 		})
 	expectedDevice := testDevice{}
 	deviceID := "dummy"
-	err := inventory.Add(&Info{Device: expectedDevice, ID: deviceID})
+	err := inventory.Add(&Info{
+		Config: &Config{},
+		Device: expectedDevice,
+		ID:     deviceID,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

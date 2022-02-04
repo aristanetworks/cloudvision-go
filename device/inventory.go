@@ -6,6 +6,7 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -56,10 +57,6 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(heartbeatInterval)
 	did, _ := dc.info.Device.DeviceID()
 
-	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
-		log.Log(dc.info.Device).Infof("Error sending device metadata "+
-			"for device %v: %v", did, err)
-	}
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -140,7 +137,9 @@ func (i *inventory) Add(info *Info) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if info.ID == "" {
-		return fmt.Errorf("ID in device.Info cannot be empty")
+		return errors.New("ID in device.Info cannot be empty")
+	} else if info.Config == nil {
+		return errors.New("Config in device.Info cannot be empty")
 	}
 	if dev, ok := i.devices[info.ID]; ok {
 		if info.Config != nil && info.Config.Device != dev.info.Config.Device {
@@ -153,15 +152,30 @@ func (i *inventory) Add(info *Info) error {
 		return nil
 	}
 
+	// Create device connection object.
 	dc := i.newDeviceConn(info)
-	i.devices[info.ID] = dc
 
-	if err := dc.runProviders(); err != nil {
-		return err
+	// Register the device before starting providers. If we can't reach
+	// the device right now, we should return an error rather than
+	// considering it added.
+	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
+		return fmt.Errorf("Error sending device metadata for device "+
+			"%q (%s): %w", info.ID, info.Config.Device, err)
 	}
 
+	// Start providers.
+	if err := dc.runProviders(); err != nil {
+		return fmt.Errorf("Error starting providers for device %q (%s): %w",
+			info.ID, info.Config.Device, err)
+	}
+
+	// We're connected to the device, have told CloudVision about the
+	// device, and are streaming the device's data now, so add the
+	// device to the inventory.
+	i.devices[info.ID] = dc
+
 	// Send periodic updates of device-level metadata.
-	if info.Config == nil || !info.Config.NoStream {
+	if !info.Config.NoStream {
 		dc.group.Add(1)
 		go func() {
 			err := dc.sendPeriodicUpdates()
@@ -183,7 +197,8 @@ func (i *inventory) Add(info *Info) error {
 		}()
 	}
 
-	log.Log(info.Device).Infof("Added device %s", info.ID)
+	log.Log(info.Device).Infof("Added device %q (%s)", info.ID,
+		info.Config.Device)
 	return nil
 }
 

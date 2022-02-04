@@ -57,7 +57,11 @@ func (tm testManager) Type() string {
 }
 
 func (tm testManager) Manage(ctx context.Context, inv device.Inventory) error {
-	return inv.Add(&device.Info{Device: testDevice{}, ID: "aaa"})
+	return inv.Add(&device.Info{
+		Device: testDevice{},
+		ID:     "aaa",
+		Config: &device.Config{},
+	})
 }
 
 func (tm testManager) IPAddr() string {
