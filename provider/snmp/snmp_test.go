@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/soniah/gosnmp"
 )
 
@@ -224,8 +225,9 @@ var lldpChassisIDDefaultResponse = `
 
 func TestDeviceID(t *testing.T) {
 	s := &Snmp{
-		mock:  true,
-		gsnmp: &gosnmp.GoSNMP{Target: "1.2.3.4"},
+		mock:   true,
+		gsnmp:  &gosnmp.GoSNMP{Target: "1.2.3.4"},
+		logger: logrus.WithField("mock", "true"),
 	}
 	for _, tc := range []deviceIDTestCase{
 		{

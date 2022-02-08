@@ -18,6 +18,7 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/snmpoc"
+	"github.com/sirupsen/logrus"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/soniah/gosnmp"
@@ -32,6 +33,8 @@ const (
 	snmpLldpV2LocChassisIDSubtype = ".1.3.111.2.802.1.1.13.1.3.1.0"
 	snmpSysUpTimeInstance         = ".1.3.6.1.2.1.1.3.0"
 	snmpUsmStatsUnknownUserNames  = ".1.3.6.1.6.3.15.1.1.3.0"
+
+	logFieldDeviceID = "deviceID"
 )
 
 // Split the final index off an OID and return it along with the remaining OID.
@@ -71,6 +74,9 @@ type Snmp struct {
 
 	// Alternative time.Now() for mock testing.
 	now func() time.Time
+
+	// Logger
+	logger *logrus.Entry
 }
 
 func (s *Snmp) snmpNetworkInit() error {
@@ -122,7 +128,7 @@ func (s *Snmp) unsafeGet(oid string) (*gosnmp.SnmpPacket, error) {
 }
 
 func (s *Snmp) get(oid string) (*gosnmp.SnmpPacket, error) {
-	log.Log(s).Debugf("get (OID = %s)", oid)
+	s.logger.Debugf("get (OID = %s)", oid)
 	if s.getter == nil {
 		return nil, errors.New("SNMP getter not set")
 	}
@@ -173,7 +179,7 @@ func (s *Snmp) getString(oid string) (string, error) {
 }
 
 func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
-	log.Log(s).Debugf("walk (OID = %s)", rootOid)
+	s.logger.Debugf("walk (OID = %s)", rootOid)
 	if s.walker == nil {
 		return errors.New("SNMP walker not set")
 	}
@@ -184,7 +190,7 @@ func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 	if err != nil {
 		return err
 	}
-	log.Log(s).Debugf("walk complete (OID = %s)", rootOid)
+	s.logger.Debugf("walk complete (OID = %s)", rootOid)
 	s.lastAlive = s.now()
 	return err
 }
@@ -199,7 +205,7 @@ func (s *Snmp) getSerialNumber() (string, error) {
 
 	// Get the serial number corresponding to the index whose class
 	// type is chassis(3).
-	log.Log(s).Tracef("getSerialNumber")
+	s.logger.Tracef("getSerialNumber")
 	entPhysicalWalk := func(data gosnmp.SnmpPDU) error {
 		// If we're finished, throw a pseudo-error to indicate to the
 		// walker that no more walking is required.
@@ -239,12 +245,12 @@ func (s *Snmp) getSerialNumber() (string, error) {
 			return "", err
 		}
 	}
-	log.Log(s).Tracef("getSerialNumber complete (serial = %v)", serial)
+	s.logger.Tracef("getSerialNumber complete (serial = %v)", serial)
 	return serial, nil
 }
 
 func (s *Snmp) getChassisID() (string, error) {
-	log.Log(s).Tracef("getChassisID")
+	s.logger.Tracef("getChassisID")
 	var subtype string
 	for _, subtypeOID := range []string{snmpLldpLocChassisIDSubtype,
 		snmpLldpV2LocChassisIDSubtype} {
@@ -255,7 +261,7 @@ func (s *Snmp) getChassisID() (string, error) {
 		if oidExists(*pdu) {
 			v, ok := pdu.Value.(int)
 			if !ok {
-				log.Log(s).Errorf("Unexpected type '%T' for PDU value: %v"+
+				s.logger.Errorf("Unexpected type '%T' for PDU value: %v"+
 					" (req OID=%v)", pdu.Value, pdu.Value, subtypeOID)
 				continue
 			}
@@ -275,22 +281,22 @@ func (s *Snmp) getChassisID() (string, error) {
 		if oidExists(*pdu) {
 			v, ok := pdu.Value.([]byte)
 			if !ok {
-				log.Log(s).Errorf("Unexpected type '%T' for PDU value: %v "+
+				s.logger.Errorf("Unexpected type '%T' for PDU value: %v "+
 					"(OID=%v)", pdu.Value, pdu.Value, oid)
 				continue
 			}
-			log.Log(s).Tracef("getChassisID (chassisID = %v)",
+			s.logger.Tracef("getChassisID (chassisID = %v)",
 				chassisID(v, subtype))
 			return chassisID(v, subtype), nil
 		}
 	}
-	log.Log(s).Traceln("getChassisID: no chassis ID")
+	s.logger.Traceln("getChassisID: no chassis ID")
 	return "", nil
 }
 
 // DeviceID returns the device ID.
 func (s *Snmp) DeviceID() (string, error) {
-	log.Log(s).Trace("Snmp.DeviceID")
+	s.logger.Trace("Snmp.DeviceID")
 	if err := s.snmpNetworkInit(); err != nil {
 		return "", fmt.Errorf("Error connecting to device %q: %w",
 			s.gsnmp.Target, err)
@@ -305,6 +311,7 @@ func (s *Snmp) DeviceID() (string, error) {
 		return did, err
 	} else if did != "" {
 		s.deviceID = did
+		s.loggerUseDeviceID()
 		return did, nil
 	}
 
@@ -313,20 +320,26 @@ func (s *Snmp) DeviceID() (string, error) {
 		return did, err
 	} else if did != "" {
 		s.deviceID = did
+		s.loggerUseDeviceID()
 		return did, nil
 	}
 
 	// The device didn't give us a serial number. Use the device
 	// address instead. It's not great but better than nothing.
-	log.Log(s).Infof("Failed to retrieve serial number for device '%s'; "+
+	s.logger.Infof("Failed to retrieve serial number for device '%s'; "+
 		"using address for device ID", s.gsnmp.Target)
 	s.deviceID = s.gsnmp.Target
+	s.loggerUseDeviceID()
 	return s.gsnmp.Target, nil
+}
+
+func (s *Snmp) loggerUseDeviceID() {
+	s.logger = s.logger.WithField(logFieldDeviceID, s.deviceID)
 }
 
 // Alive checks if device is still alive if poll interval has passed.
 func (s *Snmp) Alive() (bool, error) {
-	log.Log(s).Debugf("Alive")
+	s.logger.Debugf("Alive")
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}
@@ -391,12 +404,12 @@ func (s *Snmp) Run(ctx context.Context) error {
 	if s.client == nil {
 		return errors.New("Run called before InitGNMI")
 	}
-	log.Log(s).Debugf("Run")
+	s.logger.Debugf("Run")
 
 	if err := s.snmpNetworkInit(); err != nil {
 		return fmt.Errorf("Error connecting to device: %v", err)
 	}
-	log.Log(s).Debugf("gosnmp.Connect complete")
+	s.logger.Debugf("gosnmp.Connect complete")
 
 	mibStore, err := smi.NewStore(s.mibs...)
 	if err != nil {
@@ -413,11 +426,11 @@ func (s *Snmp) Run(ctx context.Context) error {
 	s.translator.Mock = s.mock
 	s.translator.Walker = s.walker
 	s.translator.Getter = s.getter
-	s.translator.Logger = log.Log(s)
+	s.translator.Logger = s.logger
 
 	// Do periodic state updates forever.
 	if err := s.sendUpdates(ctx); err != nil && !ignoredError(err) {
-		log.Log(s).Infof("Error in sendUpdates: %s", err)
+		s.logger.Infof("Error in sendUpdates: %s", err)
 	}
 
 	tick := time.NewTicker(s.pollInterval)
@@ -425,7 +438,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 		select {
 		case <-tick.C:
 			if err := s.sendUpdates(ctx); err != nil && !ignoredError(err) {
-				log.Log(s).Infof("Error in sendUpdates: %s", err)
+				s.logger.Infof("Error in sendUpdates: %s", err)
 			}
 		case <-ctx.Done():
 			goto finish
@@ -479,7 +492,10 @@ func NewSNMPProvider(address string, port uint16, community string,
 		walker:       gsnmp.BulkWalk,
 		now:          time.Now,
 	}
-	log.Log(s).Debugf("NewSNMPProvider, address: %v, version: %v",
+	s.logger = log.Log(s).WithField(logFieldDeviceID,
+		fmt.Sprintf("%s:%d", address, port))
+
+	s.logger.Debugf("NewSNMPProvider, address: %v, version: %v",
 		address, version)
 
 	return s
