@@ -204,7 +204,7 @@ func TestGNMIProvider(t *testing.T) {
 			incl := &inClient{cancel: cancel, t: t, responses: tc.subResps}
 			outcl := &outClient{t: t, requests: tc.setReqs}
 			cfg := &agnmi.Config{}
-			p := NewGNMIProvider(incl, cfg, tc.paths)
+			p := NewGNMIProvider(incl, cfg, tc.paths, WithDeviceID(tc.name))
 			p.InitGNMI(outcl)
 			_ = p.Run(ctx)
 		})

@@ -322,7 +322,8 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 	openconfig.config = config
 	openconfig.deviceID = deviceID
 
-	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, strings.Split(gNMIPaths, ","))
+	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, strings.Split(gNMIPaths, ","),
+		pgnmi.WithDeviceID(deviceID))
 
 	return openconfig, nil
 }
