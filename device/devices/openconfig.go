@@ -227,18 +227,21 @@ func (o *openconfigDevice) DeviceID() (string, error) {
 	}
 
 	// Try for serial first.
-	did, err := o.getStringFromSubscription("/components/component/state",
+	did, errComps := o.getStringFromSubscription("/components/component/state",
 		getSerial)
-	if err != nil || did != "" {
-		return did, err
+	if did != "" {
+		return did, nil
 	}
 
 	// Then go with chassis-id (MAC), if it's there.
-	did, err = o.getStringFromSubscription("/lldp/state/chassis-id",
+	did, errChassis := o.getStringFromSubscription("/lldp/state/chassis-id",
 		getChassisID)
-	if err != nil || did != "" {
-		return did, err
+	if did != "" {
+		return did, nil
 	}
+
+	log.Log(o).Debugf("Unable to find DeviceID from components (err: %v) "+
+		"or from chassis-id (err: %v). Using the address: %v", errComps, errChassis, o.config.Addr)
 
 	// Fall back on the configured address.
 	return o.config.Addr, nil
