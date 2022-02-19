@@ -39,14 +39,19 @@ var testDeviceInfo = registrationInfo{
 	options: testDeviceOptions,
 }
 
-type testDevice struct{}
+type testDevice struct {
+	deviceID string
+}
 
 func (td testDevice) Alive() (bool, error) {
 	return true, nil
 }
 
 func (td testDevice) DeviceID() (string, error) {
-	return "0a0a.0a0a.0a0a", nil
+	if td.deviceID == "" {
+		return "0a0a.0a0a.0a0a", nil
+	}
+	return td.deviceID, nil
 }
 
 func (td testDevice) Providers() ([]provider.Provider, error) {

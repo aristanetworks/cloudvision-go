@@ -142,14 +142,10 @@ func (i *inventory) Add(info *Info) error {
 		return errors.New("Config in device.Info cannot be empty")
 	}
 	if dev, ok := i.devices[info.ID]; ok {
-		if info.Config != nil && info.Config.Device != dev.info.Config.Device {
-			return fmt.Errorf("Cannot add device '%s' (type '%s') to inventory; "+
-				"it already exists with a different type ('%s')",
-				info.ID, info.Config.Device, dev.info.Config.Device)
-		}
-		log.Log(info.Device).Infof("Device %s already exists with Config %+v\n",
-			info.ID, dev.info.Config)
-		return nil
+		log.Log(info.Device).Debugf("Replacing device %s (type %s)",
+			info.ID, info.Config.Device)
+		dev.cancel()
+		delete(i.devices, info.ID)
 	}
 
 	// Create device connection object.
