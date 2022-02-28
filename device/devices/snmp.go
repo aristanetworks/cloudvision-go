@@ -133,6 +133,10 @@ func (s *snmp) IPAddr() string {
 }
 
 func (s *snmp) validateOptions() error {
+	if s.pollInterval == 0*time.Second {
+		return errors.New("poll interval must be greater than 0 seconds")
+	}
+
 	if s.version == "2c" {
 		if s.community == "" {
 			return errors.New("community string required for version 2c")
@@ -165,6 +169,7 @@ func (s *snmp) validateOptions() error {
 				"key must be specified")
 		}
 	}
+
 	return nil
 }
 
