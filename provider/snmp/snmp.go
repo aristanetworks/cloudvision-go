@@ -32,7 +32,6 @@ const (
 	snmpLldpV2LocChassisID        = ".1.3.111.2.802.1.1.13.1.3.2.0"
 	snmpLldpV2LocChassisIDSubtype = ".1.3.111.2.802.1.1.13.1.3.1.0"
 	snmpSysUpTimeInstance         = ".1.3.6.1.2.1.1.3.0"
-	snmpUsmStatsUnknownUserNames  = ".1.3.6.1.6.3.15.1.1.3.0"
 
 	logFieldDeviceID = "deviceID"
 )
@@ -79,6 +78,29 @@ type Snmp struct {
 	logger *logrus.Entry
 }
 
+func (s *Snmp) doTestGet() error {
+	pkt, err := s.unsafeGet(snmpSysUpTimeInstance)
+	if err != nil {
+		return err
+	}
+
+	// Check for either a sysUpTimeInstance or a NoSuchType from the
+	// server, to make sure that the server is up and responding to us.
+	gotValidResponse := false
+	for _, pdu := range pkt.Variables {
+		if pdu.Type == gosnmp.NoSuchObject || (oidExists(pdu) &&
+			pdu.Name == snmpSysUpTimeInstance) {
+			gotValidResponse = true
+			break
+		}
+	}
+	if !gotValidResponse {
+		return fmt.Errorf("unexpected response from SNMP server in "+
+			"snmpNetworkInit: %+v", pkt.Variables)
+	}
+	return nil
+}
+
 func (s *Snmp) snmpNetworkInit() error {
 	if s.initialized || s.mock {
 		return nil
@@ -90,19 +112,15 @@ func (s *Snmp) snmpNetworkInit() error {
 		return err
 	}
 
+	// Open socket. This doesn't tell us whether we can actually
+	// "connect", since it's UDP.
 	if err := s.gsnmp.Connect(); err != nil {
 		return err
 	}
 
 	// Do an initial Get. If auth fails, give up before we start.
-	pkt, err := s.unsafeGet(snmpSysUpTimeInstance)
-	if err != nil {
+	if err := s.doTestGet(); err != nil {
 		return err
-	} else if len(pkt.Variables) > 0 {
-		pdu := pkt.Variables[0]
-		if oidExists(pdu) && pdu.Name == snmpUsmStatsUnknownUserNames {
-			return fmt.Errorf("unknown username, can't proceed: %s", pdu.Name)
-		}
 	}
 
 	s.initialized = true
