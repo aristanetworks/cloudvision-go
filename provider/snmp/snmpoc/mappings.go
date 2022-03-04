@@ -900,7 +900,7 @@ var (
 		"entPhysicalSerialNum", strval)
 	componentSoftwareVersion = entPhysicalTableMapperFn(componentStatePath+"software-version",
 		"entPhysicalSoftwareRev", strval)
-	componentModelName = entPhysicalTableMapperFn(componentStatePath+"hardware-version",
+	componentModelName = entPhysicalTableMapperFn(componentStatePath+"part-no",
 		"entPhysicalModelName", strval)
 	componentHardwareVersion = entPhysicalTableMapperFn(componentStatePath+"hardware-version",
 		"entPhysicalHardwareRev", strval)
@@ -950,8 +950,8 @@ var defaultMappings = map[string][]Mapper{
 	"/components/component[name=name]/state/mfg-name":         []Mapper{componentMfgName},
 	"/components/component[name=name]/state/serial-no":        []Mapper{componentSerialNo},
 	"/components/component[name=name]/state/software-version": []Mapper{componentSoftwareVersion},
-	"/components/component[name=name]/state/hardware-version": []Mapper{componentModelName,
-		componentHardwareVersion},
+	"/components/component[name=name]/state/part-no":          []Mapper{componentModelName},
+	"/components/component[name=name]/state/hardware-version": []Mapper{componentHardwareVersion},
 
 	//// lldp
 	"/lldp/state/chassis-id":         []Mapper{lldpChassisID, lldpV2ChassisID},
