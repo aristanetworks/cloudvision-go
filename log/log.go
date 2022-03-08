@@ -74,7 +74,7 @@ func (l *logger) Fire(entry *logrus.Entry) error {
 	entry.Data[string(callerKey)] = reflect.TypeOf(caller)
 	l.Lock()
 	defer l.Unlock()
-	entry.Logger.Out = out.(io.Writer)
+	entry.Logger.SetOutput(out.(io.Writer))
 	return nil
 }
 
