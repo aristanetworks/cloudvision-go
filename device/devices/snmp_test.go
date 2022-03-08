@@ -205,6 +205,18 @@ func TestOptions(t *testing.T) {
 			options:       selectOpt("v", "address", "l", "a", "A", "x", "X", "u"),
 			expectedError: errors.New("Required option 'mibs' not provided"),
 		},
+		{
+			name: "0 poll interval",
+			options: map[string]string{
+				"v":            "2c",
+				"c":            "public",
+				"address":      "1.1.1.1",
+				"mibs":         "/a/b/c",
+				"pollInterval": "0s",
+			},
+			expectedError: errors.New("Configuration error for device " +
+				"1.1.1.1: poll interval must be greater than 0 seconds"),
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			runOptionsTest(t, tc)

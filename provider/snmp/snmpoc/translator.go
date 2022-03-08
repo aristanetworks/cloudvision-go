@@ -352,7 +352,12 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 	}
 
 	// Produce updates and hand a SetRequest to the gNMI client.
+	// If there are more than numUpdatesPerSet updates, split
+	// across multiple SetRequests.
+	numUpdatesPerSet := 250
+	setRequests := []*gnmi.SetRequest{}
 	setRequest := new(gnmi.SetRequest)
+	setRequests = append(setRequests, setRequest)
 	for modelName, model := range mg.models {
 		setRequest.Delete = append(setRequest.Delete,
 			pgnmi.PathFromString(model.rootPath))
@@ -361,6 +366,10 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 			if err != nil {
 				errc <- err
 				return
+			}
+			if len(setRequest.Replace) > numUpdatesPerSet {
+				setRequest = new(gnmi.SetRequest)
+				setRequests = append(setRequests, setRequest)
 			}
 			setRequest.Replace = append(setRequest.Replace, updates...)
 			t.Logger.Debugf("Replace for mapping group %s, model %s has %d updates",
@@ -371,7 +380,9 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 		}
 	}
 
-	setReqCh <- setRequest
+	for _, sr := range setRequests {
+		setReqCh <- sr
+	}
 }
 
 // A mappingGroup is a set of related translations that share dependencies.

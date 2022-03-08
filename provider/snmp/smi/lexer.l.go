@@ -112,7 +112,7 @@ var tokMap = map[int]string{
 
 func tokstr(t int) string {
 	if t < 127 {
-		return string(t)
+		return string(rune(t))
 	}
 	return tokMap[t]
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 
 	agnmi "github.com/aristanetworks/goarista/gnmi"
@@ -27,6 +28,8 @@ type Gnmi struct {
 	inClient    gnmi.GNMIClient
 	outClient   gnmi.GNMIClient
 	initialized bool
+
+	logger *logrus.Entry
 }
 
 // InitGNMI initializes the provider with a gNMI client.
@@ -55,7 +58,7 @@ func (p *Gnmi) subscribeAndSet(ctx context.Context,
 
 	// producer: subscribe to target
 	errg.Go(func() error {
-		log.Log(p).Infof("gNMI subscribeOptions: %+v, config: %+v",
+		p.logger.Infof("gNMI subscribeOptions: %+v, config: %+v",
 			subscribeOptions, p.cfg)
 		return agnmi.SubscribeErr(ctx, p.inClient, subscribeOptions, respCh)
 	})
@@ -68,20 +71,20 @@ func (p *Gnmi) subscribeAndSet(ctx context.Context,
 				return ctx.Err()
 			case response, ok := <-respCh:
 				if !ok {
-					log.Log(p).Info("gNMI target closed subscription")
+					p.logger.Info("gNMI target closed subscription")
 					return io.EOF
 				}
 				switch resp := response.Response.(type) {
 				case *gnmi.SubscribeResponse_Error:
 					// Not sure if this is recoverable; keep going and
 					// hope things get better.
-					log.Log(p).Infof("gNMI SubscribeResponse Error: %v",
+					p.logger.Infof("gNMI SubscribeResponse Error: %v",
 						resp.Error.Message) // nolint: staticcheck
 				case *gnmi.SubscribeResponse_SyncResponse:
 					if resp.SyncResponse {
-						log.Log(p).Info("gNMI sync_response")
+						p.logger.Info("gNMI sync_response")
 					} else {
-						log.Log(p).Infof("gNMI sync failed")
+						p.logger.Infof("gNMI sync failed")
 					}
 				case *gnmi.SubscribeResponse_Update:
 					// One SetRequest per update:
@@ -90,9 +93,9 @@ func (p *Gnmi) subscribeAndSet(ctx context.Context,
 						Update: resp.Update.Update,
 						Delete: resp.Update.Delete,
 					}
-					log.Log(p).Debugf("SetRequest: %+v", sr)
+					p.logger.Debugf("SetRequest: %+v", sr)
 					if _, err := p.outClient.Set(ctx, sr); err != nil {
-						log.Log(p).Infof("Error on Set: %v", err)
+						p.logger.Infof("Error on Set: %v", err)
 					}
 				}
 			}
@@ -131,18 +134,43 @@ func (p *Gnmi) Run(ctx context.Context) error {
 				}
 			}
 			// The server closed the connection with no error. Schedule a retry.
-			log.Log(p).Info("gNMI subscription disconnected, retrying...")
+			p.logger.Info("gNMI subscription disconnected, retrying...")
 			retryTimer.Reset(5 * time.Second)
 		}
 	}
 }
 
+type gnmiProviderOptions struct {
+	deviceID string
+}
+
+// ProviderOption is a function to set options for the GNMIProvider.
+type ProviderOption func(ops *gnmiProviderOptions)
+
+// WithDeviceID idenfifies the source of the data.
+// This is used for logging and errors only.
+func WithDeviceID(identifier string) ProviderOption {
+	return func(o *gnmiProviderOptions) {
+		o.deviceID = identifier
+	}
+}
+
 // NewGNMIProvider returns a read-only gNMI provider.
 func NewGNMIProvider(client gnmi.GNMIClient, cfg *agnmi.Config,
-	paths []string) provider.GNMIProvider {
-	return &Gnmi{
+	paths []string, options ...ProviderOption) provider.GNMIProvider {
+	var opts gnmiProviderOptions
+	for _, o := range options {
+		o(&opts)
+	}
+
+	g := &Gnmi{
 		inClient: client,
 		cfg:      cfg,
 		paths:    paths,
 	}
+	g.logger = log.Log(g)
+	if len(opts.deviceID) > 0 {
+		g.logger = g.logger.WithField("deviceID", opts.deviceID)
+	}
+	return g
 }

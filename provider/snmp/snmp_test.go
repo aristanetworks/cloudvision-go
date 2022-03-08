@@ -5,10 +5,12 @@
 package snmp
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/soniah/gosnmp"
 )
 
@@ -222,9 +224,19 @@ var lldpChassisIDDefaultResponse = `
 .1.0.8802.1.1.2.1.3.2.0 = Hex-STRING: 00 1C 73 03 13 36
 `
 
+var sysUpTimeInstanceDefaultResponse = `
+.1.3.6.1.2.1.1.3.0 = Timeticks: (10643788) 1 day, 5:33:57.88
+`
+
+var sysUpTimeInstanceBadUsernameResponse = `
+.1.3.6.1.6.3.15.1.1.3.0 = Counter32: 1
+`
+
 func TestDeviceID(t *testing.T) {
 	s := &Snmp{
-		mock: true,
+		mock:   true,
+		gsnmp:  &gosnmp.GoSNMP{Target: "1.2.3.4"},
+		logger: logrus.WithField("mock", "true"),
 	}
 	for _, tc := range []deviceIDTestCase{
 		{
@@ -261,9 +273,74 @@ func TestDeviceID(t *testing.T) {
 			},
 			expected: "00:1c:73:03:13:36",
 		},
+		{
+			name: "badChassisIDType",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpEntPhysicalClass:     []*gosnmp.SnmpPDU{},
+				snmpEntPhysicalSerialNum: []*gosnmp.SnmpPDU{},
+				snmpLldpLocChassisIDSubtype: []*gosnmp.SnmpPDU{{
+					Name:  ".1.3.6.1.6.3.15.1.1.3.0",
+					Type:  gosnmp.Counter32,
+					Value: uint(12345),
+				}},
+				snmpLldpLocChassisID:          []*gosnmp.SnmpPDU{},
+				snmpLldpV2LocChassisIDSubtype: []*gosnmp.SnmpPDU{},
+				snmpLldpV2LocChassisID:        []*gosnmp.SnmpPDU{},
+			},
+			expected: "1.2.3.4",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockDeviceID(t, s, tc)
+		})
+	}
+}
+
+func TestTestGet(t *testing.T) {
+	s := &Snmp{
+		mock:   true,
+		gsnmp:  &gosnmp.GoSNMP{Target: "1.2.3.4"},
+		logger: logrus.WithField("mock", "true"),
+	}
+
+	type testGetTestCase struct {
+		name        string
+		responses   map[string][]*gosnmp.SnmpPDU
+		expectedErr error
+	}
+
+	for _, tc := range []testGetTestCase{
+		{
+			name: "basic",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysUpTimeInstance: PDUsFromString(sysUpTimeInstanceDefaultResponse),
+			},
+		},
+		{
+			name: "bad username",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysUpTimeInstance: PDUsFromString(sysUpTimeInstanceBadUsernameResponse),
+			},
+			expectedErr: errors.New("unexpected response from SNMP server in " +
+				"snmpNetworkInit: [{Name:.1.3.6.1.6.3.15.1.1.3.0 " +
+				"Type:Counter32 Value:1 Logger:<nil>}]"),
+		},
+		{
+			name: "NoSuchObject",
+			responses: map[string][]*gosnmp.SnmpPDU{
+				snmpSysUpTimeInstance: nil,
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s.getter = func(oids []string) (*gosnmp.SnmpPacket, error) {
+				return mockget(oids, tc.responses)
+			}
+			err := s.doTestGet()
+			if (err == nil) != (tc.expectedErr == nil) ||
+				(err != nil && err.Error() != tc.expectedErr.Error()) {
+				t.Fatalf("expected error: %v, got: %v", tc.expectedErr, err)
+			}
 		})
 	}
 }

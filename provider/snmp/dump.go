@@ -110,6 +110,10 @@ func pduFromString(s string) *gosnmp.SnmpPDU {
 		pduType = counter64
 		v, _ := strconv.ParseUint(val, 10, 64)
 		value = v
+	case timeticksString:
+		pduType = timeticks
+		v, _ := strconv.ParseUint(val, 10, 32)
+		value = v
 	default:
 		return nil
 	}

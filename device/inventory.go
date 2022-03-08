@@ -6,6 +6,7 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -15,7 +16,8 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider"
 
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/pkg/errors"
+
+	"google.golang.org/grpc"
 )
 
 const heartbeatInterval = 10 * time.Second
@@ -28,12 +30,16 @@ type Inventory interface {
 	List() []*Info
 }
 
-// deviceConn contains a device and its gNMI connections.
+// InventoryOption configures how we create the Inventory.
+type InventoryOption func(*inventory)
+
+// deviceConn contains a device and its gNMI/gRPC connections.
 type deviceConn struct {
 	info     *Info
 	ctx      context.Context
 	cancel   context.CancelFunc
 	cvClient cvclient.CVClient
+	grpcConn *grpc.ClientConn
 	group    sync.WaitGroup
 }
 
@@ -41,6 +47,7 @@ type deviceConn struct {
 type inventory struct {
 	ctx           context.Context
 	rawGNMIClient gnmi.GNMIClient
+	grpcConn      *grpc.ClientConn
 	devices       map[string]*deviceConn
 	lock          sync.Mutex
 	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
@@ -50,10 +57,6 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(heartbeatInterval)
 	did, _ := dc.info.Device.DeviceID()
 
-	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
-		log.Log(dc.info.Device).Infof("Error sending device metadata "+
-			"for device %v: %v", did, err)
-	}
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -73,14 +76,19 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 }
 
 func (i *inventory) newDeviceConn(info *Info) *deviceConn {
-	dc := &deviceConn{info: info}
+	dc := &deviceConn{
+		cvClient: i.clientFactory(i.rawGNMIClient, info),
+		grpcConn: i.grpcConn,
+		info:     info,
+	}
+
 	// Take any metadata associated with the device context.
 	if info.Context != nil {
 		dc.ctx, dc.cancel = context.WithCancel(info.Context)
 	} else {
 		dc.ctx, dc.cancel = context.WithCancel(i.ctx)
 	}
-	dc.cvClient = i.clientFactory(i.rawGNMIClient, info)
+
 	return dc
 }
 
@@ -101,11 +109,14 @@ func (dc *deviceConn) runProviders() error {
 			return fmt.Errorf("Error setting up logging for provider %#v: %v", p, err)
 		}
 
-		pt, ok := p.(provider.GNMIProvider)
-		if !ok {
-			return errors.New("unexpected provider type; need GNMIProvider")
+		switch pt := p.(type) {
+		case provider.GNMIProvider:
+			pt.InitGNMI(dc.cvClient.ForProvider(pt))
+		case provider.GRPCProvider:
+			pt.InitGRPC(dc.grpcConn)
+		default:
+			return fmt.Errorf("unexpected provider type %T", p)
 		}
-		pt.InitGNMI(dc.cvClient.ForProvider(pt))
 
 		// Start the providers.
 		dc.group.Add(1)
@@ -126,28 +137,41 @@ func (i *inventory) Add(info *Info) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if info.ID == "" {
-		return fmt.Errorf("ID in device.Info cannot be empty")
+		return errors.New("ID in device.Info cannot be empty")
+	} else if info.Config == nil {
+		return errors.New("Config in device.Info cannot be empty")
 	}
 	if dev, ok := i.devices[info.ID]; ok {
-		if info.Config != nil && info.Config.Device != dev.info.Config.Device {
-			return fmt.Errorf("Cannot add device '%s' (type '%s') to inventory; "+
-				"it already exists with a different type ('%s')",
-				info.ID, info.Config.Device, dev.info.Config.Device)
-		}
-		log.Log(info.Device).Infof("Device %s already exists with Config %+v\n",
-			info.ID, info.Config)
-		return nil
+		log.Log(info.Device).Debugf("Replacing device %s (type %s)",
+			info.ID, info.Config.Device)
+		dev.cancel()
+		delete(i.devices, info.ID)
 	}
 
+	// Create device connection object.
 	dc := i.newDeviceConn(info)
+
+	// Register the device before starting providers. If we can't reach
+	// the device right now, we should return an error rather than
+	// considering it added.
+	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
+		return fmt.Errorf("Error sending device metadata for device "+
+			"%q (%s): %w", info.ID, info.Config.Device, err)
+	}
+
+	// Start providers.
+	if err := dc.runProviders(); err != nil {
+		return fmt.Errorf("Error starting providers for device %q (%s): %w",
+			info.ID, info.Config.Device, err)
+	}
+
+	// We're connected to the device, have told CloudVision about the
+	// device, and are streaming the device's data now, so add the
+	// device to the inventory.
 	i.devices[info.ID] = dc
 
-	if err := dc.runProviders(); err != nil {
-		return err
-	}
-
 	// Send periodic updates of device-level metadata.
-	if info.Config == nil || !info.Config.NoStream {
+	if !info.Config.NoStream {
 		dc.group.Add(1)
 		go func() {
 			err := dc.sendPeriodicUpdates()
@@ -169,7 +193,8 @@ func (i *inventory) Add(info *Info) error {
 		}()
 	}
 
-	log.Log(info.Device).Infof("Added device %s", info.ID)
+	log.Log(info.Device).Infof("Added device %q (%s)", info.ID,
+		info.Config.Device)
 	return nil
 }
 
@@ -216,14 +241,46 @@ func (i *inventory) List() []*Info {
 	return ret
 }
 
-// NewInventory creates an Inventory.
-func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
-	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient) Inventory {
+// WithGNMIClient sets a gNMI client on the Inventory.
+func WithGNMIClient(c gnmi.GNMIClient) InventoryOption {
+	return func(i *inventory) {
+		i.rawGNMIClient = c
+	}
+}
+
+// WithGRPCConn sets a gRPC connection on the Inventory.
+func WithGRPCConn(c *grpc.ClientConn) InventoryOption {
+	return func(i *inventory) {
+		i.grpcConn = c
+	}
+}
+
+// WithClientFactory sets a client factory on the Inventory.
+func WithClientFactory(
+	f func(gnmi.GNMIClient, *Info) cvclient.CVClient) InventoryOption {
+	return func(i *inventory) {
+		i.clientFactory = f
+	}
+}
+
+// NewInventoryWithOptions creates an Inventory with the supplied options.
+func NewInventoryWithOptions(ctx context.Context,
+	options ...InventoryOption) Inventory {
 	inv := &inventory{
-		ctx:           ctx,
-		devices:       make(map[string]*deviceConn),
-		rawGNMIClient: gnmiClient,
-		clientFactory: clientFactory,
+		ctx:     ctx,
+		devices: make(map[string]*deviceConn),
+	}
+	for _, opt := range options {
+		opt(inv)
 	}
 	return inv
+}
+
+// NewInventory creates an Inventory.
+// Deprecated: Use NewInventoryWithOptions instead.
+func NewInventory(ctx context.Context, gnmiClient gnmi.GNMIClient,
+	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient) Inventory {
+	return NewInventoryWithOptions(ctx,
+		WithGNMIClient(gnmiClient),
+		WithClientFactory(clientFactory))
 }

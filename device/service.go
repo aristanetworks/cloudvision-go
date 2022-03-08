@@ -17,21 +17,26 @@ type inventoryService struct {
 
 func (i *inventoryService) Add(ctx context.Context,
 	req *gen.AddRequest) (*gen.AddResponse, error) {
-	ret := &gen.AddResponse{}
-	config := &Config{Device: req.DeviceConfig.DeviceType, Options: req.DeviceConfig.Options}
-	info, err := NewDeviceInfo(config)
+	logrus.Infof("InventoryService: Add request for device type: %s",
+		req.DeviceConfig.DeviceType)
+
+	info, err := NewDeviceInfo(&Config{
+		Device:  req.DeviceConfig.DeviceType,
+		Options: req.DeviceConfig.Options,
+	})
 	if err != nil {
-		return ret, err
+		logrus.Errorf("InventoryService: error creating DeviceInfo: %s", err)
+		return nil, err
 	}
-	logrus.Infof("InventoryService: Add request: %v", req)
-	err = i.inventory.Add(info)
-	if err != nil {
-		return ret, err
+	if err := i.inventory.Add(info); err != nil {
+		return nil, err
 	}
-	ret.DeviceInfo = &gen.DeviceInfo{}
-	ret.DeviceInfo.DeviceConfig = req.DeviceConfig
-	ret.DeviceInfo.DeviceID = info.ID
-	return ret, nil
+	return &gen.AddResponse{
+		DeviceInfo: &gen.DeviceInfo{
+			DeviceConfig: req.DeviceConfig,
+			DeviceID:     info.ID,
+		},
+	}, nil
 }
 
 func (i *inventoryService) Delete(ctx context.Context,

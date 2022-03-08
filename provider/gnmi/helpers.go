@@ -154,7 +154,11 @@ func Intval(i int64) *gnmi.TypedValue {
 
 // Boolval returns a gnmi.TypedValue from a bool.
 func Boolval(b bool) *gnmi.TypedValue {
-	return jsonValue(b)
+	return &gnmi.TypedValue{
+		Value: &gnmi.TypedValue_BoolVal{
+			BoolVal: b,
+		},
+	}
 }
 
 // Update creates a gNMI.Update.

@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -71,9 +72,18 @@ var (
 	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
 		"Address of gNMI server")
 
-	// grpc server config
+	// gRPC server config
+	grpcServerAddr = flag.String("grpcServerAddr", "",
+		"Address of gRPC server")
+
+	// local gRPC server config for inventory service
 	grpcAddr = flag.String("grpcAddr", "",
-		"gRPC server address. If unspecified, server will not run.")
+		"Collector gRPC server address (if unspecified, server will not run)")
+
+	// local http monitor server addr
+	monitorAddr = flag.String("monitorAddr", "",
+		"The address for the monitor server. If empty, monitor is not started. "+
+			"Example: 0.0.0.0:0 or localhost:6060. Port 0 will select one automatically.")
 
 	// Auth config
 	caFile   = flag.String("cafile", "", "Path to CA file")
@@ -130,6 +140,8 @@ func Main() {
 
 	initLogging()
 
+	runMonitor()
+
 	if *mock {
 		runMock(context.Background())
 		return
@@ -139,6 +151,24 @@ func Main() {
 		return
 	}
 	runMain(context.Background())
+}
+
+func runMonitor() {
+	if len(*monitorAddr) <= 0 {
+		return
+	}
+
+	monitorListener, err := net.Listen("tcp", *monitorAddr)
+	if err != nil {
+		logrus.Fatalf("Failed to listen on monitor address %v: %v", *monitorAddr, err)
+	}
+	logrus.Infof("Monitor listening on %s", monitorListener.Addr())
+	go func() {
+		err := http.Serve(monitorListener, nil)
+		if err != nil {
+			logrus.Infof("Monitor failed, no longer serving monitor endpoints: %v", err)
+		}
+	}()
 }
 
 func initLogging() {
@@ -176,16 +206,30 @@ func runMain(ctx context.Context) {
 	}
 
 	var noAuth agrpc.Auth
+	opts := []device.InventoryOption{
+		device.WithClientFactory(newCVClient),
+	}
 	if *authInfo != noAuth {
 		gnmiCfg.TLS = true
 		gnmiCfg.CAFile = authInfo.CAFile()
-		// XXX: agnmi.Dial does not use system cert pool if this is "", rather it disables the
-		// certificate validation option - this should be fixed.
+		// XXX: agnmi.Dial does not use system cert pool if this is "",
+		// rather it disables the certificate validation option - this
+		// should be fixed.
 		clientCreds, err := authInfo.ClientCredentials()
 		if err != nil {
 			logrus.Fatal(err)
 		}
 		gnmiCfg.DialOptions = append(gnmiCfg.DialOptions, clientCreds...)
+	}
+
+	if *grpcServerAddr != "" {
+		logrus.Infof("Connecting to gRPC server %+v", authInfo)
+		conn, err := agrpc.DialWithAuth(ctx, *grpcServerAddr, authInfo)
+		if err != nil {
+			logrus.Fatalf("DialWithAuth error: %v", err)
+		}
+		logrus.Info("Connected")
+		opts = append(opts, device.WithGRPCConn(conn))
 	}
 
 	logrus.Infof("Connecting to gNMI server %+v", gnmiCfg)
@@ -194,9 +238,10 @@ func runMain(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	logrus.Info("Connected")
+	opts = append(opts, device.WithGNMIClient(gnmiClient))
 
 	// Create inventory.
-	inventory := device.NewInventory(ctx, gnmiClient, newCVClient)
+	inventory := device.NewInventoryWithOptions(ctx, opts...)
 
 	group, ctx := errgroup.WithContext(ctx)
 	configs, err := createDeviceConfigs()
