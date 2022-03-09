@@ -237,7 +237,9 @@ func runMain(ctx context.Context) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	logrus.Info("Connected")
+	waitForGNMIConnectivity(gnmiClient)
+	logrus.Info("Connected to gNMI service")
+
 	opts = append(opts, device.WithGNMIClient(gnmiClient))
 
 	// Create inventory.
@@ -282,6 +284,30 @@ func runMain(ctx context.Context) {
 		logrus.Fatalf("group returned with error: %v", err)
 	}
 	logrus.Infof("Collector is finished")
+}
+
+func waitForGNMIConnectivity(gnmiClient gnmi.GNMIClient) {
+	logEvery := 5
+	maxWait := 30 * time.Second
+	for retry := 0; ; {
+		_, err := gnmiClient.Capabilities(context.Background(), &gnmi.CapabilityRequest{},
+			grpc.WaitForReady(true))
+		if err == nil {
+			break
+		}
+		retry++
+		if retry%logEvery == 0 {
+			logrus.Errorf("Unable to reach gNMI service: %v. retrying...", err)
+			// reduce frequency of logs to once every 20 retries
+			logEvery = 20
+		}
+
+		wait := time.Second * time.Duration(retry)
+		if wait > maxWait {
+			wait = maxWait
+		}
+		time.Sleep(wait)
+	}
 }
 
 func createDeviceConfigs() ([]*device.Config, error) {
