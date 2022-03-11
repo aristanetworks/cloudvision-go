@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gosnmp/gosnmp"
 	"github.com/sirupsen/logrus"
-	"github.com/soniah/gosnmp"
 )
 
 // deviceIDTestCase describes a test of the SNMP DeviceID method: the
@@ -322,8 +322,8 @@ func TestTestGet(t *testing.T) {
 				snmpSysUpTimeInstance: PDUsFromString(sysUpTimeInstanceBadUsernameResponse),
 			},
 			expectedErr: errors.New("unexpected response from SNMP server in " +
-				"snmpNetworkInit: [{Name:.1.3.6.1.6.3.15.1.1.3.0 " +
-				"Type:Counter32 Value:1 Logger:<nil>}]"),
+				"snmpNetworkInit: [{Value:1 Name:.1.3.6.1.6.3.15.1.1.3.0 " +
+				"Type:Counter32}]"),
 		},
 		{
 			name: "NoSuchObject",

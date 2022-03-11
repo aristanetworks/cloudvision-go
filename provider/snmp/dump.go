@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 // This file contains functionality useful for producing a dump from

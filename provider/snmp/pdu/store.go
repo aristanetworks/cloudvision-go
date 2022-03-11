@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 // Index represents a constraint on a PDU query. It consists of a
