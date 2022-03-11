@@ -55,6 +55,7 @@ type inventory struct {
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(heartbeatInterval)
+	defer ticker.Stop()
 	did, _ := dc.info.Device.DeviceID()
 
 	for {
