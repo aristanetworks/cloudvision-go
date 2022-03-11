@@ -20,8 +20,8 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/snmpoc"
 	"github.com/sirupsen/logrus"
 
+	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/soniah/gosnmp"
 )
 
 const (
@@ -419,6 +419,7 @@ func ignoredError(err error) bool {
 
 // Run sets the Snmp provider running and returns only on error.
 func (s *Snmp) Run(ctx context.Context) error {
+	s.gsnmp.Context = ctx
 	if s.client == nil {
 		return errors.New("Run called before InitGNMI")
 	}
@@ -476,6 +477,18 @@ type V3Params struct {
 	UsmParams     *gosnmp.UsmSecurityParameters
 }
 
+// wrapper logger for GoSNMP, making all logs trace level
+type snmpLogger struct {
+	logger *logrus.Entry
+}
+
+func (sl *snmpLogger) Print(v ...interface{}) {
+	sl.logger.Trace(v...)
+}
+func (sl *snmpLogger) Printf(format string, v ...interface{}) {
+	sl.logger.Tracef(format, v...)
+}
+
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
@@ -491,7 +504,6 @@ func NewSNMPProvider(address string, port uint16, community string,
 		Target:             address,
 		Community:          community,
 		Timeout:            time.Duration(2) * time.Second,
-		Logger:             nil,
 		MaxRepetitions:     12,
 	}
 	if v3Params != nil {
@@ -513,6 +525,7 @@ func NewSNMPProvider(address string, port uint16, community string,
 	}
 	s.logger = log.Log(s).WithField(logFieldDeviceID,
 		fmt.Sprintf("%s:%d", address, port))
+	gsnmp.Logger = gosnmp.NewLogger(&snmpLogger{logger: s.logger})
 
 	s.logger.Debugf("NewSNMPProvider, address: %v, version: %v",
 		address, version)
