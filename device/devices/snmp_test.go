@@ -12,7 +12,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	psnmp "github.com/aristanetworks/cloudvision-go/provider/snmp"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 type optionsTestCase struct {

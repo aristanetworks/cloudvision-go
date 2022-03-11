@@ -18,8 +18,8 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
+	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/soniah/gosnmp"
 	"google.golang.org/grpc"
 )
 

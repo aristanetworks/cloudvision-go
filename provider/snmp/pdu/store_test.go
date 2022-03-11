@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 func pdusMatch(pdu, expected *gosnmp.SnmpPDU) bool {

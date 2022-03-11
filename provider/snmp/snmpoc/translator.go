@@ -16,8 +16,8 @@ import (
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/pdu"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
+	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/soniah/gosnmp"
 )
 
 // NewTranslator returns a Translator.

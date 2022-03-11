@@ -19,8 +19,8 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/pdu"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
+	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
-	"github.com/soniah/gosnmp"
 )
 
 // A Mapper contains some logic for producing gNMI updates based on the

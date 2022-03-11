@@ -15,7 +15,7 @@ import (
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	psnmp "github.com/aristanetworks/cloudvision-go/provider/snmp"
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 var options = map[string]device.Option{
