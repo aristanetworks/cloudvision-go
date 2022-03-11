@@ -452,6 +452,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 	}
 
 	tick := time.NewTicker(s.pollInterval)
+	defer tick.Stop()
 	for {
 		select {
 		case <-tick.C:
