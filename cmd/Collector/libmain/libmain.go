@@ -293,11 +293,11 @@ func waitForGNMIConnectivity(gnmiClient gnmi.GNMIClient) {
 		_, err := gnmiClient.Capabilities(context.Background(), &gnmi.CapabilityRequest{},
 			grpc.WaitForReady(true))
 		if err == nil {
-			break
+			return
 		}
 		retry++
 		if retry%logEvery == 0 {
-			logrus.Errorf("Unable to reach gNMI service: %v. retrying...", err)
+			logrus.Errorf("Unable to reach gNMI service: %v. retrying (attempt %d)...", err, retry)
 			// reduce frequency of logs to once every 20 retries
 			logEvery = 20
 		}
