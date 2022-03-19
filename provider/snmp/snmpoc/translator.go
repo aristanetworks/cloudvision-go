@@ -279,6 +279,17 @@ func (t *Translator) storePDU(pdu gosnmp.SnmpPDU) error {
 	return t.pduStore.Add(&pdu)
 }
 
+func ignorableSNMPError(err error) bool {
+	errStr := err.Error()
+	if strings.Contains(errStr, "Request timeout") {
+		return false
+	}
+	if strings.Contains(errStr, "closed network connection") {
+		return false
+	}
+	return true
+}
+
 func (t *Translator) getSNMPData(mg *mappingGroup) error {
 	t.gosnmpLock.Lock()
 	defer t.gosnmpLock.Unlock()
@@ -298,6 +309,9 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 		for _, oid := range model.snmpWalkOIDs {
 			t.Logger.Debugf("SNMP Walk (OID = %s)", oid)
 			if err := t.Walker(oid, t.storePDU); err != nil {
+				if !ignorableSNMPError(err) {
+					return err
+				}
 				t.Logger.Infof("Error walking OID %s: %s", oid, err)
 			} else {
 				t.Logger.Debugf("SNMP Walk complete (OID = %s)", oid)
@@ -312,6 +326,9 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 			strings.Join(model.snmpGetOIDs, " "))
 		pkt, err := t.Getter(model.snmpGetOIDs)
 		if err != nil {
+			if !ignorableSNMPError(err) {
+				return err
+			}
 			t.Logger.Infof("Error getting OIDs %s: %s",
 				strings.Join(model.snmpGetOIDs, " "), err)
 			return nil
@@ -349,6 +366,9 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 	// Get SNMP data.
 	if err := t.getSNMPData(mg); err != nil {
 		errc <- err
+		// Errors only occur on connection issues, so we likely have not retrieved any data
+		// so just return
+		return
 	}
 
 	// Produce updates and hand a SetRequest to the gNMI client.
