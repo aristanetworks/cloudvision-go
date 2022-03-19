@@ -171,6 +171,8 @@ func NewGNMIProvider(client gnmi.GNMIClient, cfg *agnmi.Config,
 	g.logger = log.Log(g)
 	if len(opts.deviceID) > 0 {
 		g.logger = g.logger.WithField("deviceID", opts.deviceID)
+	} else {
+		g.logger = g.logger.WithField("deviceAddr", cfg.Addr)
 	}
 	return g
 }
