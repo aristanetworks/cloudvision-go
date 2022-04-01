@@ -6,6 +6,7 @@ package gnmi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -129,12 +130,13 @@ func (p *Gnmi) Run(ctx context.Context) error {
 		case <-retryTimer.C:
 			// Subscribe, hopefully forever.
 			if err := p.subscribeAndSet(ctx, subscribeOptions); err != nil {
-				if err != io.EOF {
-					return err
+				if !errors.Is(err, context.Canceled) {
+					p.logger.Infof("gNMI subscription failed %v, retrying...", err)
 				}
+			} else {
+				p.logger.Info("gNMI subscription disconnected, retrying...")
 			}
 			// The server closed the connection with no error. Schedule a retry.
-			p.logger.Info("gNMI subscription disconnected, retrying...")
 			retryTimer.Reset(5 * time.Second)
 		}
 	}
