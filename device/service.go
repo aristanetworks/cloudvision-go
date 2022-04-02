@@ -20,10 +20,11 @@ func (i *inventoryService) Add(ctx context.Context,
 	logrus.Infof("InventoryService: Add request for device type: %s",
 		req.DeviceConfig.DeviceType)
 
-	info, err := NewDeviceInfo(&Config{
-		Device:  req.DeviceConfig.DeviceType,
-		Options: req.DeviceConfig.Options,
-	})
+	info, err := NewDeviceInfo(ctx,
+		&Config{
+			Device:  req.DeviceConfig.DeviceType,
+			Options: req.DeviceConfig.Options,
+		})
 	if err != nil {
 		logrus.Errorf("InventoryService: error creating DeviceInfo: %s", err)
 		return nil, err

@@ -59,7 +59,7 @@ type inventory struct {
 func (dc *deviceConn) sendPeriodicUpdates() error {
 	ticker := time.NewTicker(heartbeatInterval)
 	defer ticker.Stop()
-	did, _ := dc.info.Device.DeviceID()
+	did, _ := dc.info.Device.DeviceID(dc.ctx)
 
 	logger := log.Log(dc.info.Device)
 	wasFailing := false // used to only log once when device is unhealthy and back alive
@@ -69,7 +69,7 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			alive, err := dc.info.Device.Alive()
+			alive, err := dc.info.Device.Alive(dc.ctx)
 			if err == nil && alive {
 				if wasFailing {
 					logger.Infof("Device %s is back alive", did)

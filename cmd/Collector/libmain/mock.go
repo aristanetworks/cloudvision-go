@@ -137,14 +137,14 @@ func runMock(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	for _, config := range configs {
-		info, err := device.NewDeviceInfo(config)
+		info, err := device.NewDeviceInfo(ctx, config)
 		if err != nil {
 			logrus.Fatal(err)
 		}
 		mockInfo.initDevice(info)
 		err = inventory.Add(info)
 		if err != nil {
-			logrus.Fatalf("Error in inventory.Add(): %v", err)
+			logrus.Fatalf("Error in inventory.Add: %v", err)
 		}
 	}
 	logrus.Info("Mock Collector is running")

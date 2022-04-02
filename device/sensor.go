@@ -219,7 +219,7 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	}
 
 	// Prepare device to execute based on datasource config
-	info, err := NewDeviceInfo(&Config{
+	info, err := NewDeviceInfo(ctx, &Config{
 		Device:  d.config.typ,
 		Options: mergeOpts(d.config.option, d.config.credential),
 	})
@@ -228,18 +228,14 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	}
 	d.cvClient = d.clientFactory(d.gnmic, info)
 	d.info = info
+	deviceID := info.ID
 
-	deviceID, err := d.info.Device.DeviceID()
 	var updates []*gnmi.Update
-	if err != nil {
-		errStr := fmt.Sprintf("failed to determine DeviceID: %v", err)
-		updates = append(updates, pgnmi.Update(lastErrorKey, agnmi.TypedValue(errStr)))
-	} else if len(deviceID) > 0 {
+	if len(deviceID) > 0 {
 		updates = append(updates, pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue(deviceID)))
-	}
-
-	if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
-		return fmt.Errorf("failed to publish startup status: %w", err)
+		if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
+			return fmt.Errorf("failed to publish startup status: %w", err)
+		}
 	}
 
 	// Register the device before starting providers. If we can't reach
@@ -351,7 +347,7 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			alive, err := d.info.Device.Alive()
+			alive, err := d.info.Device.Alive(ctx)
 			if err == nil && alive {
 				if wasFailing {
 					d.log.Info("Device is back alive")

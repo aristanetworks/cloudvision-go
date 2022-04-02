@@ -5,6 +5,7 @@
 package device
 
 import (
+	"context"
 	"reflect"
 	"sort"
 	"strings"
@@ -43,11 +44,11 @@ type testDevice struct {
 	deviceID string
 }
 
-func (td testDevice) Alive() (bool, error) {
+func (td testDevice) Alive(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (td testDevice) DeviceID() (string, error) {
+func (td testDevice) DeviceID(ctx context.Context) (string, error) {
 	if td.deviceID == "" {
 		return "0a0a.0a0a.0a0a", nil
 	}
@@ -62,12 +63,12 @@ func (td testDevice) Type() string {
 	return ""
 }
 
-func (td testDevice) IPAddr() string {
-	return "192.168.5.6"
+func (td testDevice) IPAddr(ctx context.Context) (string, error) {
+	return "192.168.5.6", nil
 }
 
 // NewTestDevice returns a dummy device for testing.
-func NewTestDevice(map[string]string) (Device, error) {
+func NewTestDevice(ctx context.Context, opts map[string]string) (Device, error) {
 	return testDevice{}, nil
 }
 

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/log"
@@ -99,8 +98,8 @@ type openconfigDevice struct {
 	mgmtIP       string
 }
 
-func (o *openconfigDevice) Alive() (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (o *openconfigDevice) Alive(ctx context.Context) (bool, error) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)
 	livenessPath := "/system/processes/process/state"
@@ -118,9 +117,9 @@ func (o *openconfigDevice) Providers() ([]provider.Provider, error) {
 
 type ocStringGetter func(chan *pb.SubscribeResponse) (string, error)
 
-func (o *openconfigDevice) getStringFromSubscription(path string,
-	f ocStringGetter) (string, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (o *openconfigDevice) getStringFromSubscription(ctx context.Context,
+	path string, f ocStringGetter) (string, error) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)
 	opt := &gnmi.SubscribeOptions{
@@ -237,21 +236,19 @@ func getChassisID(respCh chan *pb.SubscribeResponse) (string, error) {
 	return chassisID, nil
 }
 
-func (o *openconfigDevice) DeviceID() (string, error) {
+func (o *openconfigDevice) DeviceID(ctx context.Context) (string, error) {
 	if o.deviceID != "" {
 		return o.deviceID, nil
 	}
 
 	// Try for serial first.
-	did, errComps := o.getStringFromSubscription("/components/component/state",
-		getSerial)
+	did, errComps := o.getStringFromSubscription(ctx, "/components/component/state", getSerial)
 	if did != "" {
 		return did, nil
 	}
 
 	// Then go with chassis-id (MAC), if it's there.
-	did, errChassis := o.getStringFromSubscription("/lldp/state/chassis-id",
-		getChassisID)
+	did, errChassis := o.getStringFromSubscription(ctx, "/lldp/state/chassis-id", getChassisID)
 	if did != "" {
 		return did, nil
 	}
@@ -267,14 +264,14 @@ func (o *openconfigDevice) Type() string {
 	return ""
 }
 
-func (o *openconfigDevice) IPAddr() string {
+func (o *openconfigDevice) IPAddr(ctx context.Context) (string, error) {
 	if o.mgmtIP == "" {
 		tcpAddr, err := net.ResolveTCPAddr("tcp", o.config.Addr)
 		if err == nil {
 			o.mgmtIP = tcpAddr.IP.String()
 		}
 	}
-	return o.mgmtIP
+	return o.mgmtIP, nil
 }
 
 func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
@@ -320,7 +317,7 @@ func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 }
 
 // newOpenConfig returns an openconfig device.
-func newOpenConfig(opt map[string]string) (device.Device, error) {
+func newOpenConfig(ctx context.Context, opt map[string]string) (device.Device, error) {
 	deviceID, err := device.GetStringOption("device_id", opt)
 	if err != nil {
 		return nil, err
@@ -344,7 +341,6 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 	log := log.Log(openconfig)
 	log.Infof("Dialing gNMI target device: %s, timeout: %v", config.Addr, timeout)
 
-	ctx := context.Background()
 	dialCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	client, err := gnmi.DialContext(dialCtx, config)

@@ -354,14 +354,14 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		logrus.Fatal(err)
 	}
 	for _, config := range configs {
-		info, err := device.NewDeviceInfo(config)
+		info, err := device.NewDeviceInfo(ctx, config)
 		if err != nil {
-			logrus.Infof("Error in device.NewDeviceInfo(): %v. Dropping device.", err)
+			logrus.Infof("Error in device.NewDeviceInfo: %v. Dropping device.", err)
 			continue
 		}
 		err = inventory.Add(info)
 		if err != nil {
-			logrus.Infof("Error in inventory.Add(): %v. Dropping device %s.",
+			logrus.Infof("Error in inventory.Add: %v. Dropping device %s.",
 				err, info.ID)
 			continue
 		}
@@ -517,7 +517,7 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 						continue
 					}
 					for _, config := range configs {
-						info, err := device.NewDeviceInfo(config)
+						info, err := device.NewDeviceInfo(ctx, config)
 						if err != nil {
 							logrus.Errorf(
 								"Error creating device info from device config: %v", err)

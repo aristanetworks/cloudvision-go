@@ -5,6 +5,7 @@
 package devices
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"strings"
@@ -34,7 +35,7 @@ func runOptionsTest(t *testing.T, tc optionsTestCase) {
 		return
 	}
 
-	s, err := newSnmp(so)
+	s, err := newSnmp(context.Background(), so)
 	if err != nil {
 		if tc.expectedError == nil {
 			t.Fatalf("Unexpected error in newSnmp: %v", err)

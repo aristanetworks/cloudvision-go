@@ -5,6 +5,7 @@
 package snmp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -71,7 +72,7 @@ func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
 		return time.Unix(1554954972, 0)
 	}
 	s.deviceID = ""
-	did, err := s.DeviceID()
+	did, err := s.DeviceID(context.Background())
 	if err != nil {
 		t.Fatalf("Error in DeviceID: %v", err)
 	}

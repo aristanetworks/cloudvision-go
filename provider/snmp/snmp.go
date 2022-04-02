@@ -296,7 +296,7 @@ func (s *Snmp) getChassisID() (string, error) {
 }
 
 // DeviceID returns the device ID.
-func (s *Snmp) DeviceID() (string, error) {
+func (s *Snmp) DeviceID(ctx context.Context) (string, error) {
 	s.logger.Trace("Snmp.DeviceID")
 	if err := s.snmpNetworkInit(); err != nil {
 		return "", fmt.Errorf("Error connecting to device %q: %w",
@@ -339,7 +339,7 @@ func (s *Snmp) loggerUseDeviceID() {
 }
 
 // Alive checks if device is still alive if poll interval has passed.
-func (s *Snmp) Alive() (bool, error) {
+func (s *Snmp) Alive(ctx context.Context) (bool, error) {
 	s.logger.Debugf("Alive")
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
@@ -402,7 +402,6 @@ func ignoredError(err error) bool {
 
 // Run sets the Snmp provider running and returns only on error.
 func (s *Snmp) Run(ctx context.Context) error {
-	s.gsnmp.Context = ctx
 	if s.client == nil {
 		return errors.New("Run called before InitGNMI")
 	}
@@ -475,10 +474,11 @@ func (sl *snmpLogger) Printf(format string, v ...interface{}) {
 // NewSNMPProvider returns a new SNMP provider for the device at 'address'
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
-func NewSNMPProvider(address string, port uint16, community string,
+func NewSNMPProvider(ctx context.Context, address string, port uint16, community string,
 	pollInt time.Duration, version gosnmp.SnmpVersion,
 	v3Params *V3Params, mibs []string, mock bool) provider.GNMIProvider {
 	gsnmp := gosnmp.GoSNMP{
+		Context:            ctx,
 		Port:               port,
 		Version:            version,
 		Retries:            3,

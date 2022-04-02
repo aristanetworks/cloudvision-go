@@ -5,6 +5,7 @@
 package devices
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -30,15 +31,15 @@ type darwin struct {
 	provider provider.GNMIProvider
 }
 
-func (d *darwin) Alive() (bool, error) {
+func (d *darwin) Alive(ctx context.Context) (bool, error) {
 	// Runs on the device itself, so if the method is called, it's alive.
 	return true, nil
 }
 
 // Use the device's serial number as its ID.
-func (d *darwin) deviceSerial() (string, error) {
-	profiler := exec.Command("system_profiler", "SPHardwareDataType")
-	awk := exec.Command("awk", "/Serial/ {print $4}")
+func (d *darwin) deviceSerial(ctx context.Context) (string, error) {
+	profiler := exec.CommandContext(ctx, "system_profiler", "SPHardwareDataType")
+	awk := exec.CommandContext(ctx, "awk", "/Serial/ {print $4}")
 	pipe, err := profiler.StdoutPipe()
 	if err != nil {
 		return "", err
@@ -58,7 +59,7 @@ func (d *darwin) deviceSerial() (string, error) {
 	return strings.TrimSuffix(string(out), "\n"), nil
 }
 
-func (d *darwin) DeviceID() (string, error) {
+func (d *darwin) DeviceID(ctx context.Context) (string, error) {
 	return d.deviceID, nil
 }
 
@@ -70,23 +71,23 @@ func (d *darwin) Type() string {
 	return ""
 }
 
-func (d *darwin) IPAddr() string {
+func (d *darwin) IPAddr(ctx context.Context) (string, error) {
 	// we recompute this every time since it can potentially change.
 	shCmd := `ifconfig $(route -n get 0.0.0.0 2>/dev/null | awk '/interface: / {print $2}') | ` +
 		`grep "inet " | grep -v 127.0.0.1 | awk '{print $2}'`
-	out, _ := exec.Command("/bin/sh", "-c", shCmd).Output()
-	return strings.TrimSpace(string(out))
+	out, _ := exec.CommandContext(ctx, "/bin/sh", "-c", shCmd).Output()
+	return strings.TrimSpace(string(out)), nil
 }
 
 // NewDarwinDevice instantiates a MacBook device.
-func NewDarwinDevice(options map[string]string) (device.Device, error) {
+func NewDarwinDevice(ctx context.Context, options map[string]string) (device.Device, error) {
 	pollInterval, err := device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, err
 	}
 
 	device := darwin{}
-	did, err := device.deviceSerial()
+	did, err := device.deviceSerial(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failure getting device ID: %v", err)
 	}

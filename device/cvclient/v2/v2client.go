@@ -88,12 +88,16 @@ func metadataPrefix() *gnmi.Path {
 	return prefix
 }
 
-func (c *v2Client) metadataRequest() *gnmi.SetRequest {
+func (c *v2Client) metadataRequest(ctx context.Context) *gnmi.SetRequest {
 	u := []*gnmi.Update{
 		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(c.deviceType)),
 		pgnmi.Update(pgnmi.Path("collector-version"), pgnmi.Strval(versionString)),
 	}
-	if ip := c.device.IPAddr(); ip != "" {
+	ip, err := c.device.IPAddr(ctx)
+	if err != nil {
+		log.Log(c).Debugf("v2Client: metadataRequest: error in IPAddr [%s]: %s",
+			c.deviceID, err)
+	} else if ip != "" {
 		u = append(u,
 			pgnmi.Update(pgnmi.Path("ip-addr"), pgnmi.Strval(ip)),
 		)
@@ -106,7 +110,7 @@ func (c *v2Client) metadataRequest() *gnmi.SetRequest {
 }
 
 func (c *v2Client) SendDeviceMetadata(ctx context.Context) error {
-	req := c.metadataRequest()
+	req := c.metadataRequest(ctx)
 	_, err := c.Set(ctx, req)
 	return err
 }
@@ -141,7 +145,7 @@ func NewV2Client(gc gnmi.GNMIClient, dev device.Device) cvclient.CVClient {
 			deviceType = dev.Type()
 		}
 	}
-	deviceID, _ := dev.DeviceID()
+	deviceID, _ := dev.DeviceID(context.Background())
 	return &v2Client{
 		gnmiClient: gc,
 		deviceID:   deviceID,

@@ -246,9 +246,9 @@ func newTestGNMIClient(cancel context.CancelFunc,
 	return client
 }
 
-func newSNMPProvider(client *testGNMIClient,
+func newSNMPProvider(ctx context.Context, client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
-	p := NewSNMPProvider("whatever", 161, "stuff", 10*time.Millisecond,
+	p := NewSNMPProvider(ctx, "whatever", 161, "stuff", 10*time.Millisecond,
 		gosnmp.Version2c, nil, []string{"smi/mibs"}, true)
 
 	// Set up provider with special getter + walker, keeping track of
@@ -283,7 +283,7 @@ func runDeviceTest(t *testing.T, tc deviceTestCase) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	client := newTestGNMIClient(cancel, tc)
-	prov := newSNMPProvider(client, walkMaps)
+	prov := newSNMPProvider(ctx, client, walkMaps)
 	prov.InitGNMI(client)
 
 	if err := prov.Run(ctx); err != nil {

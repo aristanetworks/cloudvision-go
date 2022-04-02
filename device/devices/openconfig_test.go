@@ -173,7 +173,7 @@ func TestOpenConfigDeviceID(t *testing.T) {
 			wait.Add(1)
 			go func() {
 				defer wait.Done()
-				d, err := oc.DeviceID()
+				d, err := oc.DeviceID(context.Background())
 				if err != nil {
 					t.Error(err)
 				}
@@ -376,7 +376,7 @@ func TestNewOpenConfig(t *testing.T) {
 				t.Fatalf("Bad test options passed: %v", err)
 			}
 
-			dev, err := newOpenConfig(opts)
+			dev, err := newOpenConfig(ctx, opts)
 			if err != nil {
 				if err.Error() != tcase.expectErr {
 					t.Fatalf("Expected err: %v, got %v", tcase.expectErr, err)

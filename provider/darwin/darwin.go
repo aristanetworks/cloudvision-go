@@ -81,8 +81,8 @@ func updatesFromNetstatLine(fields []string) ([]*gnmi.Update, error) {
 	}, nil
 }
 
-func (d *darwin) updateInterfaces() ([]*gnmi.SetRequest, error) {
-	ns := exec.Command("netstat", "-ibn")
+func (d *darwin) updateInterfaces(ctx context.Context) ([]*gnmi.SetRequest, error) {
+	ns := exec.CommandContext(ctx, "netstat", "-ibn")
 	out, err := ns.CombinedOutput()
 	if err != nil {
 		return nil, err
@@ -133,7 +133,9 @@ func (d *darwin) Run(ctx context.Context) error {
 	// resulting errors to the error channel to be handled by
 	// handleErrors.
 	go pgnmi.PollForever(ctx, d.client, d.pollInterval,
-		d.updateInterfaces, d.errc)
+		func() ([]*gnmi.SetRequest, error) {
+			return d.updateInterfaces(ctx)
+		}, d.errc)
 
 	// handleErrors only returns if it sees an error.
 	return d.handleErrors(ctx)

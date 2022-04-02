@@ -107,11 +107,11 @@ type mockDevice struct {
 var _ Device = (*mockDevice)(nil)
 var _ Manager = (*mockDevice)(nil)
 
-func (m *mockDevice) Alive() (bool, error) {
+func (m *mockDevice) Alive(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (m *mockDevice) DeviceID() (string, error) {
+func (m *mockDevice) DeviceID(ctx context.Context) (string, error) {
 	return m.id, nil
 }
 
@@ -124,8 +124,8 @@ func (m *mockDevice) Providers() ([]provider.Provider, error) {
 
 func (m *mockDevice) Type() string { return "" }
 
-func (m *mockDevice) IPAddr() string {
-	return ""
+func (m *mockDevice) IPAddr(ctx context.Context) (string, error) {
+	return "", nil
 }
 
 func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
@@ -135,7 +135,7 @@ func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
 	return nil
 }
 
-func newMockDevice(opt map[string]string) (Device, error) {
+func newMockDevice(ctx context.Context, opt map[string]string) (Device, error) {
 	deviceID, err := GetStringOption("id", opt)
 	if err != nil {
 		return nil, err
@@ -936,9 +936,9 @@ func TestDatasourceDeployLoop(t *testing.T) {
 	const deviceName = "dev1"
 	const deviceType = "mock"
 
-	Register(deviceType, func(m map[string]string) (Device, error) {
+	Register(deviceType, func(ctx context.Context, m map[string]string) (Device, error) {
 		createCalls <- fmt.Sprintf("%v", m)
-		return newMockDevice(m)
+		return newMockDevice(ctx, m)
 	}, mockDeviceOptions)
 
 	// Setup one datasource that we will use for all test cases

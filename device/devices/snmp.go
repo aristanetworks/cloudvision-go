@@ -5,6 +5,7 @@
 package devices
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -93,19 +94,15 @@ type snmp struct {
 
 // XXX NOTE: For now, we return an error rather than just returning false. We
 // may want to rethink that in the future.
-func (s *snmp) Alive() (bool, error) {
-	_, err := s.snmpProvider.(*psnmp.Snmp).Alive()
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+func (s *snmp) Alive(ctx context.Context) (bool, error) {
+	return s.snmpProvider.(*psnmp.Snmp).Alive(ctx)
 }
 
-func (s *snmp) DeviceID() (string, error) {
+func (s *snmp) DeviceID(ctx context.Context) (string, error) {
 	if s.systemID != "" {
 		return s.systemID, nil
 	}
-	systemID, err := s.snmpProvider.(*psnmp.Snmp).DeviceID()
+	systemID, err := s.snmpProvider.(*psnmp.Snmp).DeviceID(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +118,7 @@ func (s *snmp) Type() string {
 	return ""
 }
 
-func (s *snmp) IPAddr() string {
+func (s *snmp) IPAddr(ctx context.Context) (string, error) {
 	if s.mgmtIP == "" {
 		// Attempt to resolve management IP
 		ip, err := net.ResolveIPAddr("ip", s.address)
@@ -129,7 +126,7 @@ func (s *snmp) IPAddr() string {
 			s.mgmtIP = ip.String()
 		}
 	}
-	return s.mgmtIP
+	return s.mgmtIP, nil
 }
 
 func (s *snmp) validateOptions() error {
@@ -218,7 +215,7 @@ func (s *snmp) deviceConfigErr(err error) error {
 // XXX NOTE: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
-func newSnmp(options map[string]string) (device.Device, error) {
+func newSnmp(ctx context.Context, options map[string]string) (device.Device, error) {
 	s := &snmp{}
 	var err error
 
@@ -293,7 +290,7 @@ func newSnmp(options map[string]string) (device.Device, error) {
 
 	s.v, s.v3Params = s.formatOptions()
 
-	s.snmpProvider = psnmp.NewSNMPProvider(s.address, s.port, s.community,
+	s.snmpProvider = psnmp.NewSNMPProvider(ctx, s.address, s.port, s.community,
 		s.pollInterval, s.v, s.v3Params, s.mibs, false)
 
 	return s, nil

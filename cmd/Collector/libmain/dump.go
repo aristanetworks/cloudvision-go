@@ -76,13 +76,13 @@ func runDump(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	for _, config := range configs {
-		info, err := device.NewDeviceInfo(config)
+		info, err := device.NewDeviceInfo(ctx, config)
 		if err != nil {
-			logrus.Fatalf("Error in device.NewDeviceInfo(): %v", err)
+			logrus.Fatalf("Error in device.NewDeviceInfo: %v", err)
 		}
 		err = inventory.Add(info)
 		if err != nil {
-			logrus.Fatalf("Error in inventory.Add(): %v", err)
+			logrus.Fatalf("Error in inventory.Add: %v", err)
 		}
 	}
 	logrus.Info("Dump Collector is running")

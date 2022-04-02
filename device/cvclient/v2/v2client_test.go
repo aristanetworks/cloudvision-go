@@ -5,6 +5,7 @@
 package v2
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -36,21 +37,22 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 }
 
 func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
+	ip, _ := testDevice{}.IPAddr(context.Background())
 	expData := map[string]interface{}{
 		"/device-metadata/state/metadata/type":              pgnmi.Strval(c.deviceType),
 		"/device-metadata/state/metadata/collector-version": pgnmi.Strval(versionString),
-		"/device-metadata/state/metadata/ip-addr":           pgnmi.Strval(testDevice{}.IPAddr()),
+		"/device-metadata/state/metadata/ip-addr":           pgnmi.Strval(ip),
 	}
 	return verifyUpdates(r, expData, true)
 }
 
 type testDevice struct{}
 
-func (td testDevice) DeviceID() (string, error) {
+func (td testDevice) DeviceID(ctx context.Context) (string, error) {
 	return "mycontroller", nil
 }
 
-func (td testDevice) Alive() (bool, error) {
+func (td testDevice) Alive(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
@@ -62,13 +64,13 @@ func (td testDevice) Type() string {
 	return ""
 }
 
-func (td testDevice) IPAddr() string {
-	return "192.168.5.10"
+func (td testDevice) IPAddr(ctx context.Context) (string, error) {
+	return "192.168.5.10", nil
 }
 
 func TestMetadataRequest(t *testing.T) {
 	c := NewV2Client(nil, testDevice{}).(*v2Client)
-	r := c.metadataRequest()
+	r := c.metadataRequest(context.Background())
 	if err := verifyMetadataLeaves(r, c); err != nil {
 		t.Logf("Error verifying leaves in set request: %v", err)
 		t.Fail()

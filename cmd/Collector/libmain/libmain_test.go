@@ -19,11 +19,11 @@ import (
 
 type testDevice struct{}
 
-func (td testDevice) Alive() (bool, error) {
+func (td testDevice) Alive(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (td testDevice) DeviceID() (string, error) {
+func (td testDevice) DeviceID(ctx context.Context) (string, error) {
 	return "aaa", nil
 }
 
@@ -35,17 +35,17 @@ func (td testDevice) Type() string {
 	return ""
 }
 
-func (td testDevice) IPAddr() string {
-	return "192.168.1.2"
+func (td testDevice) IPAddr(ctx context.Context) (string, error) {
+	return "192.168.1.2", nil
 }
 
 type testManager struct{}
 
-func (tm testManager) Alive() (bool, error) {
+func (tm testManager) Alive(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (tm testManager) DeviceID() (string, error) {
+func (tm testManager) DeviceID(ctx context.Context) (string, error) {
 	return "bbb", nil
 }
 
@@ -65,12 +65,12 @@ func (tm testManager) Manage(ctx context.Context, inv device.Inventory) error {
 	})
 }
 
-func (tm testManager) IPAddr() string {
-	return "192.168.0.123"
+func (tm testManager) IPAddr(ctx context.Context) (string, error) {
+	return "192.168.0.123", nil
 }
 
 // newTestManager returns a dummy device for testing.
-func newTestManager(map[string]string) (device.Device, error) {
+func newTestManager(ctx context.Context, opts map[string]string) (device.Device, error) {
 	return testManager{}, nil
 }
 
