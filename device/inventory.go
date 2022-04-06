@@ -63,14 +63,16 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		case <-dc.ctx.Done():
 			return nil
 		case <-ticker.C:
-			if alive, err := dc.info.Device.Alive(); err == nil && alive {
+			alive, err := dc.info.Device.Alive()
+			if err == nil && alive {
 				if err := dc.cvClient.SendHeartbeat(dc.ctx, alive); err != nil {
 					// Don't give up if an update fails for some reason.
 					log.Log(dc.info.Device).Infof("Error sending periodic "+
 						"update for device %v: %v", did, err)
 				}
 			} else {
-				log.Log(dc.info.Device).Infof("Device %s is not alive", did)
+				log.Log(dc.info.Device).Infof("Device %s is not alive, err: %v",
+					did, err)
 			}
 		}
 	}
