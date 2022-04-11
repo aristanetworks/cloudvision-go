@@ -8,6 +8,7 @@ import (
 	"context"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/log"
@@ -86,7 +87,7 @@ type openconfigDevice struct {
 }
 
 func (o *openconfigDevice) Alive() (bool, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	ctx = gnmi.NewContext(ctx, o.config)
 	livenessPath := "/system/processes/process/state"
