@@ -279,15 +279,20 @@ func (t *Translator) storePDU(pdu gosnmp.SnmpPDU) error {
 	return t.pduStore.Add(&pdu)
 }
 
-func ignorableSNMPError(err error) bool {
-	errStr := err.Error()
-	if strings.Contains(errStr, "Request timeout") {
-		return false
+// A critical error is an error that prevents us from continuing processing/querying snmp.
+// I.e, errors that interrupt a poll cycle.
+func criticalSNMPError(err error) bool {
+	if errors.Is(err, context.Canceled) {
+		return true
+	}
+	errStr := strings.ToLower(err.Error())
+	if strings.Contains(errStr, "request timeout") {
+		return true
 	}
 	if strings.Contains(errStr, "closed network connection") {
-		return false
+		return true
 	}
-	return true
+	return false
 }
 
 func (t *Translator) getSNMPData(mg *mappingGroup) error {
@@ -297,7 +302,7 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 	// Connect to target.
 	if !t.gosnmpConnected && !t.Mock {
 		if err := t.gosnmp.Connect(); err != nil {
-			return err
+			return fmt.Errorf("connect failed: %w", err)
 		}
 		t.gosnmpConnected = true
 		t.Logger.Infoln("gosnmp.Connect complete")
@@ -309,8 +314,8 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 		for _, oid := range model.snmpWalkOIDs {
 			t.Logger.Debugf("SNMP Walk (OID = %s)", oid)
 			if err := t.Walker(oid, t.storePDU); err != nil {
-				if !ignorableSNMPError(err) {
-					return err
+				if criticalSNMPError(err) {
+					return fmt.Errorf("SNMP Walker failed: %w", err)
 				}
 				t.Logger.Infof("Error walking OID %s: %s", oid, err)
 			} else {
@@ -326,8 +331,8 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 			strings.Join(model.snmpGetOIDs, " "))
 		pkt, err := t.Getter(model.snmpGetOIDs)
 		if err != nil {
-			if !ignorableSNMPError(err) {
-				return err
+			if criticalSNMPError(err) {
+				return fmt.Errorf("SNMP Getter failed: %w", err)
 			}
 			t.Logger.Infof("Error getting OIDs %s: %s",
 				strings.Join(model.snmpGetOIDs, " "), err)
