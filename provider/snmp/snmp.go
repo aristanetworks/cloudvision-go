@@ -411,7 +411,7 @@ func (s *Snmp) sendUpdates(ctx context.Context) error {
 }
 
 func ignoredError(err error) bool {
-	if err == io.EOF || err == context.Canceled {
+	if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
 		return true
 	}
 	return false
