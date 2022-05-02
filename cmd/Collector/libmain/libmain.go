@@ -39,7 +39,55 @@ import (
 )
 
 var (
-	v    = flag.Bool("version", false, "Print the version number")
+	v    *bool
+	help *bool
+
+	// Logging config
+	logLevel *string
+	logDir   *string
+
+	// Device config
+	deviceName       *string
+	deviceOptions    = aflag.Map{}
+	deviceConfigFile *string
+	noStream         *bool
+
+	// MockCollector config
+	mock        *bool
+	mockFeature = aflag.Map{}
+	mockTimeout *time.Duration
+
+	// Dump Collector config
+	dump        *bool
+	dumpFile    *string
+	dumpTimeout *time.Duration
+
+	// gNMI server config
+	gnmiServerAddr *string
+
+	// gRPC server config
+	grpcServerAddr *string
+
+	// local gRPC server config for inventory service
+	grpcAddr *string
+
+	// local http monitor server addr
+	monitorAddr *string
+
+	// Auth config
+	caFile   *string
+	certFile *string
+	keyFile  *string
+	tlsFlag  *bool
+	authInfo = agrpc.AuthFlag()
+
+	// protocol version
+	protoVersion *string
+)
+
+// Main is the "real" main.
+func Main() {
+	v = flag.Bool("version", false, "Print the version number")
 	help = flag.Bool("help", false, "Print program options")
 
 	// Logging config
@@ -51,20 +99,20 @@ var (
 	// Device config
 	deviceName = flag.String("device", "",
 		"Device type (available devices: "+deviceList()+")")
-	deviceOptions    = aflag.Map{}
+	deviceOptions = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
-	noStream         = flag.Bool("nostream", false,
+	noStream = flag.Bool("nostream", false,
 		"If set, updates aren't streamed for specified device")
 
 	// MockCollector config
-	mock        = flag.Bool("mock", false, "Run Collector in mock mode")
+	mock = flag.Bool("mock", false, "Run Collector in mock mode")
 	mockFeature = aflag.Map{}
 	mockTimeout = flag.Duration("mockTimeout", 60*time.Second,
 		"Timeout for checking notifications in mock mode")
 
 	// Dump Collector config
-	dump        = flag.Bool("dump", false, "Run Collector in dump mode")
-	dumpFile    = flag.String("dumpFile", "", "Path to output file used to dump gNMI SetRequests")
+	dump = flag.Bool("dump", false, "Run Collector in dump mode")
+	dumpFile = flag.String("dumpFile", "", "Path to output file used to dump gNMI SetRequests")
 	dumpTimeout = flag.Duration("dumpTimeout", 20*time.Second,
 		"Timeout for dumping gNMI SetRequests")
 
@@ -86,19 +134,14 @@ var (
 			"Example: 0.0.0.0:0 or localhost:6060. Port 0 will select one automatically.")
 
 	// Auth config
-	caFile   = flag.String("cafile", "", "Path to CA file")
+	caFile = flag.String("cafile", "", "Path to CA file")
 	certFile = flag.String("certfile", "", "Path to client TLS certificate file")
-	keyFile  = flag.String("keyfile", "", "Path to client TLS private key file")
-	tlsFlag  = flag.Bool("tls", false, "Enable TLS")
-	authInfo = agrpc.AuthFlag()
+	keyFile = flag.String("keyfile", "", "Path to client TLS private key file")
+	tlsFlag = flag.Bool("tls", false, "Enable TLS")
 
-	// protocol version
 	protoVersion = flag.String("protoversion", "v1",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
-)
 
-// Main is the "real" main.
-func Main() {
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
 			"if present in the Collector output, signifies that the target device supports "+
@@ -189,7 +232,7 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 	if _, ok := info.Device.(device.Manager); ok {
 		isManager = true
 	}
-	if *protoVersion == "v2" {
+	if protoVersion != nil && *protoVersion == "v2" {
 		return v2client.NewV2Client(gc, info.Device)
 	}
 	return v1client.NewV1Client(gc, info.ID, isManager)
