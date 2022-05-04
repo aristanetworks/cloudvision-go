@@ -93,7 +93,50 @@ var basicIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.10.1000001 = Counter32: 3997687336
 .1.3.6.1.2.1.2.2.1.10.2001610 = Counter32: 0
 .1.3.6.1.2.1.2.2.1.10.5000000 = Counter32: 0
+.1.3.6.1.2.1.2.2.1.5.3001 = Gauge32: 1000000000
+.1.3.6.1.2.1.2.2.1.5.3002 = Gauge32: 100000000
+.1.3.6.1.2.1.2.2.1.5.999011 = Gauge32: 1000000000
+.1.3.6.1.2.1.2.2.1.5.1000001 = Gauge32: 2500000000
+.1.3.6.1.2.1.2.2.1.5.2001610 = Gauge32: 10000000
+.1.3.6.1.2.1.2.2.1.5.5000000 = Gauge32: 0
 `
+
+var ifTableHighSpeedResponse = `
+.1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
+.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
+.1.3.6.1.2.1.2.2.1.2.999011 = STRING: Management1/1
+.1.3.6.1.2.1.2.2.1.2.1000001 = STRING: Port-Channel1
+.1.3.6.1.2.1.2.2.1.2.2001610 = STRING: Vlan1610
+.1.3.6.1.2.1.2.2.1.2.5000000 = STRING: Loopback0
+.1.3.6.1.2.1.2.2.1.5.3001 = Gauge32: 4294967295
+.1.3.6.1.2.1.2.2.1.5.3002 = Gauge32: 100000000
+.1.3.6.1.2.1.2.2.1.5.999011 = Gauge32: 1000000000
+.1.3.6.1.2.1.2.2.1.5.1000001 = Gauge32: 2500000000
+.1.3.6.1.2.1.2.2.1.5.2001610 = Gauge32: 4294967295
+.1.3.6.1.2.1.2.2.1.5.5000000 = Gauge32: 0
+.1.3.6.1.2.1.31.1.1.1.15.3001 = Gauge32: 100000
+.1.3.6.1.2.1.31.1.1.1.15.3002 = Gauge32: 100
+.1.3.6.1.2.1.31.1.1.1.15.999011 = Gauge32: 1000
+.1.3.6.1.2.1.31.1.1.1.15.1000001 = Gauge32: 2500
+.1.3.6.1.2.1.31.1.1.1.15.2001610 = Gauge32: 10000
+.1.3.6.1.2.1.31.1.1.1.15.5000000 = Gauge32: 0
+`
+
+var ifTableOnlyIfSpeedResponse = `
+.1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
+.1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
+.1.3.6.1.2.1.2.2.1.2.999011 = STRING: Management1/1
+.1.3.6.1.2.1.2.2.1.2.1000001 = STRING: Port-Channel1
+.1.3.6.1.2.1.2.2.1.2.2001610 = STRING: Vlan1610
+.1.3.6.1.2.1.2.2.1.2.5000000 = STRING: Loopback0
+.1.3.6.1.2.1.2.2.1.5.3001 = Gauge32: 1000000000
+.1.3.6.1.2.1.2.2.1.5.3002 = Gauge32: 100000000
+.1.3.6.1.2.1.2.2.1.5.999011 = Gauge32: 1000000000
+.1.3.6.1.2.1.2.2.1.5.1000001 = Gauge32: 2500000000
+.1.3.6.1.2.1.2.2.1.5.2001610 = Gauge32: 10000000
+.1.3.6.1.2.1.2.2.1.5.5000000 = Gauge32: 0
+`
+
 var basicIfXTableResponse = `
 .1.3.6.1.2.1.31.1.1.1.1.3001 = STRING: Ethernet3/1
 .1.3.6.1.2.1.31.1.1.1.1.3002 = STRING: Ethernet3/2
@@ -666,6 +709,80 @@ func TestTranslator(t *testing.T) {
 							uintval(0)),
 						update(pgnmi.IntfStateCountersPath("Loopback0", "out-multicast-pkts"),
 							uintval(0)),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "mac-address"),
+							strval("74:83:ef:0f:6b:6d")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "mac-address"),
+							strval("74:83:ef:0f:6b:6e")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "mac-address"),
+							strval("00:1c:73:d6:22:c7")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "mac-address"),
+							strval("00:1c:73:3c:a2:d3")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "mac-address"),
+							strval("00:1c:73:03:13:36")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "port-speed"),
+							strval("SPEED_100MB")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "port-speed"),
+							strval("SPEED_2500MB")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "port-speed"),
+							strval("SPEED_10MB")),
+						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
+							strval("SPEED_UNKNOWN")),
+					},
+				},
+			},
+		},
+		{
+			name:        "update port-speed from ifHighSpeed",
+			updatePaths: []string{"^/interfaces/.*/port-speed"},
+			responses: map[string][]*gosnmp.SnmpPDU{
+				"ifTable": PDUsFromString(ifTableHighSpeedResponse),
+			},
+			expectedSetRequests: []*gnmi.SetRequest{
+				&gnmi.SetRequest{
+					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
+					Replace: []*gnmi.Update{
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
+							strval("SPEED_100GB")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "port-speed"),
+							strval("SPEED_100MB")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "port-speed"),
+							strval("SPEED_2500MB")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "port-speed"),
+							strval("SPEED_10GB")),
+						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
+							strval("SPEED_UNKNOWN")),
+					},
+				},
+			},
+		},
+		{
+			name:        "update port-speed from ifSpeed",
+			updatePaths: []string{"^/interfaces/.*/port-speed"},
+			responses: map[string][]*gosnmp.SnmpPDU{
+				"ifTable": PDUsFromString(ifTableOnlyIfSpeedResponse),
+			},
+			expectedSetRequests: []*gnmi.SetRequest{
+				&gnmi.SetRequest{
+					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
+					Replace: []*gnmi.Update{
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "port-speed"),
+							strval("SPEED_100MB")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "port-speed"),
+							strval("SPEED_2500MB")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "port-speed"),
+							strval("SPEED_10MB")),
+						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
+							strval("SPEED_UNKNOWN")),
 					},
 				},
 			},
@@ -749,6 +866,28 @@ func TestTranslator(t *testing.T) {
 							uintval(0)),
 						update(pgnmi.IntfStateCountersPath("Loopback0", "out-multicast-pkts"),
 							uintval(0)),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "mac-address"),
+							strval("74:83:ef:0f:6b:6d")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "mac-address"),
+							strval("74:83:ef:0f:6b:6e")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "mac-address"),
+							strval("00:1c:73:d6:22:c7")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "mac-address"),
+							strval("00:1c:73:3c:a2:d3")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "mac-address"),
+							strval("00:1c:73:03:13:36")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "port-speed"),
+							strval("SPEED_100MB")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "port-speed"),
+							strval("SPEED_2500MB")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "port-speed"),
+							strval("SPEED_10MB")),
+						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
+							strval("SPEED_UNKNOWN")),
 						update(pgnmi.LldpStatePath("chassis-id-type"),
 							strval(openconfig.LLDPChassisIDType(4))),
 						update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
@@ -913,6 +1052,28 @@ func TestTranslator(t *testing.T) {
 							uintval(0)),
 						update(pgnmi.IntfStateCountersPath("Loopback0", "out-multicast-pkts"),
 							uintval(0)),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "mac-address"),
+							strval("74:83:ef:0f:6b:6d")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "mac-address"),
+							strval("74:83:ef:0f:6b:6e")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "mac-address"),
+							strval("00:1c:73:d6:22:c7")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "mac-address"),
+							strval("00:1c:73:3c:a2:d3")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "mac-address"),
+							strval("00:1c:73:03:13:36")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Ethernet3/2", "port-speed"),
+							strval("SPEED_100MB")),
+						update(pgnmi.IntfEthernetStatePath("Management1/1", "port-speed"),
+							strval("SPEED_1GB")),
+						update(pgnmi.IntfEthernetStatePath("Port-Channel1", "port-speed"),
+							strval("SPEED_2500MB")),
+						update(pgnmi.IntfEthernetStatePath("Vlan1610", "port-speed"),
+							strval("SPEED_10MB")),
+						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
+							strval("SPEED_UNKNOWN")),
 						update(pgnmi.LldpStatePath("chassis-id-type"),
 							strval(openconfig.LLDPChassisIDType(4))),
 						update(pgnmi.LldpStatePath("chassis-id"), strval("00:1c:73:03:13:36")),
@@ -1611,6 +1772,215 @@ func TestMappingGroups(t *testing.T) {
 				if !mappingGroupsEqual(m, tc.expectedMappingGroups[k]) {
 					t.Fatalf("got: %+v, expected: %+v", mg, tc.expectedMappingGroups)
 				}
+			}
+		})
+	}
+}
+
+func TestMacAddrStrVal(t *testing.T) {
+
+	for _, tc := range []valTestCase{
+		{
+			name: "valid mac",
+			in:   "00:45:75:6f:a0:c0",
+			out:  pgnmi.Strval("00:45:75:6f:a0:c0"),
+		},
+		{
+			name: "valid mac with invalid group size",
+			in:   "0:45:75:6f:a0:c",
+			out:  pgnmi.Strval("00:45:75:6f:a0:0c"),
+		},
+		{
+			name: "invalid mac 1",
+			in:   "0:45",
+			out:  nil,
+		},
+		{
+			name: "invalid mac 2",
+			in:   "00:45:75:6f:a0:c0:0f:dd:ff",
+			out:  nil,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			inStr, ok := tc.in.(string)
+			if !ok {
+				t.Fatalf("input must be of type of string")
+			}
+			got := macAddrStrVal(macAddrToByteHWAddr(inStr))
+			if !reflect.DeepEqual(got, tc.out) {
+				t.Fatalf("got: %v, expected: %v", got, tc.out)
+			}
+		})
+	}
+
+	// below tests need to run without calling the macAddrToByteHWAddr() helper func
+	for _, tc := range []valTestCase{
+		{
+			name: "data type not []byte",
+			in:   "00:45:75:6f:a0:0c",
+			out:  nil,
+		},
+		{
+			name: "nil value",
+			in:   nil,
+			out:  nil,
+		},
+		{
+			name: "empty byte slice",
+			in:   []byte{},
+			out:  nil,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := macAddrStrVal(tc.in)
+			if !reflect.DeepEqual(got, tc.out) {
+				t.Fatalf("got: %v, expected: %v", got, tc.out)
+			}
+		})
+	}
+}
+
+func TestIfHighSpeedStrVal(t *testing.T) {
+	unknownSpeed := pgnmi.Strval("SPEED_UNKNOWN")
+	for _, tc := range []valTestCase{
+		{
+			name: "SPEED_10MB",
+			in:   uint32(10),
+			out:  pgnmi.Strval("SPEED_10MB"),
+		},
+		{
+			name: "SPEED_100MB",
+			in:   uint32(100),
+			out:  pgnmi.Strval("SPEED_100MB"),
+		},
+		{
+			name: "SPEED_1GB",
+			in:   uint32(1000),
+			out:  pgnmi.Strval("SPEED_1GB"),
+		},
+		{
+			name: "SPEED_2500MB",
+			in:   uint32(2500),
+			out:  pgnmi.Strval("SPEED_2500MB"),
+		},
+		{
+			name: "SPEED_5GB",
+			in:   uint32(5000),
+			out:  pgnmi.Strval("SPEED_5GB"),
+		},
+		{
+			name: "SPEED_10GB",
+			in:   uint32(1e4),
+			out:  pgnmi.Strval("SPEED_10GB"),
+		},
+		{
+			name: "SPEED_25GB",
+			in:   uint32(2.5e4),
+			out:  pgnmi.Strval("SPEED_25GB"),
+		},
+		{
+			name: "SPEED_40GB",
+			in:   uint32(4e4),
+			out:  pgnmi.Strval("SPEED_40GB"),
+		},
+		{
+			name: "SPEED_50GB",
+			in:   uint32(5e4),
+			out:  pgnmi.Strval("SPEED_50GB"),
+		},
+		{
+			name: "SPEED_100GB",
+			in:   uint32(1e5),
+			out:  pgnmi.Strval("SPEED_100GB"),
+		},
+		{
+			name: "SPEED_200GB",
+			in:   uint32(2e5),
+			out:  pgnmi.Strval("SPEED_200GB"),
+		},
+		{
+			name: "SPEED_400GB",
+			in:   uint32(4e5),
+			out:  pgnmi.Strval("SPEED_400GB"),
+		},
+		{
+			name: "SPEED_600GB",
+			in:   uint32(6e5),
+			out:  pgnmi.Strval("SPEED_600GB"),
+		},
+		{
+			name: "SPEED_800GB",
+			in:   uint32(8e5),
+			out:  pgnmi.Strval("SPEED_800GB"),
+		},
+		{
+			name: "zero bps",
+			in:   uint32(0),
+			out:  unknownSpeed,
+		},
+		{
+			name: "non-zero invalid speed",
+			in:   uint32(86700000),
+			out:  unknownSpeed,
+		},
+		{
+			name: "invalid value type",
+			in:   "100000000",
+			out:  unknownSpeed,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ifHighSpeedStrVal(tc.in)
+			if !reflect.DeepEqual(got, tc.out) {
+				t.Errorf("got: %v, expected: %v", got, tc.out)
+			}
+		})
+	}
+}
+
+func TestIfSpeedStrVal(t *testing.T) {
+	unknownSpeed := pgnmi.Strval("SPEED_UNKNOWN")
+	for _, tc := range []valTestCase{
+		{
+			name: "SPEED_10MB",
+			in:   uint32(1e7),
+			out:  pgnmi.Strval("SPEED_10MB"),
+		},
+		{
+			name: "SPEED_100MB",
+			in:   uint32(1e8),
+			out:  pgnmi.Strval("SPEED_100MB"),
+		},
+		{
+			name: "SPEED_1GB",
+			in:   uint32(1e9),
+			out:  pgnmi.Strval("SPEED_1GB"),
+		},
+		{
+			name: "SPEED_2500MB",
+			in:   uint32(2.5e9),
+			out:  pgnmi.Strval("SPEED_2500MB"),
+		},
+		{
+			name: "high speed",
+			in:   uint32(4294967295),
+			out:  unknownSpeed,
+		},
+		{
+			name: "zero bps",
+			in:   uint32(0),
+			out:  unknownSpeed,
+		},
+		{
+			name: "invalid value type",
+			in:   "100000000",
+			out:  unknownSpeed,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ifSpeedStrVal(tc.in)
+			if !reflect.DeepEqual(got, tc.out) {
+				t.Errorf("got: %v, expected: %v", got, tc.out)
 			}
 		})
 	}
