@@ -256,7 +256,11 @@ func ifTableMapper(ss smi.Store, ps pdu.Store,
 			return nil, fmt.Errorf("No ifDescr for ifIndex '%s'", ifIndex)
 		}
 		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, ifDescr))
-		updates = append(updates, update(fullPath, vp(p.Value)))
+		processedVal := vp(p.Value)
+		// do not send any update if value processor returns nil
+		if processedVal != nil {
+			updates = append(updates, update(fullPath, vp(p.Value)))
+		}
 	}
 	return updates, nil
 }
@@ -384,6 +388,72 @@ func getInterfaceFromLldpPortNum(ss smi.Store, ps pdu.Store,
 	return intfName, nil
 }
 
+// bpsToOCEthernetSpeeds maps bits per second(received from `ifSpeed` snmp oid) values
+// to their corresponding openconfig ETHERNET_SPEED identities
+var bpsToOCEthernetSpeeds = map[uint64]string{
+	1e7:    "SPEED_10MB",
+	1e8:    "SPEED_100MB",
+	1e9:    "SPEED_1GB",
+	2.5e9:  "SPEED_2500MB",
+	5e9:    "SPEED_5GB",
+	1e10:   "SPEED_10GB",
+	2.5e10: "SPEED_25GB",
+	4e10:   "SPEED_40GB",
+	5e10:   "SPEED_50GB",
+	1e11:   "SPEED_100GB",
+	2e11:   "SPEED_200GB",
+	4e11:   "SPEED_400GB",
+	6e11:   "SPEED_600GB",
+	8e11:   "SPEED_800GB",
+}
+
+func ifHighSpeedStrVal(s interface{}) *gnmi.TypedValue {
+	return speedStrVal(s, true)
+}
+
+func ifSpeedStrVal(s interface{}) *gnmi.TypedValue {
+	return speedStrVal(s, false)
+}
+
+const bpsPerMbps = 1e6
+
+func speedStrVal(s interface{}, isHighSpeed bool) *gnmi.TypedValue {
+	unknownSpeed := pgnmi.Strval("SPEED_UNKNOWN")
+
+	bps, err := provider.ToUint64(s)
+	if err != nil {
+		return unknownSpeed
+	}
+
+	// highSpeed values will be in mbps, convert to bps before checking in map
+	if isHighSpeed {
+		bps = bps * bpsPerMbps
+	}
+
+	ethSpeed, found := bpsToOCEthernetSpeeds[bps]
+	if !found {
+		return unknownSpeed
+	}
+	return pgnmi.Strval(ethSpeed)
+}
+
+func macAddrStrVal(s interface{}) *gnmi.TypedValue {
+	sByte, ok := s.([]byte)
+	if !ok {
+		return nil
+	}
+
+	macAddr := MacFromBytes(sByte)
+	if macAddr == "" {
+		return nil
+	}
+
+	return pgnmi.Strval(macAddr)
+}
+
+// regex pattern for mac-address as specified in openconfig
+var macAddrRegex = regexp.MustCompile(`^[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}$`)
+
 // MacFromBytes returns a MAC address from a string or hex byte string.
 func MacFromBytes(s []byte) string {
 	// string case
@@ -392,7 +462,11 @@ func MacFromBytes(s []byte) string {
 	}
 
 	// else assume hex string
-	return net.HardwareAddr(s).String()
+	mac := net.HardwareAddr(s).String()
+	if !macAddrRegex.MatchString(mac) {
+		return ""
+	}
+	return mac
 }
 
 // IPFromBytes returns an IP address from a string or byte string.
@@ -693,11 +767,13 @@ func entPhysicalTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 // mappers
 var (
 	// /interfaces
-	interfacePath        = "/interfaces/interface[name=%s]/"
-	interfaceStatePath   = interfacePath + "state/"
-	interfaceConfigPath  = interfacePath + "config/"
-	interfaceCounterPath = interfaceStatePath + "counters/"
-	interfaceName        = ifTableMapperFn(interfacePath+"name",
+	interfacePath              = "/interfaces/interface[name=%s]/"
+	interfaceEthernetPath      = interfacePath + "ethernet/"
+	interfaceStatePath         = interfacePath + "state/"
+	interfaceConfigPath        = interfacePath + "config/"
+	interfaceCounterPath       = interfaceStatePath + "counters/"
+	interfaceEthernetStatePath = interfaceEthernetPath + "state/"
+	interfaceName              = ifTableMapperFn(interfacePath+"name",
 		"ifDescr", strval)
 	interfaceStateName = ifTableMapperFn(interfaceStatePath+"name",
 		"ifDescr", strval)
@@ -762,6 +838,12 @@ var (
 		"ifOutDiscards", uintval)
 	interfaceOutErrors = ifTableMapperFn(interfaceCounterPath+"out-errors",
 		"ifOutErrors", uintval)
+	interfaceHighSpeed = ifTableMapperFn(interfaceEthernetStatePath+"port-speed",
+		"ifHighSpeed", ifHighSpeedStrVal)
+	interfaceSpeed = ifTableMapperFn(interfaceEthernetStatePath+"port-speed",
+		"ifSpeed", ifSpeedStrVal)
+	interfacePhysAddress = ifTableMapperFn(interfaceEthernetStatePath+"mac-address",
+		"ifPhysAddress", macAddrStrVal)
 
 	// /system/state
 	systemStatePath     = "/system/state/"
@@ -932,8 +1014,11 @@ var defaultMappings = map[string][]Mapper{
 		interfaceOutOctets32},
 	"/interfaces/interface[name=name]/state/out-unicast-pkts": []Mapper{interfaceOutUnicastPkts64,
 		interfaceOutUnicastPkts32},
-	"/interfaces/interface[name=name]/state/out-discards": []Mapper{interfaceOutDiscards},
-	"/interfaces/interface[name=name]/state/out-errors":   []Mapper{interfaceOutErrors},
+	"/interfaces/interface[name=name]/state/out-discards":         []Mapper{interfaceOutDiscards},
+	"/interfaces/interface[name=name]/state/out-errors":           []Mapper{interfaceOutErrors},
+	"/interfaces/interface[name=name]/ethernet/state/mac-address": []Mapper{interfacePhysAddress},
+	"/interfaces/interface[name=name]/ethernet/state/port-speed": []Mapper{interfaceHighSpeed,
+		interfaceSpeed},
 
 	// system
 	"/system/state/hostname":    []Mapper{systemStateHostname, systemStateHostnameLldp},

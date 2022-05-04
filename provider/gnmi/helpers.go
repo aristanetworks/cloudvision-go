@@ -297,6 +297,12 @@ func IntfStateCountersPath(intfName, leafName string) *gnmi.Path {
 		"state", "counters", leafName)
 }
 
+// IntfEthernetStatePath returns an interface ethernet state path.
+func IntfEthernetStatePath(intfName, leafName string) *gnmi.Path {
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
+		"ethernet", "state", leafName)
+}
+
 // LLDP paths of interest:
 
 // LldpStatePath returns an LLDP state path.
