@@ -58,6 +58,9 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	defer ticker.Stop()
 	did, _ := dc.info.Device.DeviceID()
 
+	logger := log.Log(dc.info.Device)
+	wasFailing := false // used to only log once when device is unhealthy and back alive
+
 	for {
 		select {
 		case <-dc.ctx.Done():
@@ -65,14 +68,20 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 		case <-ticker.C:
 			alive, err := dc.info.Device.Alive()
 			if err == nil && alive {
+				if wasFailing {
+					logger.Infof("Device %s is back alive", did)
+					wasFailing = false
+				}
 				if err := dc.cvClient.SendHeartbeat(dc.ctx, alive); err != nil {
 					// Don't give up if an update fails for some reason.
-					log.Log(dc.info.Device).Infof("Error sending periodic "+
-						"update for device %v: %v", did, err)
+					logger.Infof("Error sending periodic update for device %v: %v",
+						did, err)
 				}
 			} else {
-				log.Log(dc.info.Device).Infof("Device %s is not alive, err: %v",
-					did, err)
+				if !wasFailing {
+					logger.Infof("Device %s is not alive, err: %v", did, err)
+					wasFailing = true
+				}
 			}
 		}
 	}
