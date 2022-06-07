@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/aristanetworks/cloudvision-go/log"
 	"github.com/aristanetworks/cloudvision-go/provider"
@@ -59,8 +58,6 @@ func (p *Gnmi) subscribeAndSet(ctx context.Context,
 
 	// producer: subscribe to target
 	errg.Go(func() error {
-		p.logger.Infof("gNMI subscribeOptions: %+v, config: %+v",
-			subscribeOptions, p.cfg)
 		return agnmi.SubscribeErr(ctx, p.inClient, subscribeOptions, respCh)
 	})
 
@@ -72,7 +69,6 @@ func (p *Gnmi) subscribeAndSet(ctx context.Context,
 				return ctx.Err()
 			case response, ok := <-respCh:
 				if !ok {
-					p.logger.Info("gNMI target closed subscription")
 					return io.EOF
 				}
 				switch resp := response.Response.(type) {
@@ -118,26 +114,32 @@ func (p *Gnmi) Run(ctx context.Context) error {
 		Paths:      agnmi.SplitPaths(p.paths),
 	}
 
+	p.logger.Infof("gNMI subscribeOptions: %+v, config: "+
+		"{Addr:%s, CAFile:%s, CertFile:%s, Username:%s, TLS:%t, Compression:%s}",
+		subscribeOptions, p.cfg.Addr, p.cfg.CAFile, p.cfg.CertFile, p.cfg.Username,
+		p.cfg.TLS, p.cfg.Compression)
+
 	// Initialize retry timer, setting it to one nanosecond so we can
 	// go straight into the retry loop.
-	retryTimer := time.NewTimer(time.Nanosecond)
+	backoffTimer := provider.NewBackoffTimer()
 
 	// Retry loop
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-retryTimer.C:
+		case <-backoffTimer.Wait():
 			// Subscribe, hopefully forever.
-			if err := p.subscribeAndSet(ctx, subscribeOptions); err != nil {
-				if !errors.Is(err, context.Canceled) {
-					p.logger.Infof("gNMI subscription failed %v, retrying...", err)
-				}
-			} else {
-				p.logger.Info("gNMI subscription disconnected, retrying...")
+			err := p.subscribeAndSet(ctx, subscribeOptions)
+
+			// Subscribe failed, schedule retry with backoff.
+			// This is done before logging the error so we can log a precise retry delay.
+			curBackoff := backoffTimer.Backoff()
+
+			if !errors.Is(err, context.Canceled) {
+				p.logger.Infof("gNMI subscription failed, retrying in %v. Err: %v",
+					curBackoff, err)
 			}
-			// The server closed the connection with no error. Schedule a retry.
-			retryTimer.Reset(5 * time.Second)
 		}
 	}
 }
