@@ -69,6 +69,11 @@ func openConfigOptions() map[string]device.Option {
 			Default:     "false",
 			Required:    false,
 		},
+		"bdp": {
+			Description: "Enable BDP",
+			Default:     "true",
+			Required:    false,
+		},
 		"device_id": {
 			Description: "device ID",
 			Default:     "",
@@ -304,6 +309,10 @@ func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 		return nil, err
 	}
 	config.TLS, err = device.GetBoolOption("tls", opt)
+	if err != nil {
+		return nil, err
+	}
+	config.BDP, err = device.GetBoolOption("bdp", opt)
 	if err != nil {
 		return nil, err
 	}
