@@ -35,10 +35,12 @@ func Unmarshal(val *gnmi.TypedValue) interface{} {
 	case *gnmi.TypedValue_BytesVal:
 		return agnmi.StrVal(val)
 	case *gnmi.TypedValue_DecimalVal:
-		d := v.DecimalVal
+		d := v.DecimalVal // nolint:staticcheck
 		return float64(d.Digits) / math.Pow(10, float64(d.Precision))
 	case *gnmi.TypedValue_FloatVal:
-		return v.FloatVal
+		return v.FloatVal // nolint:staticcheck
+	case *gnmi.TypedValue_DoubleVal:
+		return v.DoubleVal
 	case *gnmi.TypedValue_LeaflistVal:
 		ret := []interface{}{}
 		for _, val := range v.LeaflistVal.Element {
