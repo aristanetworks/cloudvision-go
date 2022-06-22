@@ -6,6 +6,7 @@ package devices
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -18,64 +19,71 @@ import (
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-func init() {
-	// Set options
-	options := map[string]device.Option{
-		"address": device.Option{
+func openConfigOptions() map[string]device.Option {
+	return map[string]device.Option{
+		"address": {
 			Description: "gNMI server host/port",
 			Required:    true,
 		},
-		"paths": device.Option{
+		"paths": {
 			Description: "gNMI subscription path (comma-separated if multiple)",
 			Default:     "/",
 			Required:    false,
 		},
-		"username": device.Option{
+		"username": {
 			Description: "gNMI subscription username",
 			Default:     "",
 			Required:    false,
 		},
-		"password": device.Option{
+		"password": {
 			Description: "gNMI subscription password",
 			Default:     "",
 			Required:    false,
 		},
-		"cafile": device.Option{
+		"cafile": {
 			Description: "Path to server TLS certificate file",
 			Default:     "",
 			Required:    false,
 		},
-		"certfile": device.Option{
+		"certfile": {
 			Description: "Path to client TLS certificate file",
 			Default:     "",
 			Required:    false,
 		},
-		"keyfile": device.Option{
+		"keyfile": {
 			Description: "Path to client TLS private key file",
 			Default:     "",
 			Required:    false,
 		},
-		"compression": device.Option{
+		"compression": {
 			Description: "Compression method (Supported options: \"\" and \"gzip\")",
 			Default:     "",
 			Required:    false,
 		},
-		"tls": device.Option{
+		"tls": {
 			Description: "Enable TLS",
 			Default:     "false",
 			Required:    false,
 		},
-		"device_id": device.Option{
+		"device_id": {
 			Description: "device ID",
 			Default:     "",
 			Required:    false,
 		},
+		"timeout": {
+			Description: "Connection timeout (duration)",
+			Default:     "10s",
+			Required:    false,
+		},
 	}
+}
 
-	// Register
-	device.Register("openconfig", newOpenConfig, options)
+func init() {
+	device.Register("openconfig", newOpenConfig, openConfigOptions())
 }
 
 type openconfigDevice struct {
@@ -316,12 +324,51 @@ func newOpenConfig(opt map[string]string) (device.Device, error) {
 		return nil, err
 	}
 	config.DialOptions = []grpc.DialOption{grpc.WithBlock()}
-	log.Log(openconfig).Infof("Dialing gNMI target device: %s", config.Addr)
-	client, err := gnmi.Dial(config)
+
+	timeout, err := device.GetDurationOption("timeout", opt)
 	if err != nil {
 		return nil, err
 	}
-	log.Log(openconfig).Infof("Connected to gNMI target device: %s", config.Addr)
+
+	log := log.Log(openconfig)
+	log.Infof("Dialing gNMI target device: %s, timeout: %v", config.Addr, timeout)
+
+	ctx := context.Background()
+	dialCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	client, err := gnmi.DialContext(dialCtx, config)
+	if err != nil {
+		return nil, err
+	}
+
+	{ // Try to make a request to ensure we are up and running
+		ctx := gnmi.NewContext(ctx, config) // add credentials
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+		if _, err := client.Capabilities(ctx, &pb.CapabilityRequest{}); err != nil {
+			if s, ok := status.FromError(err); s != nil && ok {
+				switch s.Code() {
+				case codes.Unauthenticated:
+					return nil, fmt.Errorf("failed to reach device: %w", err)
+				case codes.Unimplemented:
+					// Need to check message, it is possible Capabilities returns
+					// non implemented.
+					if strings.Contains(s.Message(), "unknown service gnmi.gNMI") {
+						return nil, fmt.Errorf("failed to reach device: %w", err)
+					}
+				case codes.Unavailable:
+					// Unavailable is usually a transient error, but if it is a connection
+					// refused, it could mean we are connecting to the wrong service.
+					if strings.Contains(s.Message(), "connect: connection refused") {
+						return nil, fmt.Errorf("failed to reach device: %w", err)
+					}
+				}
+			}
+			log.Debugf("Capabilities request err: %v", err)
+		}
+	}
+
+	log.Infof("Connected to gNMI target device: %s", config.Addr)
 	openconfig.gNMIClient = client
 	openconfig.config = config
 	openconfig.deviceID = deviceID
