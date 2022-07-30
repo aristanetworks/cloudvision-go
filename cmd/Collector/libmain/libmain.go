@@ -86,6 +86,9 @@ var (
 
 	// sensor running standalone or not
 	standalone *bool
+
+	// Sensor name
+	sensorName *string
 )
 
 // Main is the "real" main.
@@ -145,8 +148,10 @@ func Main(sc device.SensorConfig) {
 	protoVersion = flag.String("protoversion", "v1",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
 
+	sensorName = flag.String("sensor", "", "Sensor's identifying name. "+
+		"Will not execute sensor if not set.")
 	// sensor running standalone or not
-	standalone = flag.Bool("standalone", true, "True, if its a standalone sensor")
+	standalone = flag.Bool("standalone", true, "Run sensor in standalone mode")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -271,12 +276,14 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		gnmiCfg.DialOptions = append(gnmiCfg.DialOptions, clientCreds...)
 	}
 
+	var grpcConn *grpc.ClientConn
 	if *grpcServerAddr != "" {
 		logrus.Infof("Connecting to gRPC server %+v", authInfo)
 		conn, err := agrpc.DialWithAuth(ctx, *grpcServerAddr, authInfo)
 		if err != nil {
 			logrus.Fatalf("DialWithAuth error: %v", err)
 		}
+		grpcConn = conn
 		logrus.Info("Connected")
 
 		opts = append(opts,
@@ -301,6 +308,19 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 	inventory := device.NewInventoryWithOptions(ctx, opts...)
 
 	group, ctx := errgroup.WithContext(ctx)
+
+	// Start sensor state machine.
+	if len(*sensorName) > 0 {
+		sensor := device.NewSensor(*sensorName,
+			device.WithSensorGNMIClient(gnmiClient),
+			device.WithSensorGRPCConn(grpcConn),
+			device.WithSensorClientFactory(newCVClient))
+		group.Go(func() error {
+			logrus.Infof("Starting sensor %v", *sensorName)
+			return sensor.Run(ctx)
+		})
+	}
+
 	configs, err := createDeviceConfigs()
 	if err != nil {
 		logrus.Fatal(err)
