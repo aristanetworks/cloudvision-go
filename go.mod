@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/aristanetworks/fsnotify v1.4.2
-	github.com/aristanetworks/goarista v0.0.0-20220617164307-ce49f5f9d728
+	github.com/aristanetworks/goarista v0.0.0-20220727195344-9ed9ecb0092c
 	github.com/fatih/color v1.12.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/protobuf v1.5.2
