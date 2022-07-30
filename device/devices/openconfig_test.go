@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/device/internal"
 	pg "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
@@ -158,8 +159,8 @@ func TestOpenConfigDeviceID(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			ocClient := &mockClient{
-				subscribeStream: make(chan *mockClientStream),
+			ocClient := &internal.MockClient{
+				SubscribeStream: make(chan *internal.MockClientStream),
 			}
 			oc := openconfigDevice{
 				config: &agnmi.Config{
@@ -182,34 +183,34 @@ func TestOpenConfigDeviceID(t *testing.T) {
 			}()
 
 			for len(tc.expectedSubs) > 0 {
-				stream := &mockClientStream{
-					subReq:  make(chan *gnmi.SubscribeRequest),
-					subResp: make(chan *gnmi.SubscribeResponse),
-					errC:    make(chan error),
+				stream := &internal.MockClientStream{
+					SubReq:  make(chan *gnmi.SubscribeRequest),
+					SubResp: make(chan *gnmi.SubscribeResponse),
+					ErrC:    make(chan error),
 				}
-				ocClient.subscribeStream <- stream
+				ocClient.SubscribeStream <- stream
 
 				// Check that the subscription matches
-				subReq := <-stream.subReq
+				subReq := <-stream.SubReq
 				theSub := tc.expectedSubs[0]
 				if !proto.Equal(subReq, theSub.req) {
 					t.Fatalf("Expected\n%v\nbut got\n%v", theSub.req, subReq)
 				}
 				// Push test responses or error
 				for _, r := range theSub.responses {
-					stream.subResp <- r
+					stream.SubResp <- r
 				}
 				if theSub.responseErr != nil {
-					stream.errC <- theSub.responseErr
+					stream.ErrC <- theSub.responseErr
 				}
 
 				// go to next sub
 				tc.expectedSubs = tc.expectedSubs[1:]
-				close(stream.subResp)
-				close(stream.subReq)
-				close(stream.errC)
+				close(stream.SubResp)
+				close(stream.SubReq)
+				close(stream.ErrC)
 			}
-			close(ocClient.subscribeStream)
+			close(ocClient.SubscribeStream)
 
 			// Wait for DeviceID goroutine to finish
 			wait.Wait()
