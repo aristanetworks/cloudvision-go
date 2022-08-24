@@ -86,7 +86,7 @@ var (
 )
 
 // Main is the "real" main.
-func Main() {
+func Main(sc device.StreamerConfig) {
 	v = flag.Bool("version", false, "Print the version number")
 	help = flag.Bool("help", false, "Print program options")
 
@@ -193,7 +193,7 @@ func Main() {
 		runDump(context.Background())
 		return
 	}
-	runMain(context.Background())
+	runMain(context.Background(), sc)
 }
 
 func runMonitor() {
@@ -238,7 +238,7 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 	return v1client.NewV1Client(gc, info.ID, isManager)
 }
 
-func runMain(ctx context.Context) {
+func runMain(ctx context.Context, sc device.StreamerConfig) {
 	gnmiCfg := &agnmi.Config{
 		Addr:        *gnmiServerAddr,
 		CAFile:      *caFile,
@@ -272,7 +272,12 @@ func runMain(ctx context.Context) {
 			logrus.Fatalf("DialWithAuth error: %v", err)
 		}
 		logrus.Info("Connected")
-		opts = append(opts, device.WithGRPCConn(conn))
+
+		opts = append(opts,
+			device.WithGRPCConn(conn),
+			device.WithGRPCServerAddr(*grpcServerAddr),
+			device.WithGRPCConnector(sc.Connector),
+		)
 	}
 
 	logrus.Infof("Connecting to gNMI server %+v", gnmiCfg)

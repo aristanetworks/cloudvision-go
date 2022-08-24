@@ -6,8 +6,10 @@ package main
 
 import (
 	"github.com/aristanetworks/cloudvision-go/cmd/Collector/libmain"
+	"github.com/aristanetworks/cloudvision-go/device"
 )
 
 func main() {
-	libmain.Main()
+	sc := device.StreamerConfig{Connector: device.NewDefaultGRPCConnector()}
+	libmain.Main(sc)
 }
