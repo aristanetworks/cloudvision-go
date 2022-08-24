@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
+	"google.golang.org/grpc"
 )
 
 // A Device knows how to interact with a specific device.
@@ -131,4 +132,37 @@ func (i *Info) String() string {
 	optStr := strings.Join(options, ", ")
 	configStr := fmt.Sprintf("type: %s, %s", i.Config.Device, optStr)
 	return fmt.Sprintf(template, i.ID, configStr)
+}
+
+// GRPCConnectorConfig used to pass configuration parameters to GRPCConnector
+// interface
+type GRPCConnectorConfig struct {
+	DeviceID string
+}
+
+// GRPCConnector allows callers to supply one gRPC connection and
+// to create another to be used by a device implementation
+type GRPCConnector interface {
+	Connect(ctx context.Context, conn *grpc.ClientConn,
+		addr string, config GRPCConnectorConfig) (*grpc.ClientConn, error)
+}
+
+// defaultGRPCConnector default implementation of GRPCConnector interface
+type defaultGRPCConnector struct {
+}
+
+// NewDefaultGRPCConnector return empty object
+func NewDefaultGRPCConnector() GRPCConnector {
+	return &defaultGRPCConnector{}
+}
+
+// Connect returns grpc connection
+func (dgc *defaultGRPCConnector) Connect(ctx context.Context,
+	conn *grpc.ClientConn, addr string, config GRPCConnectorConfig) (*grpc.ClientConn, error) {
+	return conn, nil
+}
+
+// StreamerConfig to store GRPCConnector config
+type StreamerConfig struct {
+	Connector GRPCConnector
 }

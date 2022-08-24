@@ -45,12 +45,14 @@ type deviceConn struct {
 
 // inventory implements the Inventory interface.
 type inventory struct {
-	ctx           context.Context
-	rawGNMIClient gnmi.GNMIClient
-	grpcConn      *grpc.ClientConn
-	devices       map[string]*deviceConn
-	lock          sync.Mutex
-	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
+	ctx            context.Context
+	rawGNMIClient  gnmi.GNMIClient
+	grpcConn       *grpc.ClientConn
+	grpcServerAddr string
+	grpcConnector  GRPCConnector // Connector to get gRPC connection
+	devices        map[string]*deviceConn
+	lock           sync.Mutex
+	clientFactory  func(gnmi.GNMIClient, *Info) cvclient.CVClient
 }
 
 func (dc *deviceConn) sendPeriodicUpdates() error {
@@ -87,10 +89,9 @@ func (dc *deviceConn) sendPeriodicUpdates() error {
 	}
 }
 
-func (i *inventory) newDeviceConn(info *Info) *deviceConn {
+func (i *inventory) newDeviceConn(info *Info) (*deviceConn, error) {
 	dc := &deviceConn{
 		cvClient: i.clientFactory(i.rawGNMIClient, info),
-		grpcConn: i.grpcConn,
 		info:     info,
 	}
 
@@ -101,7 +102,19 @@ func (i *inventory) newDeviceConn(info *Info) *deviceConn {
 		dc.ctx, dc.cancel = context.WithCancel(i.ctx)
 	}
 
-	return dc
+	// i.grpcConnector is set,
+	// only if grpcServerAddr is provided
+	if i.grpcConnector != nil {
+		cc := GRPCConnectorConfig{
+			dc.info.ID,
+		}
+		conn, err := i.grpcConnector.Connect(dc.ctx, i.grpcConn, i.grpcServerAddr, cc)
+		if err != nil {
+			return nil, fmt.Errorf("gRPC connection to device %v failed: %w", cc.DeviceID, err)
+		}
+		dc.grpcConn = conn
+	}
+	return dc, nil
 }
 
 func (dc *deviceConn) runProviders() error {
@@ -161,7 +174,10 @@ func (i *inventory) Add(info *Info) error {
 	}
 
 	// Create device connection object.
-	dc := i.newDeviceConn(info)
+	dc, err := i.newDeviceConn(info)
+	if err != nil {
+		return err
+	}
 
 	// Register the device before starting providers. If we can't reach
 	// the device right now, we should return an error rather than
@@ -264,6 +280,20 @@ func WithGNMIClient(c gnmi.GNMIClient) InventoryOption {
 func WithGRPCConn(c *grpc.ClientConn) InventoryOption {
 	return func(i *inventory) {
 		i.grpcConn = c
+	}
+}
+
+// WithGRPCServerAddr sets a gRPC connection on the Inventory.
+func WithGRPCServerAddr(addr string) InventoryOption {
+	return func(i *inventory) {
+		i.grpcServerAddr = addr
+	}
+}
+
+// WithGRPCConnector sets a gRPC connector on the Inventory.
+func WithGRPCConnector(c GRPCConnector) InventoryOption {
+	return func(i *inventory) {
+		i.grpcConnector = c
 	}
 }
 
