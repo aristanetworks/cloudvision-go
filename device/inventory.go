@@ -50,6 +50,7 @@ type inventory struct {
 	grpcConn       *grpc.ClientConn
 	grpcServerAddr string
 	grpcConnector  GRPCConnector // Connector to get gRPC connection
+	standalone     bool
 	devices        map[string]*deviceConn
 	lock           sync.Mutex
 	clientFactory  func(gnmi.GNMIClient, *Info) cvclient.CVClient
@@ -107,6 +108,7 @@ func (i *inventory) newDeviceConn(info *Info) (*deviceConn, error) {
 	if i.grpcConnector != nil {
 		cc := GRPCConnectorConfig{
 			dc.info.ID,
+			i.standalone,
 		}
 		conn, err := i.grpcConnector.Connect(dc.ctx, i.grpcConn, i.grpcServerAddr, cc)
 		if err != nil {
@@ -294,6 +296,13 @@ func WithGRPCServerAddr(addr string) InventoryOption {
 func WithGRPCConnector(c GRPCConnector) InventoryOption {
 	return func(i *inventory) {
 		i.grpcConnector = c
+	}
+}
+
+// WithStandaloneStatus sets flag to identify if its standalone sensor
+func WithStandaloneStatus(standalone bool) InventoryOption {
+	return func(i *inventory) {
+		i.standalone = standalone
 	}
 }
 

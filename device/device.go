@@ -137,7 +137,8 @@ func (i *Info) String() string {
 // GRPCConnectorConfig used to pass configuration parameters to GRPCConnector
 // interface
 type GRPCConnectorConfig struct {
-	DeviceID string
+	DeviceID   string
+	Standalone bool
 }
 
 // GRPCConnector allows callers to supply one gRPC connection and
