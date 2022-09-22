@@ -10,6 +10,6 @@ import (
 )
 
 func main() {
-	sc := device.StreamerConfig{Connector: device.NewDefaultGRPCConnector()}
+	sc := device.SensorConfig{Connector: device.NewDefaultGRPCConnector()}
 	libmain.Main(sc)
 }

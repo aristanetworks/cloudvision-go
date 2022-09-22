@@ -86,7 +86,7 @@ var (
 )
 
 // Main is the "real" main.
-func Main(sc device.StreamerConfig) {
+func Main(sc device.SensorConfig) {
 	v = flag.Bool("version", false, "Print the version number")
 	help = flag.Bool("help", false, "Print program options")
 
@@ -238,7 +238,7 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 	return v1client.NewV1Client(gc, info.ID, isManager)
 }
 
-func runMain(ctx context.Context, sc device.StreamerConfig) {
+func runMain(ctx context.Context, sc device.SensorConfig) {
 	gnmiCfg := &agnmi.Config{
 		Addr:        *gnmiServerAddr,
 		CAFile:      *caFile,
