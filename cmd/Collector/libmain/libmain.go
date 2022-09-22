@@ -83,6 +83,9 @@ var (
 
 	// protocol version
 	protoVersion *string
+
+	// sensor running standalone or not
+	standalone *bool
 )
 
 // Main is the "real" main.
@@ -141,6 +144,9 @@ func Main(sc device.SensorConfig) {
 
 	protoVersion = flag.String("protoversion", "v1",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
+
+	// sensor running standalone or not
+	standalone = flag.Bool("standalone", true, "True, if its a standalone sensor")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -277,6 +283,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			device.WithGRPCConn(conn),
 			device.WithGRPCServerAddr(*grpcServerAddr),
 			device.WithGRPCConnector(sc.Connector),
+			device.WithStandaloneStatus(*standalone),
 		)
 	}
 
