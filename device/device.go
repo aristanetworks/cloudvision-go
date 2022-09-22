@@ -162,7 +162,7 @@ func (dgc *defaultGRPCConnector) Connect(ctx context.Context,
 	return conn, nil
 }
 
-// StreamerConfig to store GRPCConnector config
-type StreamerConfig struct {
+// SensorConfig to store GRPCConnector config
+type SensorConfig struct {
 	Connector GRPCConnector
 }
