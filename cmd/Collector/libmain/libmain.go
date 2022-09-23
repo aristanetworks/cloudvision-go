@@ -87,11 +87,10 @@ var (
 	// protocol version
 	protoVersion *string
 
-	// sensor running standalone or not
-	standalone *bool
-
-	// Sensor name
-	sensorName *string
+	// Sensor settings
+	standalone      *bool // sensor running standalone or not
+	sensorName      *string
+	sensorHeartbeat *time.Duration
 )
 
 // Main is the "real" main.
@@ -159,6 +158,8 @@ func Main(sc device.SensorConfig) {
 		"Will not execute sensor if not set.")
 	// sensor running standalone or not
 	standalone = flag.Bool("standalone", true, "Run sensor in standalone mode")
+	sensorHeartbeat = flag.Duration("heartbeatInterval", 10*time.Second,
+		"Defines interval of sensor heartbeats")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -329,10 +330,19 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 
 	// Start sensor state machine.
 	if len(*sensorName) > 0 {
-		sensor := device.NewSensor(*sensorName,
+		opts := []device.SensorOption{
+			device.WithSensorHeartbeatInterval(*sensorHeartbeat),
 			device.WithSensorGNMIClient(gnmiClient),
-			device.WithSensorGRPCConn(grpcConn),
-			device.WithSensorClientFactory(newCVClient))
+			device.WithSensorClientFactory(newCVClient),
+		}
+		if *grpcServerAddr != "" {
+			opts = append(opts,
+				device.WithSensorGRPCConn(grpcConn),
+				device.WithSensorConnector(sc.Connector),
+				device.WithSensorConnectorAddress(*ingestServerAddr),
+				device.WithSensorStandaloneStatus(*standalone))
+		}
+		sensor := device.NewSensor(*sensorName, opts...)
 		group.Go(func() error {
 			logrus.Infof("Starting sensor %v", *sensorName)
 			return sensor.Run(ctx)
