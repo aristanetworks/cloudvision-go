@@ -11,8 +11,9 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
-	"github.com/aristanetworks/cloudvision-go/log"
+	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/cloudvision-go/version"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
@@ -21,8 +22,11 @@ import (
 )
 
 var (
-	datasourceLastErrorKey = pgnmi.PathFromString("last-error")
-	undefinedPathElem      = &gnmi.PathElem{Name: "___undefined___"}
+	// precreate more frequently used gnmi paths
+	lastErrorKey = pgnmi.PathFromString("last-error")
+	lastSeenKey  = pgnmi.Path("last-seen")
+
+	undefinedPathElem = &gnmi.PathElem{Name: "___undefined___"}
 )
 
 type datasourceConfig struct {
@@ -82,21 +86,25 @@ type datasource struct {
 	log           *logrus.Entry
 	sensorID      string
 	gnmic         gnmi.GNMIClient
+	apiaddr       string
 	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
+	grpcConnector GRPCConnector // Connector to get gRPC connection
+	standalone    bool
 
 	// Current running config. Config changes require a datasource restart.
 	config *datasourceConfig
 
 	redeployTimer *time.Timer
 	cancel        context.CancelFunc
-	runDone       chan struct{}
+	execGroup     *errgroup.Group
 
 	info     *Info
 	grpcc    *grpc.ClientConn
 	cvClient cvclient.CVClient
 
 	// Holds datasource/state/sensor[id=sensor]/source[name=datasource]
-	statePrefix *gnmi.Path
+	statePrefix       *gnmi.Path
+	heartbeatInterval time.Duration
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -109,10 +117,13 @@ func (d *datasource) submitDatasourceUpdates(ctx context.Context,
 	return err
 }
 
-func (d *datasource) handleDatasourceError(ctx context.Context, e error) error {
+func (d *datasource) handleDatasourceError(ctx context.Context, e error) {
 	d.log.Error(e)
-	return d.submitDatasourceUpdates(ctx,
-		pgnmi.Update(datasourceLastErrorKey, agnmi.TypedValue(e.Error())))
+	err := d.submitDatasourceUpdates(ctx,
+		pgnmi.Update(lastErrorKey, agnmi.TypedValue(e.Error())))
+	if err != nil {
+		d.log.Errorf("Failed to publish error: %v", err)
+	}
 }
 
 func (d *datasource) scheduleRestart(in time.Duration) {
@@ -121,7 +132,6 @@ func (d *datasource) scheduleRestart(in time.Duration) {
 }
 
 func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
-
 	d.log.Tracef("Trying to deploy config: %v. Current: %v", cfg, d.config)
 
 	// We don't need to re-run if we already are running the same config.
@@ -131,112 +141,227 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	}
 
 	// Start processing new config
-	d.stop(ctx)
+	d.stop()
 	d.config = cfg.clone()
 
 	if !cfg.enabled {
 		d.log.Infof("Datasource %v disabled", d.config.name)
+		if err := d.submitDatasourceUpdates(ctx,
+			pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false))); err != nil {
+			d.log.Error("Failed to publish initial status:", err)
+		}
 		return nil
 	}
 	d.log.Info("Starting run")
 
-	// Prepare device to execute based on datasource config
-	info, err := NewDeviceInfo(&Config{
-		Device:  cfg.typ,
-		Options: mergeOpts(cfg.option, cfg.credential),
-	})
-	if err != nil {
-		return d.handleDatasourceError(ctx, err)
-	}
-	d.cvClient = d.clientFactory(d.gnmic, info)
-	d.info = info
-
 	ctx, cancel := context.WithCancel(ctx)
+	d.execGroup, ctx = errgroup.WithContext(ctx)
 	d.cancel = cancel
-	done := make(chan struct{})
-	d.runDone = done
 
-	go func() {
-		defer close(done)
+	// Start running the device in the background
+	d.execGroup.Go(func() error {
 		err := d.Run(ctx)
-		if err != nil && !errors.Is(err, context.Canceled) {
-			if pubErr := d.handleDatasourceError(ctx,
-				fmt.Errorf("stopped running: %w", err)); pubErr != nil {
-				d.log.Errorf("Unable to publish failure %v: %v", err, pubErr)
-			}
+
+		// Handle return error by pushing it to datasource last-error state
+		if err == nil {
+			return nil
 		}
-	}()
+
+		if errors.Is(err, context.Canceled) {
+			return err
+		}
+
+		err = fmt.Errorf("Datasource stopped unexpectedly: %w", err)
+		d.handleDatasourceError(ctx, err)
+		return err
+	})
 
 	return nil
 }
 
-// ctx is used to prevent this from blocking indefinitely if the datasource fails to stop the
-// underlying device.
-func (d *datasource) stop(ctx context.Context) {
+// Signal stop and wait for datasource to finish
+func (d *datasource) stop() {
 	if d.redeployTimer != nil {
 		_ = d.redeployTimer.Stop()
 	}
 	if d.cancel != nil {
 		d.cancel()
 	}
-	select {
-	case <-d.runDone:
-	case <-ctx.Done():
+	if d.execGroup != nil {
+		if err := d.execGroup.Wait(); err != nil && !errors.Is(err, context.Canceled) {
+			d.log.Errorf("Stop encountered error: %v", err)
+		}
 	}
 }
 
 // Run executes the datasource
-func (d *datasource) Run(ctx context.Context) error {
-	errg, ctx := errgroup.WithContext(ctx)
-
-	// Create device connection object.
-	dc := &deviceConn{
-		cvClient: d.cvClient,
-		grpcConn: d.grpcc,
-		info:     d.info,
-		ctx:      ctx,
+func (d *datasource) Run(ctx context.Context) (err error) {
+	// Submit initial status information initially as the next operations can be slow
+	ts := time.Now().UnixNano()
+	if err := d.submitDatasourceUpdates(ctx,
+		// last-seen is not sent as to not qualify the datasource as streaming yet
+		pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+		pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue(d.config.typ)),
+		pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
+		pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+	); err != nil {
+		return err
 	}
+
+	// Prepare device to execute based on datasource config
+	info, err := NewDeviceInfo(&Config{
+		Device:  d.config.typ,
+		Options: mergeOpts(d.config.option, d.config.credential),
+	})
+	if err != nil {
+		return err
+	}
+	d.cvClient = d.clientFactory(d.gnmic, info)
+	d.info = info
+
+	deviceID, err := d.info.Device.DeviceID()
+	var updates []*gnmi.Update
+	if err != nil {
+		errStr := fmt.Sprintf("failed to determine DeviceID: %v", err)
+		updates = append(updates, pgnmi.Update(lastErrorKey, agnmi.TypedValue(errStr)))
+	} else if len(deviceID) > 0 {
+		updates = append(updates, pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)))
+		updates = append(updates, pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue(deviceID)))
+	}
+
+	if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
+		return fmt.Errorf("failed to publish startup status: %w", err)
+	}
+
+	errg, ctx := errgroup.WithContext(ctx)
 
 	// Register the device before starting providers. If we can't reach
 	// the device right now, we should return an error rather than
 	// considering it added.
-	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
-		return fmt.Errorf("Error sending device metadata for device "+
-			"%q (%s): %w", dc.info.ID, dc.info.Config.Device, err)
+	if err := d.cvClient.SendDeviceMetadata(ctx); err != nil {
+		return fmt.Errorf("error sending device metadata for device %q (%s): %w",
+			deviceID, d.info.Config.Device, err)
 	}
 
 	// Start providers.
-	if err := dc.runProviders(); err != nil {
-		return fmt.Errorf("Error starting providers for device %q (%s): %w",
-			dc.info.ID, dc.info.Config.Device, err)
-	}
+	errg.Go(func() error {
+		if err := d.runProviders(ctx); err != nil {
+			return fmt.Errorf("error starting providers for device %q (%s): %w",
+				deviceID, d.info.Config.Device, err)
+		}
+		return nil
+	})
 
 	// Send metadata updates.
-	// XXX TODO: send datasource state updates
 	errg.Go(func() error {
-		err := dc.sendPeriodicUpdates()
-		if err != nil {
-			log.Log(dc.info.Device).Errorf("Error updating device metadata: %v", err)
+		if err := d.sendPeriodicUpdates(ctx); err != nil {
+			return fmt.Errorf("error updating device metadata: %w", err)
 		}
-		return err
+		return nil
 	})
 
 	// Start manager, maybe.
-	if manager, ok := dc.info.Device.(Manager); ok {
+	if manager, ok := d.info.Device.(Manager); ok {
 		inv := &sensorInventory{
 			device: []Device{},
 		}
 		errg.Go(func() error {
-			err := manager.Manage(dc.ctx, inv)
-			if err != nil {
-				log.Log(dc.info.Device).Errorf("Error in manager.Manage: %v", err)
+			if err := manager.Manage(ctx, inv); err != nil {
+				return fmt.Errorf("error in Manage: %w", err)
 			}
-			return err
+			return nil
 		})
 	}
 
-	dc.group.Wait()
 	return errg.Wait()
+}
+
+func (d *datasource) runProviders(ctx context.Context) error {
+	providers, err := d.info.Device.Providers()
+	if err != nil {
+		return err
+	}
+
+	errg, ctx := errgroup.WithContext(ctx)
+
+	// We may override this grpc using the grpcConnector if available.
+	grpcConn := d.grpcc
+
+	for _, p := range providers {
+		p := p // scope p for goroutines that use it
+
+		switch pt := p.(type) {
+		case provider.GNMIProvider:
+			pt.InitGNMI(d.cvClient.ForProvider(pt))
+		case provider.GRPCProvider:
+			if d.grpcConnector != nil && grpcConn == d.grpcc {
+				// lazy initialize the new connection once for the device
+				cc := GRPCConnectorConfig{
+					d.info.ID,
+					d.standalone,
+				}
+				d.log.Debugf("Opening connector connection to device")
+				conn, err := d.grpcConnector.Connect(ctx, d.grpcc, d.apiaddr, cc)
+				if err != nil {
+					return fmt.Errorf("gRPC connection to device %v failed: %w", cc.DeviceID, err)
+				}
+				grpcConn = conn
+				// if we setup a new connection, close it when the context is canceled
+				errg.Go(func() error {
+					<-ctx.Done()
+					d.log.Debugf("Closing connector connection to device")
+					return conn.Close()
+				})
+			}
+			pt.InitGRPC(grpcConn)
+		default:
+			return fmt.Errorf("unexpected provider type %T", p)
+		}
+
+		// Start the provider.
+		errg.Go(func() error {
+			if err := p.Run(ctx); err != nil {
+				return fmt.Errorf("provider %T exiting with error: %w", p, err)
+			}
+			return nil
+		})
+	}
+
+	return errg.Wait()
+}
+
+func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
+	ticker := time.NewTicker(d.heartbeatInterval)
+	defer ticker.Stop()
+
+	wasFailing := false // used to only log once when device is unhealthy and back alive
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			alive, err := d.info.Device.Alive()
+			if err == nil && alive {
+				if wasFailing {
+					d.log.Info("Device is back alive")
+					wasFailing = false
+				}
+				ts := time.Now().UnixNano()
+				if err := d.submitDatasourceUpdates(ctx,
+					pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts))); err != nil {
+					d.log.Error("Publish status failed:", err)
+				}
+				if err := d.cvClient.SendHeartbeat(ctx, alive); err != nil {
+					// Don't give up if an update fails for some reason.
+					d.log.Errorf("Error sending heartbeat: %v", err)
+				}
+			} else if !wasFailing {
+				d.handleDatasourceError(ctx, fmt.Errorf("Device not alive: %w", err))
+				wasFailing = true
+			}
+		}
+	}
 }
 
 func datasourceFromPath(path *gnmi.Path) string {
@@ -287,9 +412,13 @@ func mergeOpts(o, c map[string]string) map[string]string {
 
 // Sensor manages the config for multiple datasources
 type Sensor struct {
-	id    string
-	gnmic gnmi.GNMIClient
-	grpcc *grpc.ClientConn
+	id                string
+	gnmic             gnmi.GNMIClient
+	grpcc             *grpc.ClientConn
+	apiaddr           string
+	grpcConnector     GRPCConnector // Connector to get gRPC connection
+	standalone        bool
+	heartbeatInterval time.Duration
 
 	redeployDatasource chan string
 	datasourceConfig   map[string]*datasourceConfig
@@ -298,11 +427,22 @@ type Sensor struct {
 
 	deviceRedeployTimer time.Duration
 
-	log *logrus.Entry
+	log         *logrus.Entry
+	statePrefix *gnmi.Path
 }
 
 // SensorOption is used to configure the Sensor
 type SensorOption func(m *Sensor)
+
+// WithSensorConnectorAddress sets the connector address
+func WithSensorConnectorAddress(addr string) SensorOption {
+	return func(s *Sensor) { s.apiaddr = addr }
+}
+
+// WithSensorHeartbeatInterval sets the duration between sensor heartbeats
+func WithSensorHeartbeatInterval(d time.Duration) SensorOption {
+	return func(s *Sensor) { s.heartbeatInterval = d }
+}
 
 // WithSensorGNMIClient sets a gNMI client on the Sensor.
 func WithSensorGNMIClient(c gnmi.GNMIClient) SensorOption {
@@ -314,6 +454,16 @@ func WithSensorGRPCConn(c *grpc.ClientConn) SensorOption {
 	return func(s *Sensor) { s.grpcc = c }
 }
 
+// WithSensorConnector sets a gRPC connector
+func WithSensorConnector(c GRPCConnector) SensorOption {
+	return func(s *Sensor) { s.grpcConnector = c }
+}
+
+// WithSensorStandaloneStatus sets the stanalone status
+func WithSensorStandaloneStatus(standalone bool) SensorOption {
+	return func(s *Sensor) { s.standalone = standalone }
+}
+
 // WithSensorClientFactory sets a cvclient factory on the Sensor.
 func WithSensorClientFactory(f func(gnmi.GNMIClient,
 	*Info) cvclient.CVClient) SensorOption {
@@ -321,7 +471,7 @@ func WithSensorClientFactory(f func(gnmi.GNMIClient,
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
-	resp *gnmi.Notification, postSync bool, execute func(deviceFn func() error)) error {
+	resp *gnmi.Notification, postSync bool) error {
 	// For each deleted datasource name, cancel that datasource and
 	// delete it and its config from our collections.
 	for _, p := range resp.Delete {
@@ -338,8 +488,16 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 		if name := datasourceFromPath(fullPath); name != "" {
 			if ds, ok := s.datasource[name]; ok {
 				s.log.Infof("Config removed: %s", name)
-				ds.stop(ctx)
+				ds.stop()
 				delete(s.datasource, name)
+				_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+					Delete: []*gnmi.Path{
+						ds.statePrefix,
+					},
+				})
+				if err != nil {
+					s.log.Errorf("Failed to delete state for %s: %v", name, err)
+				}
 			}
 			delete(s.datasourceConfig, name)
 		}
@@ -420,13 +578,20 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 	}
 
 	s.log.Infof("New datasource: %v", name)
-	closedCh := make(chan struct{})
-	close(closedCh)
+
+	prefix := pgnmi.PathFromString(fmt.Sprintf(
+		"datasource/state/sensor[id=%s]/source[name=%s]", s.id, name))
+	prefix.Origin = "arista"
+	prefix.Target = "cv"
+
 	runtime := &datasource{
 		log:           s.log.WithField("datasource", name),
 		sensorID:      s.id,
 		clientFactory: s.clientFactory,
 		gnmic:         s.gnmic,
+		apiaddr:       s.apiaddr,
+		grpcConnector: s.grpcConnector,
+		standalone:    s.standalone,
 		config: &datasourceConfig{
 			name: name,
 		},
@@ -437,10 +602,9 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 			// configs and runtime fields.
 			s.redeployDatasource <- name
 		}),
-		grpcc:   s.grpcc,
-		runDone: closedCh,
-		statePrefix: pgnmi.PathFromString(fmt.Sprintf(
-			"datasource/state/sensor[id=%s]/source[name=%s]", s.id, name)),
+		grpcc:             s.grpcc,
+		statePrefix:       prefix,
+		heartbeatInterval: s.heartbeatInterval,
 	}
 	_ = runtime.redeployTimer.Stop() // we don't want to run it yet.
 	s.datasource[name] = runtime
@@ -448,10 +612,6 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 }
 
 func (s *Sensor) runDatasourceConfig(ctx context.Context, name string) error {
-
-	// Copy the current configuration to send it to the device.
-	// The device should keep its own copy so that we can compare against changes and
-	// decide if we need to restart the datasource.
 	cfg, ok := s.datasourceConfig[name]
 	if !ok {
 		return fmt.Errorf("config not found: %v", name)
@@ -466,6 +626,7 @@ type handleSyncResponseFn func(context.Context) error
 
 func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 	handleUpdate handleUpdateFn, handleSyncResponse handleSyncResponseFn) error {
+	s.log.Debugf("subscribe: %v", opts)
 
 	respCh := make(chan *gnmi.SubscribeResponse)
 	errg, ctx := errgroup.WithContext(ctx)
@@ -505,11 +666,12 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 	return errg.Wait()
 }
 
-func (s *Sensor) cleanUpState(ctx context.Context, names map[string]struct{}) error {
-	s.log.Debugf("cleanUpState found states: %v", names)
+func (s *Sensor) syncState(ctx context.Context, stateNames map[string]struct{}) error {
+	s.log.Debugf("syncState found states: %v", stateNames)
 
+	// Delete state that are not present in configs
 	var toDelete []*gnmi.Path
-	for name := range names {
+	for name := range stateNames {
 		// Only clean up datasources that are not configured
 		if _, ok := s.datasourceConfig[name]; !ok {
 			gnmiPath := pgnmi.PathFromString(fmt.Sprintf("source[name=%s]", name))
@@ -517,42 +679,51 @@ func (s *Sensor) cleanUpState(ctx context.Context, names map[string]struct{}) er
 		}
 	}
 
-	if len(toDelete) > 0 {
-		s.log.Infof("cleaning up old states: %v", toDelete)
-		prefix := pgnmi.PathFromString(
-			fmt.Sprintf("/datasource/state/sensor[id=%s]", s.id),
-		)
-		prefix.Origin = "arista"
-		prefix.Target = "cv"
-		if _, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
-			Prefix: prefix,
-			Delete: toDelete,
-		}); err != nil {
-			return err
+	s.log.Infof("resyncing state. Deleting: %v", toDelete)
+	ts := time.Now().UnixNano()
+	_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+		Prefix: s.statePrefix,
+		Delete: toDelete,
+		Update: []*gnmi.Update{
+			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue(version.CollectorVersion)),
+			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
+			pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)),
+			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Sensor started")),
+		},
+	})
+	return err
+}
+
+func (s *Sensor) heartbeatLoop(ctx context.Context) {
+	ticker := time.NewTicker(s.heartbeatInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			ts := time.Now().UnixNano()
+			_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+				Prefix: s.statePrefix,
+				Update: []*gnmi.Update{
+					pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)),
+				},
+			})
+			if err != nil {
+				s.log.Errorf("Failed to publish heartbeat: %v", err)
+			}
 		}
 	}
-
-	return nil
 }
 
 // Run executes the sensor to start to manage datasources
 func (s *Sensor) Run(ctx context.Context) error {
+	s.log.Infof("Running sensor %q, version %v", s.id, version.CollectorVersion)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	runningDevices, _ := errgroup.WithContext(ctx)
-	runDevice := func(deviceFn func() error) {
-		runningDevices.Go(func() error {
-			err := deviceFn()
-			if err != nil && !errors.Is(err, context.Canceled) {
-				return err
-			}
-			return nil
-		})
-	}
 
-	sensorPathStr := "/datasource/%s/sensor[id=%s]"
-	sensorConfigPath := fmt.Sprintf(sensorPathStr, "config", s.id)
-	sensorStatePath := fmt.Sprintf(sensorPathStr, "state", s.id)
+	sensorConfigPath := fmt.Sprintf("/datasource/config/sensor[id=%s]", s.id)
+	sensorStatePath := fmt.Sprintf("/datasource/state/sensor[id=%s]", s.id)
 
 	// Compile a list of datasources in the state collection.
 	stateDatasourceNames := map[string]struct{}{}
@@ -582,15 +753,14 @@ func (s *Sensor) Run(ctx context.Context) error {
 		return fmt.Errorf("state resync failed: %w", err)
 	}
 
-	// XXX TODO: send periodic state updates for sensor
-
 	// Subscribe to config forever.
 	handleConfigUpdate := func(ctx context.Context,
 		notif *gnmi.Notification, postSync bool) error {
-		return s.handleConfigUpdate(ctx, notif, postSync, runDevice)
+		return s.handleConfigUpdate(ctx, notif, postSync)
 	}
 	handleConfigSync := func(ctx context.Context) error {
-		if err := s.cleanUpState(ctx, stateDatasourceNames); err != nil {
+		// Update sensor and datasources state based on existing configs
+		if err := s.syncState(ctx, stateDatasourceNames); err != nil {
 			return err
 		}
 		// Run synced configs
@@ -600,6 +770,7 @@ func (s *Sensor) Run(ctx context.Context) error {
 			}
 		}
 		s.log.Info("config sync complete")
+		go s.heartbeatLoop(ctx)
 		return nil
 	}
 
@@ -611,13 +782,16 @@ func (s *Sensor) Run(ctx context.Context) error {
 			Mode:   "stream",
 		}, handleConfigUpdate, handleConfigSync)
 	if err != nil {
-		cancel()
 		s.log.Infof("config subscription returned: error: %v", err)
-		_ = runningDevices.Wait()
-		return err
 	}
 
-	return runningDevices.Wait()
+	s.log.Infof("Terminating %d datasources...", len(s.datasource))
+	for _, ds := range s.datasource {
+		ds.stop()
+	}
+	s.log.Infof("All datasources closed")
+
+	return err
 }
 
 func (s *Sensor) validateOptions() {
@@ -634,14 +808,19 @@ func (s *Sensor) validateOptions() {
 
 // NewSensor creates a new Sensor
 func NewSensor(name string, opts ...SensorOption) *Sensor {
-	log := logrus.WithField("sensor", name)
+	prefix := pgnmi.PathFromString(fmt.Sprintf("datasource/state/sensor[id=%s]", name))
+	prefix.Origin = "arista"
+	prefix.Target = "cv"
+
 	s := &Sensor{
 		id:                  name,
-		log:                 log,
+		log:                 logrus.WithField("sensor", name),
 		datasourceConfig:    map[string]*datasourceConfig{},
 		datasource:          map[string]*datasource{},
 		deviceRedeployTimer: 2 * time.Second,
 		redeployDatasource:  make(chan string),
+		statePrefix:         prefix,
+		heartbeatInterval:   10 * time.Second, // default in case it is not set
 	}
 	for _, opt := range opts {
 		opt(s)

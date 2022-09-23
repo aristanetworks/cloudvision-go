@@ -146,7 +146,10 @@ func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
 func datasourcePath(configOrState, id, name, leaf string) *gnmi.Path {
 	path := fmt.Sprintf("/datasource/%s/sensor[id=%s]/source[name=%s]/%s",
 		configOrState, id, name, leaf)
-	return pgnmi.PathFromString(path)
+	p := pgnmi.PathFromString(path)
+	p.Origin = "arista"
+	p.Target = "cv"
+	return p
 }
 
 func datasourceOptPath(id, name, optOrCred, key string) *gnmi.Path {
@@ -231,8 +234,11 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			SubResp: make(chan *gnmi.SubscribeResponse),
 			ErrC:    make(chan error),
 		}
+		defer close(stream.SubResp)
+		defer close(stream.SubReq)
+		defer close(stream.ErrC)
 
-		waitMetas := func(expectation []string) {
+		waitMetas := func(expectation []string) error {
 			expectMetas := map[string]struct{}{}
 			for _, m := range expectation {
 				expectMetas[m] = struct{}{}
@@ -241,18 +247,19 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			for len(expectMetas) > 0 {
 				select {
 				case <-ctx.Done():
-					return
+					return ctx.Err()
 				case gotMeta := <-metadataCh:
 					if _, ok := expectMetas[gotMeta]; ok {
 						delete(expectMetas, gotMeta)
 						t.Logf("got metadata %v", gotMeta)
 					} else {
-						t.Fatalf("Unexpected meta: %v", gotMeta)
+						return fmt.Errorf("Unexpected meta: %v", gotMeta)
 					}
 				case <-time.After(10 * time.Second):
-					t.Fatalf("Failed to see metadata: %v", expectMetas)
+					return fmt.Errorf("Failed to see metadata: %v", expectMetas)
 				}
 			}
+			return nil
 		}
 
 		gnmic.SubscribeStream <- stream
@@ -262,32 +269,59 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			select {
 			case stream.SubResp <- resp:
 				if resp.GetSyncResponse() {
-					waitMetas(tc.waitForMetadataPreSync)
+					if err := waitMetas(tc.waitForMetadataPreSync); err != nil {
+						return err
+					}
 				}
 			case <-ctx.Done():
 				t.Errorf("Context canceled before pushing config resp: %v", resp)
 				return ctx.Err()
 			}
 		}
-		waitMetas(tc.waitForMetadataPostSync)
+		if err := waitMetas(tc.waitForMetadataPostSync); err != nil {
+			return err
+		}
+
 		t.Log("Canceling context as the test is done!")
 		cancel()
-
-		close(stream.SubResp)
-		close(stream.SubReq)
-		close(stream.ErrC)
 		return nil
 	})
 	errg.Go(func() error {
+		prefix := pgnmi.PathFromString("datasource/state/sensor[id=abc]/")
+		prefix.Origin = "arista"
+		prefix.Target = "cv"
+		initialSetReq := &gnmi.SetRequest{
+			Prefix: prefix,
+			Update: []*gnmi.Update{
+				pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue("dev")),
+				pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+				pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+				pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue("Sensor started")),
+			},
+		}
+
+		tc.expectSet = append([]*gnmi.SetRequest{initialSetReq}, tc.expectSet...)
+
+		setsIdx := 0
 		for {
 			select {
 			case setReq, ok := <-gnmic.SetReq:
+				setsIdx++
 				if !ok {
 					if len(tc.expectSet) > 0 {
 						return fmt.Errorf("Set channel closed but expected more sets: %v",
 							tc.expectSet)
 					}
 					return nil
+				}
+				// change date in set request so we can easily match it
+				for _, u := range setReq.Update {
+					if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
+						u.Val = agnmi.TypedValue(42)
+					}
+					if pgnmi.PathMatch(u.Path, pgnmi.Path("last-seen")) {
+						u.Val = agnmi.TypedValue(43)
+					}
 				}
 				found := -1
 				for i, expectSet := range tc.expectSet {
@@ -307,8 +341,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 					copy(tc.expectSet[found:], tc.expectSet[found+1:])
 					tc.expectSet = tc.expectSet[:len(tc.expectSet)-1]
 				} else {
-					return fmt.Errorf("Found unexpected set: %v\nexpecting: %v",
-						setReq, tc.expectSet)
+					err := fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
+						setsIdx, setReq, tc.expectSet)
+					return err
 				}
 			case <-ctx.Done():
 				return ctx.Err()
@@ -334,6 +369,24 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+			},
 			waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
 		},
 		{
@@ -353,6 +406,81 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPreSync:  []string{"123|map[id:123 input1:value1]"},
 			waitForMetadataPostSync: []string{"123|map[id:123 input1:value2]"},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+			},
+		},
+		{
+			name: "Disable existing datasource",
+			configSubResps: []*gnmi.SubscribeResponse{
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123", "input1": "value1"}, nil)...),
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						false, map[string]string{"id": "123", "input1": "value2"}, nil)...),
+			},
+			waitForMetadataPreSync: []string{"123|map[id:123 input1:value1]"},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+					},
+				},
+			},
 		},
 		{
 			name: "Datasource added after sync",
@@ -367,6 +495,24 @@ func TestSensor(t *testing.T) {
 						true, map[string]string{"id": "123"}, nil)...),
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123]"},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+			},
 		},
 		{
 			name: "Datasource with invalid config should keep others going (Pre-sync)",
@@ -386,13 +532,37 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPreSync: []string{"123|map[id:123]"},
 			expectSet: []*gnmi.SetRequest{
 				{
-					Prefix: pgnmi.PathFromString(
-						fmt.Sprintf("datasource/state/sensor[id=%s]/source[name=%s]",
-							"abc", "bad1")),
+					Prefix: datasourcePath("state", "abc", "bad1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("invalidtype")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.PathFromString("last-error"), agnmi.TypedValue(
-							"Failed creating device 'invalidtype': "+
+							"Datasource stopped unexpectedly: "+
+								"Failed creating device 'invalidtype': "+
 								"Device 'invalidtype' not found")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
 			},
@@ -415,13 +585,37 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|map[id:123]"},
 			expectSet: []*gnmi.SetRequest{
 				{
-					Prefix: pgnmi.PathFromString(
-						fmt.Sprintf("datasource/state/sensor[id=%s]/source[name=%s]",
-							"abc", "bad1")),
+					Prefix: datasourcePath("state", "abc", "bad1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("invalidtype")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.PathFromString("last-error"), agnmi.TypedValue(
-							"Failed creating device 'invalidtype': "+
+							"Datasource stopped unexpectedly: "+
+								"Failed creating device 'invalidtype': "+
 								"Device 'invalidtype' not found")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
 			},
@@ -584,15 +778,8 @@ func TestDatasourceDeployLoop(t *testing.T) {
 
 			// Check if we got a create call.
 			// Create is synchronous so we should either have it in the channel or not.
-			select {
-			case x := <-createCalls:
-				if !tc.expectDeviceCreate {
-					t.Fatalf("Dit not expect device being created! Got: %v", x)
-				}
-			default:
-				if tc.expectDeviceCreate {
-					t.Fatal("Dit not see device being created after 10s!")
-				}
+			if tc.expectDeviceCreate {
+				<-createCalls
 			}
 		})
 	}
