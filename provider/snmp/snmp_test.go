@@ -266,8 +266,8 @@ func TestDeviceID(t *testing.T) {
 		{
 			name: "lldpChassisID",
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalClass:        []*gosnmp.SnmpPDU{},
-				snmpEntPhysicalSerialNum:    []*gosnmp.SnmpPDU{},
+				snmpEntPhysicalClass:        {},
+				snmpEntPhysicalSerialNum:    {},
 				snmpLldpLocChassisIDSubtype: PDUsFromString(lldpChassisIDTypeDefaultResponse),
 				snmpLldpLocChassisID:        PDUsFromString(lldpChassisIDDefaultResponse),
 			},
@@ -276,16 +276,16 @@ func TestDeviceID(t *testing.T) {
 		{
 			name: "badChassisIDType",
 			responses: map[string][]*gosnmp.SnmpPDU{
-				snmpEntPhysicalClass:     []*gosnmp.SnmpPDU{},
-				snmpEntPhysicalSerialNum: []*gosnmp.SnmpPDU{},
-				snmpLldpLocChassisIDSubtype: []*gosnmp.SnmpPDU{{
+				snmpEntPhysicalClass:     {},
+				snmpEntPhysicalSerialNum: {},
+				snmpLldpLocChassisIDSubtype: {{
 					Name:  ".1.3.6.1.6.3.15.1.1.3.0",
 					Type:  gosnmp.Counter32,
 					Value: uint(12345),
 				}},
-				snmpLldpLocChassisID:          []*gosnmp.SnmpPDU{},
-				snmpLldpV2LocChassisIDSubtype: []*gosnmp.SnmpPDU{},
-				snmpLldpV2LocChassisID:        []*gosnmp.SnmpPDU{},
+				snmpLldpLocChassisID:          {},
+				snmpLldpV2LocChassisIDSubtype: {},
+				snmpLldpV2LocChassisID:        {},
 			},
 			expected: "1.2.3.4",
 		},

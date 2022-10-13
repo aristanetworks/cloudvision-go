@@ -14,6 +14,7 @@ import (
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type testDevice struct{}
@@ -89,7 +90,8 @@ func TestGRPCServer(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	conn, err := grpc.Dial(listener.Addr().String(), grpc.WithInsecure())
+	conn, err := grpc.Dial(listener.Addr().String(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatal(err)
 	}

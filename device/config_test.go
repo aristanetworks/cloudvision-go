@@ -26,7 +26,7 @@ func TestReadConfigsFromBytes(t *testing.T) {
             Options:
                a: b
                c: d`),
-			expect: []*Config{&Config{Device: "test",
+			expect: []*Config{{Device: "test",
 				Options: map[string]string{"a": "b", "c": "d"}}},
 		},
 		{description: "device with no ID",

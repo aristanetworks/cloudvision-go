@@ -17,7 +17,7 @@ import (
 // Register this device with its options.
 func init() {
 	options := map[string]device.Option{
-		"pollInterval": device.Option{
+		"pollInterval": {
 			Description: "Polling interval, with unit suffix (s/m/h)",
 			Default:     "20s",
 		},

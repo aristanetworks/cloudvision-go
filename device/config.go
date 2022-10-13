@@ -6,7 +6,6 @@ package device
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	yaml "gopkg.in/yaml.v2"
@@ -28,7 +27,7 @@ func (c *Config) validate() error {
 
 // ReadConfigs generates device configs from the config file at the specified path.
 func ReadConfigs(configPath string) ([]*Config, error) {
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}

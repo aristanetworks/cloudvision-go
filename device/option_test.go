@@ -16,18 +16,18 @@ import (
 )
 
 var testDeviceOptions = map[string]Option{
-	"a": Option{
+	"a": {
 		Description: "option a is a required option",
 		Default:     "",
 		Pattern:     "[xyz]{3}",
 		Required:    true,
 	},
-	"b": Option{
+	"b": {
 		Description: "option b is not required",
 		Default:     "stuff",
 		Required:    false,
 	},
-	"c": Option{
+	"c": {
 		Description: "option c is not required but has a pattern",
 		Pattern:     "[xyz]{3}",
 	},
@@ -173,7 +173,7 @@ func TestOptions(t *testing.T) {
 				name:    "test2",
 				creator: NewTestDevice,
 				options: map[string]Option{
-					"a": Option{
+					"a": {
 						Description: "option a is not required",
 						Default:     "abc",
 						Pattern:     "[xyz]{3}",

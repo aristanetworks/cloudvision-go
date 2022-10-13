@@ -100,7 +100,6 @@ func walkMapsFromDump(filename string) ([]walkMap, error) {
 // pollsRemaining. Once pollsRemaining is zero, it considers the test
 // a success.
 type testGNMIClient struct {
-	ctx            context.Context
 	cancel         context.CancelFunc
 	polls          int
 	pollsRemaining int

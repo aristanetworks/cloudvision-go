@@ -228,25 +228,25 @@ func (t *Translator) updates(paths []string) ([]*gnmi.Update, error) {
 }
 
 var supportedModels = map[string]*model{
-	"interfaces": &model{
+	"interfaces": {
 		name:         "interfaces",
 		rootPath:     "/interfaces",
 		snmpWalkOIDs: []string{"ifTable", "ifXTable"},
 	},
-	"system": &model{
+	"system": {
 		name:     "system",
 		rootPath: "/system",
 		snmpGetOIDs: []string{"sysName.0", "lldpLocSysName.0", "hrSystemUptime.0",
 			"sysUpTimeInstance"},
 	},
-	"lldp": &model{
+	"lldp": {
 		name:         "lldp",
 		rootPath:     "/lldp",
 		dependencies: []string{"interfaces"},
 		snmpWalkOIDs: []string{"lldpLocalSystemData", "lldpRemTable", "lldpStatistics",
 			"lldpV2LocalSystemData", "lldpV2RemTable", "lldpV2Statistics"},
 	},
-	"platform": &model{
+	"platform": {
 		name:         "platform",
 		rootPath:     "/components",
 		snmpWalkOIDs: []string{"entPhysicalEntry"},
@@ -254,20 +254,20 @@ var supportedModels = map[string]*model{
 }
 
 var supportedMappingGroups = map[string]*mappingGroup{
-	"interfaces-lldp": &mappingGroup{
+	"interfaces-lldp": {
 		name: "interfaces-lldp",
 		models: map[string]*model{
 			"interfaces": supportedModels["interfaces"],
 			"lldp":       supportedModels["lldp"],
 		},
 	},
-	"system": &mappingGroup{
+	"system": {
 		name: "system",
 		models: map[string]*model{
 			"system": supportedModels["system"],
 		},
 	},
-	"platform": &mappingGroup{
+	"platform": {
 		name: "platform",
 		models: map[string]*model{
 			"platform": supportedModels["platform"],

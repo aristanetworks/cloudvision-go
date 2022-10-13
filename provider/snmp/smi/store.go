@@ -57,7 +57,7 @@ func NewStore(files ...string) (Store, error) {
 
 func (s *store) checkKnown(oid string) *Object {
 	s.lock.RLock()
-	o, _ := s.known[oid]
+	o := s.known[oid]
 	s.lock.RUnlock()
 	return o
 }

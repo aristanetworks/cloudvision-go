@@ -8,8 +8,8 @@ linters-settings:
 
 linters:
   enable:
-    - deadcode
-    - golint
+    - unused
+    - revive
     - gosimple
     - ineffassign
     - lll
@@ -26,3 +26,6 @@ issues:
         - gosimple
       # Exclude nonsensical strings.Replace message for snmpoc/mappings.go
       text: "S1017:"
+    - linters:
+        - revive
+      text: "package-comments:"

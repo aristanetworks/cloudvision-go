@@ -12,7 +12,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -105,7 +105,7 @@ func (a *Auth) CAFile() string {
 func (a *Auth) ClientCredentials() ([]grpc.DialOption, error) {
 	switch a.typ {
 	case "token":
-		b, err := ioutil.ReadFile(a.tokenFile)
+		b, err := os.ReadFile(a.tokenFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read token file: %s", err)
 		}
@@ -132,7 +132,7 @@ func (a *Auth) Configure() ([]grpc.DialOption, error) {
 	}
 	opts = append(opts, clCreds...)
 	if a.caFile != "" {
-		b, err := ioutil.ReadFile(a.caFile)
+		b, err := os.ReadFile(a.caFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read ca file: %s", err)
 		}

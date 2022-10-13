@@ -437,7 +437,6 @@ type translatorTestCase struct {
 	updatePaths         []string
 	expectedSetRequests []*gnmi.SetRequest
 	setRequestMatchAll  bool
-	expectedErr         error
 }
 
 func sortUpdates(upd []*gnmi.Update) {
@@ -520,7 +519,7 @@ func runTranslatorTest(t *testing.T, mibStore smi.Store, tc translatorTestCase) 
 	if err != nil {
 		t.Fatalf("Failure in translator.Poll: %v", err)
 	}
-	(&tc).checkSetRequests(t, setReqs)
+	tc.checkSetRequests(t, setReqs)
 }
 
 func TestTranslator(t *testing.T) {
@@ -534,18 +533,18 @@ func TestTranslator(t *testing.T) {
 			name:        "updateSystemStateBasic",
 			updatePaths: []string{"^/system/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
-				"sysName": []*gosnmp.SnmpPDU{
+				"sysName": {
 					PDU("sysName", octstr, []byte("device123.sjc.aristanetworks.com")),
 				},
-				"hrSystemUptime": []*gosnmp.SnmpPDU{
+				"hrSystemUptime": {
 					PDU("hrSystemUptime", timeticks, 162275519),
 				},
-				"sysUpTimeInstance": []*gosnmp.SnmpPDU{
+				"sysUpTimeInstance": {
 					PDU("sysUpTimeInstance", timeticks, 162261667),
 				},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("system")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.Path("system", "state", "hostname"), strval("device123")),
@@ -564,7 +563,7 @@ func TestTranslator(t *testing.T) {
 				"entPhysicalEntry": PDUsFromString(basicEntPhysicalTableResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("components")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.PlatformComponentConfigPath("1", "name"),
@@ -641,7 +640,7 @@ func TestTranslator(t *testing.T) {
 				"ifXTable": PDUsFromString(basicIfXTableResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
@@ -742,7 +741,7 @@ func TestTranslator(t *testing.T) {
 				"ifTable": PDUsFromString(ifTableHighSpeedResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
@@ -768,7 +767,7 @@ func TestTranslator(t *testing.T) {
 				"ifTable": PDUsFromString(ifTableOnlyIfSpeedResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfEthernetStatePath("Ethernet3/1", "port-speed"),
@@ -798,7 +797,7 @@ func TestTranslator(t *testing.T) {
 				"lldpStatistics":      PDUsFromString(basicLldpStatisticsResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
@@ -980,11 +979,11 @@ func TestTranslator(t *testing.T) {
 				"ifXTable": PDUsFromString(basicIfXTableResponse),
 				"lldpLocalSystemData": PDUsFromString(basicLldpLocalSystemDataResponse +
 					inactiveIntfLldpLocalSystemDataResponse),
-				"lldpRemTable":   []*gosnmp.SnmpPDU{},
-				"lldpStatistics": []*gosnmp.SnmpPDU{},
+				"lldpRemTable":   {},
+				"lldpStatistics": {},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
@@ -1112,7 +1111,7 @@ func TestTranslator(t *testing.T) {
 				"lldpRemTable":        PDUsFromString(twoIntfLldpRemTableResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
@@ -1306,11 +1305,11 @@ func TestTranslator(t *testing.T) {
 				"ifTable":             PDUsFromString(basicIfTableResponse),
 				"ifXTable":            PDUsFromString(basicIfXTableResponse),
 				"lldpLocalSystemData": PDUsFromString(lldpLocalSystemDataResponseStringID),
-				"lldpRemTable":        []*gosnmp.SnmpPDU{},
-				"lldpStatistics":      []*gosnmp.SnmpPDU{},
+				"lldpRemTable":        {},
+				"lldpStatistics":      {},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.LldpStatePath("chassis-id"), strval("50:87:89:a1:64:4f")),
@@ -1325,18 +1324,18 @@ func TestTranslator(t *testing.T) {
 			name:        "updateSystemStateHostnameOnly",
 			updatePaths: []string{"^/system/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
-				"sysName": []*gosnmp.SnmpPDU{
+				"sysName": {
 					PDU("sysName", octstr, []byte("deviceABC")),
 				},
-				"sysUpTimeInstance": []*gosnmp.SnmpPDU{
+				"sysUpTimeInstance": {
 					PDU("sysUpTimeInstance", timeticks, 162261667),
 				},
-				"hrSystemUptime": []*gosnmp.SnmpPDU{
+				"hrSystemUptime": {
 					PDU("hrSystemUptime", timeticks, 162275519),
 				},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("system")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
@@ -1350,16 +1349,16 @@ func TestTranslator(t *testing.T) {
 			name:        "updateSystemStateUpTimeOnly",
 			updatePaths: []string{"^/system/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
-				"sysName": []*gosnmp.SnmpPDU{
+				"sysName": {
 					PDU("sysName", octstr, []byte("deviceABC")),
 				},
-				"sysUpTimeInstance": []*gosnmp.SnmpPDU{
+				"sysUpTimeInstance": {
 					PDU("sysUpTimeInstance", timeticks, 162261667),
 				},
-				"hrSystemUptime": []*gosnmp.SnmpPDU{},
+				"hrSystemUptime": {},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("system")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.Path("system", "state", "hostname"), strval("deviceABC")),
@@ -1374,10 +1373,10 @@ func TestTranslator(t *testing.T) {
 			updatePaths: []string{"^/interfaces/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
 				"ifTable":  PDUsFromString(basicLldpV2IntfSetupResponse),
-				"ifXTable": []*gosnmp.SnmpPDU{},
+				"ifXTable": {},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("ethernet1/1", "name"), strval("ethernet1/1")),
@@ -1402,13 +1401,13 @@ func TestTranslator(t *testing.T) {
 			updatePaths: []string{"^/interfaces/", "^/lldp/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
 				"ifTable":               PDUsFromString(basicLldpV2IntfSetupResponse),
-				"ifXTable":              []*gosnmp.SnmpPDU{},
+				"ifXTable":              {},
 				"lldpV2LocalSystemData": PDUsFromString(basicLldpV2LocalSystemDataResponse),
 				"lldpV2RemTable":        PDUsFromString(basicLldpV2RemTableResponse),
 				"lldpV2Statistics":      PDUsFromString(basicLldpV2StatisticsResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("ethernet1/1", "name"),
@@ -1503,7 +1502,7 @@ func TestTranslator(t *testing.T) {
 				"ifXTable": PDUsFromString(ifXTable64BitResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("interfaces")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.IntfStatePath("Ethernet3/1", "name"), strval("Ethernet3/1")),
@@ -1538,11 +1537,11 @@ func TestTranslator(t *testing.T) {
 			updatePaths: []string{"^/lldp/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
 				"lldpLocalSystemData": PDUsFromString(lldpLocalSystemDataNoChassisSubtypeResponse),
-				"lldpRemTable":        []*gosnmp.SnmpPDU{},
-				"lldpStatistics":      []*gosnmp.SnmpPDU{},
+				"lldpRemTable":        {},
+				"lldpStatistics":      {},
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
-				&gnmi.SetRequest{
+				{
 					Delete: []*gnmi.Path{pgnmi.Path("lldp")},
 					Replace: []*gnmi.Update{
 						update(pgnmi.LldpStatePath("chassis-id"), strval("50:87:89:a1:64:4f")),
@@ -1684,7 +1683,7 @@ func TestMappingGroups(t *testing.T) {
 			name:  "interfaces",
 			paths: []string{"^/interfaces/*"},
 			expectedMappingGroups: map[string]*mappingGroup{
-				"interfaces-lldp": &mappingGroup{
+				"interfaces-lldp": {
 					name: "interfaces-lldp",
 					models: map[string]*model{
 						"interfaces": supportedModels["interfaces"],
@@ -1699,13 +1698,13 @@ func TestMappingGroups(t *testing.T) {
 			name:  "system",
 			paths: []string{"/system/state/hostname", "/system/state/boot-time"},
 			expectedMappingGroups: map[string]*mappingGroup{
-				"system": &mappingGroup{
+				"system": {
 					name: "system",
 					models: map[string]*model{
 						"system": supportedModels["system"],
 					},
 					updatePaths: map[string][]string{
-						"system": []string{"/system/state/hostname",
+						"system": {"/system/state/hostname",
 							"/system/state/boot-time"},
 					},
 				},
@@ -1715,7 +1714,7 @@ func TestMappingGroups(t *testing.T) {
 			name:  "none",
 			paths: []string{},
 			expectedMappingGroups: map[string]*mappingGroup{
-				"interfaces-lldp": &mappingGroup{
+				"interfaces-lldp": {
 					name: "interfaces-lldp",
 					models: map[string]*model{
 						"interfaces": supportedModels["interfaces"],
@@ -1726,7 +1725,7 @@ func TestMappingGroups(t *testing.T) {
 						"lldp":       allLldpPaths,
 					},
 				},
-				"system": &mappingGroup{
+				"system": {
 					name: "system",
 					models: map[string]*model{
 						"system": supportedModels["system"],
@@ -1735,7 +1734,7 @@ func TestMappingGroups(t *testing.T) {
 						"system": allSystemPaths,
 					},
 				},
-				"platform": &mappingGroup{
+				"platform": {
 					name: "platform",
 					models: map[string]*model{
 						"platform": supportedModels["platform"],

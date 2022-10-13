@@ -6,7 +6,6 @@ package smi
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,11 +64,11 @@ func (po *parseObject) setModule(module string) {
 func (yys *yySymType) linkToParent(po *parseObject) {
 	// Check whether its Parent is in the objectMap, and if so link
 	// the Parent and child.
-	parentId := ""
+	parentID := ""
 	if len(strings.Split(po.object.Oid, ".")) > 0 {
-		parentId = strings.Split(po.object.Oid, ".")[0]
+		parentID = strings.Split(po.object.Oid, ".")[0]
 	}
-	if o, ok := yys.objectMap[parentId]; ok {
+	if o, ok := yys.objectMap[parentID]; ok {
 		o.object.Children = append(o.object.Children, po.object)
 		o.children = append(o.children, po)
 		po.object.Parent = o.object
@@ -175,12 +174,12 @@ type importUpgrades struct {
 // knownImportUpgrades defines a set of objects that, when imported,
 // should actually redirect to newer versions in different modules.
 var knownImportUpgrades = map[string]importUpgrades{
-	"RFC1065-MIB": importUpgrades{defaultModule: "RFC1155-MIB"},
-	"RFC1066-MIB": importUpgrades{defaultModule: "RFC1156-MIB"},
-	"RFC1156-MIB": importUpgrades{defaultModule: "RFC1158-MIB"},
-	"RFC1158-MIB": importUpgrades{defaultModule: "RFC1213-MIB"},
-	"RFC1155-MIB": importUpgrades{defaultModule: "SNMPv2-SMI"},
-	"RFC1213-MIB": importUpgrades{
+	"RFC1065-MIB": {defaultModule: "RFC1155-MIB"},
+	"RFC1066-MIB": {defaultModule: "RFC1156-MIB"},
+	"RFC1156-MIB": {defaultModule: "RFC1158-MIB"},
+	"RFC1158-MIB": {defaultModule: "RFC1213-MIB"},
+	"RFC1155-MIB": {defaultModule: "SNMPv2-SMI"},
+	"RFC1213-MIB": {
 		defaultModule: "RFC1213-MIB",
 		objects: map[string]string{
 			"mib-2":        "SNMPv2-SMI",
@@ -195,18 +194,18 @@ var knownImportUpgrades = map[string]importUpgrades{
 			"snmp":         "SNMPv2-MIB",
 		},
 	},
-	"RFC1231-MIB": importUpgrades{defaultModule: "TOKENRING-MIB"},
-	"RFC1271-MIB": importUpgrades{defaultModule: "RMON-MIB"},
-	"RFC1286-MIB": importUpgrades{
+	"RFC1231-MIB": {defaultModule: "TOKENRING-MIB"},
+	"RFC1271-MIB": {defaultModule: "RMON-MIB"},
+	"RFC1286-MIB": {
 		defaultModule: "BRIDGE-MIB",
 		objects: map[string]string{
 			"SOURCE-ROUTING-MIB": "dot1dSr",
 		},
 	},
-	"RFC1315-MIB": importUpgrades{defaultModule: "FRAME-RELAY-DTE-MIB"},
-	"RFC1316-MIB": importUpgrades{defaultModule: "CHARACTER-MIB"},
-	"RFC1406-MIB": importUpgrades{defaultModule: "DS1-MIB"},
-	"RFC-1213":    importUpgrades{defaultModule: "RFC1213-MIB"},
+	"RFC1315-MIB": {defaultModule: "FRAME-RELAY-DTE-MIB"},
+	"RFC1316-MIB": {defaultModule: "CHARACTER-MIB"},
+	"RFC1406-MIB": {defaultModule: "DS1-MIB"},
+	"RFC-1213":    {defaultModule: "RFC1213-MIB"},
 }
 
 func moduleUpgrade(module, object string) string {
@@ -230,7 +229,7 @@ func moduleUpgrade(module, object string) string {
 
 func parseFile(filename string) (map[string]*parseModule, error) {
 	yyErrorVerbose = true
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
