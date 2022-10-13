@@ -53,7 +53,7 @@ vet:
 lint:
 	@# golangci installed from source doesn't support version, so don't fail the target
 	-$(LINT) --version
-	$(LINT) $(LINTFLAGS) --disable-all --enable=deadcode --tests=false $(LINTEXTRAFLAGS) $(LINT_PKGS)
+	$(LINT) $(LINTFLAGS) --disable-all --enable=unused --tests=false $(LINTEXTRAFLAGS) $(LINT_PKGS)
 	$(LINT) $(LINTCONFIG) $(LINTFLAGS) $(LINTEXTRAFLAGS) $(LINT_PKGS)
 	$(LINT) $(LINTNEWCONFIG) $(LINTFLAGS) $(LINTEXTRAFLAGS) $(LINT_PKGS)
 #	lint=`$(GODIRS) | xargs -L 1 $(GOLINT) | fgrep -v .pb.go`; if test -n "$$lint"; then echo "$$lint"; exit 1; fi

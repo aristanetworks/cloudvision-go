@@ -174,12 +174,12 @@ type importUpgrades struct {
 // knownImportUpgrades defines a set of objects that, when imported,
 // should actually redirect to newer versions in different modules.
 var knownImportUpgrades = map[string]importUpgrades{
-	"RFC1065-MIB": importUpgrades{defaultModule: "RFC1155-MIB"},
-	"RFC1066-MIB": importUpgrades{defaultModule: "RFC1156-MIB"},
-	"RFC1156-MIB": importUpgrades{defaultModule: "RFC1158-MIB"},
-	"RFC1158-MIB": importUpgrades{defaultModule: "RFC1213-MIB"},
-	"RFC1155-MIB": importUpgrades{defaultModule: "SNMPv2-SMI"},
-	"RFC1213-MIB": importUpgrades{
+	"RFC1065-MIB": {defaultModule: "RFC1155-MIB"},
+	"RFC1066-MIB": {defaultModule: "RFC1156-MIB"},
+	"RFC1156-MIB": {defaultModule: "RFC1158-MIB"},
+	"RFC1158-MIB": {defaultModule: "RFC1213-MIB"},
+	"RFC1155-MIB": {defaultModule: "SNMPv2-SMI"},
+	"RFC1213-MIB": {
 		defaultModule: "RFC1213-MIB",
 		objects: map[string]string{
 			"mib-2":        "SNMPv2-SMI",
@@ -194,18 +194,18 @@ var knownImportUpgrades = map[string]importUpgrades{
 			"snmp":         "SNMPv2-MIB",
 		},
 	},
-	"RFC1231-MIB": importUpgrades{defaultModule: "TOKENRING-MIB"},
-	"RFC1271-MIB": importUpgrades{defaultModule: "RMON-MIB"},
-	"RFC1286-MIB": importUpgrades{
+	"RFC1231-MIB": {defaultModule: "TOKENRING-MIB"},
+	"RFC1271-MIB": {defaultModule: "RMON-MIB"},
+	"RFC1286-MIB": {
 		defaultModule: "BRIDGE-MIB",
 		objects: map[string]string{
 			"SOURCE-ROUTING-MIB": "dot1dSr",
 		},
 	},
-	"RFC1315-MIB": importUpgrades{defaultModule: "FRAME-RELAY-DTE-MIB"},
-	"RFC1316-MIB": importUpgrades{defaultModule: "CHARACTER-MIB"},
-	"RFC1406-MIB": importUpgrades{defaultModule: "DS1-MIB"},
-	"RFC-1213":    importUpgrades{defaultModule: "RFC1213-MIB"},
+	"RFC1315-MIB": {defaultModule: "FRAME-RELAY-DTE-MIB"},
+	"RFC1316-MIB": {defaultModule: "CHARACTER-MIB"},
+	"RFC1406-MIB": {defaultModule: "DS1-MIB"},
+	"RFC-1213":    {defaultModule: "RFC1213-MIB"},
 }
 
 func moduleUpgrade(module, object string) string {

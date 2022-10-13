@@ -19,50 +19,50 @@ import (
 )
 
 var options = map[string]device.Option{
-	"a": device.Option{
+	"a": {
 		Description: "SNMPv3 authentication protocol",
 		Pattern:     `sha|SHA|md5|MD5`,
 	},
-	"A": device.Option{
+	"A": {
 		Description: "SNMPv3 authentication key",
 	},
-	"address": device.Option{
+	"address": {
 		Description: "Hostname or address of device",
 		Required:    true,
 	},
-	"port": device.Option{
+	"port": {
 		Description: "Device SNMP port to use",
 		Default:     "161",
 	},
-	"c": device.Option{
+	"c": {
 		Description: "SNMP community string",
 	},
-	"l": device.Option{
+	"l": {
 		Description: "SNMPv3 security level (noAuthNoPriv|authNoPriv|authPriv)",
 		Default:     "authPriv",
 		Pattern:     `noAuthNoPriv|authNoPriv|authPriv`,
 	},
-	"mibs": device.Option{
+	"mibs": {
 		Description: "Comma-separated list of mib files/directories",
 		Required:    true,
 	},
-	"pollInterval": device.Option{
+	"pollInterval": {
 		Description: "Polling interval, with unit suffix (s/m/h)",
 		Default:     "20s",
 	},
-	"u": device.Option{
+	"u": {
 		Description: "SNMPv3 security name",
 	},
-	"v": device.Option{
+	"v": {
 		Description: "SNMP version (2c|3)",
 		Pattern:     `2c|3`,
 		Default:     "2c",
 	},
-	"x": device.Option{
+	"x": {
 		Description: "SNMPv3 privacy protocol",
 		Pattern:     `des|DES|aes|AES`,
 	},
-	"X": device.Option{
+	"X": {
 		Description: "SNMPv3 privacy key",
 	},
 }

@@ -990,96 +990,93 @@ var (
 
 var defaultMappings = map[string][]Mapper{
 	// interface
-	"/interfaces/interface[name=name]/name":               []Mapper{interfaceName},
-	"/interfaces/interface[name=name]/state/name":         []Mapper{interfaceStateName},
-	"/interfaces/interface[name=name]/config/name":        []Mapper{interfaceConfigName},
-	"/interfaces/interface[name=name]/state/mtu":          []Mapper{interfaceMtu},
-	"/interfaces/interface[name=name]/state/type":         []Mapper{interfaceType},
-	"/interfaces/interface[name=name]/state/admin-status": []Mapper{interfaceAdminStatus},
-	"/interfaces/interface[name=name]/state/oper-status":  []Mapper{interfaceOperStatus},
-	"/interfaces/interface[name=name]/state/in-octets": []Mapper{interfaceInOctets64,
+	"/interfaces/interface[name=name]/name":               {interfaceName},
+	"/interfaces/interface[name=name]/state/name":         {interfaceStateName},
+	"/interfaces/interface[name=name]/config/name":        {interfaceConfigName},
+	"/interfaces/interface[name=name]/state/mtu":          {interfaceMtu},
+	"/interfaces/interface[name=name]/state/type":         {interfaceType},
+	"/interfaces/interface[name=name]/state/admin-status": {interfaceAdminStatus},
+	"/interfaces/interface[name=name]/state/oper-status":  {interfaceOperStatus},
+	"/interfaces/interface[name=name]/state/in-octets": {interfaceInOctets64,
 		interfaceInOctets32},
-	"/interfaces/interface[name=name]/state/in-unicast-pkts": []Mapper{interfaceInUnicastPkts64,
+	"/interfaces/interface[name=name]/state/in-unicast-pkts": {interfaceInUnicastPkts64,
 		interfaceInUnicastPkts32},
-	"/interfaces/interface[name=name]/state/in-multicast-pkts": []Mapper{interfaceInMulticastPkts},
-	"/interfaces/interface[name=name]/state/in-broadcast-pkts": []Mapper{interfaceInBroadcastPkts},
-	"/interfaces/interface[name=name]/state/out-multicast-pkts": []Mapper{
-		interfaceOutMulticastPkts},
-	"/interfaces/interface[name=name]/state/out-broadcast-pkts": []Mapper{
-		interfaceOutBroadcastPkts},
-	"/interfaces/interface[name=name]/state/in-discards":       []Mapper{interfaceInDiscards},
-	"/interfaces/interface[name=name]/state/in-errors":         []Mapper{interfaceInErrors},
-	"/interfaces/interface[name=name]/state/in-unknown-protos": []Mapper{interfaceInUnknownProtos},
-	"/interfaces/interface[name=name]/state/out-octets": []Mapper{interfaceOutOctets64,
+	"/interfaces/interface[name=name]/state/in-multicast-pkts":  {interfaceInMulticastPkts},
+	"/interfaces/interface[name=name]/state/in-broadcast-pkts":  {interfaceInBroadcastPkts},
+	"/interfaces/interface[name=name]/state/out-multicast-pkts": {interfaceOutMulticastPkts},
+	"/interfaces/interface[name=name]/state/out-broadcast-pkts": {interfaceOutBroadcastPkts},
+	"/interfaces/interface[name=name]/state/in-discards":        {interfaceInDiscards},
+	"/interfaces/interface[name=name]/state/in-errors":          {interfaceInErrors},
+	"/interfaces/interface[name=name]/state/in-unknown-protos":  {interfaceInUnknownProtos},
+	"/interfaces/interface[name=name]/state/out-octets": {interfaceOutOctets64,
 		interfaceOutOctets32},
-	"/interfaces/interface[name=name]/state/out-unicast-pkts": []Mapper{interfaceOutUnicastPkts64,
+	"/interfaces/interface[name=name]/state/out-unicast-pkts": {interfaceOutUnicastPkts64,
 		interfaceOutUnicastPkts32},
-	"/interfaces/interface[name=name]/state/out-discards":         []Mapper{interfaceOutDiscards},
-	"/interfaces/interface[name=name]/state/out-errors":           []Mapper{interfaceOutErrors},
-	"/interfaces/interface[name=name]/ethernet/state/mac-address": []Mapper{interfacePhysAddress},
-	"/interfaces/interface[name=name]/ethernet/state/port-speed": []Mapper{interfaceHighSpeed,
+	"/interfaces/interface[name=name]/state/out-discards":         {interfaceOutDiscards},
+	"/interfaces/interface[name=name]/state/out-errors":           {interfaceOutErrors},
+	"/interfaces/interface[name=name]/ethernet/state/mac-address": {interfacePhysAddress},
+	"/interfaces/interface[name=name]/ethernet/state/port-speed": {interfaceHighSpeed,
 		interfaceSpeed},
 
 	// system
-	"/system/state/hostname":    []Mapper{systemStateHostname, systemStateHostnameLldp},
-	"/system/state/domain-name": []Mapper{systemStateDomainName},
-	"/system/state/boot-time":   []Mapper{systemStateBootTime64, systemStateBootTime32},
+	"/system/state/hostname":    {systemStateHostname, systemStateHostnameLldp},
+	"/system/state/domain-name": {systemStateDomainName},
+	"/system/state/boot-time":   {systemStateBootTime64, systemStateBootTime32},
 
 	//// platform
-	"/components/component[name=name]/name":                   []Mapper{componentName},
-	"/components/component[name=name]/state/name":             []Mapper{componentStateName},
-	"/components/component[name=name]/config/name":            []Mapper{componentConfigName},
-	"/components/component[name=name]/state/id":               []Mapper{componentID},
-	"/components/component[name=name]/state/type":             []Mapper{componentType},
-	"/components/component[name=name]/state/description":      []Mapper{componentDescription},
-	"/components/component[name=name]/state/mfg-name":         []Mapper{componentMfgName},
-	"/components/component[name=name]/state/serial-no":        []Mapper{componentSerialNo},
-	"/components/component[name=name]/state/software-version": []Mapper{componentSoftwareVersion},
-	"/components/component[name=name]/state/part-no":          []Mapper{componentModelName},
-	"/components/component[name=name]/state/hardware-version": []Mapper{componentHardwareVersion},
+	"/components/component[name=name]/name":                   {componentName},
+	"/components/component[name=name]/state/name":             {componentStateName},
+	"/components/component[name=name]/config/name":            {componentConfigName},
+	"/components/component[name=name]/state/id":               {componentID},
+	"/components/component[name=name]/state/type":             {componentType},
+	"/components/component[name=name]/state/description":      {componentDescription},
+	"/components/component[name=name]/state/mfg-name":         {componentMfgName},
+	"/components/component[name=name]/state/serial-no":        {componentSerialNo},
+	"/components/component[name=name]/state/software-version": {componentSoftwareVersion},
+	"/components/component[name=name]/state/part-no":          {componentModelName},
+	"/components/component[name=name]/state/hardware-version": {componentHardwareVersion},
 
 	//// lldp
-	"/lldp/state/chassis-id":         []Mapper{lldpChassisID, lldpV2ChassisID},
-	"/lldp/state/chassis-id-type":    []Mapper{lldpChassisIDType, lldpV2ChassisIDType},
-	"/lldp/state/system-name":        []Mapper{lldpSystemName, lldpV2SystemName},
-	"/lldp/state/system-description": []Mapper{lldpSystemDescription, lldpV2SystemDescription},
-	"/lldp/interfaces/interface[name=name]/" +
-		"name": []Mapper{lldpInterfaceName, lldpV2InterfaceName},
+	"/lldp/state/chassis-id":                     {lldpChassisID, lldpV2ChassisID},
+	"/lldp/state/chassis-id-type":                {lldpChassisIDType, lldpV2ChassisIDType},
+	"/lldp/state/system-name":                    {lldpSystemName, lldpV2SystemName},
+	"/lldp/state/system-description":             {lldpSystemDescription, lldpV2SystemDescription},
+	"/lldp/interfaces/interface[name=name]/name": {lldpInterfaceName, lldpV2InterfaceName},
 	"/lldp/interfaces/interface[name=name]/config/" +
-		"name": []Mapper{lldpInterfaceConfigName, lldpV2InterfaceConfigName},
+		"name": {lldpInterfaceConfigName, lldpV2InterfaceConfigName},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"name": []Mapper{lldpInterfaceStateName, lldpV2InterfaceStateName},
+		"name": {lldpInterfaceStateName, lldpV2InterfaceStateName},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/frame-out": []Mapper{lldpInterfaceFrameOut, lldpV2InterfaceFrameOut},
+		"counters/frame-out": {lldpInterfaceFrameOut, lldpV2InterfaceFrameOut},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/frame-discard": []Mapper{lldpInterfaceFrameDiscard, lldpV2InterfaceFrameDiscard},
+		"counters/frame-discard": {lldpInterfaceFrameDiscard, lldpV2InterfaceFrameDiscard},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/frame-error-in": []Mapper{lldpInterfaceFrameErrorIn, lldpV2InterfaceFrameErrorIn},
+		"counters/frame-error-in": {lldpInterfaceFrameErrorIn, lldpV2InterfaceFrameErrorIn},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/frame-in": []Mapper{lldpInterfaceFrameIn, lldpV2InterfaceFrameIn},
+		"counters/frame-in": {lldpInterfaceFrameIn, lldpV2InterfaceFrameIn},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/tlv-discard": []Mapper{lldpInterfaceTlvDiscard, lldpV2InterfaceTlvDiscard},
+		"counters/tlv-discard": {lldpInterfaceTlvDiscard, lldpV2InterfaceTlvDiscard},
 	"/lldp/interfaces/interface[name=name]/state/" +
-		"counters/tlv-unknown": []Mapper{lldpInterfaceTlvUnknown, lldpV2InterfaceTlvUnknown},
-	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/id": []Mapper{
+		"counters/tlv-unknown": {lldpInterfaceTlvUnknown, lldpV2InterfaceTlvUnknown},
+	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/id": {
 		lldpInterfaceNeighborID, lldpV2InterfaceNeighborID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/port-id": []Mapper{lldpInterfaceNeighborPortID,
+		"neighbor[id=id]/state/port-id": {lldpInterfaceNeighborPortID,
 		lldpV2InterfaceNeighborPortID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/port-id-type": []Mapper{lldpInterfaceNeighborPortIDType,
+		"neighbor[id=id]/state/port-id-type": {lldpInterfaceNeighborPortIDType,
 		lldpV2InterfaceNeighborPortIDType},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/chassis-id": []Mapper{lldpInterfaceNeighborChassisID,
+		"neighbor[id=id]/state/chassis-id": {lldpInterfaceNeighborChassisID,
 		lldpV2InterfaceNeighborChassisID},
 	"/lldp/interfaces/interface[name=name]/neighbors/" +
-		"neighbor[id=id]/state/chassis-id-type": []Mapper{lldpInterfaceNeighborChassisIDType,
+		"neighbor[id=id]/state/chassis-id-type": {lldpInterfaceNeighborChassisIDType,
 		lldpV2InterfaceNeighborChassisIDType},
 	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/" +
-		"system-name": []Mapper{lldpInterfaceNeighborSystemName,
+		"system-name": {lldpInterfaceNeighborSystemName,
 		lldpV2InterfaceNeighborSystemName},
 	"/lldp/interfaces/interface[name=name]/neighbors/neighbor[id=id]/state/" +
-		"system-description": []Mapper{lldpInterfaceNeighborSystemDescription,
+		"system-description": {lldpInterfaceNeighborSystemDescription,
 		lldpV2InterfaceNeighborSystemDescription},
 }
 

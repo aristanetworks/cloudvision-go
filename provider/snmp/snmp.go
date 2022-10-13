@@ -179,23 +179,6 @@ func (s *Snmp) getFirstPDU(oid string) (*gosnmp.SnmpPDU, error) {
 	return &pkt.Variables[0], err
 }
 
-// getString does a Get on the specified OID, an octet string, and
-// returns the result as a string.
-func (s *Snmp) getString(oid string) (string, error) {
-	pdu, err := s.getFirstPDU(oid)
-
-	// Accept a noSuchObject or noSuchInstance, but otherwise, if it's not
-	// an octet string, something went wrong.
-	if err != nil || !oidExists(*pdu) {
-		return "", err
-	}
-	if pdu.Type != gosnmp.OctetString {
-		return "", fmt.Errorf("Variable type in PDU for OID %s is not octet string", oid)
-	}
-
-	return string(pdu.Value.([]byte)), nil
-}
-
 func (s *Snmp) walk(rootOid string, walkFn gosnmp.WalkFunc) error {
 	s.logger.Debugf("walk (OID = %s)", rootOid)
 	if s.walker == nil {

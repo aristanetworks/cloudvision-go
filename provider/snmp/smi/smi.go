@@ -59,6 +59,7 @@ type Module struct {
 // scalar, or something else.
 type Kind int
 
+// Kind of SMI object
 const (
 	KindUnknown Kind = iota
 	KindObject  Kind = 1 << (iota - 1)
@@ -96,6 +97,7 @@ func (k Kind) String() string {
 // Access describes an SMI object's access value.
 type Access int
 
+// Access types for SMI objects
 const (
 	AccessUnknown Access = iota
 	AccessNotAccessible
@@ -137,6 +139,7 @@ func strToAccess(s string) Access {
 // Status describes an SMI object's status value.
 type Status int
 
+// Status of SMI object
 const (
 	StatusUnknown Status = iota
 	StatusCurrent

@@ -187,11 +187,11 @@ func TestGNMIPathCopy(t *testing.T) {
 			path: &gnmi.Path{
 				Origin: "foo",
 				Elem: []*gnmi.PathElem{
-					&gnmi.PathElem{
+					{
 						Name: "elem1",
 						Key:  map[string]string{"key1": "val1", "key2": "val2"},
 					},
-					&gnmi.PathElem{
+					{
 						Name: "elem2",
 					},
 				},
@@ -269,7 +269,7 @@ func TestUnmarshal(t *testing.T) {
 		"DecimalVal": {
 			val: &gnmi.TypedValue{
 				Value: &gnmi.TypedValue_DecimalVal{
-					DecimalVal: &gnmi.Decimal64{Digits: 314, Precision: 2},
+					DecimalVal: &gnmi.Decimal64{Digits: 314, Precision: 2}, // nolint:staticcheck
 				}},
 			exp: float64(3.14),
 		},
@@ -277,8 +277,8 @@ func TestUnmarshal(t *testing.T) {
 			val: &gnmi.TypedValue{
 				Value: &gnmi.TypedValue_LeaflistVal{
 					LeaflistVal: &gnmi.ScalarArray{Element: []*gnmi.TypedValue{
-						&gnmi.TypedValue{Value: &gnmi.TypedValue_BoolVal{BoolVal: true}},
-						&gnmi.TypedValue{Value: &gnmi.TypedValue_AsciiVal{AsciiVal: "foobar"}},
+						{Value: &gnmi.TypedValue_BoolVal{BoolVal: true}},
+						{Value: &gnmi.TypedValue_AsciiVal{AsciiVal: "foobar"}},
 					}},
 				}},
 			exp: []interface{}{true, "foobar"},
@@ -325,7 +325,7 @@ var testIfName = "intf123"
 
 func expectedSetRequest(inOctets uint64) []*gnmi.SetRequest {
 	return []*gnmi.SetRequest{
-		&gnmi.SetRequest{
+		{
 			Delete: []*gnmi.Path{
 				Path("interfaces", "interface"),
 			},
