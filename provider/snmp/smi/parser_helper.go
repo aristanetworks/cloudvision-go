@@ -6,7 +6,6 @@ package smi
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,11 +64,11 @@ func (po *parseObject) setModule(module string) {
 func (yys *yySymType) linkToParent(po *parseObject) {
 	// Check whether its Parent is in the objectMap, and if so link
 	// the Parent and child.
-	parentId := ""
+	parentID := ""
 	if len(strings.Split(po.object.Oid, ".")) > 0 {
-		parentId = strings.Split(po.object.Oid, ".")[0]
+		parentID = strings.Split(po.object.Oid, ".")[0]
 	}
-	if o, ok := yys.objectMap[parentId]; ok {
+	if o, ok := yys.objectMap[parentID]; ok {
 		o.object.Children = append(o.object.Children, po.object)
 		o.children = append(o.children, po)
 		po.object.Parent = o.object
@@ -230,7 +229,7 @@ func moduleUpgrade(module, object string) string {
 
 func parseFile(filename string) (map[string]*parseModule, error) {
 	yyErrorVerbose = true
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

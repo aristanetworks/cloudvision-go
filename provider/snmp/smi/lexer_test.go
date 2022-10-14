@@ -5,7 +5,7 @@
 package smi
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"modernc.org/golex/lex"
@@ -314,7 +314,7 @@ END
 }
 
 func TestLexerOnMIBs(t *testing.T) {
-	b, err := ioutil.ReadFile("mibs/IF-MIB")
+	b, err := os.ReadFile("mibs/IF-MIB")
 	if err != nil {
 		t.Fatal(err)
 	}
