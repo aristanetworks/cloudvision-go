@@ -155,14 +155,15 @@ func (o *openconfigDevice) getStringFromSubscription(path string,
 // getSerial assumes a subscription to /components/component/state, which
 // looks like this:
 // module: openconfig-platform
-//   +--rw components
-//      +--rw component* [name]
-//         +--ro state
-//         |  +--ro name?               string
-//         |  +--ro type?               union
-//         ...
-//         |  +--ro serial-no?          string
-//         ...
+//
+//	+--rw components
+//	   +--rw component* [name]
+//	      +--ro state
+//	      |  +--ro name?               string
+//	      |  +--ro type?               union
+//	      ...
+//	      |  +--ro serial-no?          string
+//	      ...
 func getSerial(respCh chan *pb.SubscribeResponse) (string, error) {
 	serials := map[string]string{}
 	chassisName := ""
@@ -216,11 +217,12 @@ func getSerial(respCh chan *pb.SubscribeResponse) (string, error) {
 
 // getChassisID assumes a subcsription to /lldp/state/chassis-id.
 // module: openconfig-lldp
-//   +--rw lldp
-//      +--ro state
-//      ...
-//      |  +--ro chassis-id?                   string
-//      ...
+//
+//	+--rw lldp
+//	   +--ro state
+//	   ...
+//	   |  +--ro chassis-id?                   string
+//	   ...
 func getChassisID(respCh chan *pb.SubscribeResponse) (string, error) {
 	chassisID := ""
 	for resp := range respCh {
