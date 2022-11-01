@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
@@ -438,8 +439,10 @@ type Sensor struct {
 
 	deviceRedeployTimer time.Duration
 
-	log         *logrus.Entry
-	statePrefix *gnmi.Path
+	active        bool
+	heartbeatLock sync.Mutex // used to stop synchronize and prevent heartbeats when deleting sensor
+	log           *logrus.Entry
+	statePrefix   *gnmi.Path
 }
 
 // SensorOption is used to configure the Sensor
@@ -488,30 +491,45 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	for _, p := range resp.Delete {
 		fullPath := pgnmi.PathJoin(resp.Prefix, p)
 		leafName := fullPath.Elem[len(fullPath.Elem)-1].Name
-		if leafName == "id" {
+		if leafName == "id" || leafName == "sensor" {
 			// If the sensor itself has been deleted, log but leave
 			// the datasource deletion/addition until the relevant
 			// leaf nodes are deleted.
 			s.log.Infof("Sensor deleted: %v", fullPath)
+			for name := range s.datasourceConfig {
+				s.removeDatasource(ctx, name)
+			}
+
+			// Need to stop heartbeats before deleting state to avoid flap
+			s.heartbeatLock.Lock()
+			s.active = false
+			s.heartbeatLock.Unlock()
+
+			// Delete state for this sensor
+			if _, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+				Delete: []*gnmi.Path{s.statePrefix},
+			}); err != nil {
+				return err
+			}
 		} else if leafName != "name" {
 			continue
 		}
 		if name := datasourceFromPath(fullPath); name != "" {
-			if ds, ok := s.datasource[name]; ok {
-				s.log.Infof("Config removed: %s", name)
-				ds.stop()
-				delete(s.datasource, name)
-				_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
-					Delete: []*gnmi.Path{
-						ds.statePrefix,
-					},
-				})
-				if err != nil {
-					s.log.Errorf("Failed to delete state for %s: %v", name, err)
-				}
-			}
-			delete(s.datasourceConfig, name)
+			s.removeDatasource(ctx, name)
 		}
+	}
+
+	if len(resp.Update) > 0 && !s.active {
+		s.heartbeatLock.Lock()
+		s.active = true
+		// Sync state, assuming no state needs to be deleted as there is not supposed
+		// to be a sensor streaming when we notice a config creation after initial sync.
+		if postSync {
+			if err := s.syncState(ctx, nil); err != nil {
+				s.log.Errorf("Failed to sync state on restart: %v", err)
+			}
+		}
+		s.heartbeatLock.Unlock()
 	}
 
 	// For each updated datasource, update the datasource config but
@@ -581,6 +599,24 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	}
 
 	return nil
+}
+
+func (s *Sensor) removeDatasource(ctx context.Context, name string) {
+	ds, ok := s.datasource[name]
+	if !ok {
+		return
+	}
+
+	s.log.Debugf("Removing datasource: %s", name)
+	ds.stop()
+	delete(s.datasource, name)
+	delete(s.datasourceConfig, name)
+	if _, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+		Delete: []*gnmi.Path{ds.statePrefix},
+	}); err != nil {
+		s.log.Errorf("Failed to delete state for %s: %v", name, err)
+	}
+	s.log.Infof("Datasource removed: %s", name)
 }
 
 func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
@@ -690,7 +726,7 @@ func (s *Sensor) syncState(ctx context.Context, stateNames map[string]struct{}) 
 		}
 	}
 
-	s.log.Infof("resyncing state. Deleting: %v", toDelete)
+	s.log.Infof("Resyncing state. Deleting: %v", toDelete)
 	ts := time.Now().UnixNano()
 	_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
 		Prefix: s.statePrefix,
@@ -713,6 +749,11 @@ func (s *Sensor) heartbeatLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			s.heartbeatLock.Lock()
+			if !s.active {
+				s.heartbeatLock.Unlock()
+				continue
+			}
 			ts := time.Now().UnixNano()
 			_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
 				Prefix: s.statePrefix,
@@ -723,6 +764,7 @@ func (s *Sensor) heartbeatLoop(ctx context.Context) {
 			if err != nil {
 				s.log.Errorf("Failed to publish heartbeat: %v", err)
 			}
+			s.heartbeatLock.Unlock()
 		}
 	}
 }
@@ -764,6 +806,9 @@ func (s *Sensor) Run(ctx context.Context) error {
 		return fmt.Errorf("state resync failed: %w", err)
 	}
 
+	// Start sensor heartbeat loop. This will wait to do work only when we have a valid config.
+	go s.heartbeatLoop(ctx)
+
 	// Subscribe to config forever.
 	handleConfigUpdate := func(ctx context.Context,
 		notif *gnmi.Notification, postSync bool) error {
@@ -771,6 +816,10 @@ func (s *Sensor) Run(ctx context.Context) error {
 	}
 	handleConfigSync := func(ctx context.Context) error {
 		// Update sensor and datasources state based on existing configs
+		if !s.active {
+			s.log.Info("No datasource config found before sync response, waiting for configs.")
+			return nil
+		}
 		if err := s.syncState(ctx, stateDatasourceNames); err != nil {
 			return err
 		}
@@ -780,8 +829,7 @@ func (s *Sensor) Run(ctx context.Context) error {
 				s.log.Errorf("resync run failed %s: %v", name, err)
 			}
 		}
-		s.log.Info("config sync complete")
-		go s.heartbeatLoop(ctx)
+		s.log.Info("Config sync complete")
 		return nil
 	}
 
@@ -793,7 +841,7 @@ func (s *Sensor) Run(ctx context.Context) error {
 			Mode:   "stream",
 		}, handleConfigUpdate, handleConfigSync)
 	if err != nil {
-		s.log.Infof("config subscription returned: error: %v", err)
+		s.log.Infof("Config subscription returned: error: %v", err)
 	}
 
 	s.log.Infof("Terminating %d datasources...", len(s.datasource))

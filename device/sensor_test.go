@@ -166,7 +166,9 @@ var mockDeviceOptions = map[string]Option{
 }
 
 type sensorTestCase struct {
-	name                    string
+	name     string
+	substeps []*sensorTestCase
+
 	stateSubResps           []*gnmi.SubscribeResponse
 	configSubResps          []*gnmi.SubscribeResponse
 	waitForMetadataPreSync  []string
@@ -182,6 +184,14 @@ func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
 			},
 		},
 	}
+}
+
+func sensorPath(configOrState, id string) *gnmi.Path {
+	path := fmt.Sprintf("/datasource/%s/sensor[id=%s]", configOrState, id)
+	p := pgnmi.PathFromString(path)
+	p.Origin = "arista"
+	p.Target = "cv"
+	return p
 }
 
 func datasourcePath(configOrState, id, name, leaf string) *gnmi.Path {
@@ -229,7 +239,55 @@ func datasourceUpdates(configOrState, id, name, typ string, enabled bool,
 	return upds
 }
 
+func waitMetas(ctx context.Context, t *testing.T,
+	metadataCh chan string, expectation []string) error {
+	expectMetas := map[string]struct{}{}
+	for _, m := range expectation {
+		expectMetas[m] = struct{}{}
+	}
+	t.Logf("Waiting for meta: %v", expectMetas)
+	for len(expectMetas) > 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case gotMeta := <-metadataCh:
+			if _, ok := expectMetas[gotMeta]; ok {
+				delete(expectMetas, gotMeta)
+				t.Logf("got metadata %v", gotMeta)
+			} else {
+				return fmt.Errorf("Unexpected meta: %v", gotMeta)
+			}
+		case <-time.After(10 * time.Second):
+			return fmt.Errorf("Failed to see metadata: %v", expectMetas)
+		}
+	}
+	return nil
+}
+
+func initialSetReq(sensor string) *gnmi.SetRequest {
+	prefix := pgnmi.PathFromString("datasource/state/sensor[id=" + sensor + "]/")
+	prefix.Origin = "arista"
+	prefix.Target = "cv"
+	return &gnmi.SetRequest{
+		Prefix: prefix,
+		Update: []*gnmi.Update{
+			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue("dev")),
+			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+			pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+			pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue("Sensor started")),
+		},
+	}
+}
+
 func runSensorTest(t *testing.T, tc sensorTestCase) {
+	// Always run as if it was substeps.
+	if len(tc.substeps) > 0 && len(tc.configSubResps) > 0 {
+		t.Fatal("Should use either substeps or assume one step only")
+	}
+	if len(tc.substeps) == 0 {
+		tc.substeps = []*sensorTestCase{&tc}
+	}
+
 	// Set up mock gNMI client
 	gnmic := &internal.MockClient{
 		SubscribeStream: make(chan *internal.MockClientStream),
@@ -241,7 +299,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	metadataCh := make(chan string)
 
 	// Start sensor.
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	sensor := NewSensor("abc",
 		WithSensorGNMIClient(gnmic),
@@ -251,20 +309,27 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
 				return newMockCVClient(gc, info, metadataCh)
 			}))
+	sensor.log = sensor.log.WithField("test", tc.name)
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {
 		return sensor.Run(ctx)
 	})
 
-	allSetsFound := make(chan struct{}, 1)
+	configStream := &internal.MockClientStream{
+		SubReq:  make(chan *gnmi.SubscribeRequest),
+		SubResp: make(chan *gnmi.SubscribeResponse),
+		ErrC:    make(chan error),
+	}
+
 	errg.Go(func() error {
-		// state responses
+		// Create the state stream.
 		stream := &internal.MockClientStream{
 			SubReq:  make(chan *gnmi.SubscribeRequest),
 			SubResp: make(chan *gnmi.SubscribeResponse),
 			ErrC:    make(chan error),
 		}
+		// Serve state stream.
 		gnmic.SubscribeStream <- stream
 		t.Logf("Got state sub request: %v", <-stream.SubReq)
 		for _, resp := range tc.stateSubResps {
@@ -273,149 +338,138 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		close(stream.SubResp)
 		close(stream.SubReq)
 		close(stream.ErrC)
-
-		// config responses
-		stream = &internal.MockClientStream{
-			SubReq:  make(chan *gnmi.SubscribeRequest),
-			SubResp: make(chan *gnmi.SubscribeResponse),
-			ErrC:    make(chan error),
-		}
-		defer close(stream.SubResp)
-		defer close(stream.SubReq)
-		defer close(stream.ErrC)
-
-		waitMetas := func(expectation []string) error {
-			expectMetas := map[string]struct{}{}
-			for _, m := range expectation {
-				expectMetas[m] = struct{}{}
-			}
-			t.Logf("Waiting for meta: %v", expectMetas)
-			for len(expectMetas) > 0 {
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				case gotMeta := <-metadataCh:
-					if _, ok := expectMetas[gotMeta]; ok {
-						delete(expectMetas, gotMeta)
-						t.Logf("got metadata %v", gotMeta)
-					} else {
-						return fmt.Errorf("Unexpected meta: %v", gotMeta)
-					}
-				case <-time.After(10 * time.Second):
-					return fmt.Errorf("Failed to see metadata: %v", expectMetas)
-				}
-			}
-			return nil
-		}
-
-		gnmic.SubscribeStream <- stream
-		t.Logf("Got config sub request: %v", <-stream.SubReq)
-		for _, resp := range tc.configSubResps {
-			t.Log("Pushing config", resp)
-			select {
-			case stream.SubResp <- resp:
-				if resp.GetSyncResponse() {
-					if err := waitMetas(tc.waitForMetadataPreSync); err != nil {
-						return err
-					}
-				}
-			case <-ctx.Done():
-				t.Errorf("Context canceled before pushing config resp: %v", resp)
-				return ctx.Err()
-			}
-		}
-		if err := waitMetas(tc.waitForMetadataPostSync); err != nil {
-			return err
-		}
-		// Cancel context if all sets matched
-		<-allSetsFound
-		cancel()
+		// Serve config stream.
+		gnmic.SubscribeStream <- configStream
+		t.Logf("Got config sub request: %v", <-configStream.SubReq)
 		return nil
 	})
-	errg.Go(func() error {
-		defer close(allSetsFound)
-		prefix := pgnmi.PathFromString("datasource/state/sensor[id=abc]/")
-		prefix.Origin = "arista"
-		prefix.Target = "cv"
-		initialSetReq := &gnmi.SetRequest{
-			Prefix: prefix,
-			Update: []*gnmi.Update{
-				pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue("dev")),
-				pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
-				pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
-				pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue("Sensor started")),
-			},
-		}
 
-		tc.expectSet = append([]*gnmi.SetRequest{initialSetReq}, tc.expectSet...)
+	for _, tc := range tc.substeps {
+		// Start a sequence of checks for each substep.
+		// This allow us to wait and see a set of SetRequests based on some input
+		// before pushing more configs.
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(ctx)
+			errgSub, ctx := errgroup.WithContext(ctx)
 
-		setsIdx := 0
-		for timeout := time.After(10 * time.Second); ; {
-			select {
-			case <-timeout:
-				return fmt.Errorf("Timed out reading sets, expecting: %v", tc.expectSet)
-			case setReq, ok := <-gnmic.SetReq:
-				setsIdx++
-				if !ok {
-					if len(tc.expectSet) > 0 {
-						return fmt.Errorf("Set channel closed but expected more sets: %v",
-							tc.expectSet)
-					}
-					return nil
-				}
-
-				// Always send the set response
-				select {
-				case gnmic.SetResp <- &gnmi.SetResponse{
-					Prefix: pgnmi.PathFromString("ok-dont-care")}:
-				case <-ctx.Done():
-					return nil
-				}
-
-				// change date in set request so we can easily match it
-				heartbeat := false
-				for _, u := range setReq.Update {
-					if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
-						u.Val = agnmi.TypedValue(42)
-					}
-					if pgnmi.PathMatch(u.Path, pgnmi.Path("last-seen")) {
-						u.Val = agnmi.TypedValue(43)
-						heartbeat = len(setReq.Update) == 1
+			errgSub.Go(func() error {
+				// config responses
+				for _, resp := range tc.configSubResps {
+					t.Log("Pushing config", resp)
+					select {
+					case configStream.SubResp <- resp:
+						if resp.GetSyncResponse() {
+							if err := waitMetas(ctx, t,
+								metadataCh, tc.waitForMetadataPreSync); err != nil {
+								return err
+							}
+						}
+					case <-ctx.Done():
+						t.Errorf("Context canceled before pushing config resp: %v", resp)
+						return ctx.Err()
 					}
 				}
-
-				// Skip sensor heartbeats
-				if heartbeat && pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
-					t.Log("skipping sensor heartbeat")
-					continue
+				if err := waitMetas(ctx, t, metadataCh, tc.waitForMetadataPostSync); err != nil {
+					return err
 				}
+				return nil
+			})
+			errgSub.Go(func() error {
+				defer cancel()
 
-				found := -1
-				for i, expectSet := range tc.expectSet {
-					if proto.Equal(expectSet, setReq) {
-						found = i
-						break
-					}
+				setsIdx := 0
+				extraReads := time.NewTicker(time.Hour)
+				if len(tc.expectSet) == 0 {
+					extraReads.Reset(5 * time.Millisecond)
 				}
-				if found >= 0 {
-					t.Log("Matched set")
-					copy(tc.expectSet[found:], tc.expectSet[found+1:])
-					tc.expectSet = tc.expectSet[:len(tc.expectSet)-1]
-					if len(tc.expectSet) == 0 {
+				defer extraReads.Stop()
+				for timeout := time.After(5 * time.Second); ; {
+					select {
+					case <-timeout:
+						if len(tc.expectSet) > 0 {
+							return fmt.Errorf("Timed out reading sets, expecting: %v", tc.expectSet)
+						}
 						return nil
+					case <-extraReads.C:
+						select {
+						case r := <-gnmic.SetReq:
+							return fmt.Errorf("Unexpected set: %v", r)
+						default:
+							return nil
+						}
+					case setReq, ok := <-gnmic.SetReq:
+						setsIdx++
+						t.Logf("Got set #%d: %v", setsIdx, setReq)
+						if !ok {
+							if len(tc.expectSet) > 0 {
+								return fmt.Errorf("Set channel closed but expected more sets: %v",
+									tc.expectSet)
+							}
+							return nil
+						}
+
+						// Always send the set response
+						select {
+						case gnmic.SetResp <- &gnmi.SetResponse{
+							Prefix: pgnmi.PathFromString("ok-dont-care")}:
+						case <-ctx.Done():
+							return nil
+						}
+
+						// change date in set request so we can easily match it
+						heartbeat := false
+						for _, u := range setReq.Update {
+							if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
+								u.Val = agnmi.TypedValue(42)
+							}
+							if pgnmi.PathMatch(u.Path, pgnmi.Path("last-seen")) {
+								u.Val = agnmi.TypedValue(43)
+								heartbeat = len(setReq.Update) == 1
+							}
+						}
+
+						// Skip sensor heartbeats
+						if heartbeat && pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
+							t.Log("skipping sensor heartbeat")
+							continue
+						}
+
+						found := -1
+						for i, expectSet := range tc.expectSet {
+							if proto.Equal(expectSet, setReq) {
+								found = i
+								break
+							}
+						}
+						if found >= 0 {
+							t.Log("Matched set")
+							copy(tc.expectSet[found:], tc.expectSet[found+1:])
+							tc.expectSet = tc.expectSet[:len(tc.expectSet)-1]
+							if len(tc.expectSet) == 0 {
+								extraReads.Reset(5 * time.Millisecond) // schedule last check
+							}
+						} else {
+							return fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
+								setsIdx, setReq, tc.expectSet)
+						}
+					case <-ctx.Done():
+						if len(tc.expectSet) > 0 {
+							t.Errorf("Context cancel but did not match all sets: %v", tc.expectSet)
+						}
+						return ctx.Err()
 					}
-				} else {
-					return fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
-						setsIdx, setReq, tc.expectSet)
 				}
-			case <-ctx.Done():
-				if len(tc.expectSet) > 0 {
-					t.Errorf("Context cancel but did not match all sets: %v", tc.expectSet)
-				}
-				return ctx.Err()
+			})
+
+			if err := errgSub.Wait(); err != nil && err != context.Canceled {
+				t.Fatal(err)
 			}
-		}
-	})
+		})
+	}
+	close(configStream.SubResp)
+	close(configStream.SubReq)
+	close(configStream.ErrC)
+	cancel()
 	if err := errg.Wait(); err != nil && err != context.Canceled {
 		t.Fatal(err)
 	}
@@ -436,6 +490,7 @@ func TestSensor(t *testing.T) {
 				},
 			},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -473,6 +528,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPreSync:  []string{"123|map[id:123 input1:value1]"},
 			waitForMetadataPostSync: []string{"123|map[id:123 input1:value2]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -524,6 +580,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPreSync: []string{"123|map[id:123 input1:value1]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -562,6 +619,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -597,6 +655,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPreSync: []string{"123|map[id:123]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
@@ -650,6 +709,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
@@ -700,6 +760,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[crash:provider id:123]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -741,6 +802,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[crash:manager id:123]"},
 			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -766,6 +828,81 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name: "Delete sensor config and start new configs again",
+			substeps: []*sensorTestCase{
+				{
+					name: "First onboard device and see it streaming",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "xyz", "mock",
+								true, map[string]string{"id": "123"}, nil)...),
+					},
+					waitForMetadataPostSync: []string{"123|map[id:123]"},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc"),
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+				},
+				{
+					name: "Delete sensor config and see delete happening",
+					configSubResps: []*gnmi.SubscribeResponse{
+						&gnmi.SubscribeResponse{
+							Response: &gnmi.SubscribeResponse_Update{
+								Update: &gnmi.Notification{
+									Delete: []*gnmi.Path{
+										sensorPath("config", "abc"),
+									},
+								},
+							},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "xyz", ""),
+							},
+						},
+						{
+							Delete: []*gnmi.Path{
+								sensorPath("state", "abc"),
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "No configs, no sets",
+			configSubResps: []*gnmi.SubscribeResponse{
+				&gnmi.SubscribeResponse{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+			},
+			expectSet: []*gnmi.SetRequest{},
 		},
 	}
 
