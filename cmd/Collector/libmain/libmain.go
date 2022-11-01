@@ -278,16 +278,19 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 
 	var grpcConn *grpc.ClientConn
 	if *grpcServerAddr != "" {
-		logrus.Infof("Connecting to gRPC server %+v", authInfo)
-		conn, err := agrpc.DialWithAuth(ctx, *grpcServerAddr, authInfo)
-		if err != nil {
-			logrus.Fatalf("DialWithAuth error: %v", err)
+		if *authInfo != noAuth {
+			logrus.Infof("Connecting to gRPC server %+v", authInfo)
+			var err error
+			grpcConn, err = agrpc.DialWithAuth(ctx, *grpcServerAddr, authInfo)
+			if err != nil {
+				logrus.Fatalf("DialWithAuth error: %v", err)
+			}
+			logrus.Info("Connected")
+			opts = append(opts,
+				device.WithGRPCConn(grpcConn),
+			)
 		}
-		grpcConn = conn
-		logrus.Info("Connected")
-
 		opts = append(opts,
-			device.WithGRPCConn(conn),
 			device.WithGRPCServerAddr(*grpcServerAddr),
 			device.WithGRPCConnector(sc.Connector),
 			device.WithStandaloneStatus(*standalone),
