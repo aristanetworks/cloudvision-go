@@ -7,6 +7,8 @@ package device
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -16,15 +18,29 @@ import (
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
+func TestMain(m *testing.M) {
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableColors: true,
+		CallerPrettyfier: func(f *runtime.Frame) (function string, file string) {
+			return "", fmt.Sprintf("%s:%d", f.File, f.Line)
+		},
+	})
+	exit := m.Run()
+	os.Exit(exit)
+}
+
 type mockCVClient struct {
 	id         string
 	gnmic      gnmi.GNMIClient
 	metadataCh chan string
+	config     map[string]string
 }
 
 func (m *mockCVClient) Capabilities(ctx context.Context,
@@ -63,14 +79,25 @@ func (m *mockCVClient) SendHeartbeat(ctx context.Context, alive bool) error {
 func (m *mockCVClient) ForProvider(p provider.GNMIProvider) cvclient.CVClient {
 	return m
 }
-
 func newMockCVClient(gc gnmi.GNMIClient, info *Info, metadata chan string) cvclient.CVClient {
 	return &mockCVClient{
 		id:         fmt.Sprintf("%v|%v", info.ID, info.Config.Options),
 		gnmic:      gc,
 		metadataCh: metadata,
+		config:     info.Config.Options,
 	}
 }
+
+type crashProvider struct {
+}
+
+func (c *crashProvider) InitGRPC(conn *grpc.ClientConn) {}
+
+func (c *crashProvider) Run(ctx context.Context) error {
+	panic("Crash!")
+}
+
+var _ provider.GRPCProvider = (*crashProvider)(nil)
 
 type mockDevice struct {
 	id     string
@@ -78,6 +105,7 @@ type mockDevice struct {
 }
 
 var _ Device = (*mockDevice)(nil)
+var _ Manager = (*mockDevice)(nil)
 
 func (m *mockDevice) Alive() (bool, error) {
 	return true, nil
@@ -88,6 +116,9 @@ func (m *mockDevice) DeviceID() (string, error) {
 }
 
 func (m *mockDevice) Providers() ([]provider.Provider, error) {
+	if v := m.config["crash"]; v == "provider" {
+		return []provider.Provider{&crashProvider{}}, nil
+	}
 	return nil, nil
 }
 
@@ -97,8 +128,14 @@ func (m *mockDevice) IPAddr() string {
 	return ""
 }
 
+func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
+	if v := m.config["crash"]; v == "manager" {
+		panic("Crash manager!")
+	}
+	return nil
+}
+
 func newMockDevice(opt map[string]string) (Device, error) {
-	fmt.Println("newMockDevice:", opt)
 	deviceID, err := GetStringOption("id", opt)
 	if err != nil {
 		return nil, err
@@ -113,6 +150,10 @@ var mockDeviceOptions = map[string]Option{
 	"id": {
 		Description: "whatever",
 		Required:    true,
+	},
+	"crash": {
+		Description: "makes device crash for test purposes",
+		Required:    false,
 	},
 	"input1": {
 		Description: "somedata",
@@ -204,6 +245,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	defer cancel()
 	sensor := NewSensor("abc",
 		WithSensorGNMIClient(gnmic),
+		WithSensorHeartbeatInterval(time.Second),
 		WithSensorGRPCConn(nil),
 		WithSensorClientFactory(
 			func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
@@ -211,7 +253,11 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			}))
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
 	errg, ctx := errgroup.WithContext(ctx)
-	errg.Go(func() error { return sensor.Run(ctx) })
+	errg.Go(func() error {
+		return sensor.Run(ctx)
+	})
+
+	allSetsFound := make(chan struct{}, 1)
 	errg.Go(func() error {
 		// state responses
 		stream := &internal.MockClientStream{
@@ -281,12 +327,13 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		if err := waitMetas(tc.waitForMetadataPostSync); err != nil {
 			return err
 		}
-
-		t.Log("Canceling context as the test is done!")
+		// Cancel context if all sets matched
+		<-allSetsFound
 		cancel()
 		return nil
 	})
 	errg.Go(func() error {
+		defer close(allSetsFound)
 		prefix := pgnmi.PathFromString("datasource/state/sensor[id=abc]/")
 		prefix.Origin = "arista"
 		prefix.Target = "cv"
@@ -303,8 +350,10 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		tc.expectSet = append([]*gnmi.SetRequest{initialSetReq}, tc.expectSet...)
 
 		setsIdx := 0
-		for {
+		for timeout := time.After(10 * time.Second); ; {
 			select {
+			case <-timeout:
+				return fmt.Errorf("Timed out reading sets, expecting: %v", tc.expectSet)
 			case setReq, ok := <-gnmic.SetReq:
 				setsIdx++
 				if !ok {
@@ -314,15 +363,33 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 					}
 					return nil
 				}
+
+				// Always send the set response
+				select {
+				case gnmic.SetResp <- &gnmi.SetResponse{
+					Prefix: pgnmi.PathFromString("ok-dont-care")}:
+				case <-ctx.Done():
+					return nil
+				}
+
 				// change date in set request so we can easily match it
+				heartbeat := false
 				for _, u := range setReq.Update {
 					if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
 						u.Val = agnmi.TypedValue(42)
 					}
 					if pgnmi.PathMatch(u.Path, pgnmi.Path("last-seen")) {
 						u.Val = agnmi.TypedValue(43)
+						heartbeat = len(setReq.Update) == 1
 					}
 				}
+
+				// Skip sensor heartbeats
+				if heartbeat && pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
+					t.Log("skipping sensor heartbeat")
+					continue
+				}
+
 				found := -1
 				for i, expectSet := range tc.expectSet {
 					if proto.Equal(expectSet, setReq) {
@@ -332,20 +399,19 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 				}
 				if found >= 0 {
 					t.Log("Matched set")
-					select {
-					case gnmic.SetResp <- &gnmi.SetResponse{
-						Prefix: pgnmi.PathFromString("ok-dont-care")}:
-					case <-ctx.Done():
-						return nil
-					}
 					copy(tc.expectSet[found:], tc.expectSet[found+1:])
 					tc.expectSet = tc.expectSet[:len(tc.expectSet)-1]
+					if len(tc.expectSet) == 0 {
+						return nil
+					}
 				} else {
-					err := fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
+					return fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
 						setsIdx, setReq, tc.expectSet)
-					return err
 				}
 			case <-ctx.Done():
+				if len(tc.expectSet) > 0 {
+					t.Errorf("Context cancel but did not match all sets: %v", tc.expectSet)
+				}
 				return ctx.Err()
 			}
 		}
@@ -616,6 +682,87 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+			},
+		},
+		{
+			name: "Datasource with provider crash",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123", "crash": "provider"}, nil)...),
+			},
+			waitForMetadataPostSync: []string{"123|map[crash:provider id:123]"},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
+							"Datasource stopped unexpectedly: "+
+								"error starting providers for device \"123\" (mock): "+
+								"fatal error in *device.crashProvider.Run: Crash!")),
+					},
+				},
+			},
+		},
+		{
+			name: "Datasource with Manager crash",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123", "crash": "manager"}, nil)...),
+			},
+			waitForMetadataPostSync: []string{"123|map[crash:manager id:123]"},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
+							"Datasource stopped unexpectedly: "+
+								"fatal error in Manage: Crash manager!")),
 					},
 				},
 			},
