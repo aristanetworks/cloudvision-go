@@ -29,6 +29,17 @@ var (
 	undefinedPathElem = &gnmi.PathElem{Name: "___undefined___"}
 )
 
+func catchPanic(desc string, f func() error) func() error {
+	return func() (err error) {
+		defer func() {
+			if rerr := recover(); rerr != nil {
+				err = fmt.Errorf("fatal error in %s: %v", desc, rerr)
+			}
+		}()
+		return f()
+	}
+}
+
 type datasourceConfig struct {
 	name       string
 	typ        string
@@ -233,8 +244,6 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		return fmt.Errorf("failed to publish startup status: %w", err)
 	}
 
-	errg, ctx := errgroup.WithContext(ctx)
-
 	// Register the device before starting providers. If we can't reach
 	// the device right now, we should return an error rather than
 	// considering it added.
@@ -242,6 +251,8 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		return fmt.Errorf("error sending device metadata for device %q (%s): %w",
 			deviceID, d.info.Config.Device, err)
 	}
+
+	errg, ctx := errgroup.WithContext(ctx)
 
 	// Start providers.
 	errg.Go(func() error {
@@ -265,12 +276,12 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		inv := &sensorInventory{
 			device: []Device{},
 		}
-		errg.Go(func() error {
+		errg.Go(catchPanic("Manage", func() error {
 			if err := manager.Manage(ctx, inv); err != nil {
 				return fmt.Errorf("error in Manage: %w", err)
 			}
 			return nil
-		})
+		}))
 	}
 
 	return errg.Wait()
@@ -319,12 +330,12 @@ func (d *datasource) runProviders(ctx context.Context) error {
 		}
 
 		// Start the provider.
-		errg.Go(func() error {
+		errg.Go(catchPanic(fmt.Sprintf("%T.Run", p), func() error {
 			if err := p.Run(ctx); err != nil {
 				return fmt.Errorf("provider %T exiting with error: %w", p, err)
 			}
 			return nil
-		})
+		}))
 	}
 
 	return errg.Wait()
