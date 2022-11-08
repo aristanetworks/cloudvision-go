@@ -68,6 +68,9 @@ var (
 	// gRPC server config
 	grpcServerAddr *string
 
+	// ingest server config
+	ingestServerAddr *string
+
 	// local gRPC server config for inventory service
 	grpcAddr *string
 
@@ -123,12 +126,16 @@ func Main(sc device.SensorConfig) {
 		"Timeout for dumping gNMI SetRequests")
 
 	// gNMI server config
-	gnmiServerAddr = flag.String("gnmiServerAddr", "localhost:6030",
-		"Address of gNMI server")
+	gnmiServerAddr = flag.String("gnmiServerAddr", "",
+		"Address of gNMI server(deprecated; use grpcServerAddr")
 
 	// gRPC server config
 	grpcServerAddr = flag.String("grpcServerAddr", "",
 		"Address of gRPC server")
+
+	// ingest server config
+	ingestServerAddr = flag.String("ingestServerAddr", "",
+		"Address of ingest server")
 
 	// local gRPC server config for inventory service
 	grpcAddr = flag.String("grpcAddr", "",
@@ -259,6 +266,14 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}
 
+	if *gnmiServerAddr == "" {
+		gnmiCfg.Addr = *grpcServerAddr
+	}
+
+	if *ingestServerAddr == "" {
+		ingestServerAddr = grpcServerAddr
+	}
+
 	var noAuth agrpc.Auth
 	opts := []device.InventoryOption{
 		device.WithClientFactory(newCVClient),
@@ -291,7 +306,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			)
 		}
 		opts = append(opts,
-			device.WithGRPCServerAddr(*grpcServerAddr),
+			device.WithGRPCServerAddr(*ingestServerAddr),
 			device.WithGRPCConnector(sc.Connector),
 			device.WithStandaloneStatus(*standalone),
 		)
@@ -457,6 +472,10 @@ func validateConfig() {
 
 	if *protoVersion != "v1" && *protoVersion != "v2" {
 		logrus.Fatal("Protocol version must be either 'v1' or 'v2'")
+	}
+
+	if !*standalone && *ingestServerAddr == "" {
+		logrus.Fatal("-ingestServerAddr must be specified in case of sensor not running standalone")
 	}
 }
 
