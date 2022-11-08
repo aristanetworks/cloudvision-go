@@ -285,7 +285,7 @@ func WithGRPCConn(c *grpc.ClientConn) InventoryOption {
 	}
 }
 
-// WithGRPCServerAddr sets a gRPC connection on the Inventory.
+// WithGRPCServerAddr sets an grpc server address on the Inventory.
 func WithGRPCServerAddr(addr string) InventoryOption {
 	return func(i *inventory) {
 		i.grpcServerAddr = addr
