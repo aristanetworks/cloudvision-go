@@ -209,12 +209,10 @@ func (d *datasource) stop() {
 // Run executes the datasource
 func (d *datasource) Run(ctx context.Context) (err error) {
 	// Submit initial status information initially as the next operations can be slow
-	ts := time.Now().UnixNano()
 	if err := d.submitDatasourceUpdates(ctx,
 		// last-seen is not sent as to not qualify the datasource as streaming yet
 		pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 		pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue(d.config.typ)),
-		pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
 		pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 	); err != nil {
 		return err
@@ -237,7 +235,6 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		errStr := fmt.Sprintf("failed to determine DeviceID: %v", err)
 		updates = append(updates, pgnmi.Update(lastErrorKey, agnmi.TypedValue(errStr)))
 	} else if len(deviceID) > 0 {
-		updates = append(updates, pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)))
 		updates = append(updates, pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue(deviceID)))
 	}
 
@@ -347,6 +344,7 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 	defer ticker.Stop()
 
 	wasFailing := false // used to only log once when device is unhealthy and back alive
+	streamingStart := true
 
 	for {
 		select {
@@ -359,11 +357,20 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 					d.log.Info("Device is back alive")
 					wasFailing = false
 				}
-				ts := time.Now().UnixNano()
-				if err := d.submitDatasourceUpdates(ctx,
-					pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts))); err != nil {
-					d.log.Error("Publish status failed:", err)
+
+				ts := agnmi.TypedValue(time.Now().UnixNano())
+				updates := []*gnmi.Update{pgnmi.Update(lastSeenKey, ts)}
+				if streamingStart {
+					updates = append(updates, pgnmi.Update(pgnmi.Path("streaming-start"), ts))
 				}
+
+				if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
+					d.log.Error("Publish status failed:", err)
+				} else if err == nil {
+					// Clear flag only after first successful set
+					streamingStart = false
+				}
+
 				if err := d.cvClient.SendHeartbeat(ctx, alive); err != nil {
 					// Don't give up if an update fails for some reason.
 					d.log.Errorf("Error sending heartbeat: %v", err)
