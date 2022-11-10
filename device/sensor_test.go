@@ -303,7 +303,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	defer cancel()
 	sensor := NewSensor("abc",
 		WithSensorGNMIClient(gnmic),
-		WithSensorHeartbeatInterval(time.Second),
+		WithSensorHeartbeatInterval(50*time.Millisecond),
 		WithSensorGRPCConn(nil),
 		WithSensorClientFactory(
 			func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
@@ -496,14 +496,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -534,14 +532,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -550,14 +546,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -586,14 +580,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -625,14 +617,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -661,7 +651,6 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("invalidtype")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
@@ -679,14 +668,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -715,7 +702,6 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("invalidtype")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
@@ -733,14 +719,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -766,14 +750,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -808,14 +790,12 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 					},
 				},
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
-						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
@@ -852,14 +832,12 @@ func TestSensor(t *testing.T) {
 							Update: []*gnmi.Update{
 								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
 								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
-								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
 							},
 						},
 						{
 							Prefix: datasourcePath("state", "abc", "xyz", ""),
 							Update: []*gnmi.Update{
-								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 							},
 						},
@@ -868,7 +846,7 @@ func TestSensor(t *testing.T) {
 				{
 					name: "Delete sensor config and see delete happening",
 					configSubResps: []*gnmi.SubscribeResponse{
-						&gnmi.SubscribeResponse{
+						{
 							Response: &gnmi.SubscribeResponse_Update{
 								Update: &gnmi.Notification{
 									Delete: []*gnmi.Path{
@@ -896,13 +874,47 @@ func TestSensor(t *testing.T) {
 		{
 			name: "No configs, no sets",
 			configSubResps: []*gnmi.SubscribeResponse{
-				&gnmi.SubscribeResponse{
+				{Response: &gnmi.SubscribeResponse_SyncResponse{SyncResponse: true}},
+			},
+			expectSet: []*gnmi.SetRequest{},
+		},
+		{
+			name: "Device heartbeat and streaming-start",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
 					},
 				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123"}, nil)...),
 			},
-			expectSet: []*gnmi.SetRequest{},
+			waitForMetadataPostSync: []string{"123|map[id:123]"},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+					},
+				},
+			},
 		},
 	}
 
