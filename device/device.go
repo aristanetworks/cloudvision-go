@@ -165,4 +165,7 @@ func (dgc *defaultGRPCConnector) Connect(ctx context.Context,
 // SensorConfig to store GRPCConnector config
 type SensorConfig struct {
 	Connector GRPCConnector
+
+	// Receives the grpcServer connection and returns a CredentialResolver.
+	CredResolverCreator func(conn *grpc.ClientConn) (CredentialResolver, error)
 }

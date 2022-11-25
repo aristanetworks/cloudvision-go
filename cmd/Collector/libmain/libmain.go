@@ -314,10 +314,12 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 	}
 
 	logrus.Infof("Connecting to gNMI server %+v", gnmiCfg)
-	gnmiClient, err := agnmi.Dial(gnmiCfg)
+	conn, err := agnmi.DialContextConn(ctx, gnmiCfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	defer conn.Close()
+	gnmiClient := gnmi.NewGNMIClient(conn)
 	waitForGNMIConnectivity(gnmiClient)
 	logrus.Info("Connected to gNMI service")
 
@@ -334,6 +336,13 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			device.WithSensorHeartbeatInterval(*sensorHeartbeat),
 			device.WithSensorGNMIClient(gnmiClient),
 			device.WithSensorClientFactory(newCVClient),
+		}
+		if sc.CredResolverCreator != nil {
+			resolver, err := sc.CredResolverCreator(conn)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			opts = append(opts, device.WithSensorCredentialResolver(resolver))
 		}
 		if *grpcServerAddr != "" {
 			opts = append(opts,

@@ -41,6 +41,20 @@ func catchPanic(desc string, f func() error) func() error {
 	}
 }
 
+// CredentialResolver is the interface used to resolve credentials.
+type CredentialResolver interface {
+	Resolve(ctx context.Context, ref string) (string, error)
+}
+type passthroughCredResolver struct {
+}
+
+func (p *passthroughCredResolver) Resolve(ctx context.Context, ref string) (string, error) {
+	return ref, nil
+}
+
+var passthroughResolver CredentialResolver = &passthroughCredResolver{}
+
+// datasourceConfig holds the configs received from the server
 type datasourceConfig struct {
 	name       string
 	typ        string
@@ -102,6 +116,8 @@ type datasource struct {
 	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
 	grpcConnector GRPCConnector // Connector to get gRPC connection
 	standalone    bool
+
+	credResolver CredentialResolver
 
 	// Current running config. Config changes require a datasource restart.
 	config *datasourceConfig
@@ -206,6 +222,19 @@ func (d *datasource) stop() {
 	}
 }
 
+func (d *datasource) resolveCredentials(ctx context.Context,
+	configs map[string]string) (map[string]string, error) {
+	var err error
+	creds := make(map[string]string, len(configs))
+	for key, cred := range configs {
+		creds[key], err = d.credResolver.Resolve(ctx, cred)
+		if err != nil {
+			return nil, fmt.Errorf("unable to resolve credential for %v: %w", key, err)
+		}
+	}
+	return creds, nil
+}
+
 // Run executes the datasource
 func (d *datasource) Run(ctx context.Context) (err error) {
 	// Submit initial status information initially as the next operations can be slow
@@ -218,10 +247,15 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		return err
 	}
 
+	creds, err := d.resolveCredentials(ctx, d.config.credential)
+	if err != nil {
+		return err
+	}
+
 	// Prepare device to execute based on datasource config
 	info, err := NewDeviceInfo(ctx, &Config{
 		Device:  d.config.typ,
-		Options: mergeOpts(d.config.option, d.config.credential),
+		Options: mergeOpts(d.config.option, creds),
 	})
 	if err != nil {
 		return err
@@ -435,6 +469,8 @@ type Sensor struct {
 	standalone        bool
 	heartbeatInterval time.Duration
 
+	credResolver CredentialResolver
+
 	redeployDatasource chan string
 	datasourceConfig   map[string]*datasourceConfig
 	datasource         map[string]*datasource
@@ -474,6 +510,11 @@ func WithSensorGRPCConn(c *grpc.ClientConn) SensorOption {
 // WithSensorConnector sets a gRPC connector
 func WithSensorConnector(c GRPCConnector) SensorOption {
 	return func(s *Sensor) { s.grpcConnector = c }
+}
+
+// WithSensorCredentialResolver sets a credential resolver
+func WithSensorCredentialResolver(c CredentialResolver) SensorOption {
+	return func(s *Sensor) { s.credResolver = c }
 }
 
 // WithSensorStandaloneStatus sets the stanalone status
@@ -642,6 +683,7 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		apiaddr:       s.apiaddr,
 		grpcConnector: s.grpcConnector,
 		standalone:    s.standalone,
+		credResolver:  s.credResolver,
 		config: &datasourceConfig{
 			name: name,
 		},
@@ -883,6 +925,7 @@ func NewSensor(name string, opts ...SensorOption) *Sensor {
 		redeployDatasource:  make(chan string),
 		statePrefix:         prefix,
 		heartbeatInterval:   10 * time.Second, // default in case it is not set
+		credResolver:        passthroughResolver,
 	}
 	for _, opt := range opts {
 		opt(s)
