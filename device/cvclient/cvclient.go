@@ -27,4 +27,7 @@ type CVClient interface {
 	// ForProvider returns a new client instance for the same device but
 	// customized for a specific provider.
 	ForProvider(p provider.GNMIProvider) CVClient
+	// SetManagedDevices sets the current list of managed device IDs. The list
+	// is pushed in the next heartbeat cycle.
+	SetManagedDevices([]string)
 }

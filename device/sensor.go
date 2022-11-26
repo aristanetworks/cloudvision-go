@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -301,9 +302,7 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 
 	// Start manager, maybe.
 	if manager, ok := d.info.Device.(Manager); ok {
-		inv := &sensorInventory{
-			device: []Device{},
-		}
+		inv := newDatasourceInventory(d.cvClient)
 		errg.Go(catchPanic("Manage", func() error {
 			if err := manager.Manage(ctx, inv); err != nil {
 				return fmt.Errorf("error in Manage: %w", err)
@@ -424,28 +423,61 @@ func datasourceFromPath(path *gnmi.Path) string {
 	return ""
 }
 
-type sensorInventory struct {
-	device []Device
+type datasourceInventory struct {
+	client cvclient.CVClient
+
+	rwlock  sync.RWMutex // protects the fields below
+	devices map[string]*Info
 }
 
-func (s *sensorInventory) Add(deviceInfo *Info) error {
-	// TODO
+func newDatasourceInventory(client cvclient.CVClient) *datasourceInventory {
+	return &datasourceInventory{
+		client:  client,
+		devices: map[string]*Info{},
+	}
+}
+
+func (s *datasourceInventory) getManagedIDs() []string {
+	ids := make([]string, 0, len(s.devices))
+	for _, v := range s.devices {
+		ids = append(ids, v.ID)
+	}
+	sort.Strings(ids) // keep it consistent
+	return ids
+}
+
+func (s *datasourceInventory) Add(deviceInfo *Info) error {
+	s.rwlock.Lock()
+	defer s.rwlock.Unlock()
+	if _, ok := s.devices[deviceInfo.ID]; !ok {
+		s.devices[deviceInfo.ID] = deviceInfo
+		s.client.SetManagedDevices(s.getManagedIDs())
+	}
 	return nil
 }
 
-func (s *sensorInventory) Delete(key string) error {
-	// TODO
+func (s *datasourceInventory) Delete(key string) error {
+	s.rwlock.Lock()
+	defer s.rwlock.Unlock()
+	delete(s.devices, key)
+	s.client.SetManagedDevices(s.getManagedIDs())
 	return nil
 }
 
-func (s *sensorInventory) Get(key string) (*Info, error) {
-	// TODO
-	return nil, nil
+func (s *datasourceInventory) Get(key string) (*Info, error) {
+	s.rwlock.RLock()
+	defer s.rwlock.RUnlock()
+	return s.devices[key], nil
 }
 
-func (s *sensorInventory) List() []*Info {
-	// TODO
-	return nil
+func (s *datasourceInventory) List() []*Info {
+	s.rwlock.RLock()
+	defer s.rwlock.RUnlock()
+	out := make([]*Info, 0, len(s.devices))
+	for _, v := range s.devices {
+		out = append(out, v)
+	}
+	return out
 }
 
 func mergeOpts(o, c map[string]string) map[string]string {

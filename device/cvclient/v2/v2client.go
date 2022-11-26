@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
@@ -18,6 +19,7 @@ import (
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/version"
 
+	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"google.golang.org/grpc"
 )
@@ -42,6 +44,9 @@ type v2Client struct {
 	deviceType string
 	origin     string
 	device     device.Device
+
+	managedDevsLock sync.Mutex
+	managedDevices  []string
 }
 
 // setTargetAndOrigin sets target and origin fields in a GNMI path based on values in c.
@@ -90,8 +95,8 @@ func metadataPrefix() *gnmi.Path {
 
 func (c *v2Client) metadataRequest(ctx context.Context) *gnmi.SetRequest {
 	u := []*gnmi.Update{
-		pgnmi.Update(pgnmi.Path("type"), pgnmi.Strval(c.deviceType)),
-		pgnmi.Update(pgnmi.Path("collector-version"), pgnmi.Strval(versionString)),
+		pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue(c.deviceType)),
+		pgnmi.Update(pgnmi.Path("collector-version"), agnmi.TypedValue(versionString)),
 	}
 	ip, err := c.device.IPAddr(ctx)
 	if err != nil {
@@ -99,10 +104,9 @@ func (c *v2Client) metadataRequest(ctx context.Context) *gnmi.SetRequest {
 			c.deviceID, err)
 	} else if ip != "" {
 		u = append(u,
-			pgnmi.Update(pgnmi.Path("ip-addr"), pgnmi.Strval(ip)),
+			pgnmi.Update(pgnmi.Path("ip-addr"), agnmi.TypedValue(ip)),
 		)
 	}
-	// TODO: list of managed devices.
 	return &gnmi.SetRequest{
 		Prefix: metadataPrefix(),
 		Update: u,
@@ -118,11 +122,38 @@ func (c *v2Client) SendDeviceMetadata(ctx context.Context) error {
 func (c *v2Client) heartbeatRequest() *gnmi.SetRequest {
 	now := time.Now()
 	nanos := now.Unix()*int64(time.Second) + now.UnixNano()
-	u := []*gnmi.Update{pgnmi.Update(pgnmi.Path("last-seen"), pgnmi.Intval(nanos))}
-	return &gnmi.SetRequest{
+	u := []*gnmi.Update{pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(nanos))}
+
+	out := &gnmi.SetRequest{
 		Prefix: metadataPrefix(),
 		Update: u,
 	}
+
+	if c.deviceType == DeviceManager {
+		c.managedDevsLock.Lock()
+		ids := c.managedDevices
+		c.managedDevices = nil // clear
+		c.managedDevsLock.Unlock()
+
+		if ids == nil {
+			return out
+		}
+
+		elems := make([]*gnmi.TypedValue, len(ids))
+		for i, str := range ids {
+			elems[i] = agnmi.TypedValue(str)
+		}
+		out.Update = append(out.Update,
+			pgnmi.Update(pgnmi.Path("managed-devices"), &gnmi.TypedValue{
+				Value: &gnmi.TypedValue_LeaflistVal{
+					LeaflistVal: &gnmi.ScalarArray{
+						Element: elems,
+					},
+				},
+			}))
+	}
+
+	return out
 }
 
 func (c *v2Client) SendHeartbeat(ctx context.Context, alive bool) error {
@@ -132,6 +163,12 @@ func (c *v2Client) SendHeartbeat(ctx context.Context, alive bool) error {
 	req := c.heartbeatRequest()
 	_, err := c.Set(ctx, req)
 	return err
+}
+
+func (c *v2Client) SetManagedDevices(d []string) {
+	c.managedDevsLock.Lock()
+	c.managedDevices = d
+	c.managedDevsLock.Unlock()
 }
 
 // NewV2Client returns a new client object for communication

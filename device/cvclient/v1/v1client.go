@@ -84,6 +84,10 @@ func (c *v1client) SendHeartbeat(ctx context.Context, alive bool) error {
 	return err
 }
 
+func (c *v1client) SetManagedDevices(d []string) {
+	// not supported
+}
+
 // NewV1Client returns a new v1client object.
 func NewV1Client(gc gnmi.GNMIClient, deviceID string, isMgmtSystem bool) cvclient.CVClient {
 	return &v1client{

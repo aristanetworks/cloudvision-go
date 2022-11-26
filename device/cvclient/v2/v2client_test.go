@@ -8,11 +8,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/provider"
-	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
@@ -30,8 +30,12 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 		if !ok {
 			return fmt.Errorf("unexpected leaf in update: %s, value: %v", p, v)
 		}
+		// override time value to 42
+		if strings.HasSuffix(p, "last-seen") {
+			u.Val = agnmi.TypedValue(int(42))
+		}
 		if checkValues && !reflect.DeepEqual(v, u.Val) {
-			return fmt.Errorf("unexpected value for leaf %s, expected: %v, got: %v", p, v, u.Val)
+			return fmt.Errorf("unexpected value for leaf %s, expected: %+v, got: %v", p, v, u.Val)
 		}
 	}
 	return nil
@@ -40,9 +44,9 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
 	ip, _ := testDevice{}.IPAddr(context.Background())
 	expData := map[string]interface{}{
-		"/device-metadata/state/metadata/type":              pgnmi.Strval(c.deviceType),
-		"/device-metadata/state/metadata/collector-version": pgnmi.Strval(versionString),
-		"/device-metadata/state/metadata/ip-addr":           pgnmi.Strval(ip),
+		"/device-metadata/state/metadata/type":              agnmi.TypedValue(c.deviceType),
+		"/device-metadata/state/metadata/collector-version": agnmi.TypedValue(versionString),
+		"/device-metadata/state/metadata/ip-addr":           agnmi.TypedValue(ip),
 	}
 	return verifyUpdates(r, expData, true)
 }
@@ -78,20 +82,72 @@ func TestMetadataRequest(t *testing.T) {
 	}
 }
 
-func verifyHeartbeatLeaves(r *gnmi.SetRequest, c *v2Client) error {
-	expData := map[string]interface{}{
-		"/device-metadata/state/metadata/last-seen": true,
-	}
-	return verifyUpdates(r, expData, false)
-}
-
 func TestHeartbeatRequest(t *testing.T) {
-	c := &v2Client{
-		deviceID: "myswitch",
-	}
-	r := c.heartbeatRequest()
-	if err := verifyHeartbeatLeaves(r, c); err != nil {
-		t.Logf("Error verifying leaves in set request: %v", err)
-		t.Fail()
+	for _, tc := range []struct {
+		typ            string
+		managedDevices []string
+		expectLeaves   map[string]any
+	}{
+		{
+			typ: "",
+			expectLeaves: map[string]any{
+				"/device-metadata/state/metadata/last-seen": agnmi.TypedValue(int(42)),
+			},
+		},
+		{
+			typ: NetworkElement,
+			expectLeaves: map[string]any{
+				"/device-metadata/state/metadata/last-seen": agnmi.TypedValue(int(42)),
+			},
+		},
+		{
+			typ: WirelessAP,
+			expectLeaves: map[string]any{
+				"/device-metadata/state/metadata/last-seen": agnmi.TypedValue(int(42)),
+			},
+		},
+		{
+			typ: DeviceManager,
+			expectLeaves: map[string]any{
+				"/device-metadata/state/metadata/last-seen": agnmi.TypedValue(int(42)),
+			},
+		},
+		{
+			typ:            DeviceManager,
+			managedDevices: []string{"1", "2"},
+			expectLeaves: map[string]any{
+				"/device-metadata/state/metadata/last-seen": agnmi.TypedValue(int(42)),
+				"/device-metadata/state/metadata/managed-devices": &gnmi.TypedValue{
+					Value: &gnmi.TypedValue_LeaflistVal{
+						LeaflistVal: &gnmi.ScalarArray{
+							Element: []*gnmi.TypedValue{
+								agnmi.TypedValue("1"),
+								agnmi.TypedValue("2")},
+						},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tc.typ, func(t *testing.T) {
+			c := &v2Client{
+				deviceID:   "myswitch",
+				deviceType: tc.typ,
+			}
+			if tc.managedDevices != nil {
+				c.SetManagedDevices(tc.managedDevices)
+			}
+			r := c.heartbeatRequest()
+			if err := verifyUpdates(r, tc.expectLeaves, true); err != nil {
+				t.Fatalf("Error verifying leaves in set request: %v", err)
+			}
+
+			r = c.heartbeatRequest()
+			// second heartbeat will not send managed devices again
+			delete(tc.expectLeaves, "/device-metadata/state/metadata/managed-devices")
+			if err := verifyUpdates(r, tc.expectLeaves, true); err != nil {
+				t.Fatalf("Error verifying leaves in set request: %v", err)
+			}
+		})
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -79,6 +80,19 @@ func (m *mockCVClient) SendHeartbeat(ctx context.Context, alive bool) error {
 func (m *mockCVClient) ForProvider(p provider.GNMIProvider) cvclient.CVClient {
 	return m
 }
+
+func (m *mockCVClient) SetManagedDevices(a []string) {
+	_, err := m.gnmic.Set(context.Background(), &gnmi.SetRequest{
+		Prefix: pgnmi.Path("managed-devices"),
+		Update: []*gnmi.Update{
+			pgnmi.Update(pgnmi.Path("ids"), agnmi.TypedValue(fmt.Sprintf("%v", a))),
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
 func newMockCVClient(gc gnmi.GNMIClient, info *Info, metadata chan string) cvclient.CVClient {
 	return &mockCVClient{
 		id:         fmt.Sprintf("%v|%v", info.ID, info.Config.Options),
@@ -132,6 +146,19 @@ func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
 	if v := m.config["crash"]; v == "manager" {
 		panic("Crash manager!")
 	}
+	if v, ok := m.config["managed"]; ok && len(v) > 0 {
+		ids := strings.Split(v, ",")
+		for _, id := range ids {
+			if err := inventory.Add(&Info{
+				ID:      id,
+				Context: ctx,
+				Device:  &mockDevice{id: id},
+				Config:  &Config{},
+			}); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -157,6 +184,10 @@ var mockDeviceOptions = map[string]Option{
 	},
 	"input1": {
 		Description: "somedata",
+		Required:    false,
+	},
+	"managed": {
+		Description: "managed devices comma separated",
 		Required:    false,
 	},
 	"cred1": {
@@ -460,7 +491,6 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 					}
 				}
 			})
-
 			if err := errgSub.Wait(); err != nil && err != context.Canceled {
 				t.Fatal(err)
 			}
@@ -912,6 +942,64 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+					},
+				},
+			},
+		},
+		{
+			name: "Device heartbeat with managed devices",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{
+							"id":      "123",
+							"managed": "m1,m2"}, nil)...),
+			},
+			waitForMetadataPostSync: []string{"123|map[id:123 managed:m1,m2]"},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+					},
+				},
+				{
+					Prefix: pgnmi.Path("managed-devices"),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("ids"), agnmi.TypedValue("[m1]")),
+					},
+				},
+				{
+					Prefix: pgnmi.Path("managed-devices"),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("ids"), agnmi.TypedValue("[m1 m2]")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 					},
 				},
 			},
