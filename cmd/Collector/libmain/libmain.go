@@ -383,17 +383,27 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		return watchConfig(*deviceConfigFile, inventory)
 	})
 
+	var gServer *grpc.Server
+	var gListener net.Listener
 	if *grpcAddr != "" {
-		grpcServer, listener, err := newGRPCServer(*grpcAddr, inventory)
+		gServer, gListener, err = newGRPCServer(*grpcAddr, inventory)
 		if err != nil {
 			logrus.Fatalf("Failed to start gRPC server: %v", err)
 		}
-		group.Go(func() error { return grpcServer.Serve(listener) })
+		go func() {
+			if err := gServer.Serve(gListener); err != nil {
+				logrus.Infof("grpc server returned error: %v", err)
+			}
+		}()
 	}
 
 	logrus.Info("Collector is running")
 	if err := group.Wait(); err != nil {
 		logrus.Fatalf("group returned with error: %v", err)
+	}
+	if gServer != nil {
+		gServer.Stop()
+		_ = gListener.Close()
 	}
 	logrus.Infof("Collector is finished")
 }
