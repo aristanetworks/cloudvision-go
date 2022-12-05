@@ -389,6 +389,14 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			logrus.Fatalf("Failed to start gRPC server: %v", err)
 		}
 		group.Go(func() error { return grpcServer.Serve(listener) })
+		group.Go(func() error {
+			// A sensor failure should cause the program to end, so stop the grpc server.
+			<-ctx.Done()
+			logrus.Info("context canceled, closing grpc server...")
+			grpcServer.Stop()
+			_ = listener.Close()
+			return nil
+		})
 	}
 
 	logrus.Info("Collector is running")
