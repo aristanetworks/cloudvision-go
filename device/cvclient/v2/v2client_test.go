@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 
@@ -69,7 +70,7 @@ func (td testDevice) IPAddr(ctx context.Context) (string, error) {
 }
 
 func TestMetadataRequest(t *testing.T) {
-	c := NewV2Client(nil, testDevice{}).(*v2Client)
+	c := NewV2Client(nil, &device.Info{Device: testDevice{}}).(*v2Client)
 	r := c.metadataRequest(context.Background())
 	if err := verifyMetadataLeaves(r, c); err != nil {
 		t.Logf("Error verifying leaves in set request: %v", err)

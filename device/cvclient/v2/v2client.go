@@ -136,8 +136,9 @@ func (c *v2Client) SendHeartbeat(ctx context.Context, alive bool) error {
 
 // NewV2Client returns a new client object for communication
 // with CV using the v2 protocol.
-func NewV2Client(gc gnmi.GNMIClient, dev device.Device) cvclient.CVClient {
+func NewV2Client(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 	deviceType := NetworkElement
+	dev := info.Device
 	if _, ok := dev.(device.Manager); ok {
 		deviceType = DeviceManager
 	} else {
@@ -145,10 +146,9 @@ func NewV2Client(gc gnmi.GNMIClient, dev device.Device) cvclient.CVClient {
 			deviceType = dev.Type()
 		}
 	}
-	deviceID, _ := dev.DeviceID(context.Background())
 	return &v2Client{
 		gnmiClient: gc,
-		deviceID:   deviceID,
+		deviceID:   info.ID,
 		deviceType: deviceType,
 		origin:     "arista",
 		device:     dev,

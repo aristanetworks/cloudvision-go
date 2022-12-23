@@ -252,7 +252,7 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 		isManager = true
 	}
 	if protoVersion != nil && *protoVersion == "v2" {
-		return v2client.NewV2Client(gc, info.Device)
+		return v2client.NewV2Client(gc, info)
 	}
 	return v1client.NewV1Client(gc, info.ID, isManager)
 }
