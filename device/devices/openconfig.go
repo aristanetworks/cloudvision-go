@@ -58,6 +58,21 @@ func openConfigOptions() map[string]device.Option {
 			Default:     "",
 			Required:    false,
 		},
+		"ca": {
+			Description: "Server TLS certificate data",
+			Default:     "",
+			Required:    false,
+		},
+		"cert": {
+			Description: "Client TLS certificate data",
+			Default:     "",
+			Required:    false,
+		},
+		"key": {
+			Description: "Client TLS private key data",
+			Default:     "",
+			Required:    false,
+		},
 		"compression": {
 			Description: "Compression method (Supported options: \"\" and \"gzip\")",
 			Default:     "",
@@ -274,6 +289,24 @@ func (o *openconfigDevice) IPAddr(ctx context.Context) (string, error) {
 	return o.mgmtIP, nil
 }
 
+// read file and raw data options, and expect only one to be set
+func parseCertOpt(opt map[string]string, fileOpt, rawOpt string) (string, []byte, error) {
+	filename, err := device.GetStringOption(fileOpt, opt)
+	if err != nil {
+		return "", nil, err
+	}
+	var bs string
+	bs, err = device.GetStringOption(rawOpt, opt)
+	if err != nil {
+		return "", nil, err
+	}
+	rawdata := []byte(bs)
+	if len(filename) > 0 && len(rawdata) > 0 {
+		return "", nil, fmt.Errorf("either %q or %q should be provided, not both", fileOpt, rawOpt)
+	}
+	return filename, rawdata, nil
+}
+
 func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 	config := &gnmi.Config{}
 	var err error
@@ -289,18 +322,20 @@ func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.CAFile, err = device.GetStringOption("cafile", opt)
+
+	config.CAFile, config.CAData, err = parseCertOpt(opt, "cafile", "ca")
 	if err != nil {
 		return nil, err
 	}
-	config.CertFile, err = device.GetStringOption("certfile", opt)
+	config.CertFile, config.CertData, err = parseCertOpt(opt, "certfile", "cert")
 	if err != nil {
 		return nil, err
 	}
-	config.KeyFile, err = device.GetStringOption("keyfile", opt)
+	config.KeyFile, config.KeyData, err = parseCertOpt(opt, "keyfile", "key")
 	if err != nil {
 		return nil, err
 	}
+
 	config.Compression, err = device.GetStringOption("compression", opt)
 	if err != nil {
 		return nil, err
