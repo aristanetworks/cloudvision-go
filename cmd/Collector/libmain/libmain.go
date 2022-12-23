@@ -151,7 +151,7 @@ func Main(sc device.SensorConfig) {
 	keyFile = flag.String("keyfile", "", "Path to client TLS private key file")
 	tlsFlag = flag.Bool("tls", false, "Enable TLS")
 
-	protoVersion = flag.String("protoversion", "v1",
+	protoVersion = flag.String("protoversion", "v2",
 		"Protocol version to use for communicating with CV (must be v1 or v2.")
 
 	sensorName = flag.String("sensor", "", "Sensor's identifying name. "+
