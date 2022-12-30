@@ -13,9 +13,25 @@ import (
 
 // Config represents a single device configuration.
 type Config struct {
+	Name     string            `yaml:"Name,omitempty"`
 	Device   string            `yaml:"Device,omitempty"`
 	NoStream bool              `yaml:"NoStream,omitempty"`
 	Options  map[string]string `yaml:"Options,omitempty"`
+
+	deleted bool
+}
+
+// NewDeletedConfig creates a config that indicates a deleted device config.
+func NewDeletedConfig(name string) *Config {
+	return &Config{
+		Name:    name,
+		deleted: true,
+	}
+}
+
+// IsDeleted returns true if the config is marked as deleted.
+func (c *Config) IsDeleted() bool {
+	return c.deleted
 }
 
 func (c *Config) validate() error {

@@ -508,6 +508,9 @@ type Sensor struct {
 	datasource         map[string]*datasource
 	clientFactory      func(gnmi.GNMIClient, *Info) cvclient.CVClient
 
+	// channel to receive custom configs from.
+	configCh chan *Config
+
 	deviceRedeployTimer time.Duration
 
 	active        bool
@@ -552,6 +555,11 @@ func WithSensorCredentialResolver(c CredentialResolver) SensorOption {
 // WithSensorStandaloneStatus sets the stanalone status
 func WithSensorStandaloneStatus(standalone bool) SensorOption {
 	return func(s *Sensor) { s.standalone = standalone }
+}
+
+// WithSensorConfigChan provides a channel for supplying configs to the sensor
+func WithSensorConfigChan(configCh chan *Config) SensorOption {
+	return func(s *Sensor) { s.configCh = configCh }
 }
 
 // WithSensorClientFactory sets a cvclient factory on the Sensor.
@@ -606,6 +614,13 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 			}
 		}
 		s.heartbeatLock.Unlock()
+
+		// Restart all existing configs. This only happens if they are coming from
+		// the cofigCh and reach the sensor before the sensor config.
+		for name := range s.datasourceConfig {
+			ds := s.getDatasource(ctx, name)
+			ds.scheduleRestart(s.deviceRedeployTimer)
+		}
 	}
 
 	// For each updated datasource, update the datasource config but
@@ -780,6 +795,26 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 					postSync = true
 					if err := handleSyncResponse(ctx); err != nil {
 						return err
+					}
+				}
+			case cfg, ok := <-s.configCh:
+				if !ok {
+					s.log.Info("configCh closed, will not take anymore configs from it")
+					s.configCh = nil // prevent spin
+					continue
+				}
+				if cfg.IsDeleted() { // special case to know when config is removed
+					s.removeDatasource(ctx, cfg.Name)
+				} else {
+					s.datasourceConfig[cfg.Name] = &datasourceConfig{
+						name:    cfg.Name,
+						typ:     cfg.Device,
+						enabled: true,
+						option:  cfg.Options,
+					}
+					ds := s.getDatasource(ctx, cfg.Name)
+					if s.active {
+						ds.scheduleRestart(s.deviceRedeployTimer)
 					}
 				}
 			case <-ctx.Done():

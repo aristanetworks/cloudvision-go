@@ -205,6 +205,7 @@ type sensorTestCase struct {
 	waitForMetadataPreSync  []string
 	waitForMetadataPostSync []string
 	expectSet               []*gnmi.SetRequest
+	dynamicConfigs          []*Config
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -223,6 +224,11 @@ func sensorPath(configOrState, id string) *gnmi.Path {
 	p.Origin = "arista"
 	p.Target = "cv"
 	return p
+}
+
+func sensorUpdate(configOrState, id, leaf string, val interface{}) *gnmi.Update {
+	return pgnmi.Update(pgnmi.PathAppend(sensorPath(configOrState, id), leaf),
+		agnmi.TypedValue(val))
 }
 
 func datasourcePath(configOrState, id, name, leaf string) *gnmi.Path {
@@ -329,6 +335,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 
 	metadataCh := make(chan string)
 
+	configCh := make(chan *Config)
+	defer close(configCh)
+
 	// Start sensor.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -336,6 +345,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		WithSensorGNMIClient(gnmic),
 		WithSensorHeartbeatInterval(50*time.Millisecond),
 		WithSensorGRPCConn(nil),
+		WithSensorConfigChan(configCh),
 		WithSensorClientFactory(
 			func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
 				return newMockCVClient(gc, info, metadataCh)
@@ -402,6 +412,16 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 				}
 				if err := waitMetas(ctx, t, metadataCh, tc.waitForMetadataPostSync); err != nil {
 					return err
+				}
+				return nil
+			})
+			errgSub.Go(func() error {
+				for i, c := range tc.dynamicConfigs {
+					select {
+					case configCh <- c:
+					case <-ctx.Done():
+						return fmt.Errorf("Failed to push dynamic config index %d: %v", i, c)
+					}
 				}
 				return nil
 			})
@@ -1001,6 +1021,78 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 					},
+				},
+			},
+		},
+		{
+			name: "Custom config add and remove",
+			substeps: []*sensorTestCase{
+				{ // Add device with custom config
+					configSubResps: []*gnmi.SubscribeResponse{
+						// create config to enable sensor
+						subscribeUpdates(sensorUpdate("config", "abc", "id", "abc")),
+						{Response: &gnmi.SubscribeResponse_SyncResponse{SyncResponse: true}},
+					},
+					dynamicConfigs: []*Config{
+						{
+							Name:   "device-1",
+							Device: "mock",
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc"),
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
+				},
+				{ // Same config will give no updates
+					dynamicConfigs: []*Config{
+						{
+							Name:   "device-1",
+							Device: "mock",
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{ // wait to see status update
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+				},
+				{ // Delete config
+					dynamicConfigs: []*Config{
+						NewDeletedConfig("device-1"),
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "device-1", ""),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
 				},
 			},
 		},

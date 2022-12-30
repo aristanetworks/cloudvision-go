@@ -6,13 +6,20 @@ package libmain
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/device/gen"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -143,5 +150,123 @@ func TestGRPCServer(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatalf("Device is found in inventory after deletion")
+	}
+}
+
+func TestWatchConfig(t *testing.T) {
+	logrus.SetLevel(logrus.DebugLevel)
+	tests := []struct {
+		name          string
+		content       string
+		expectConfigs []*device.Config
+	}{
+		{
+			name: "one config",
+			content: `
+- Name: cfg1
+  Device: type1
+  Options:
+    opt1: val1
+    opt2: val2`,
+			expectConfigs: []*device.Config{
+				{
+					Name:   "cfg1",
+					Device: "type1",
+					Options: map[string]string{
+						"opt1": "val1",
+						"opt2": "val2",
+					},
+				},
+			},
+		},
+		{
+			name: "two new unnamed configs and delete previous config",
+			content: `
+- Device: type2
+  Options:
+    opt1: val1
+    opt2: val2
+- Device: type3
+  Options:
+    opt1: val1
+    opt2: val2`,
+			expectConfigs: []*device.Config{
+				{
+					Name:   "auto-datasource-000",
+					Device: "type2",
+					Options: map[string]string{
+						"opt1": "val1",
+						"opt2": "val2",
+					},
+				},
+				{
+					Name:   "auto-datasource-001",
+					Device: "type3",
+					Options: map[string]string{
+						"opt1": "val1",
+						"opt2": "val2",
+					},
+				},
+				device.NewDeletedConfig("cfg1"),
+			},
+		},
+	}
+
+	file := filepath.Join(t.TempDir(), "test.yml")
+	configCh := make(chan *device.Config)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	errg, ctx := errgroup.WithContext(ctx)
+	errg.Go(func() error {
+		defer close(configCh)
+		return watchConfig(ctx, nil, file, configCh, 30*time.Millisecond)
+	})
+
+	<-time.After(40 * time.Millisecond) // need to wait watcher to be ready
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := func() error {
+				if err := os.WriteFile(file, []byte(tc.content), 0666); err != nil {
+					return err
+				}
+
+				timer := time.NewTimer(5 * time.Second)
+				for {
+					select {
+					case <-timer.C:
+						select {
+						case cfg := <-configCh:
+							return fmt.Errorf("Unexpected config update: %v", cfg)
+						default:
+							if len(tc.expectConfigs) > 0 {
+								return fmt.Errorf("Did not match %v! Plus %d others",
+									tc.expectConfigs[0].Name, len(tc.expectConfigs)-1)
+							}
+							return nil
+						}
+					case cfg, ok := <-configCh:
+						if !ok {
+							continue
+						}
+						if len(tc.expectConfigs) == 0 {
+							return fmt.Errorf("Unexpected config update: %v", cfg)
+						}
+						expect := tc.expectConfigs[0]
+						if !reflect.DeepEqual(cfg, expect) {
+							return fmt.Errorf("Config mismatch, expected:\n%v\ngot:\n%v",
+								expect, cfg)
+						}
+						tc.expectConfigs = tc.expectConfigs[1:] // wait for next
+						if len(tc.expectConfigs) == 0 {
+							timer.Reset(31 * time.Millisecond)
+						}
+					}
+				}
+			}()
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

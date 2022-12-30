@@ -48,6 +48,7 @@ var (
 
 	// Device config
 	deviceName       *string
+	deviceType       *string
 	deviceOptions    = aflag.Map{}
 	deviceConfigFile *string
 	noStream         *bool
@@ -105,8 +106,8 @@ func Main(sc device.SensorConfig) {
 		" and written in the directory. Otherwise logs will be written to stderr.")
 
 	// Device config
-	deviceName = flag.String("device", "",
-		"Device type (available devices: "+deviceList()+")")
+	deviceName = flag.String("deviceName", "cmd-device", "Device name")
+	deviceType = flag.String("device", "", "Device type (available devices: "+deviceList()+")")
 	deviceOptions = aflag.Map{}
 	deviceConfigFile = flag.String("configFile", "", "Path to the config file for devices")
 	noStream = flag.Bool("nostream", false,
@@ -187,7 +188,7 @@ func Main(sc device.SensorConfig) {
 	// Print help, including device-specific help,
 	// if requested.
 	if *help {
-		if *deviceName != "" {
+		if *deviceType != "" {
 			if err := addHelp(); err != nil {
 				logrus.Fatal(err)
 			}
@@ -330,12 +331,44 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 
 	group, ctx := errgroup.WithContext(ctx)
 
+	var cmdDevice *device.Config
+	if *deviceType != "" {
+		// Keep the group alive when running with cmd line config
+		cmdDevice = &device.Config{
+			Name:     *deviceName,
+			Device:   *deviceType,
+			NoStream: *noStream,
+			Options:  deviceOptions,
+		}
+		group.Go(func() error {
+			<-ctx.Done()
+			return nil
+		})
+	}
+
+	// Watch config for old collector flow
+	configs, err := createDeviceConfigs(cmdDevice, *deviceConfigFile)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	configCh := make(chan *device.Config, len(configs))
+	for _, config := range configs {
+		configCh <- config
+	}
+
+	group.Go(func() error {
+		defer close(configCh)
+		return watchConfig(ctx, cmdDevice, *deviceConfigFile, configCh, time.Second)
+	})
+
 	// Start sensor state machine.
 	if len(*sensorName) > 0 {
 		opts := []device.SensorOption{
 			device.WithSensorHeartbeatInterval(*sensorHeartbeat),
 			device.WithSensorGNMIClient(gnmiClient),
 			device.WithSensorClientFactory(newCVClient),
+			device.WithSensorConfigChan(configCh),
 		}
 		if sc.CredResolverCreator != nil {
 			resolver, err := sc.CredResolverCreator(conn)
@@ -356,32 +389,42 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			logrus.Infof("Starting sensor %v", *sensorName)
 			return sensor.Run(ctx)
 		})
-	}
-
-	configs, err := createDeviceConfigs()
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	for _, config := range configs {
-		info, err := device.NewDeviceInfo(ctx, config)
-		if err != nil {
-			logrus.Infof("Error in device.NewDeviceInfo: %v. Dropping device.", err)
-			continue
-		}
-		err = inventory.Add(info)
-		if err != nil {
-			logrus.Infof("Error in inventory.Add: %v. Dropping device %s.",
-				err, info.ID)
-			continue
-		}
+	} else {
+		// Push configs from the file to the inventory.
 		group.Go(func() error {
-			<-ctx.Done()
-			return nil
+			for {
+				select {
+				case <-ctx.Done():
+					return nil
+				case cfg, ok := <-configCh:
+					if !ok {
+						return nil
+					}
+
+					info, err := device.NewDeviceInfo(ctx, cfg)
+					if err != nil {
+						logrus.Infof("Error in device.NewDeviceInfo: %v. Dropping device %s.",
+							err, cfg.Name)
+						continue
+					}
+
+					if cfg.IsDeleted() {
+						if err := inventory.Delete(info.ID); err != nil {
+							logrus.Infof("Error in inventory.Add: %v. Dropping device %s.",
+								err, info.ID)
+						}
+						continue
+					}
+
+					if err := inventory.Add(info); err != nil {
+						logrus.Infof("Error in inventory.Add: %v. Dropping device %s.",
+							err, info.ID)
+						continue
+					}
+				}
+			}
 		})
 	}
-	group.Go(func() error {
-		return watchConfig(*deviceConfigFile, inventory)
-	})
 
 	if *grpcAddr != "" {
 		grpcServer, listener, err := newGRPCServer(*grpcAddr, inventory)
@@ -430,23 +473,29 @@ func waitForGNMIConnectivity(gnmiClient gnmi.GNMIClient) {
 	}
 }
 
-func createDeviceConfigs() ([]*device.Config, error) {
+func createDeviceConfigs(cmdDevice *device.Config,
+	deviceConfigFile string) ([]*device.Config, error) {
 	configs := []*device.Config{}
-	if *deviceName != "" {
-		configs = append(configs, &device.Config{
-			Device:   *deviceName,
-			NoStream: *noStream,
-			Options:  deviceOptions,
-		})
+	if cmdDevice != nil {
+		copy := *cmdDevice
+		configs = append(configs, &copy)
 	}
 
-	if *deviceConfigFile != "" {
-		readConfigs, err := device.ReadConfigs(*deviceConfigFile)
+	if deviceConfigFile != "" {
+		readConfigs, err := device.ReadConfigs(deviceConfigFile)
 		if err != nil {
 			return nil, err
 		}
 		configs = append(configs, readConfigs...)
 	}
+
+	// Make sure all configs have a name
+	for i, config := range configs {
+		if len(config.Name) == 0 { // force a name if not set
+			config.Name = fmt.Sprintf("auto-datasource-%03d", i)
+		}
+	}
+
 	return configs, nil
 }
 
@@ -460,7 +509,7 @@ func deviceList() string {
 }
 
 func addHelp() error {
-	oh, err := device.OptionHelp(*deviceName)
+	oh, err := device.OptionHelp(*deviceType)
 	if err != nil {
 		return fmt.Errorf("addHelp: %v", err)
 	}
@@ -468,7 +517,7 @@ func addHelp() error {
 	var formattedOptions string
 	if len(oh) > 0 {
 		b := new(bytes.Buffer)
-		aflag.FormatOptions(b, "Help options for device '"+*deviceName+"':", oh)
+		aflag.FormatOptions(b, "Help options for device type '"+*deviceType+"':", oh)
 		formattedOptions = b.String()
 	}
 
@@ -477,11 +526,11 @@ func addHelp() error {
 }
 
 func validateConfig() {
-	if *deviceConfigFile != "" && *deviceName != "" {
+	if *deviceConfigFile != "" && *deviceType != "" {
 		logrus.Fatal("-config and -device should not be both specified.")
 	}
 
-	if *noStream && *deviceName == "" {
+	if *noStream && *deviceType == "" {
 		logrus.Fatal("device name must be specified if -nostream is set true")
 	}
 
@@ -506,20 +555,28 @@ func validateConfig() {
 	}
 }
 
-func watchConfig(configPath string, inventory device.Inventory) error {
+func watchConfig(ctx context.Context, cmdDevice *device.Config, configPath string,
+	pushToCh chan *device.Config, redeployDelay time.Duration) error {
 	if configPath == "" {
 		return nil
 	}
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
 	}
 	defer watcher.Close()
-	if err != nil {
-		return err
-	}
+
+	logrus.Infof("Monitoring %s config file for changes", configPath)
+
 	configDir, _ := filepath.Split(configPath)
-	group, ctx := errgroup.WithContext(context.Background())
+	group, ctx := errgroup.WithContext(ctx)
+	existingConfigs := map[string]struct{}{}
+
+	// Timer to delay config refresh on file events to prevent events firing in quick succession.
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+
 	group.Go(func() error {
 		for {
 			select {
@@ -527,26 +584,42 @@ func watchConfig(configPath string, inventory device.Inventory) error {
 				if !ok { // 'Events' channel is closed
 					return nil
 				}
-				if event.Name == configPath {
-					configs, err := createDeviceConfigs()
-					if err != nil {
-						logrus.Errorf("Error creating device configs from watched config: %v", err)
-						continue
+				if event.Name != configPath { // ignore events on other files
+					continue
+				}
+				logrus.Debugf("Watcher event: %v", event)
+
+				// File changes can come with many events at once, so we give it a second to settle
+				// before trying to read the file, or we may read an empty file or fail to read.
+				// Reading no data is undesirable as it would cause a config flap.
+				_ = timer.Reset(redeployDelay)
+			case <-timer.C:
+				configs, err := createDeviceConfigs(cmdDevice, configPath)
+				if err != nil {
+					logrus.Errorf("Error creating device configs from watched config: %v", err)
+					continue
+				}
+				logrus.Debugf("Watcher read %d configs", len(configs))
+
+				newSet := map[string]struct{}{}
+				for _, config := range configs {
+					select {
+					case pushToCh <- config:
+					case <-ctx.Done():
+						return nil
 					}
-					for _, config := range configs {
-						info, err := device.NewDeviceInfo(ctx, config)
-						if err != nil {
-							logrus.Errorf(
-								"Error creating device info from device config: %v", err)
-							continue
-						}
-						err = inventory.Add(info)
-						if err != nil {
-							logrus.Errorf("Error adding device to inventory: %v", err)
-							continue
+					newSet[config.Name] = struct{}{}
+				}
+				for name := range existingConfigs {
+					if _, ok := newSet[name]; !ok {
+						select {
+						case pushToCh <- device.NewDeletedConfig(name):
+						case <-ctx.Done():
+							return nil
 						}
 					}
 				}
+				existingConfigs = newSet
 			case err, ok := <-watcher.Errors:
 				if ok { // 'Errors' channel is not closed
 					return fmt.Errorf("Watcher error: %v", err)

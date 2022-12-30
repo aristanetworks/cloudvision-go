@@ -132,7 +132,17 @@ func runMock(ctx context.Context) {
 	mockInfo := newMockInfo(mockFeature)
 	inventory := device.NewInventory(ctx,
 		pgnmi.NewSimpleGNMIClient(mockInfo.processRequest), newCVClient)
-	configs, err := createDeviceConfigs()
+
+	var cmdDevice *device.Config
+	if *deviceType != "" {
+		cmdDevice = &device.Config{
+			Name:     *deviceName,
+			Device:   *deviceType,
+			NoStream: *noStream,
+			Options:  deviceOptions,
+		}
+	}
+	configs, err := createDeviceConfigs(cmdDevice, *deviceConfigFile)
 	if err != nil {
 		logrus.Fatal(err)
 	}
