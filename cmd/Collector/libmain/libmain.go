@@ -7,6 +7,7 @@ package libmain
 import (
 	"bytes"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -24,6 +25,7 @@ import (
 	"github.com/aristanetworks/cloudvision-go/device/gen"
 	agrpc "github.com/aristanetworks/cloudvision-go/grpc"
 	"github.com/aristanetworks/cloudvision-go/log"
+	"github.com/aristanetworks/cloudvision-go/provider"
 	"github.com/aristanetworks/cloudvision-go/version"
 
 	"github.com/aristanetworks/fsnotify"
@@ -384,10 +386,28 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 				device.WithSensorConnectorAddress(*ingestServerAddr),
 				device.WithSensorStandaloneStatus(*standalone))
 		}
-		sensor := device.NewSensor(*sensorName, opts...)
 		group.Go(func() error {
 			logrus.Infof("Starting sensor %v", *sensorName)
-			return sensor.Run(ctx)
+
+			//added retry logic in case of error due to GNMI service stop/restart
+			backoffTimer := provider.NewBackoffTimer()
+			for {
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-backoffTimer.Wait():
+					waitForGNMIConnectivity(gnmiClient)
+					sensor := device.NewSensor(*sensorName, opts...)
+					err := sensor.Run(ctx)
+					// Sensor failed, schedule retry with backoff.
+					// This is done before logging the error so we can log a precise retry delay.
+					curBackoff := backoffTimer.Backoff()
+					if !errors.Is(err, context.Canceled) {
+						logrus.Infof("sensor run failed, retrying in %v. Err: %v",
+							curBackoff, err)
+					}
+				}
+			}
 		})
 	} else {
 		// Push configs from the file to the inventory.
