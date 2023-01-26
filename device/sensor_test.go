@@ -643,6 +643,8 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+						pgnmi.Update(pgnmi.Path("last-error"),
+							agnmi.TypedValue("Data source disabled")),
 					},
 				},
 			},

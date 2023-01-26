@@ -174,10 +174,11 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	d.config = cfg.clone()
 
 	if !cfg.enabled {
-		d.log.Infof("Datasource %v disabled", d.config.name)
+		d.log.Infof("Data source %v disabled", d.config.name)
 		if err := d.submitDatasourceUpdates(ctx,
-			pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false))); err != nil {
-			d.log.Error("Failed to publish initial status:", err)
+			pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Data source disabled"))); err != nil {
+			d.log.Error("Failed to publish disabled status:", err)
 		}
 		return nil
 	}
