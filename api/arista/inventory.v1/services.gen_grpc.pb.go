@@ -450,6 +450,7 @@ type DeviceDecommissioningConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *DeviceDecommissioningConfigSetRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigSetResponse, error)
 	Delete(ctx context.Context, in *DeviceDecommissioningConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *DeviceDecommissioningConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteAllClient, error)
 }
 
 type deviceDecommissioningConfigServiceClient struct {
@@ -551,6 +552,38 @@ func (c *deviceDecommissioningConfigServiceClient) Delete(ctx context.Context, i
 	return out, nil
 }
 
+func (c *deviceDecommissioningConfigServiceClient) DeleteAll(ctx context.Context, in *DeviceDecommissioningConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[2], "/arista.inventory.v1.DeviceDecommissioningConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_DeleteAllClient interface {
+	Recv() (*DeviceDecommissioningConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceDeleteAllClient) Recv() (*DeviceDecommissioningConfigDeleteAllResponse, error) {
+	m := new(DeviceDecommissioningConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceDecommissioningConfigServiceServer is the server API for DeviceDecommissioningConfigService service.
 // All implementations must embed UnimplementedDeviceDecommissioningConfigServiceServer
 // for forward compatibility
@@ -560,6 +593,7 @@ type DeviceDecommissioningConfigServiceServer interface {
 	Subscribe(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_SubscribeServer) error
 	Set(context.Context, *DeviceDecommissioningConfigSetRequest) (*DeviceDecommissioningConfigSetResponse, error)
 	Delete(context.Context, *DeviceDecommissioningConfigDeleteRequest) (*DeviceDecommissioningConfigDeleteResponse, error)
+	DeleteAll(*DeviceDecommissioningConfigDeleteAllRequest, DeviceDecommissioningConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedDeviceDecommissioningConfigServiceServer()
 }
 
@@ -581,6 +615,9 @@ func (UnimplementedDeviceDecommissioningConfigServiceServer) Set(context.Context
 }
 func (UnimplementedDeviceDecommissioningConfigServiceServer) Delete(context.Context, *DeviceDecommissioningConfigDeleteRequest) (*DeviceDecommissioningConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDeviceDecommissioningConfigServiceServer) DeleteAll(*DeviceDecommissioningConfigDeleteAllRequest, DeviceDecommissioningConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedDeviceDecommissioningConfigServiceServer) mustEmbedUnimplementedDeviceDecommissioningConfigServiceServer() {
 }
@@ -692,6 +729,27 @@ func _DeviceDecommissioningConfigService_Delete_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceDecommissioningConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).DeleteAll(m, &deviceDecommissioningConfigServiceDeleteAllServer{stream})
+}
+
+type DeviceDecommissioningConfigService_DeleteAllServer interface {
+	Send(*DeviceDecommissioningConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceDeleteAllServer) Send(m *DeviceDecommissioningConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceDecommissioningConfigService_ServiceDesc is the grpc.ServiceDesc for DeviceDecommissioningConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -721,6 +779,11 @@ var DeviceDecommissioningConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DeviceDecommissioningConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _DeviceDecommissioningConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -950,6 +1013,7 @@ type DeviceOnboardingConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *DeviceOnboardingConfigSetRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigSetResponse, error)
 	Delete(ctx context.Context, in *DeviceOnboardingConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *DeviceOnboardingConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteAllClient, error)
 }
 
 type deviceOnboardingConfigServiceClient struct {
@@ -1051,6 +1115,38 @@ func (c *deviceOnboardingConfigServiceClient) Delete(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *deviceOnboardingConfigServiceClient) DeleteAll(ctx context.Context, in *DeviceOnboardingConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[2], "/arista.inventory.v1.DeviceOnboardingConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_DeleteAllClient interface {
+	Recv() (*DeviceOnboardingConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceDeleteAllClient) Recv() (*DeviceOnboardingConfigDeleteAllResponse, error) {
+	m := new(DeviceOnboardingConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceOnboardingConfigServiceServer is the server API for DeviceOnboardingConfigService service.
 // All implementations must embed UnimplementedDeviceOnboardingConfigServiceServer
 // for forward compatibility
@@ -1060,6 +1156,7 @@ type DeviceOnboardingConfigServiceServer interface {
 	Subscribe(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_SubscribeServer) error
 	Set(context.Context, *DeviceOnboardingConfigSetRequest) (*DeviceOnboardingConfigSetResponse, error)
 	Delete(context.Context, *DeviceOnboardingConfigDeleteRequest) (*DeviceOnboardingConfigDeleteResponse, error)
+	DeleteAll(*DeviceOnboardingConfigDeleteAllRequest, DeviceOnboardingConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedDeviceOnboardingConfigServiceServer()
 }
 
@@ -1081,6 +1178,9 @@ func (UnimplementedDeviceOnboardingConfigServiceServer) Set(context.Context, *De
 }
 func (UnimplementedDeviceOnboardingConfigServiceServer) Delete(context.Context, *DeviceOnboardingConfigDeleteRequest) (*DeviceOnboardingConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDeviceOnboardingConfigServiceServer) DeleteAll(*DeviceOnboardingConfigDeleteAllRequest, DeviceOnboardingConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedDeviceOnboardingConfigServiceServer) mustEmbedUnimplementedDeviceOnboardingConfigServiceServer() {
 }
@@ -1192,6 +1292,27 @@ func _DeviceOnboardingConfigService_Delete_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceOnboardingConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).DeleteAll(m, &deviceOnboardingConfigServiceDeleteAllServer{stream})
+}
+
+type DeviceOnboardingConfigService_DeleteAllServer interface {
+	Send(*DeviceOnboardingConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceDeleteAllServer) Send(m *DeviceOnboardingConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceOnboardingConfigService_ServiceDesc is the grpc.ServiceDesc for DeviceOnboardingConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1221,6 +1342,11 @@ var DeviceOnboardingConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DeviceOnboardingConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _DeviceOnboardingConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -74,6 +74,53 @@ func (x *IPAddress) GetValue() string {
 	return ""
 }
 
+type RepeatedIPAddress struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Values []*IPAddress `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *RepeatedIPAddress) Reset() {
+	*x = RepeatedIPAddress{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fmp_inet_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RepeatedIPAddress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RepeatedIPAddress) ProtoMessage() {}
+
+func (x *RepeatedIPAddress) ProtoReflect() protoreflect.Message {
+	mi := &file_fmp_inet_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RepeatedIPAddress.ProtoReflect.Descriptor instead.
+func (*RepeatedIPAddress) Descriptor() ([]byte, []int) {
+	return file_fmp_inet_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RepeatedIPAddress) GetValues() []*IPAddress {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
 type IPv4Address struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -85,7 +132,7 @@ type IPv4Address struct {
 func (x *IPv4Address) Reset() {
 	*x = IPv4Address{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[1]
+		mi := &file_fmp_inet_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -98,7 +145,7 @@ func (x *IPv4Address) String() string {
 func (*IPv4Address) ProtoMessage() {}
 
 func (x *IPv4Address) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[1]
+	mi := &file_fmp_inet_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -111,7 +158,7 @@ func (x *IPv4Address) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IPv4Address.ProtoReflect.Descriptor instead.
 func (*IPv4Address) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{1}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *IPv4Address) GetValue() string {
@@ -119,6 +166,53 @@ func (x *IPv4Address) GetValue() string {
 		return x.Value
 	}
 	return ""
+}
+
+type RepeatedIPv4Address struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Values []*IPv4Address `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *RepeatedIPv4Address) Reset() {
+	*x = RepeatedIPv4Address{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fmp_inet_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RepeatedIPv4Address) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RepeatedIPv4Address) ProtoMessage() {}
+
+func (x *RepeatedIPv4Address) ProtoReflect() protoreflect.Message {
+	mi := &file_fmp_inet_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RepeatedIPv4Address.ProtoReflect.Descriptor instead.
+func (*RepeatedIPv4Address) Descriptor() ([]byte, []int) {
+	return file_fmp_inet_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RepeatedIPv4Address) GetValues() []*IPv4Address {
+	if x != nil {
+		return x.Values
+	}
+	return nil
 }
 
 type IPv6Address struct {
@@ -132,7 +226,7 @@ type IPv6Address struct {
 func (x *IPv6Address) Reset() {
 	*x = IPv6Address{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[2]
+		mi := &file_fmp_inet_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -145,7 +239,7 @@ func (x *IPv6Address) String() string {
 func (*IPv6Address) ProtoMessage() {}
 
 func (x *IPv6Address) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[2]
+	mi := &file_fmp_inet_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -158,7 +252,7 @@ func (x *IPv6Address) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IPv6Address.ProtoReflect.Descriptor instead.
 func (*IPv6Address) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{2}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *IPv6Address) GetValue() string {
@@ -166,6 +260,53 @@ func (x *IPv6Address) GetValue() string {
 		return x.Value
 	}
 	return ""
+}
+
+type RepeatedIPv6Address struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Values []*IPv6Address `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *RepeatedIPv6Address) Reset() {
+	*x = RepeatedIPv6Address{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_fmp_inet_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RepeatedIPv6Address) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RepeatedIPv6Address) ProtoMessage() {}
+
+func (x *RepeatedIPv6Address) ProtoReflect() protoreflect.Message {
+	mi := &file_fmp_inet_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RepeatedIPv6Address.ProtoReflect.Descriptor instead.
+func (*RepeatedIPv6Address) Descriptor() ([]byte, []int) {
+	return file_fmp_inet_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RepeatedIPv6Address) GetValues() []*IPv6Address {
+	if x != nil {
+		return x.Values
+	}
+	return nil
 }
 
 type IPPrefix struct {
@@ -179,7 +320,7 @@ type IPPrefix struct {
 func (x *IPPrefix) Reset() {
 	*x = IPPrefix{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[3]
+		mi := &file_fmp_inet_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -192,7 +333,7 @@ func (x *IPPrefix) String() string {
 func (*IPPrefix) ProtoMessage() {}
 
 func (x *IPPrefix) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[3]
+	mi := &file_fmp_inet_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -205,7 +346,7 @@ func (x *IPPrefix) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IPPrefix.ProtoReflect.Descriptor instead.
 func (*IPPrefix) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{3}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *IPPrefix) GetValue() string {
@@ -226,7 +367,7 @@ type IPv4Prefix struct {
 func (x *IPv4Prefix) Reset() {
 	*x = IPv4Prefix{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[4]
+		mi := &file_fmp_inet_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -239,7 +380,7 @@ func (x *IPv4Prefix) String() string {
 func (*IPv4Prefix) ProtoMessage() {}
 
 func (x *IPv4Prefix) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[4]
+	mi := &file_fmp_inet_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -252,7 +393,7 @@ func (x *IPv4Prefix) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IPv4Prefix.ProtoReflect.Descriptor instead.
 func (*IPv4Prefix) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{4}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *IPv4Prefix) GetValue() string {
@@ -273,7 +414,7 @@ type IPv6Prefix struct {
 func (x *IPv6Prefix) Reset() {
 	*x = IPv6Prefix{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[5]
+		mi := &file_fmp_inet_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -286,7 +427,7 @@ func (x *IPv6Prefix) String() string {
 func (*IPv6Prefix) ProtoMessage() {}
 
 func (x *IPv6Prefix) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[5]
+	mi := &file_fmp_inet_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +440,7 @@ func (x *IPv6Prefix) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IPv6Prefix.ProtoReflect.Descriptor instead.
 func (*IPv6Prefix) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{5}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *IPv6Prefix) GetValue() string {
@@ -320,7 +461,7 @@ type Port struct {
 func (x *Port) Reset() {
 	*x = Port{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_fmp_inet_proto_msgTypes[6]
+		mi := &file_fmp_inet_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -333,7 +474,7 @@ func (x *Port) String() string {
 func (*Port) ProtoMessage() {}
 
 func (x *Port) ProtoReflect() protoreflect.Message {
-	mi := &file_fmp_inet_proto_msgTypes[6]
+	mi := &file_fmp_inet_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +487,7 @@ func (x *Port) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Port.ProtoReflect.Descriptor instead.
 func (*Port) Descriptor() ([]byte, []int) {
-	return file_fmp_inet_proto_rawDescGZIP(), []int{6}
+	return file_fmp_inet_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Port) GetValue() uint32 {
@@ -362,22 +503,34 @@ var file_fmp_inet_proto_rawDesc = []byte{
 	0x0a, 0x0e, 0x66, 0x6d, 0x70, 0x2f, 0x69, 0x6e, 0x65, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x12, 0x03, 0x66, 0x6d, 0x70, 0x22, 0x21, 0x0a, 0x09, 0x49, 0x50, 0x41, 0x64, 0x64, 0x72, 0x65,
 	0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x23, 0x0a, 0x0b, 0x49, 0x50, 0x76, 0x34,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x23, 0x0a,
-	0x0b, 0x49, 0x50, 0x76, 0x36, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c,
-	0x75, 0x65, 0x22, 0x20, 0x0a, 0x08, 0x49, 0x50, 0x50, 0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0a, 0x49, 0x50, 0x76, 0x34, 0x50, 0x72, 0x65, 0x66,
-	0x69, 0x78, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0a, 0x49, 0x50, 0x76, 0x36,
-	0x50, 0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1c, 0x0a, 0x04,
-	0x50, 0x6f, 0x72, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0d, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x16, 0x5a, 0x14, 0x61, 0x72,
-	0x69, 0x73, 0x74, 0x61, 0x2f, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x2f, 0x66,
-	0x6d, 0x70, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x3b, 0x0a, 0x11, 0x52, 0x65, 0x70, 0x65,
+	0x61, 0x74, 0x65, 0x64, 0x49, 0x50, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x26, 0x0a,
+	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e,
+	0x66, 0x6d, 0x70, 0x2e, 0x49, 0x50, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x06, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x23, 0x0a, 0x0b, 0x49, 0x50, 0x76, 0x34, 0x41, 0x64, 0x64,
+	0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x3f, 0x0a, 0x13, 0x52, 0x65,
+	0x70, 0x65, 0x61, 0x74, 0x65, 0x64, 0x49, 0x50, 0x76, 0x34, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
+	0x73, 0x12, 0x28, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x10, 0x2e, 0x66, 0x6d, 0x70, 0x2e, 0x49, 0x50, 0x76, 0x34, 0x41, 0x64, 0x64, 0x72,
+	0x65, 0x73, 0x73, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x23, 0x0a, 0x0b, 0x49,
+	0x50, 0x76, 0x36, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x22, 0x3f, 0x0a, 0x13, 0x52, 0x65, 0x70, 0x65, 0x61, 0x74, 0x65, 0x64, 0x49, 0x50, 0x76, 0x36,
+	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x28, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x66, 0x6d, 0x70, 0x2e, 0x49, 0x50,
+	0x76, 0x36, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x73, 0x22, 0x20, 0x0a, 0x08, 0x49, 0x50, 0x50, 0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x14, 0x0a,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0a, 0x49, 0x50, 0x76, 0x34, 0x50, 0x72, 0x65, 0x66, 0x69,
+	0x78, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0a, 0x49, 0x50, 0x76, 0x36, 0x50,
+	0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1c, 0x0a, 0x04, 0x50,
+	0x6f, 0x72, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0d, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x16, 0x5a, 0x14, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2f, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x2f, 0x66, 0x6d,
+	0x70, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -392,22 +545,28 @@ func file_fmp_inet_proto_rawDescGZIP() []byte {
 	return file_fmp_inet_proto_rawDescData
 }
 
-var file_fmp_inet_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_fmp_inet_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_fmp_inet_proto_goTypes = []interface{}{
-	(*IPAddress)(nil),   // 0: fmp.IPAddress
-	(*IPv4Address)(nil), // 1: fmp.IPv4Address
-	(*IPv6Address)(nil), // 2: fmp.IPv6Address
-	(*IPPrefix)(nil),    // 3: fmp.IPPrefix
-	(*IPv4Prefix)(nil),  // 4: fmp.IPv4Prefix
-	(*IPv6Prefix)(nil),  // 5: fmp.IPv6Prefix
-	(*Port)(nil),        // 6: fmp.Port
+	(*IPAddress)(nil),           // 0: fmp.IPAddress
+	(*RepeatedIPAddress)(nil),   // 1: fmp.RepeatedIPAddress
+	(*IPv4Address)(nil),         // 2: fmp.IPv4Address
+	(*RepeatedIPv4Address)(nil), // 3: fmp.RepeatedIPv4Address
+	(*IPv6Address)(nil),         // 4: fmp.IPv6Address
+	(*RepeatedIPv6Address)(nil), // 5: fmp.RepeatedIPv6Address
+	(*IPPrefix)(nil),            // 6: fmp.IPPrefix
+	(*IPv4Prefix)(nil),          // 7: fmp.IPv4Prefix
+	(*IPv6Prefix)(nil),          // 8: fmp.IPv6Prefix
+	(*Port)(nil),                // 9: fmp.Port
 }
 var file_fmp_inet_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: fmp.RepeatedIPAddress.values:type_name -> fmp.IPAddress
+	2, // 1: fmp.RepeatedIPv4Address.values:type_name -> fmp.IPv4Address
+	4, // 2: fmp.RepeatedIPv6Address.values:type_name -> fmp.IPv6Address
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_fmp_inet_proto_init() }
@@ -429,7 +588,7 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IPv4Address); i {
+			switch v := v.(*RepeatedIPAddress); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -441,7 +600,7 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IPv6Address); i {
+			switch v := v.(*IPv4Address); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -453,7 +612,7 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IPPrefix); i {
+			switch v := v.(*RepeatedIPv4Address); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -465,7 +624,7 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IPv4Prefix); i {
+			switch v := v.(*IPv6Address); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -477,7 +636,7 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IPv6Prefix); i {
+			switch v := v.(*RepeatedIPv6Address); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -489,6 +648,42 @@ func file_fmp_inet_proto_init() {
 			}
 		}
 		file_fmp_inet_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IPPrefix); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fmp_inet_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IPv4Prefix); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fmp_inet_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IPv6Prefix); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_fmp_inet_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Port); i {
 			case 0:
 				return &v.state
@@ -507,7 +702,7 @@ func file_fmp_inet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_fmp_inet_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
