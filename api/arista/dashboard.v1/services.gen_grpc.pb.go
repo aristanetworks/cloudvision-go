@@ -236,6 +236,7 @@ type DashboardConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *DashboardConfigSetRequest, opts ...grpc.CallOption) (*DashboardConfigSetResponse, error)
 	Delete(ctx context.Context, in *DashboardConfigDeleteRequest, opts ...grpc.CallOption) (*DashboardConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error)
 }
 
 type dashboardConfigServiceClient struct {
@@ -337,6 +338,38 @@ func (c *dashboardConfigServiceClient) Delete(ctx context.Context, in *Dashboard
 	return out, nil
 }
 
+func (c *dashboardConfigServiceClient) DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardConfigService_DeleteAllClient interface {
+	Recv() (*DashboardConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardConfigServiceDeleteAllClient) Recv() (*DashboardConfigDeleteAllResponse, error) {
+	m := new(DashboardConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DashboardConfigServiceServer is the server API for DashboardConfigService service.
 // All implementations must embed UnimplementedDashboardConfigServiceServer
 // for forward compatibility
@@ -346,6 +379,7 @@ type DashboardConfigServiceServer interface {
 	Subscribe(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeServer) error
 	Set(context.Context, *DashboardConfigSetRequest) (*DashboardConfigSetResponse, error)
 	Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error)
+	DeleteAll(*DashboardConfigDeleteAllRequest, DashboardConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedDashboardConfigServiceServer()
 }
 
@@ -367,6 +401,9 @@ func (UnimplementedDashboardConfigServiceServer) Set(context.Context, *Dashboard
 }
 func (UnimplementedDashboardConfigServiceServer) Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDashboardConfigServiceServer) DeleteAll(*DashboardConfigDeleteAllRequest, DashboardConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedDashboardConfigServiceServer) mustEmbedUnimplementedDashboardConfigServiceServer() {
 }
@@ -478,6 +515,27 @@ func _DashboardConfigService_Delete_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DashboardConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardConfigServiceServer).DeleteAll(m, &dashboardConfigServiceDeleteAllServer{stream})
+}
+
+type DashboardConfigService_DeleteAllServer interface {
+	Send(*DashboardConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type dashboardConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardConfigServiceDeleteAllServer) Send(m *DashboardConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DashboardConfigService_ServiceDesc is the grpc.ServiceDesc for DashboardConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -507,6 +565,11 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DashboardConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _DashboardConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
