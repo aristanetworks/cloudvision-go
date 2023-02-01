@@ -91,9 +91,10 @@ var (
 	protoVersion *string
 
 	// Sensor settings
-	standalone      *bool // sensor running standalone or not
-	sensorName      *string
-	sensorHeartbeat *time.Duration
+	standalone              *bool // sensor running standalone or not
+	sensorName              *string
+	sensorHeartbeat         *time.Duration
+	sensorFailureMaxBackoff *time.Duration
 )
 
 // Main is the "real" main.
@@ -163,6 +164,8 @@ func Main(sc device.SensorConfig) {
 	standalone = flag.Bool("standalone", true, "Run sensor in standalone mode")
 	sensorHeartbeat = flag.Duration("heartbeatInterval", 10*time.Second,
 		"Defines interval of sensor heartbeats")
+	sensorFailureMaxBackoff = flag.Duration("failureBackoffMax", 1*time.Hour,
+		"Defines maximum backoff for datasource failure retries")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -381,6 +384,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		}
 		if *grpcServerAddr != "" {
 			opts = append(opts,
+				device.WithSensorFailureRetryBackoffMax(*sensorFailureMaxBackoff),
 				device.WithSensorGRPCConn(grpcConn),
 				device.WithSensorConnector(sc.Connector),
 				device.WithSensorConnectorAddress(*ingestServerAddr),

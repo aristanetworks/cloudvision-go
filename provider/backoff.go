@@ -18,17 +18,38 @@ type BackoffTimer struct {
 	lastBackoff    time.Time
 }
 
+// BackoffOption defines options to be used with BackoffTimer
+type BackoffOption func(b *BackoffTimer)
+
+// WithBackoffBase configures the base backoff
+func WithBackoffBase(base time.Duration) BackoffOption {
+	return func(b *BackoffTimer) {
+		b.BackoffBase = base
+	}
+}
+
+// WithBackoffMax configures the maximum backoff
+func WithBackoffMax(base time.Duration) BackoffOption {
+	return func(b *BackoffTimer) {
+		b.BackoffMax = base
+	}
+}
+
 // NewBackoffTimer creates a new BackoffTimer with defaults settings
-func NewBackoffTimer() *BackoffTimer {
-	return &BackoffTimer{
+func NewBackoffTimer(opts ...BackoffOption) *BackoffTimer {
+	b := &BackoffTimer{
 		BackoffBase:           5 * time.Second,
 		BackoffMax:            3 * time.Minute,
 		BackoffMult:           1.8,
 		BackoffResetThreshold: time.Hour,
-		backoffCurrent:        5 * time.Second,
 		timer:                 time.NewTimer(time.Nanosecond),
 		lastBackoff:           time.Now(),
 	}
+	for _, o := range opts {
+		o(b)
+	}
+	b.backoffCurrent = b.BackoffBase
+	return b
 }
 
 // Wait returns a channel that must be waited on, which will signify the backoff
@@ -53,12 +74,13 @@ func (b *BackoffTimer) Backoff() time.Duration {
 		// reset backoff if running fine for a while
 		b.backoffCurrent = b.BackoffBase
 	}
-	b.timer.Reset(b.backoffCurrent)
+	waitTime := b.backoffCurrent
+	b.timer.Reset(waitTime)
 	b.backoffCurrent = time.Duration(float64(b.backoffCurrent) * b.BackoffMult).Round(time.Second)
 	if b.backoffCurrent > b.BackoffMax {
 		b.backoffCurrent = b.BackoffMax
 	}
 
 	b.lastBackoff = time.Now()
-	return b.backoffCurrent
+	return waitTime
 }

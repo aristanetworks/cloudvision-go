@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
@@ -121,7 +122,9 @@ type datasource struct {
 	credResolver CredentialResolver
 
 	// Current running config. Config changes require a datasource restart.
-	config *datasourceConfig
+	config            *datasourceConfig
+	running           atomic.Bool
+	failureRetryTimer *provider.BackoffTimer
 
 	redeployTimer *time.Timer
 	cancel        context.CancelFunc
@@ -151,7 +154,7 @@ func (d *datasource) handleDatasourceError(ctx context.Context, e error) {
 	err := d.submitDatasourceUpdates(ctx,
 		pgnmi.Update(lastErrorKey, agnmi.TypedValue(e.Error())))
 	if err != nil {
-		d.log.Errorf("Failed to publish error: %v", err)
+		d.log.Errorf("Failed to publish error: %v. Reason: %v", e, err)
 	}
 }
 
@@ -163,8 +166,8 @@ func (d *datasource) scheduleRestart(in time.Duration) {
 func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	d.log.Tracef("Trying to deploy config: %v. Current: %v", cfg, d.config)
 
-	// We don't need to re-run if we already are running the same config.
-	if cfg.equals(d.config) {
+	// We don't need to re-run if we are already running the same config.
+	if d.running.Load() && cfg.equals(d.config) {
 		d.log.Info("Deploy requested with the same config, ignoring request.")
 		return nil
 	}
@@ -174,6 +177,7 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	d.config = cfg.clone()
 
 	if !cfg.enabled {
+		d.failureRetryTimer.Reset() // reset failure backoff
 		d.log.Infof("Data source %v disabled", d.config.name)
 		if err := d.submitDatasourceUpdates(ctx,
 			pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
@@ -190,19 +194,48 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 
 	// Start running the device in the background
 	d.execGroup.Go(func() error {
-		err := d.Run(ctx)
+		runCtx, cancel := context.WithCancel(ctx)
+		d.running.Store(true)
+		defer func() {
+			d.running.Store(false)
+			cancel() // make sure to cancel everything if the Run function returns for any reason.
+		}()
 
-		// Handle return error by pushing it to datasource last-error state
-		if err == nil {
+		err := d.Run(runCtx)
+
+		// If main context was canceled, do not retry.
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				// Not necessarily an error, just logging in case the device had
+				// something relevant to say.
+				d.log.Infof("Data source stopped due to cancel request. Returned: %v", err)
+			}
+			return ctx.Err()
+		default:
+		}
+
+		if err == nil || IsBadConfigError(err) {
+			if err != nil {
+				d.handleDatasourceError(ctx, fmt.Errorf("Data source stopped: %v", err))
+			} else {
+				errS := d.submitDatasourceUpdates(ctx,
+					pgnmi.Update(lastErrorKey, agnmi.TypedValue("Data source stopped")))
+				if errS != nil {
+					d.log.Errorf("failed to publish Data source stopped event due to: %v", errS)
+				}
+			}
+			// Return without scheduling a re-run.
+			// We treat returning no error as an acceptable stop.
+			// But still cancel run ctx which will mark the data source as inactive.
 			return nil
 		}
 
-		if errors.Is(err, context.Canceled) {
-			return err
-		}
-
-		err = fmt.Errorf("Datasource stopped unexpectedly: %w", err)
+		// Handle return error by pushing it to datasource last-error state
+		backoff := d.failureRetryTimer.Backoff()
+		err = fmt.Errorf("Datasource stopped unexpectedly: %w. Retrying in %v", err, backoff)
 		d.handleDatasourceError(ctx, err)
+		d.scheduleRestart(backoff)
 		return err
 	})
 
@@ -516,7 +549,9 @@ type Sensor struct {
 	// channel to receive custom configs from.
 	configCh chan *Config
 
-	deviceRedeployTimer time.Duration
+	deviceRedeployTimer     time.Duration
+	failureRetryBackoffMax  time.Duration
+	failureRetryBackoffBase time.Duration
 
 	active        bool
 	heartbeatLock sync.Mutex // used to stop synchronize and prevent heartbeats when deleting sensor
@@ -535,6 +570,16 @@ func WithSensorConnectorAddress(addr string) SensorOption {
 // WithSensorHeartbeatInterval sets the duration between sensor heartbeats
 func WithSensorHeartbeatInterval(d time.Duration) SensorOption {
 	return func(s *Sensor) { s.heartbeatInterval = d }
+}
+
+// WithSensorFailureRetryBackoffBase sets the duration between datasource restarts on failure
+func WithSensorFailureRetryBackoffBase(d time.Duration) SensorOption {
+	return func(s *Sensor) { s.failureRetryBackoffBase = d }
+}
+
+// WithSensorFailureRetryBackoffMax sets the max backoff between datasource restarts due to failures
+func WithSensorFailureRetryBackoffMax(d time.Duration) SensorOption {
+	return func(s *Sensor) { s.failureRetryBackoffMax = d }
 }
 
 // WithSensorGNMIClient sets a gNMI client on the Sensor.
@@ -750,6 +795,11 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		statePrefix:       prefix,
 		heartbeatInterval: s.heartbeatInterval,
 	}
+	// Setup fatal error retry backoff with long wait periods to avoid flood.
+	runtime.failureRetryTimer = provider.NewBackoffTimer(
+		provider.WithBackoffBase(s.failureRetryBackoffBase),
+		provider.WithBackoffMax(s.failureRetryBackoffMax))
+
 	_ = runtime.redeployTimer.Stop() // we don't want to run it yet.
 	s.datasource[name] = runtime
 	return runtime
@@ -989,15 +1039,17 @@ func NewSensor(name string, opts ...SensorOption) *Sensor {
 	prefix.Target = "cv"
 
 	s := &Sensor{
-		id:                  name,
-		log:                 logrus.WithField("sensor", name),
-		datasourceConfig:    map[string]*datasourceConfig{},
-		datasource:          map[string]*datasource{},
-		deviceRedeployTimer: 2 * time.Second,
-		redeployDatasource:  make(chan string),
-		statePrefix:         prefix,
-		heartbeatInterval:   10 * time.Second, // default in case it is not set
-		credResolver:        passthroughResolver,
+		id:                      name,
+		log:                     logrus.WithField("sensor", name),
+		datasourceConfig:        map[string]*datasourceConfig{},
+		datasource:              map[string]*datasource{},
+		deviceRedeployTimer:     2 * time.Second,
+		redeployDatasource:      make(chan string),
+		statePrefix:             prefix,
+		heartbeatInterval:       10 * time.Second, // default in case it is not set
+		failureRetryBackoffBase: time.Minute,
+		failureRetryBackoffMax:  1 * time.Hour,
+		credResolver:            passthroughResolver,
 	}
 	for _, opt := range opts {
 		opt(s)

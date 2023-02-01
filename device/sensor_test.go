@@ -6,6 +6,7 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -103,11 +104,15 @@ func newMockCVClient(gc gnmi.GNMIClient, info *Info, metadata chan string) cvcli
 }
 
 type crashProvider struct {
+	err error
 }
 
 func (c *crashProvider) InitGRPC(conn *grpc.ClientConn) {}
 
 func (c *crashProvider) Run(ctx context.Context) error {
+	if c.err != nil {
+		return c.err
+	}
 	panic("Crash!")
 }
 
@@ -140,8 +145,17 @@ func (m *mockDevice) DeviceID(ctx context.Context) (string, error) {
 }
 
 func (m *mockDevice) Providers() ([]provider.Provider, error) {
-	if v := m.config["crash"]; v == "provider" {
-		return []provider.Provider{&crashProvider{}}, nil
+	v, ok := m.config["crash"]
+	if ok {
+		switch v {
+		case "": // not set
+		case "provider":
+			return []provider.Provider{&crashProvider{}}, nil
+		case "no-retry":
+			return []provider.Provider{&crashProvider{err: badConfigError{errors.New(v)}}}, nil
+		default:
+			return []provider.Provider{&crashProvider{err: errors.New(v)}}, nil
+		}
 	}
 	return nil, nil
 }
@@ -289,21 +303,29 @@ func datasourceUpdates(configOrState, id, name, typ string, enabled bool,
 
 func waitMetas(ctx context.Context, t *testing.T,
 	metadataCh chan string, expectation []string) error {
-	expectMetas := map[string]struct{}{}
+	expectMetas := map[string]int{}
 	for _, m := range expectation {
-		expectMetas[m] = struct{}{}
+		expectMetas[m]++
 	}
 	t.Logf("Waiting for meta: %v", expectMetas)
 	for len(expectMetas) > 0 {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
-		case gotMeta := <-metadataCh:
-			if _, ok := expectMetas[gotMeta]; ok {
-				delete(expectMetas, gotMeta)
-				t.Logf("got metadata %v", gotMeta)
-			} else {
+			return fmt.Errorf("Meta canceled, but still waiting for meta: %v", expectMetas)
+		case gotMeta, ok := <-metadataCh:
+			if !ok {
+				return fmt.Errorf("Meta chan closed, but was waiting for: %v", expectMetas)
+			}
+			count, ok := expectMetas[gotMeta]
+			if !ok {
 				return fmt.Errorf("Unexpected meta: %v", gotMeta)
+			}
+			count--
+			t.Logf("got metadata %v", gotMeta)
+			if count == 0 {
+				delete(expectMetas, gotMeta)
+			} else {
+				expectMetas[gotMeta] = count
 			}
 		case <-time.After(10 * time.Second):
 			return fmt.Errorf("Failed to see metadata: %v", expectMetas)
@@ -355,6 +377,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	sensor := NewSensor("abc",
 		WithSensorGNMIClient(gnmic),
 		WithSensorHeartbeatInterval(50*time.Millisecond),
+		WithSensorFailureRetryBackoffBase(1*time.Second),
 		WithSensorGRPCConn(nil),
 		WithSensorConfigChan(configCh),
 		WithSensorClientFactory(
@@ -523,7 +546,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 				}
 			})
 			if err := errgSub.Wait(); err != nil && err != context.Canceled {
-				t.Fatal(err)
+				t.Error(err)
 			}
 		})
 	}
@@ -532,7 +555,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	close(configStream.ErrC)
 	cancel()
 	if err := errg.Wait(); err != nil && err != context.Canceled {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -721,7 +744,7 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.PathFromString("last-error"), agnmi.TypedValue(
-							"Datasource stopped unexpectedly: "+
+							"Data source stopped: "+
 								"Failed creating device 'invalidtype': "+
 								"Device 'invalidtype' not found")),
 					},
@@ -772,7 +795,7 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.PathFromString("last-error"), agnmi.TypedValue(
-							"Datasource stopped unexpectedly: "+
+							"Data source stopped: "+
 								"Failed creating device 'invalidtype': "+
 								"Device 'invalidtype' not found")),
 					},
@@ -805,7 +828,9 @@ func TestSensor(t *testing.T) {
 					datasourceUpdates("config", "abc", "xyz", "mock",
 						true, map[string]string{"id": "123", "crash": "provider"}, nil)...),
 			},
-			waitForMetadataPostSync: []string{"123|map[crash:provider id:123]"},
+			waitForMetadataPostSync: []string{
+				"123|map[crash:provider id:123]",
+				"123|map[crash:provider id:123]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -828,7 +853,33 @@ func TestSensor(t *testing.T) {
 						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
 							"Datasource stopped unexpectedly: "+
 								"error starting providers for device \"123\" (mock): "+
-								"fatal error in *device.crashProvider.Run: Crash!")),
+								"fatal error in *device.crashProvider.Run: Crash!. "+
+								"Retrying in 1s")),
+					},
+				},
+				// Should eventually be restarted, and we want to see the retry time increase
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
+							"Datasource stopped unexpectedly: "+
+								"error starting providers for device \"123\" (mock): "+
+								"fatal error in *device.crashProvider.Run: Crash!. "+
+								"Retrying in 2s")),
 					},
 				},
 			},
@@ -867,7 +918,7 @@ func TestSensor(t *testing.T) {
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
 							"Datasource stopped unexpectedly: "+
-								"fatal error in Manage: Crash manager!")),
+								"fatal error in Manage: Crash manager!. Retrying in 1s")),
 					},
 				},
 			},
@@ -1105,7 +1156,6 @@ func TestSensor(t *testing.T) {
 							},
 						},
 					},
-					waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
 				},
 			},
 		},
@@ -1156,9 +1206,11 @@ func TestDatasourceDeployLoop(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		name               string
-		config             datasourceConfig
-		expectDeviceCreate bool
+		name                string
+		config              datasourceConfig
+		expectDeviceCreate  int
+		expectRedeploy      int
+		redeployBaseBackoff time.Duration
 	}{
 		{
 			name: "create valid config",
@@ -1170,7 +1222,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"id": "123",
 				},
 			},
-			expectDeviceCreate: true,
+			expectDeviceCreate: 1,
 		},
 		{
 			name: "disable config",
@@ -1182,7 +1234,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"id": "123",
 				},
 			},
-			expectDeviceCreate: false,
+			expectDeviceCreate: 0,
 		},
 		{
 			name: "re-enable config",
@@ -1194,7 +1246,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"id": "123",
 				},
 			},
-			expectDeviceCreate: true,
+			expectDeviceCreate: 1,
 		},
 		{
 			name: "modify config will restart device",
@@ -1206,7 +1258,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"id": "124", // change should trigger restart
 				},
 			},
-			expectDeviceCreate: true,
+			expectDeviceCreate: 1,
 		},
 		{
 			name: "modify credential will restart device",
@@ -1221,7 +1273,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"cred1": "abc", // change should trigger restart
 				},
 			},
-			expectDeviceCreate: true,
+			expectDeviceCreate: 1,
 		},
 		{
 			name: "same config will not redeploy",
@@ -1236,7 +1288,45 @@ func TestDatasourceDeployLoop(t *testing.T) {
 					"cred1": "abc",
 				},
 			},
-			expectDeviceCreate: false,
+			expectDeviceCreate: 0,
+		},
+		{
+			name:                "device run failure should trigger restart",
+			redeployBaseBackoff: 10 * time.Millisecond,
+			config: datasourceConfig{
+				name:    deviceName,
+				typ:     deviceType,
+				enabled: true,
+				option: map[string]string{
+					"id":    "124",
+					"crash": "fail message",
+				},
+				credential: map[string]string{
+					"cred1": "abc",
+				},
+			},
+			expectDeviceCreate: 2,
+			// we expect to see 2 redeploys but we stop redeploying after the first,
+			// as we only need to check that it repeats once.
+			expectRedeploy: 2,
+		},
+		{
+			name:                "device run failure of type no retry should not trigger restart",
+			redeployBaseBackoff: 10 * time.Millisecond,
+			config: datasourceConfig{
+				name:    deviceName,
+				typ:     deviceType,
+				enabled: true,
+				option: map[string]string{
+					"id":    "124",
+					"crash": "no-retry",
+				},
+				credential: map[string]string{
+					"cred1": "abc",
+				},
+			},
+			expectDeviceCreate: 1,
+			expectRedeploy:     0,
 		},
 	} {
 		ctx := context.Background()
@@ -1258,6 +1348,12 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				cfg.credential[k] = v
 			}
 
+			if tc.redeployBaseBackoff != 0 {
+				ds := sensor.getDatasource(ctx, deviceName)
+				ds.failureRetryTimer.BackoffBase = tc.redeployBaseBackoff
+				ds.failureRetryTimer.Reset()
+			}
+
 			err := sensor.runDatasourceConfig(ctx, deviceName)
 			if err != nil {
 				t.Fatal(err)
@@ -1265,8 +1361,31 @@ func TestDatasourceDeployLoop(t *testing.T) {
 
 			// Check if we got a create call.
 			// Create is synchronous so we should either have it in the channel or not.
-			if tc.expectDeviceCreate {
-				<-createCalls
+			createSeen := 0
+			redeploySeen := 0
+			lastCheck := time.After(40 * time.Millisecond)
+			for {
+				select {
+				case <-createCalls:
+					createSeen++
+				case r := <-sensor.redeployDatasource:
+					redeploySeen++
+					if redeploySeen < tc.expectRedeploy {
+						if err := sensor.runDatasourceConfig(ctx, r); err != nil {
+							t.Fatal(err)
+						}
+					}
+				case <-lastCheck:
+					if createSeen == tc.expectDeviceCreate && redeploySeen == tc.expectRedeploy {
+						return // test pass!
+					}
+					t.Fatalf("Got: createSeen: %d, redeploySeen: %d", createSeen, redeploySeen)
+				}
+				if createSeen == tc.expectDeviceCreate && redeploySeen == tc.expectRedeploy {
+					t.Log("Last check...")
+					lastCheck = time.After(40 * time.Millisecond)
+				}
+				t.Logf("createSeen: %d, redeploySeen: %d", createSeen, redeploySeen)
 			}
 		})
 	}

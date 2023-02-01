@@ -6,12 +6,35 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/aristanetworks/cloudvision-go/provider"
 	"google.golang.org/grpc"
 )
+
+// badConfigError is an error that is impossible to fix without user intervention.
+// This error is use to prevent retrying runs of the device that will never work.
+type badConfigError struct {
+	error
+}
+
+// NewBadConfigError returns a BadConfigError
+func NewBadConfigError(err error) error {
+	return badConfigError{err}
+}
+
+// NewBadConfigErrorf returns a BadConfigError
+func NewBadConfigErrorf(msg string, args ...interface{}) error {
+	return badConfigError{fmt.Errorf(msg, args...)}
+}
+
+// IsBadConfigError check if given errors is a bad configuration error.
+func IsBadConfigError(err error) bool {
+	var b badConfigError
+	return errors.As(err, &b)
+}
 
 // A Device knows how to interact with a specific device.
 type Device interface {
@@ -79,7 +102,7 @@ func Registered() (keys []string) {
 func newDevice(ctx context.Context, config *Config) (Device, error) {
 	registrationInfo, ok := deviceMap[config.Device]
 	if !ok {
-		return nil, fmt.Errorf("Device '%v' not found", config.Device)
+		return nil, NewBadConfigErrorf("Device '%v' not found", config.Device)
 	}
 	sanitizedConfig, err := SanitizedOptions(registrationInfo.options, config.Options)
 	if err != nil {
@@ -92,7 +115,7 @@ func newDevice(ctx context.Context, config *Config) (Device, error) {
 func NewDeviceInfo(ctx context.Context, config *Config) (*Info, error) {
 	d, err := newDevice(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating device '%v': %v", config.Device, err)
+		return nil, fmt.Errorf("Failed creating device '%v': %w", config.Device, err)
 	}
 	did, err := d.DeviceID(ctx)
 	if err != nil {
