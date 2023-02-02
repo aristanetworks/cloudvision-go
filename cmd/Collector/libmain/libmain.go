@@ -595,6 +595,9 @@ func watchConfig(ctx context.Context, cmdDevice *device.Config, configPath strin
 
 	// Timer to delay config refresh on file events to prevent events firing in quick succession.
 	timer := time.NewTimer(0)
+	if !timer.Stop() { // Clear timer for now
+		<-timer.C
+	}
 	defer timer.Stop()
 
 	group.Go(func() error {

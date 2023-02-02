@@ -213,6 +213,17 @@ func TestWatchConfig(t *testing.T) {
 	}
 
 	file := filepath.Join(t.TempDir(), "test.yml")
+	// The initial file should not be seen as an update.
+	initialContent := `
+- Device: should-not-read
+  Options:
+    opt1: val1
+    opt2: val2
+`
+	if err := os.WriteFile(file, []byte(initialContent), 0666); err != nil {
+		t.Fatal(err)
+	}
+
 	configCh := make(chan *device.Config)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
