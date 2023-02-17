@@ -114,15 +114,25 @@ func (c *crashProvider) Run(ctx context.Context) error {
 var _ provider.GRPCProvider = (*crashProvider)(nil)
 
 type mockDevice struct {
-	id     string
-	config map[string]string
+	id             string
+	config         map[string]string
+	isAlive        bool
+	shutDownReason error
 }
 
 var _ Device = (*mockDevice)(nil)
 var _ Manager = (*mockDevice)(nil)
 
 func (m *mockDevice) Alive(ctx context.Context) (bool, error) {
-	return true, nil
+	if m.isAlive || m.shutDownReason == nil {
+		return m.isAlive, nil
+	}
+	return m.isAlive, m.shutDownReason
+}
+
+func (m *mockDevice) shutDown(ctx context.Context, reason error) {
+	m.isAlive = false
+	m.shutDownReason = reason
 }
 
 func (m *mockDevice) DeviceID(ctx context.Context) (string, error) {
@@ -168,8 +178,9 @@ func newMockDevice(ctx context.Context, opt map[string]string) (Device, error) {
 		return nil, err
 	}
 	return &mockDevice{
-		id:     deviceID,
-		config: opt,
+		id:      deviceID,
+		config:  opt,
+		isAlive: true,
 	}, nil
 }
 
@@ -1132,8 +1143,6 @@ func TestDatasourceDeployLoop(t *testing.T) {
 	close(gnmic.SetResp) // we don't care about these responses, so make it always return nil
 
 	metadataCh := make(chan string, 100)
-	closedCh := make(chan struct{})
-	close(closedCh)
 	sensor := NewSensor("default", WithSensorClientFactory(
 		func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
 			return newMockCVClient(gnmic, info, metadataCh)
@@ -1258,6 +1267,71 @@ func TestDatasourceDeployLoop(t *testing.T) {
 			// Create is synchronous so we should either have it in the channel or not.
 			if tc.expectDeviceCreate {
 				<-createCalls
+			}
+		})
+	}
+}
+
+func TestSendPeriodicUpdates(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		shutDownReason error
+		expectResp     string
+	}{
+		{
+			name:           "shut down without err",
+			shutDownReason: nil,
+			expectResp:     "Device not alive",
+		},
+		{
+			name:           "shut down with err",
+			shutDownReason: fmt.Errorf("some reason"),
+			expectResp:     "Device not alive: some reason",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			fakeDevice := mockDevice{
+				id:      "test",
+				config:  map[string]string{},
+				isAlive: false,
+			}
+
+			datasource := &datasource{}
+			datasource.info = &Info{
+				ID:      "test",
+				Context: ctx,
+				Device:  &fakeDevice,
+			}
+			datasource.log = logrus.WithField("sensor", "default")
+			datasource.heartbeatInterval = 50 * time.Millisecond
+
+			gnmic := &internal.MockClient{
+				SubscribeStream: make(chan *internal.MockClientStream),
+				SetReq:          make(chan *gnmi.SetRequest, 100),
+				SetResp:         make(chan *gnmi.SetResponse),
+			}
+
+			datasource.gnmic = gnmic
+			errg, ctx := errgroup.WithContext(ctx)
+
+			defer close(gnmic.SubscribeStream)
+			defer close(gnmic.SetReq)
+			defer close(gnmic.SetResp)
+
+			fakeDevice.shutDown(ctx, tc.shutDownReason)
+			errg.Go(func() error {
+				return datasource.sendPeriodicUpdates(ctx)
+			})
+
+			resp := <-gnmic.SetReq
+			if resp == nil || resp.Update == nil {
+				t.Fatal("No response from gnmic!")
+			}
+			if resp.Update[0].Val.GetStringVal() != tc.expectResp {
+				t.Fatal(tc.name, "update response mismatch!")
 			}
 		})
 	}

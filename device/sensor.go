@@ -406,7 +406,11 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 					d.log.Errorf("Error sending heartbeat: %v", err)
 				}
 			} else if !wasFailing {
-				d.handleDatasourceError(ctx, fmt.Errorf("Device not alive: %w", err))
+				msg := errors.New("Device not alive")
+				if err != nil {
+					msg = fmt.Errorf("Device not alive: %w", err)
+				}
+				d.handleDatasourceError(ctx, msg)
 				wasFailing = true
 			}
 		}
