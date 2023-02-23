@@ -236,6 +236,7 @@ type ExportConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *ExportConfigStreamRequest, opts ...grpc.CallOption) (ExportConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *ExportConfigSetRequest, opts ...grpc.CallOption) (*ExportConfigSetResponse, error)
 	Delete(ctx context.Context, in *ExportConfigDeleteRequest, opts ...grpc.CallOption) (*ExportConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *ExportConfigDeleteAllRequest, opts ...grpc.CallOption) (ExportConfigService_DeleteAllClient, error)
 }
 
 type exportConfigServiceClient struct {
@@ -337,6 +338,38 @@ func (c *exportConfigServiceClient) Delete(ctx context.Context, in *ExportConfig
 	return out, nil
 }
 
+func (c *exportConfigServiceClient) DeleteAll(ctx context.Context, in *ExportConfigDeleteAllRequest, opts ...grpc.CallOption) (ExportConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ExportConfigService_ServiceDesc.Streams[2], "/arista.syslog.v1.ExportConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &exportConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ExportConfigService_DeleteAllClient interface {
+	Recv() (*ExportConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type exportConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *exportConfigServiceDeleteAllClient) Recv() (*ExportConfigDeleteAllResponse, error) {
+	m := new(ExportConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ExportConfigServiceServer is the server API for ExportConfigService service.
 // All implementations must embed UnimplementedExportConfigServiceServer
 // for forward compatibility
@@ -346,6 +379,7 @@ type ExportConfigServiceServer interface {
 	Subscribe(*ExportConfigStreamRequest, ExportConfigService_SubscribeServer) error
 	Set(context.Context, *ExportConfigSetRequest) (*ExportConfigSetResponse, error)
 	Delete(context.Context, *ExportConfigDeleteRequest) (*ExportConfigDeleteResponse, error)
+	DeleteAll(*ExportConfigDeleteAllRequest, ExportConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedExportConfigServiceServer()
 }
 
@@ -367,6 +401,9 @@ func (UnimplementedExportConfigServiceServer) Set(context.Context, *ExportConfig
 }
 func (UnimplementedExportConfigServiceServer) Delete(context.Context, *ExportConfigDeleteRequest) (*ExportConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedExportConfigServiceServer) DeleteAll(*ExportConfigDeleteAllRequest, ExportConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedExportConfigServiceServer) mustEmbedUnimplementedExportConfigServiceServer() {}
 
@@ -477,6 +514,27 @@ func _ExportConfigService_Delete_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExportConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ExportConfigServiceServer).DeleteAll(m, &exportConfigServiceDeleteAllServer{stream})
+}
+
+type ExportConfigService_DeleteAllServer interface {
+	Send(*ExportConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type exportConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *exportConfigServiceDeleteAllServer) Send(m *ExportConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ExportConfigService_ServiceDesc is the grpc.ServiceDesc for ExportConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -506,6 +564,11 @@ var ExportConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ExportConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _ExportConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
