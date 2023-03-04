@@ -446,13 +446,10 @@ func (s *Snmp) Run(ctx context.Context) error {
 				s.logger.Infof("Error in sendUpdates: %s", err)
 			}
 		case <-ctx.Done():
-			goto finish
+			s.stop()
+			return nil
 		}
 	}
-
-finish:
-	s.stop()
-	return nil
 }
 
 // V3Params contains options related to SNMPv3.

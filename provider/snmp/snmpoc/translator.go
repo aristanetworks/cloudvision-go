@@ -18,6 +18,7 @@ import (
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
+	"golang.org/x/sync/errgroup"
 )
 
 // NewTranslator returns a Translator.
@@ -158,34 +159,38 @@ func (t *Translator) Poll(ctx context.Context, client gnmi.GNMIClient,
 	})
 
 	// Produce updates for each mapping group.
-	var wg sync.WaitGroup
 	setReqCh := make(chan *gnmi.SetRequest, len(mappingGroups))
-	errc := make(chan error)
+	errg, ctx := errgroup.WithContext(ctx)
+	var wg sync.WaitGroup
 	for _, mg := range mappingGroups {
+		mg := mg
 		wg.Add(1)
-		go t.mappingGroupUpdates(ctx, mg, &wg, setReqCh, errc)
+		errg.Go(func() error {
+			defer wg.Done()
+			return t.mappingGroupUpdates(ctx, mg, setReqCh)
+		})
 	}
-
-	done := make(chan bool)
-	go func() {
+	errg.Go(func() error {
 		wg.Wait()
-		close(done)
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case sr := <-setReqCh:
-			if _, err := client.Set(ctx, sr); err != nil {
-				return err
+		close(setReqCh)
+		return nil
+	})
+	errg.Go(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case sr, ok := <-setReqCh:
+				if !ok {
+					return nil
+				}
+				if _, err := client.Set(ctx, sr); err != nil {
+					return err
+				}
 			}
-		case <-done:
-			return nil
-		case err := <-errc:
-			return err
 		}
-	}
+	})
+	return errg.Wait()
 }
 
 // updates produces updates for the provided set of paths.
@@ -364,16 +369,13 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 }
 
 func (t *Translator) mappingGroupUpdates(ctx context.Context,
-	mg *mappingGroup, wg *sync.WaitGroup, setReqCh chan *gnmi.SetRequest,
-	errc chan error) {
-	defer wg.Done()
+	mg *mappingGroup, setReqCh chan *gnmi.SetRequest) error {
 
 	// Get SNMP data.
 	if err := t.getSNMPData(mg); err != nil {
-		errc <- err
 		// Errors only occur on connection issues, so we likely have not retrieved any data
 		// so just return
-		return
+		return err
 	}
 
 	// Produce updates and hand a SetRequest to the gNMI client.
@@ -389,8 +391,7 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 		if up, ok := mg.updatePaths[modelName]; ok {
 			updates, err := t.updates(up)
 			if err != nil {
-				errc <- err
-				return
+				return err
 			}
 			if len(setRequest.Replace) > numUpdatesPerSet {
 				setRequest = new(gnmi.SetRequest)
@@ -400,14 +401,18 @@ func (t *Translator) mappingGroupUpdates(ctx context.Context,
 			t.Logger.Debugf("Replace for mapping group %s, model %s has %d updates",
 				mg.name, modelName, len(setRequest.Replace))
 		} else {
-			errc <- fmt.Errorf("No updatePath entries for model '%s'", modelName)
-			return
+			return fmt.Errorf("No updatePath entries for model '%s'", modelName)
 		}
 	}
 
 	for _, sr := range setRequests {
-		setReqCh <- sr
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case setReqCh <- sr:
+		}
 	}
+	return nil
 }
 
 // A mappingGroup is a set of related translations that share dependencies.

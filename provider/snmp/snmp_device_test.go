@@ -248,28 +248,41 @@ func newTestGNMIClient(cancel context.CancelFunc,
 
 func newSNMPProvider(ctx context.Context, client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
+	ctx, cancel := context.WithCancel(ctx)
 	p := NewSNMPProvider(ctx, "whatever", 161, "stuff", 10*time.Millisecond,
 		gosnmp.Version2c, nil, []string{"smi/mibs"}, true)
+	cancel() // we should be allowed to cancel this context, as this is not the running ctx.
 
 	// Set up provider with special getter + walker, keeping track of
 	// which poll we're on.
-	p.(*Snmp).getter = func(oids []string) (*gosnmp.SnmpPacket, error) {
+	psnmp := p.(*Snmp)
+	psnmp.getter = func(oids []string) (*gosnmp.SnmpPacket, error) {
 		client.lock.Lock()
 		defer client.lock.Unlock()
+		select {
+		case <-psnmp.gsnmp.Context.Done():
+			return nil, psnmp.gsnmp.Context.Err()
+		default:
+		}
 		poll := client.polls - client.pollsRemaining
 		if poll >= client.polls {
 			poll = client.polls - 1
 		}
-		return testget(oids, p.(*Snmp).mibStore, walkMaps[poll])
+		return testget(oids, psnmp.mibStore, walkMaps[poll])
 	}
-	p.(*Snmp).walker = func(oid string, walker gosnmp.WalkFunc) error {
+	psnmp.walker = func(oid string, walker gosnmp.WalkFunc) error {
 		client.lock.Lock()
 		defer client.lock.Unlock()
+		select {
+		case <-psnmp.gsnmp.Context.Done():
+			return psnmp.gsnmp.Context.Err()
+		default:
+		}
 		poll := client.polls - client.pollsRemaining
 		if poll >= client.polls {
 			poll = client.polls - 1
 		}
-		return testwalk(oid, walker, p.(*Snmp).mibStore, walkMaps[poll])
+		return testwalk(oid, walker, psnmp.mibStore, walkMaps[poll])
 	}
 	return p
 }
