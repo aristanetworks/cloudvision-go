@@ -416,13 +416,16 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 		case <-ticker.C:
 			alive, err := d.info.Device.Alive(ctx)
 			if err == nil && alive {
+				ts := agnmi.TypedValue(time.Now().UnixNano())
+				updates := []*gnmi.Update{pgnmi.Update(lastSeenKey, ts)}
+
 				if wasFailing {
 					d.log.Info("Device is back alive")
 					wasFailing = false
+					updates = append(updates, pgnmi.Update(lastErrorKey,
+						agnmi.TypedValue("Device is back alive")))
 				}
 
-				ts := agnmi.TypedValue(time.Now().UnixNano())
-				updates := []*gnmi.Update{pgnmi.Update(lastSeenKey, ts)}
 				if streamingStart {
 					updates = append(updates, pgnmi.Update(pgnmi.Path("streaming-start"), ts))
 				}

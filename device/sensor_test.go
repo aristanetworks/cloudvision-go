@@ -15,10 +15,14 @@ import (
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device/cvclient"
+	cvmock "github.com/aristanetworks/cloudvision-go/device/cvclient/mock"
 	"github.com/aristanetworks/cloudvision-go/device/internal"
+	dmock "github.com/aristanetworks/cloudvision-go/device/mock"
+	gmock "github.com/aristanetworks/cloudvision-go/mock"
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
+	"github.com/golang/mock/gomock"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -133,11 +137,6 @@ func (m *mockDevice) Alive(ctx context.Context) (bool, error) {
 		return m.isAlive, nil
 	}
 	return m.isAlive, m.shutDownReason
-}
-
-func (m *mockDevice) shutDown(ctx context.Context, reason error) {
-	m.isAlive = false
-	m.shutDownReason = reason
 }
 
 func (m *mockDevice) DeviceID(ctx context.Context) (string, error) {
@@ -1392,65 +1391,125 @@ func TestDatasourceDeployLoop(t *testing.T) {
 }
 
 func TestSendPeriodicUpdates(t *testing.T) {
+	type mocks struct {
+		end      func()
+		device   *dmock.MockDevice
+		gnmic    *gmock.MockGNMIClient
+		cvclient *cvmock.MockCVClient
+	}
+
+	verifyLastErrorMatches := func(expect string, set *gnmi.SetRequest) {
+		t.Helper()
+		// look for last-error update
+		for _, u := range set.Update {
+			if pgnmi.PathMatch(u.Path, pgnmi.PathFromString("last-error")) {
+				if got := u.Val.GetStringVal(); got != expect {
+					t.Fatalf("Expected %q but got %q", expect, got)
+				}
+			}
+		}
+	}
+
+	expectAll := func(m mocks, calls ...*gomock.Call) {
+		calls = append(calls,
+			// last Alive call will call end() to cancel the context and finish the test
+			m.device.EXPECT().Alive(gomock.Any()).DoAndReturn(
+				func(_ context.Context) (bool, error) {
+					m.end()
+					return false, nil
+				}),
+			// ignore further gnmic set calls originated after the end()
+			m.gnmic.EXPECT().Set(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes())
+		gomock.InOrder(calls...)
+	}
+
 	for _, tc := range []struct {
-		name           string
-		shutDownReason error
-		expectResp     string
+		name         string
+		expectations func(ctx context.Context, m mocks)
 	}{
 		{
-			name:           "shut down without err",
-			shutDownReason: nil,
-			expectResp:     "Device not alive",
+			name: "shut down without err",
+			expectations: func(ctx context.Context, m mocks) {
+				expectAll(m,
+					m.device.EXPECT().Alive(ctx).Return(false, nil),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyLastErrorMatches("Device not alive", set)
+							return nil, nil
+						}),
+				)
+			},
 		},
 		{
-			name:           "shut down with err",
-			shutDownReason: fmt.Errorf("some reason"),
-			expectResp:     "Device not alive: some reason",
+			name: "shut down with err",
+			expectations: func(ctx context.Context, m mocks) {
+				expectAll(m,
+					m.device.EXPECT().Alive(ctx).Return(false, fmt.Errorf("some reason")),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyLastErrorMatches("Device not alive: some reason", set)
+							return nil, nil
+						}),
+				)
+			},
+		},
+		{
+			name: "recover from failure should write a back alive message",
+			expectations: func(ctx context.Context, m mocks) {
+				expectAll(m,
+					m.device.EXPECT().Alive(ctx).Return(false, nil),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyLastErrorMatches("Device not alive", set)
+							return nil, nil
+						}),
+					m.device.EXPECT().Alive(ctx).Return(true, nil),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyLastErrorMatches("Device is back alive", set)
+							return nil, nil
+						}),
+					m.cvclient.EXPECT().SendHeartbeat(ctx, true),
+				)
+			},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			fakeDevice := mockDevice{
-				id:      "test",
-				config:  map[string]string{},
-				isAlive: false,
-			}
+			ctrl := gomock.NewController(t)
+			fakeDevice := dmock.NewMockDevice(ctrl)
 
-			datasource := &datasource{}
+			datasource := &datasource{
+				heartbeatInterval: 1 * time.Millisecond,
+				log:               logrus.WithField("test", t.Name()),
+			}
 			datasource.info = &Info{
 				ID:      "test",
 				Context: ctx,
-				Device:  &fakeDevice,
-			}
-			datasource.log = logrus.WithField("sensor", "default")
-			datasource.heartbeatInterval = 50 * time.Millisecond
-
-			gnmic := &internal.MockClient{
-				SubscribeStream: make(chan *internal.MockClientStream),
-				SetReq:          make(chan *gnmi.SetRequest, 100),
-				SetResp:         make(chan *gnmi.SetResponse),
+				Device:  fakeDevice,
+				Config:  &Config{},
 			}
 
+			gnmic := gmock.NewMockGNMIClient(ctrl)
 			datasource.gnmic = gnmic
-			errg, ctx := errgroup.WithContext(ctx)
+			mockCvClient := cvmock.NewMockCVClient(ctrl)
+			datasource.cvClient = mockCvClient
 
-			defer close(gnmic.SubscribeStream)
-			defer close(gnmic.SetReq)
-			defer close(gnmic.SetResp)
-
-			fakeDevice.shutDown(ctx, tc.shutDownReason)
-			errg.Go(func() error {
-				return datasource.sendPeriodicUpdates(ctx)
+			tc.expectations(ctx, mocks{
+				device:   fakeDevice,
+				gnmic:    gnmic,
+				cvclient: mockCvClient,
+				end:      cancel,
 			})
 
-			resp := <-gnmic.SetReq
-			if resp == nil || resp.Update == nil {
-				t.Fatal("No response from gnmic!")
-			}
-			if resp.Update[0].Val.GetStringVal() != tc.expectResp {
-				t.Fatal(tc.name, "update response mismatch!")
+			if err := datasource.sendPeriodicUpdates(ctx); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
