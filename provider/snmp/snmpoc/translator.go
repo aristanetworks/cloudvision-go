@@ -297,6 +297,9 @@ func criticalSNMPError(err error) bool {
 	if strings.Contains(errStr, "closed network connection") {
 		return true
 	}
+	if strings.Contains(errStr, "error reading from socket") {
+		return true
+	}
 	return false
 }
 

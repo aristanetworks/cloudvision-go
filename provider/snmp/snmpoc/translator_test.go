@@ -6,6 +6,7 @@ package snmpoc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -1982,5 +1983,63 @@ func TestIfSpeedStrVal(t *testing.T) {
 				t.Errorf("got: %v, expected: %v", got, tc.out)
 			}
 		})
+	}
+}
+
+func runTranslatorErrTest(t *testing.T, mibStore smi.Store,
+	mockGetFunc func(oids []string) (*gosnmp.SnmpPacket, error),
+	mockWalkFunc func(oid string, walker gosnmp.WalkFunc) error) error {
+	trans, err := NewTranslator(mibStore, &gosnmp.GoSNMP{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Set up mock SNMP connection.
+	trans.Mock = true
+
+	trans.Getter = mockGetFunc
+	trans.Walker = mockWalkFunc
+
+	setReqs := []*gnmi.SetRequest{}
+	client := pgnmi.NewSimpleGNMIClient(func(ctx context.Context,
+		req *gnmi.SetRequest) (*gnmi.SetResponse, error) {
+		setReqs = append(setReqs, req)
+		return nil, nil
+	})
+
+	return trans.Poll(context.Background(), client, []string{})
+}
+
+func TestTranslatorErr(t *testing.T) {
+	mibStore, err := smi.NewStore("../smi/mibs")
+	if err != nil {
+		t.Fatalf("Error in smi.NewStore: %s", err)
+	}
+
+	for _, errmsg := range []string{
+		"request timeout",
+		"closed network connection",
+		"error reading from socket"} {
+		err = runTranslatorErrTest(t, mibStore,
+			func(oids []string) (*gosnmp.SnmpPacket, error) {
+				return nil, errors.New(errmsg)
+			},
+			func(oid string, walker gosnmp.WalkFunc) error {
+				return mockwalk(oid, walker, map[string][]*gosnmp.SnmpPDU{}, mibStore)
+			})
+		if err.Error() != fmt.Sprintf("SNMP Getter failed: %s", errmsg) {
+			t.Fatalf("Expected err: %s, but got %s", errmsg, err.Error())
+		}
+
+		err = runTranslatorErrTest(t, mibStore,
+			func(oids []string) (*gosnmp.SnmpPacket, error) {
+				return mockget(oids, map[string][]*gosnmp.SnmpPDU{}, mibStore)
+			},
+			func(oid string, walker gosnmp.WalkFunc) error {
+				return errors.New(errmsg)
+			})
+		if err.Error() != fmt.Sprintf("SNMP Walker failed: %s", errmsg) {
+			t.Fatalf("Expected err: %s, but got %s", errmsg, err.Error())
+		}
 	}
 }
