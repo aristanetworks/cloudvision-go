@@ -121,7 +121,7 @@ func (c *v2Client) SendDeviceMetadata(ctx context.Context) error {
 
 func (c *v2Client) heartbeatRequest() *gnmi.SetRequest {
 	now := time.Now()
-	nanos := now.Unix()*int64(time.Second) + now.UnixNano()
+	nanos := now.UnixNano()
 	u := []*gnmi.Update{pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(nanos))}
 
 	out := &gnmi.SetRequest{
