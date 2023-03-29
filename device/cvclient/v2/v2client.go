@@ -44,6 +44,7 @@ type v2Client struct {
 	deviceType string
 	origin     string
 	device     device.Device
+	info       *device.Info
 
 	managedDevsLock sync.Mutex
 	managedDevices  []string
@@ -98,6 +99,13 @@ func (c *v2Client) metadataRequest(ctx context.Context) *gnmi.SetRequest {
 		pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue(c.deviceType)),
 		pgnmi.Update(pgnmi.Path("collector-version"), agnmi.TypedValue(versionString)),
 	}
+
+	// Add source-type name, if present.
+	if c.info != nil && c.info.Config != nil {
+		u = append(u, pgnmi.Update(pgnmi.Path("source-type"),
+			agnmi.TypedValue(c.info.Config.Device)))
+	}
+
 	ip, err := c.device.IPAddr(ctx)
 	if err != nil {
 		log.Log(c).Debugf("v2Client: metadataRequest: error in IPAddr [%s]: %s",
@@ -189,6 +197,7 @@ func NewV2Client(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 		deviceType: deviceType,
 		origin:     "arista",
 		device:     dev,
+		info:       info,
 	}
 }
 
@@ -198,5 +207,6 @@ func (c *v2Client) ForProvider(p provider.GNMIProvider) cvclient.CVClient {
 		deviceID:   c.deviceID,
 		deviceType: c.deviceType,
 		origin:     p.Origin(),
+		info:       c.info,
 	}
 }

@@ -43,8 +43,10 @@ func verifyUpdates(r *gnmi.SetRequest, expData map[string]interface{},
 
 func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
 	ip, _ := testDevice{}.IPAddr(context.Background())
+	integ := agnmi.TypedValue(c.info.Config.Device)
 	expData := map[string]interface{}{
 		"/device-metadata/state/metadata/type":              agnmi.TypedValue(c.deviceType),
+		"/device-metadata/state/metadata/source-type":       integ,
 		"/device-metadata/state/metadata/collector-version": agnmi.TypedValue(versionString),
 		"/device-metadata/state/metadata/ip-addr":           agnmi.TypedValue(ip),
 	}
@@ -74,7 +76,13 @@ func (td testDevice) IPAddr(ctx context.Context) (string, error) {
 }
 
 func TestMetadataRequest(t *testing.T) {
-	c := NewV2Client(nil, &device.Info{Device: testDevice{}}).(*v2Client)
+	c := NewV2Client(nil,
+		&device.Info{
+			Device: testDevice{},
+			Config: &device.Config{
+				Device: "test",
+			},
+		}).(*v2Client)
 	r := c.metadataRequest(context.Background())
 	if err := verifyMetadataLeaves(r, c); err != nil {
 		t.Logf("Error verifying leaves in set request: %v", err)
