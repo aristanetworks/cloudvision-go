@@ -625,6 +625,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	resp *gnmi.Notification, postSync bool) error {
 	// For each deleted datasource name, cancel that datasource and
 	// delete it and its config from our collections.
+	dsUpdated := map[string]struct{}{}
 	for _, p := range resp.Delete {
 		fullPath := pgnmi.PathJoin(resp.Prefix, p)
 		leafName := fullPath.Elem[len(fullPath.Elem)-1].Name
@@ -649,6 +650,34 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				return err
 			}
 		} else if leafName != "name" {
+			name := datasourceFromPath(fullPath)
+			dscfg, ok := s.datasourceConfig[name]
+			if ok {
+				dsUpdated[name] = struct{}{}
+				curr := 4 // (0)datasource/(1)config/(2)sensor[id]/(3)source[name]/(4)fields
+				elemNext := func() *gnmi.PathElem {
+					if curr >= len(fullPath.Elem) {
+						return undefinedPathElem
+					}
+					out := fullPath.Elem[curr]
+					curr++
+					return out
+				}
+				switch elem := elemNext(); elem.Name {
+				case "credential":
+					if k, ok := elem.Key["key"]; ok {
+						if elemNext().Name == "value" {
+							delete(dscfg.credential, k)
+						}
+					}
+				case "option":
+					if k, ok := elem.Key["key"]; ok {
+						if elemNext().Name == "value" {
+							delete(dscfg.option, k)
+						}
+					}
+				}
+			}
 			continue
 		}
 		if name := datasourceFromPath(fullPath); name != "" {
@@ -678,7 +707,6 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 
 	// For each updated datasource, update the datasource config but
 	// hold off on restarting the datasource.
-	dsUpdated := map[string]struct{}{}
 	for _, upd := range resp.Update {
 		fullPath := pgnmi.PathJoin(resp.Prefix, upd.Path)
 		leafName := fullPath.Elem[len(fullPath.Elem)-1].Name
