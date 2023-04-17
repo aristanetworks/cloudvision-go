@@ -153,6 +153,19 @@ func TestGRPCServer(t *testing.T) {
 	}
 }
 
+func TestLoggingFormat(t *testing.T) {
+	lvl := "info"
+	dir := t.TempDir()
+	logLevel = &lvl
+	logDir = &dir
+	// Mostly ensuring we don't crash
+	initLogging()
+
+	// Log looks like
+	// time="2023-04-17T15:52:12-07:00" level=info msg="info 123" file="libmain/libmain_test.go:163"
+	logrus.Infof("info %d", 123)
+}
+
 func TestWatchConfig(t *testing.T) {
 	logrus.SetLevel(logrus.DebugLevel)
 	tests := []struct {

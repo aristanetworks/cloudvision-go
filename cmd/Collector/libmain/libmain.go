@@ -246,8 +246,23 @@ func initLogging() {
 	} else {
 		logrus.SetLevel(lv)
 	}
+	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors: true,
+		CallerPrettyfier: func(f *runtime.Frame) (function string, file string) {
+			idx := strings.LastIndex(f.File, "/")
+			fname := f.File
+			if idx != -1 {
+				// grab only file name
+				fname = f.File[idx+1:]
+				// grab file package if available
+				idx := strings.LastIndex(f.File[:idx], "/")
+				if idx != 1 {
+					fname = f.File[idx+1:]
+				}
+			}
+			return "", fmt.Sprintf("%s:%d", fname, f.Line)
+		},
 	})
 }
 
