@@ -439,8 +439,8 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 					if !ok {
 						return nil
 					}
-
-					info, err := device.NewDeviceInfo(ctx, cfg)
+					noop := NewBaseMonitor(logrus.WithField("Device", cfg.Name))
+					info, err := device.NewDeviceInfo(ctx, cfg, noop)
 					if err != nil {
 						logrus.Infof("Error in device.NewDeviceInfo: %v. Dropping device %s.",
 							err, cfg.Name)

@@ -475,8 +475,9 @@ func (sl *snmpLogger) Printf(format string, v ...interface{}) {
 // using a community value for authentication and pollInterval for rate
 // limiting requests.
 func NewSNMPProvider(_ context.Context, address string, port uint16, community string,
-	pollInt time.Duration, version gosnmp.SnmpVersion,
-	v3Params *V3Params, mibs []string, mock bool) provider.GNMIProvider {
+	pollInt time.Duration, version gosnmp.SnmpVersion, v3Params *V3Params, mibs []string,
+	mock bool,
+	monitor provider.Monitor) provider.GNMIProvider {
 	gsnmp := gosnmp.GoSNMP{
 		Port:               port,
 		Version:            version,

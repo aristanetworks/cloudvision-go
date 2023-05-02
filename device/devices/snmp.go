@@ -215,7 +215,8 @@ func (s *snmp) deviceConfigErr(err error) error {
 // XXX NOTE: The network operations here could fail on startup, and if
 // they do, the error will be passed back to Collector and it will fail.
 // Are we OK with this or should we be doing retries?
-func newSnmp(ctx context.Context, options map[string]string) (device.Device, error) {
+func newSnmp(ctx context.Context, options map[string]string,
+	monitor provider.Monitor) (device.Device, error) {
 	s := &snmp{}
 	var err error
 
@@ -291,7 +292,7 @@ func newSnmp(ctx context.Context, options map[string]string) (device.Device, err
 	s.v, s.v3Params = s.formatOptions()
 
 	s.snmpProvider = psnmp.NewSNMPProvider(ctx, s.address, s.port, s.community,
-		s.pollInterval, s.v, s.v3Params, s.mibs, false)
+		s.pollInterval, s.v, s.v3Params, s.mibs, false, monitor)
 
 	return s, nil
 }

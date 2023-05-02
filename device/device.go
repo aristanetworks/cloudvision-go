@@ -60,7 +60,7 @@ type Manager interface {
 }
 
 // Creator returns a new instance of a Device.
-type Creator = func(context.Context, map[string]string) (Device, error)
+type Creator = func(context.Context, map[string]string, provider.Monitor) (Device, error)
 
 // registrationInfo contains all the information about a device that's
 // knowable before it's instantiated: its name, its factory function,
@@ -99,7 +99,7 @@ func Registered() (keys []string) {
 }
 
 // newDevice takes a device config and returns a Device.
-func newDevice(ctx context.Context, config *Config) (Device, error) {
+func newDevice(ctx context.Context, config *Config, monitor provider.Monitor) (Device, error) {
 	registrationInfo, ok := deviceMap[config.Device]
 	if !ok {
 		return nil, NewBadConfigErrorf("Device '%v' not found", config.Device)
@@ -108,12 +108,12 @@ func newDevice(ctx context.Context, config *Config) (Device, error) {
 	if err != nil {
 		return nil, err
 	}
-	return registrationInfo.creator(ctx, sanitizedConfig)
+	return registrationInfo.creator(ctx, sanitizedConfig, monitor)
 }
 
 // NewDeviceInfo takes a device config, creates the device, and returns an device Info.
-func NewDeviceInfo(ctx context.Context, config *Config) (*Info, error) {
-	d, err := newDevice(ctx, config)
+func NewDeviceInfo(ctx context.Context, config *Config, monitor provider.Monitor) (*Info, error) {
+	d, err := newDevice(ctx, config, monitor)
 	if err != nil {
 		return nil, fmt.Errorf("Failed creating device '%v': %w", config.Device, err)
 	}

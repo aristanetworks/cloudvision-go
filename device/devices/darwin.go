@@ -80,7 +80,8 @@ func (d *darwin) IPAddr(ctx context.Context) (string, error) {
 }
 
 // NewDarwinDevice instantiates a MacBook device.
-func NewDarwinDevice(ctx context.Context, options map[string]string) (device.Device, error) {
+func NewDarwinDevice(ctx context.Context, options map[string]string,
+	monitor provider.Monitor) (device.Device, error) {
 	pollInterval, err := device.GetDurationOption("pollInterval", options)
 	if err != nil {
 		return nil, err

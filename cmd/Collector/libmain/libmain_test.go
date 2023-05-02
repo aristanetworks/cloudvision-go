@@ -77,7 +77,8 @@ func (tm testManager) IPAddr(ctx context.Context) (string, error) {
 }
 
 // newTestManager returns a dummy device for testing.
-func newTestManager(ctx context.Context, opts map[string]string) (device.Device, error) {
+func newTestManager(ctx context.Context, opts map[string]string,
+	monitor provider.Monitor) (device.Device, error) {
 	return testManager{}, nil
 }
 

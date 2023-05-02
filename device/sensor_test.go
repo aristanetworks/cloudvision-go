@@ -185,7 +185,8 @@ func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
 	return nil
 }
 
-func newMockDevice(ctx context.Context, opt map[string]string) (Device, error) {
+func newMockDevice(ctx context.Context, opt map[string]string,
+	monitor provider.Monitor) (Device, error) {
 	deviceID, err := GetStringOption("id", opt)
 	if err != nil {
 		return nil, err
@@ -1256,9 +1257,10 @@ func TestDatasourceDeployLoop(t *testing.T) {
 	const deviceName = "dev1"
 	const deviceType = "mock"
 
-	Register(deviceType, func(ctx context.Context, m map[string]string) (Device, error) {
+	Register(deviceType, func(ctx context.Context, m map[string]string,
+		monitor provider.Monitor) (Device, error) {
 		createCalls <- fmt.Sprintf("%v", m)
-		return newMockDevice(ctx, m)
+		return newMockDevice(ctx, m, nil)
 	}, mockDeviceOptions)
 
 	// Setup one datasource that we will use for all test cases

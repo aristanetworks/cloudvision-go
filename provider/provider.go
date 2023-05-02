@@ -8,6 +8,19 @@ import (
 	"context"
 )
 
+// A Logger logs and records messages
+type Logger interface {
+	Infof(format string, args ...interface{})
+	Debugf(format string, args ...interface{})
+	Tracef(format string, args ...interface{})
+}
+
+// A Monitor owns the state and metrics information.
+// Datasource could extract information through this interface.
+type Monitor interface {
+	Logger
+}
+
 // A Provider "owns" some states on a target device streams out notifications on any
 // changes to those states.
 type Provider interface {

@@ -68,7 +68,8 @@ func (td testDevice) IPAddr(ctx context.Context) (string, error) {
 }
 
 // NewTestDevice returns a dummy device for testing.
-func NewTestDevice(ctx context.Context, opts map[string]string) (Device, error) {
+func NewTestDevice(ctx context.Context, opts map[string]string,
+	monitor provider.Monitor) (Device, error) {
 	return testDevice{}, nil
 }
 

@@ -85,7 +85,8 @@ func runDump(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	for _, config := range configs {
-		info, err := device.NewDeviceInfo(ctx, config)
+		noop := NewBaseMonitor(logrus.WithField("Device", config.Name))
+		info, err := device.NewDeviceInfo(ctx, config, noop)
 		if err != nil {
 			logrus.Fatalf("Error in device.NewDeviceInfo: %v", err)
 		}

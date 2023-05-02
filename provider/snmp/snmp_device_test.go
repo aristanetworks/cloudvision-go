@@ -250,7 +250,7 @@ func newSNMPProvider(ctx context.Context, client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
 	ctx, cancel := context.WithCancel(ctx)
 	p := NewSNMPProvider(ctx, "whatever", 161, "stuff", 10*time.Millisecond,
-		gosnmp.Version2c, nil, []string{"smi/mibs"}, true)
+		gosnmp.Version2c, nil, []string{"smi/mibs"}, true, nil)
 	cancel() // we should be allowed to cancel this context, as this is not the running ctx.
 
 	// Set up provider with special getter + walker, keeping track of

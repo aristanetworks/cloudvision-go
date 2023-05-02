@@ -35,7 +35,7 @@ func runOptionsTest(t *testing.T, tc optionsTestCase) {
 		return
 	}
 
-	s, err := newSnmp(context.Background(), so)
+	s, err := newSnmp(context.Background(), so, nil)
 	if err != nil {
 		if tc.expectedError == nil {
 			t.Fatalf("Unexpected error in newSnmp: %v", err)

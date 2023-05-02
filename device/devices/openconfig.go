@@ -352,7 +352,8 @@ func parseGNMIOptions(opt map[string]string) (*gnmi.Config, error) {
 }
 
 // newOpenConfig returns an openconfig device.
-func newOpenConfig(ctx context.Context, opt map[string]string) (device.Device, error) {
+func newOpenConfig(ctx context.Context, opt map[string]string,
+	monitor provider.Monitor) (device.Device, error) {
 	deviceID, err := device.GetStringOption("device_id", opt)
 	if err != nil {
 		return nil, err

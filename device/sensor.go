@@ -286,12 +286,12 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-
+	var monitor provider.Monitor
 	// Prepare device to execute based on datasource config
 	info, err := NewDeviceInfo(ctx, &Config{
 		Device:  d.config.typ,
 		Options: mergeOpts(d.config.option, creds),
-	})
+	}, monitor)
 	if err != nil {
 		return err
 	}

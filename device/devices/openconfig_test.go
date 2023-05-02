@@ -376,7 +376,7 @@ func TestNewOpenConfig(t *testing.T) {
 				t.Fatalf("Bad test options passed: %v", err)
 			}
 
-			dev, err := newOpenConfig(ctx, opts)
+			dev, err := newOpenConfig(ctx, opts, nil)
 			if err != nil {
 				if err.Error() != tcase.expectErr {
 					t.Fatalf("Expected err: %v, got %v", tcase.expectErr, err)

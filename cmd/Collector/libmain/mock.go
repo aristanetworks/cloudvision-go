@@ -147,7 +147,7 @@ func runMock(ctx context.Context) {
 		logrus.Fatal(err)
 	}
 	for _, config := range configs {
-		info, err := device.NewDeviceInfo(ctx, config)
+		info, err := device.NewDeviceInfo(ctx, config, nil)
 		if err != nil {
 			logrus.Fatal(err)
 		}
