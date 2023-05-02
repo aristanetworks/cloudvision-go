@@ -17,6 +17,7 @@ import (
 
 	"github.com/aristanetworks/cloudvision-go/provider"
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	"github.com/aristanetworks/cloudvision-go/provider/mock"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
@@ -249,8 +250,9 @@ func newTestGNMIClient(cancel context.CancelFunc,
 func newSNMPProvider(ctx context.Context, client *testGNMIClient,
 	walkMaps []walkMap) provider.GNMIProvider {
 	ctx, cancel := context.WithCancel(ctx)
+	monitor := mock.NewMockMonitor()
 	p := NewSNMPProvider(ctx, "whatever", 161, "stuff", 10*time.Millisecond,
-		gosnmp.Version2c, nil, []string{"smi/mibs"}, true, nil)
+		gosnmp.Version2c, nil, []string{"smi/mibs"}, true, monitor)
 	cancel() // we should be allowed to cancel this context, as this is not the running ctx.
 
 	// Set up provider with special getter + walker, keeping track of

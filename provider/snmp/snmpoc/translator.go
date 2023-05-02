@@ -47,11 +47,7 @@ func NewTranslator(mibStore smi.Store, gs *gosnmp.GoSNMP) (*Translator, error) {
 
 // Logger defines an interface for logging.
 type Logger interface {
-	Info(args ...interface{})
-	Infoln(args ...interface{})
 	Infof(format string, args ...interface{})
-	Debug(args ...interface{})
-	Debugln(args ...interface{})
 	Debugf(format string, args ...interface{})
 }
 
@@ -89,11 +85,7 @@ type mappingGroup struct {
 
 type nonlogger struct{}
 
-func (n *nonlogger) Info(args ...interface{})                  {}
-func (n *nonlogger) Infoln(args ...interface{})                {}
 func (n *nonlogger) Infof(format string, args ...interface{})  {}
-func (n *nonlogger) Debug(args ...interface{})                 {}
-func (n *nonlogger) Debugln(args ...interface{})               {}
 func (n *nonlogger) Debugf(format string, args ...interface{}) {}
 
 // Translator defines an interface for producing translations from a
@@ -313,7 +305,7 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 			return fmt.Errorf("connect failed: %w", err)
 		}
 		t.gosnmpConnected = true
-		t.Logger.Infoln("gosnmp.Connect complete")
+		t.Logger.Infof("gosnmp.Connect complete")
 	}
 
 	// Get SNMP data for each model in this mappingGroup.
@@ -346,7 +338,7 @@ func (t *Translator) getSNMPData(mg *mappingGroup) error {
 				strings.Join(model.snmpGetOIDs, " "), err)
 			return nil
 		} else if pkt == nil {
-			t.Logger.Info("SNMP Get returned nil packet")
+			t.Logger.Infof("SNMP Get returned nil packet")
 			return nil
 		} else {
 			t.Logger.Debugf("SNMP Get complete. pkt = %v, err = %v", pkt, err)

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/aristanetworks/cloudvision-go/device"
+	"github.com/aristanetworks/cloudvision-go/provider/mock"
 	psnmp "github.com/aristanetworks/cloudvision-go/provider/snmp"
 	"github.com/gosnmp/gosnmp"
 )
@@ -35,7 +36,7 @@ func runOptionsTest(t *testing.T, tc optionsTestCase) {
 		return
 	}
 
-	s, err := newSnmp(context.Background(), so, nil)
+	s, err := newSnmp(context.Background(), so, mock.NewMockMonitor())
 	if err != nil {
 		if tc.expectedError == nil {
 			t.Fatalf("Unexpected error in newSnmp: %v", err)

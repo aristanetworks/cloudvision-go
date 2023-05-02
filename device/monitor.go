@@ -17,12 +17,17 @@ func (l *datasourceLogger) Infof(format string, args ...interface{}) {
 	l.logger.Infof(format, args...)
 }
 
+// Errorf logs internal error message
+func (l *datasourceLogger) Errorf(format string, args ...interface{}) {
+	l.logger.Errorf(format, args...)
+}
+
 // Debugf logs message only when in debug level.
 func (l *datasourceLogger) Debugf(format string, args ...interface{}) {
 	l.logger.Debugf(format, args...)
 }
 
-// Tracef logs message only when in Trace level.
+// Tracef logs message only when in trace level.
 func (l *datasourceLogger) Tracef(format string, args ...interface{}) {
 	l.logger.Tracef(format, args...)
 }

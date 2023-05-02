@@ -18,12 +18,17 @@ func (l *TestLogger) Infof(format string, args ...interface{}) {
 	l.logger.Infof(format, args...)
 }
 
+// Errorf logs internal error message
+func (l *TestLogger) Errorf(format string, args ...interface{}) {
+	l.logger.Errorf(format, args...)
+}
+
 // Debugf logs message only when in debug level.
 func (l *TestLogger) Debugf(format string, args ...interface{}) {
 	l.logger.Debugf(format, args...)
 }
 
-// Tracef logs message only when in debug level.
+// Tracef logs message only when in trace level.
 func (l *TestLogger) Tracef(format string, args ...interface{}) {
 	l.logger.Tracef(format, args...)
 }

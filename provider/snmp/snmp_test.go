@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aristanetworks/cloudvision-go/provider/mock"
 	"github.com/gosnmp/gosnmp"
-	"github.com/sirupsen/logrus"
 )
 
 // deviceIDTestCase describes a test of the SNMP DeviceID method: the
@@ -71,6 +71,7 @@ func mockDeviceID(t *testing.T, s *Snmp, tc deviceIDTestCase) {
 	s.now = func() time.Time {
 		return time.Unix(1554954972, 0)
 	}
+	s.monitor = mock.NewMockMonitor()
 	s.deviceID = ""
 	did, err := s.DeviceID(context.Background())
 	if err != nil {
@@ -235,9 +236,8 @@ var sysUpTimeInstanceBadUsernameResponse = `
 
 func TestDeviceID(t *testing.T) {
 	s := &Snmp{
-		mock:   true,
-		gsnmp:  &gosnmp.GoSNMP{Target: "1.2.3.4"},
-		logger: logrus.WithField("mock", "true"),
+		mock:  true,
+		gsnmp: &gosnmp.GoSNMP{Target: "1.2.3.4"},
 	}
 	for _, tc := range []deviceIDTestCase{
 		{
@@ -299,9 +299,8 @@ func TestDeviceID(t *testing.T) {
 
 func TestTestGet(t *testing.T) {
 	s := &Snmp{
-		mock:   true,
-		gsnmp:  &gosnmp.GoSNMP{Target: "1.2.3.4"},
-		logger: logrus.WithField("mock", "true"),
+		mock:  true,
+		gsnmp: &gosnmp.GoSNMP{Target: "1.2.3.4"},
 	}
 
 	type testGetTestCase struct {
