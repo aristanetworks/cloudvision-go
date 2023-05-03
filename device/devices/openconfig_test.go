@@ -15,6 +15,7 @@ import (
 	"github.com/aristanetworks/cloudvision-go/device"
 	"github.com/aristanetworks/cloudvision-go/device/internal"
 	pg "github.com/aristanetworks/cloudvision-go/provider/gnmi"
+	pm "github.com/aristanetworks/cloudvision-go/provider/mock"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
@@ -376,7 +377,8 @@ func TestNewOpenConfig(t *testing.T) {
 				t.Fatalf("Bad test options passed: %v", err)
 			}
 
-			dev, err := newOpenConfig(ctx, opts, nil)
+			monitor := pm.NewMockMonitor()
+			dev, err := newOpenConfig(ctx, opts, monitor)
 			if err != nil {
 				if err.Error() != tcase.expectErr {
 					t.Fatalf("Expected err: %v, got %v", tcase.expectErr, err)

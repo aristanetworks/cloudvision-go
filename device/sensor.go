@@ -286,7 +286,8 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	var monitor provider.Monitor
+	var monitor provider.Monitor = &datasourceMonitor{
+		datasourceLogger: datasourceLogger{d.log}}
 	// Prepare device to execute based on datasource config
 	info, err := NewDeviceInfo(ctx, &Config{
 		Device:  d.config.typ,

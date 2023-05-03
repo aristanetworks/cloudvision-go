@@ -416,8 +416,8 @@ func newOpenConfig(ctx context.Context, opt map[string]string,
 	openconfig.config = config
 	openconfig.deviceID = deviceID
 
-	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config, strings.Split(gNMIPaths, ","),
-		pgnmi.WithDeviceID(deviceID))
+	openconfig.gNMIProvider = pgnmi.NewGNMIProvider(client, config,
+		strings.Split(gNMIPaths, ","), monitor)
 
 	return openconfig, nil
 }

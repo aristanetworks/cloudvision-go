@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aristanetworks/cloudvision-go/provider/mock"
 	agnmi "github.com/aristanetworks/goarista/gnmi"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"google.golang.org/grpc"
@@ -204,7 +205,8 @@ func TestGNMIProvider(t *testing.T) {
 			incl := &inClient{cancel: cancel, t: t, responses: tc.subResps}
 			outcl := &outClient{t: t, requests: tc.setReqs}
 			cfg := &agnmi.Config{}
-			p := NewGNMIProvider(incl, cfg, tc.paths, WithDeviceID(tc.name))
+			monitor := mock.NewMockMonitor()
+			p := NewGNMIProvider(incl, cfg, tc.paths, monitor)
 			p.InitGNMI(outcl)
 			_ = p.Run(ctx)
 		})
