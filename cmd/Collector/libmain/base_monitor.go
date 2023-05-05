@@ -11,6 +11,7 @@ import (
 // BaseLogger only logs std info or error.
 type BaseLogger struct {
 	logger *log.Entry
+	level  log.Level
 }
 
 // Infof logs and records info message.
@@ -42,6 +43,6 @@ type BaseMonitor struct {
 // NewBaseMonitor returns a new noop monitor for the collector.
 func NewBaseMonitor(logger *log.Entry) *BaseMonitor {
 	nm := &BaseMonitor{
-		BaseLogger: BaseLogger{logger}}
+		BaseLogger: BaseLogger{logger: logger, level: log.InfoLevel}}
 	return nm
 }

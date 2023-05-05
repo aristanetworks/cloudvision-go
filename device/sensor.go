@@ -137,6 +137,7 @@ type datasource struct {
 	// Holds datasource/state/sensor[id=sensor]/source[name=datasource]
 	statePrefix       *gnmi.Path
 	heartbeatInterval time.Duration
+	monitor           *datasourceMonitor
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -286,13 +287,12 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	var monitor provider.Monitor = &datasourceMonitor{
-		datasourceLogger: datasourceLogger{d.log}}
+
 	// Prepare device to execute based on datasource config
 	info, err := NewDeviceInfo(ctx, &Config{
 		Device:  d.config.typ,
 		Options: mergeOpts(d.config.option, creds),
-	}, monitor)
+	}, d.monitor)
 	if err != nil {
 		return err
 	}
@@ -331,6 +331,14 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 	errg.Go(func() error {
 		if err := d.sendPeriodicUpdates(ctx); err != nil {
 			return fmt.Errorf("error updating device metadata: %w", err)
+		}
+		return nil
+	})
+
+	// Send minoitor logging updates.
+	errg.Go(func() error {
+		if err := d.sendMonitorLogging(ctx); err != nil {
+			return fmt.Errorf("error updating monitor logging: %w", err)
 		}
 		return nil
 	})
@@ -449,6 +457,21 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 				}
 				d.handleDatasourceError(ctx, msg)
 				wasFailing = true
+			}
+		}
+	}
+}
+
+func (d *datasource) sendMonitorLogging(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case msg := <-d.monitor.logCh:
+			err := d.submitDatasourceUpdates(ctx,
+				pgnmi.Update(lastErrorKey, agnmi.TypedValue(msg)))
+			if err != nil {
+				d.log.Errorf("Error sending monitor logging: %v", err)
 			}
 		}
 	}
@@ -827,6 +850,8 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		statePrefix:       prefix,
 		heartbeatInterval: s.heartbeatInterval,
 	}
+	// Setup monitor for datasource
+	runtime.monitor = newDatasourceMonitor(runtime.log)
 	// Setup fatal error retry backoff with long wait periods to avoid flood.
 	runtime.failureRetryTimer = provider.NewBackoffTimer(
 		provider.WithBackoffBase(s.failureRetryBackoffBase),
