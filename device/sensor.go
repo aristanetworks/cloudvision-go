@@ -21,6 +21,7 @@ import (
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 )
 
@@ -137,7 +138,9 @@ type datasource struct {
 	// Holds datasource/state/sensor[id=sensor]/source[name=datasource]
 	statePrefix       *gnmi.Path
 	heartbeatInterval time.Duration
-	monitor           *datasourceMonitor
+
+	monitor *datasourceMonitor
+	logRate float64
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -463,15 +466,28 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 }
 
 func (d *datasource) sendMonitorLogging(ctx context.Context) error {
+	logLimter := rate.NewLimiter(
+		rate.Limit(d.logRate)*rate.Every(time.Minute), 1)
+	isLoggingDense := false
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case msg := <-d.monitor.logCh:
+			if !logLimter.Allow() {
+				if isLoggingDense {
+					continue
+				} else {
+					msg = "Logging is too dense. Please check in the console"
+					isLoggingDense = true
+				}
+			} else {
+				isLoggingDense = false
+			}
 			err := d.submitDatasourceUpdates(ctx,
 				pgnmi.Update(lastErrorKey, agnmi.TypedValue(msg)))
 			if err != nil {
-				d.log.Errorf("Error sending monitor logging: %v", err)
+				d.log.Errorf("Error sending monitor log: %v", err)
 			}
 		}
 	}
@@ -583,6 +599,7 @@ type Sensor struct {
 	active        bool
 	heartbeatLock sync.Mutex // used to stop synchronize and prevent heartbeats when deleting sensor
 	log           *logrus.Entry
+	logRate       float64
 	statePrefix   *gnmi.Path
 }
 
@@ -849,6 +866,7 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		grpcc:             s.grpcc,
 		statePrefix:       prefix,
 		heartbeatInterval: s.heartbeatInterval,
+		logRate:           s.logRate,
 	}
 	// Setup monitor for datasource
 	runtime.monitor = newDatasourceMonitor(runtime.log)
@@ -1090,7 +1108,7 @@ func (s *Sensor) validateOptions() {
 }
 
 // NewSensor creates a new Sensor
-func NewSensor(name string, opts ...SensorOption) *Sensor {
+func NewSensor(name string, logRate float64, opts ...SensorOption) *Sensor {
 	prefix := pgnmi.PathFromString(fmt.Sprintf("datasource/state/sensor[id=%s]", name))
 	prefix.Origin = "arista"
 	prefix.Target = "cv"
@@ -1098,6 +1116,7 @@ func NewSensor(name string, opts ...SensorOption) *Sensor {
 	s := &Sensor{
 		id:                      name,
 		log:                     logrus.WithField("sensor", name),
+		logRate:                 logRate,
 		datasourceConfig:        map[string]*datasourceConfig{},
 		datasource:              map[string]*datasource{},
 		deviceRedeployTimer:     2 * time.Second,

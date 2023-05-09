@@ -95,6 +95,9 @@ var (
 	sensorName              *string
 	sensorHeartbeat         *time.Duration
 	sensorFailureMaxBackoff *time.Duration
+
+	// Datasource monitor settings
+	logRate *float64
 )
 
 // Main is the "real" main.
@@ -166,6 +169,9 @@ func Main(sc device.SensorConfig) {
 		"Defines interval of sensor heartbeats")
 	sensorFailureMaxBackoff = flag.Duration("failureBackoffMax", 1*time.Hour,
 		"Defines maximum backoff for datasource failure retries")
+
+	logRate = flag.Float64("logRate", 100.0, "Log rate limit (times per minute)"+
+		" for datasource monitor")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -416,7 +422,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 					return ctx.Err()
 				case <-backoffTimer.Wait():
 					waitForGNMIConnectivity(gnmiClient)
-					sensor := device.NewSensor(*sensorName, opts...)
+					sensor := device.NewSensor(*sensorName, *logRate, opts...)
 					err := sensor.Run(ctx)
 					// Sensor failed, schedule retry with backoff.
 					// This is done before logging the error so we can log a precise retry delay.

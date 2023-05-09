@@ -382,7 +382,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 	// Start sensor.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	sensor := NewSensor("abc",
+	sensor := NewSensor("abc", 100.0,
 		WithSensorGNMIClient(gnmic),
 		WithSensorHeartbeatInterval(50*time.Millisecond),
 		WithSensorFailureRetryBackoffBase(1*time.Second),
@@ -1272,7 +1272,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 	close(gnmic.SetResp) // we don't care about these responses, so make it always return nil
 
 	metadataCh := make(chan string, 100)
-	sensor := NewSensor("default", WithSensorClientFactory(
+	sensor := NewSensor("default", 100.0, WithSensorClientFactory(
 		func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
 			return newMockCVClient(gnmic, info, metadataCh)
 		},
