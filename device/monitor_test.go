@@ -14,10 +14,7 @@ import (
 func TestDatasourceMonitor(t *testing.T) {
 	logger, hook := test.NewNullLogger()
 
-	dm := newDatasourceMonitor(logger.WithField("sensor", "test"))
-
-	// Set Monitor to Info level.
-	dm.SetLoggerLevel(logrus.InfoLevel)
+	dm := newDatasourceMonitor(logger.WithField("sensor", "test"), logrus.InfoLevel)
 	if dm.getLevel() != logrus.InfoLevel {
 		t.Fatal("Wrong loglevel!")
 	}

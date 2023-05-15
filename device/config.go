@@ -17,6 +17,7 @@ type Config struct {
 	Device   string            `yaml:"Device,omitempty"`
 	NoStream bool              `yaml:"NoStream,omitempty"`
 	Options  map[string]string `yaml:"Options,omitempty"`
+	LogLevel string            `yaml:"LogLevel,omitempty"`
 
 	deleted bool
 }

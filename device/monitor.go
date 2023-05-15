@@ -11,7 +11,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const logChCapacity = 100
+const (
+	logChCapacity = 100
+)
+
+var (
+	logMapping = map[string]log.Level{
+		"LOG_LEVEL_ERROR": log.ErrorLevel,
+		"LOG_LEVEL_INFO":  log.InfoLevel,
+		"LOG_LEVEL_DEBUG": log.DebugLevel,
+		"LOG_LEVEL_TRACE": log.TraceLevel,
+	}
+)
 
 type datasourceLogger struct {
 	logger *log.Entry
@@ -66,10 +77,11 @@ func (dm *datasourceMonitor) SetLoggerLevel(level log.Level) {
 }
 
 // newDatasourceMonitor returns a new datasource monitor for the datasource
-func newDatasourceMonitor(logger *log.Entry) *datasourceMonitor {
+func newDatasourceMonitor(logger *log.Entry, loglevel log.Level) *datasourceMonitor {
 	dm := &datasourceMonitor{
 		datasourceLogger: datasourceLogger{
-			logger: logger, level: log.InfoLevel}}
+			logger: logger}}
 	dm.logCh = make(chan string, logChCapacity)
+	dm.SetLoggerLevel(loglevel)
 	return dm
 }

@@ -64,6 +64,7 @@ type datasourceConfig struct {
 	enabled    bool
 	option     map[string]string
 	credential map[string]string
+	loglevel   logrus.Level
 }
 
 func (c datasourceConfig) clone() *datasourceConfig {
@@ -73,12 +74,13 @@ func (c datasourceConfig) clone() *datasourceConfig {
 		enabled:    c.enabled,
 		option:     cloneMap(c.option),
 		credential: cloneMap(c.credential),
+		loglevel:   c.loglevel,
 	}
 }
 
 func (c datasourceConfig) String() string {
-	return fmt.Sprintf("name: %s, typ: %s, enabled: %t, option: %v",
-		c.name, c.typ, c.enabled, c.option)
+	return fmt.Sprintf("name: %s, typ: %s, enabled: %t, option: %v, loglevel: %s",
+		c.name, c.typ, c.enabled, c.option, c.loglevel)
 }
 
 func (c datasourceConfig) equals(other *datasourceConfig) bool {
@@ -666,7 +668,9 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	resp *gnmi.Notification, postSync bool) error {
 	// For each deleted datasource name, cancel that datasource and
 	// delete it and its config from our collections.
-	dsUpdated := map[string]struct{}{}
+	dsUpdated := map[string][]string{}
+	// dsUpated records the datasource to be restart
+	// key is the name of datasource, value is the list of changed fields.
 	for _, p := range resp.Delete {
 		fullPath := pgnmi.PathJoin(resp.Prefix, p)
 		leafName := fullPath.Elem[len(fullPath.Elem)-1].Name
@@ -694,7 +698,6 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 			name := datasourceFromPath(fullPath)
 			dscfg, ok := s.datasourceConfig[name]
 			if ok {
-				dsUpdated[name] = struct{}{}
 				curr := 4 // (0)datasource/(1)config/(2)sensor[id]/(3)source[name]/(4)fields
 				elemNext := func() *gnmi.PathElem {
 					if curr >= len(fullPath.Elem) {
@@ -704,7 +707,9 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 					curr++
 					return out
 				}
-				switch elem := elemNext(); elem.Name {
+				elem := elemNext()
+				dsUpdated[name] = append(dsUpdated[name], elem.Name)
+				switch elem.Name {
 				case "credential":
 					if k, ok := elem.Key["key"]; ok {
 						if elemNext().Name == "value" {
@@ -758,7 +763,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 		if name == "" {
 			continue
 		}
-		dsUpdated[name] = struct{}{}
+
 		dscfg, ok := s.datasourceConfig[name]
 		if !ok {
 			dscfg = &datasourceConfig{
@@ -779,7 +784,9 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 			return out
 		}
 
-		switch elem := elemNext(); elem.Name {
+		elem := elemNext()
+		dsUpdated[name] = append(dsUpdated[name], elem.Name)
+		switch elem.Name {
 		case "type":
 			dscfg.typ = upd.Val.GetStringVal()
 		case "enabled":
@@ -796,6 +803,15 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 					dscfg.option[k] = upd.Val.GetStringVal()
 				}
 			}
+		case "loglevel":
+			level := upd.Val.GetStringVal()
+			loglevel, ok := logMapping[level]
+			if !ok {
+				s.log.Errorf("unknown datasource loglevel for %s: %s,"+
+					"setting it to INFO level", name, level)
+				loglevel = logrus.InfoLevel
+			}
+			dscfg.loglevel = loglevel
 		}
 	}
 
@@ -807,6 +823,11 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	// Reset redeploy timer so we have a few moments to aggregate more changes
 	for name := range dsUpdated {
 		ds := s.getDatasource(ctx, name)
+		ds.monitor.SetLoggerLevel(s.datasourceConfig[name].loglevel)
+		if len(dsUpdated[name]) == 1 && dsUpdated[name][0] == "loglevel" {
+			// If only the log level changes in the datasource config, skip the restart.
+			continue
+		}
 		// We don't care if it already ran, we want to reschedule a run after the config changes.
 		ds.scheduleRestart(s.deviceRedeployTimer)
 	}
@@ -869,7 +890,7 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		logRate:           s.logRate,
 	}
 	// Setup monitor for datasource
-	runtime.monitor = newDatasourceMonitor(runtime.log)
+	runtime.monitor = newDatasourceMonitor(runtime.log, runtime.config.loglevel)
 	// Setup fatal error retry backoff with long wait periods to avoid flood.
 	runtime.failureRetryTimer = provider.NewBackoffTimer(
 		provider.WithBackoffBase(s.failureRetryBackoffBase),
@@ -936,11 +957,18 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 				if cfg.IsDeleted() { // special case to know when config is removed
 					s.removeDatasource(ctx, cfg.Name)
 				} else {
+					loglevel, ok := logMapping[cfg.LogLevel]
+					if !ok {
+						s.log.Errorf("unknown datasource loglevel for %s: %s,"+
+							"setting it to INFO level", cfg.Name, cfg.LogLevel)
+						loglevel = logrus.InfoLevel
+					}
 					s.datasourceConfig[cfg.Name] = &datasourceConfig{
-						name:    cfg.Name,
-						typ:     cfg.Device,
-						enabled: true,
-						option:  cfg.Options,
+						name:     cfg.Name,
+						typ:      cfg.Device,
+						enabled:  true,
+						option:   cfg.Options,
+						loglevel: loglevel,
 					}
 					ds := s.getDatasource(ctx, cfg.Name)
 					if s.active {
