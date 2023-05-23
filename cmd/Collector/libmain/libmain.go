@@ -86,6 +86,9 @@ var (
 	// Sensor Ip
 	ip *string
 
+	// the grpc user agent, set to cvsensor-<version> by default
+	grpcAgent *string
+
 	// Auth config
 	caFile   *string
 	certFile *string
@@ -164,6 +167,8 @@ func Main(sc device.SensorConfig) {
 		"The hostname that can be used for logging into the sensor")
 	ip = flag.String("ip", "",
 		"The IP that can be used for logging into the sensor")
+
+	grpcAgent = flag.String("grpcAgent", "", "The grpc user-agent. Defaults to cvsensor-<version>")
 
 	// Auth config
 	caFile = flag.String("cafile", "", "Path to CA file")
@@ -292,13 +297,20 @@ func newCVClient(gc gnmi.GNMIClient, info *device.Info) cvclient.CVClient {
 }
 
 func runMain(ctx context.Context, sc device.SensorConfig) {
+	agent := *grpcAgent
+	if len(agent) <= 0 { // use default value if not set
+		agent = fmt.Sprintf("cvsensor-%v", version.CollectorVersion)
+	}
 	gnmiCfg := &agnmi.Config{
-		Addr:        *gnmiServerAddr,
-		CAFile:      *caFile,
-		CertFile:    *certFile,
-		KeyFile:     *keyFile,
-		TLS:         *tlsFlag,
-		DialOptions: []grpc.DialOption{grpc.WithBlock()},
+		Addr:     *gnmiServerAddr,
+		CAFile:   *caFile,
+		CertFile: *certFile,
+		KeyFile:  *keyFile,
+		TLS:      *tlsFlag,
+		DialOptions: []grpc.DialOption{
+			grpc.WithBlock(),
+			grpc.WithUserAgent(agent),
+		},
 	}
 
 	if *gnmiServerAddr == "" {
