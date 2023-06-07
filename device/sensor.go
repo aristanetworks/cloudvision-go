@@ -469,7 +469,7 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 
 func (d *datasource) sendMonitorLogging(ctx context.Context) error {
 	logLimter := rate.NewLimiter(
-		rate.Limit(d.logRate)*rate.Every(time.Minute), 1)
+		rate.Limit(d.logRate)*rate.Every(time.Minute), 10)
 	isLoggingDense := false
 	for {
 		select {
@@ -668,9 +668,9 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	resp *gnmi.Notification, postSync bool) error {
 	// For each deleted datasource name, cancel that datasource and
 	// delete it and its config from our collections.
-	dsUpdated := map[string][]string{}
-	// dsUpated records the datasource to be restart
-	// key is the name of datasource, value is the list of changed fields.
+	dsUpdated := map[string]map[string]bool{}
+	// dsUpated records the datasources to be restart
+	// key is the name of datasource, value is the map of changed fields.
 	for _, p := range resp.Delete {
 		fullPath := pgnmi.PathJoin(resp.Prefix, p)
 		leafName := fullPath.Elem[len(fullPath.Elem)-1].Name
@@ -708,7 +708,10 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 					return out
 				}
 				elem := elemNext()
-				dsUpdated[name] = append(dsUpdated[name], elem.Name)
+				if _, ok := dsUpdated[name]; !ok {
+					dsUpdated[name] = make(map[string]bool)
+				}
+				dsUpdated[name][elem.Name] = true
 				switch elem.Name {
 				case "credential":
 					if k, ok := elem.Key["key"]; ok {
@@ -722,12 +725,14 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 							delete(dscfg.option, k)
 						}
 					}
+				default:
+					delete(dsUpdated[name], elem.Name)
 				}
 			}
-			continue
-		}
-		if name := datasourceFromPath(fullPath); name != "" {
-			s.removeDatasource(ctx, name)
+		} else {
+			if name := datasourceFromPath(fullPath); name != "" {
+				s.removeDatasource(ctx, name)
+			}
 		}
 	}
 
@@ -770,6 +775,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				name:       name,
 				option:     map[string]string{},
 				credential: map[string]string{},
+				loglevel:   logrus.InfoLevel,
 			}
 			s.datasourceConfig[name] = dscfg
 		}
@@ -785,7 +791,10 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 		}
 
 		elem := elemNext()
-		dsUpdated[name] = append(dsUpdated[name], elem.Name)
+		if _, ok := dsUpdated[name]; !ok {
+			dsUpdated[name] = make(map[string]bool)
+		}
+		dsUpdated[name][elem.Name] = true
 		switch elem.Name {
 		case "type":
 			dscfg.typ = upd.Val.GetStringVal()
@@ -812,6 +821,8 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				loglevel = logrus.InfoLevel
 			}
 			dscfg.loglevel = loglevel
+		default:
+			delete(dsUpdated[name], elem.Name)
 		}
 	}
 
@@ -823,13 +834,16 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	// Reset redeploy timer so we have a few moments to aggregate more changes
 	for name := range dsUpdated {
 		ds := s.getDatasource(ctx, name)
-		ds.monitor.SetLoggerLevel(s.datasourceConfig[name].loglevel)
-		if len(dsUpdated[name]) == 1 && dsUpdated[name][0] == "loglevel" {
-			// If only the log level changes in the datasource config, skip the restart.
-			continue
+		if _, ok := dsUpdated[name]["loglevel"]; ok {
+			ds.monitor.SetLoggerLevel(s.datasourceConfig[name].loglevel)
+			if len(dsUpdated[name]) == 1 {
+				// If only the log level changes in the datasource config, skip the restart.
+				continue
+			}
 		}
 		// We don't care if it already ran, we want to reschedule a run after the config changes.
 		ds.scheduleRestart(s.deviceRedeployTimer)
+
 	}
 
 	return nil
@@ -875,7 +889,8 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		standalone:    s.standalone,
 		credResolver:  s.credResolver,
 		config: &datasourceConfig{
-			name: name,
+			name:     name,
+			loglevel: logrus.InfoLevel,
 		},
 		// Create redeploy timer with 1h and stop it, so it only runs when we reset the timer.
 		redeployTimer: time.AfterFunc(time.Hour, func() {

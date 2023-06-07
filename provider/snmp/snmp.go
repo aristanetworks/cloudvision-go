@@ -328,7 +328,6 @@ func (s *Snmp) DeviceID(ctx context.Context) (string, error) {
 
 // Alive checks if device is still alive if poll interval has passed.
 func (s *Snmp) Alive(ctx context.Context) (bool, error) {
-	s.monitor.Debugf("Alive")
 	if err := s.snmpNetworkInit(); err != nil {
 		return false, fmt.Errorf("Error connecting to device: %v", err)
 	}

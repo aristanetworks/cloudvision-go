@@ -61,7 +61,7 @@ func (l *datasourceLogger) isLevelEnabled(level log.Level) bool {
 func (l *datasourceLogger) logf(level log.Level,
 	format string, args ...interface{}) {
 	if l.isLevelEnabled(level) {
-		l.logger.Logf(log.ErrorLevel, format, args...)
+		l.logger.Logf(l.logger.Logger.GetLevel(), format, args...)
 		l.logCh <- fmt.Sprintf(format, args...)
 	}
 }

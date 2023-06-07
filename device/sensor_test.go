@@ -652,6 +652,78 @@ func TestSensor(t *testing.T) {
 			},
 		},
 		{
+			name: "Update existing datasource 2",
+			configSubResps: []*gnmi.SubscribeResponse{
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{
+							"id":     "123",
+							"input1": "value1",
+							"input2": "value2"},
+						map[string]string{"cred1": "credv1"})...),
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				{
+					Response: &gnmi.SubscribeResponse_Update{
+						Update: &gnmi.Notification{
+							Delete: []*gnmi.Path{
+								pgnmi.PathAppend(datasourceOptPath(
+									"abc", "xyz", "option", "input2"), "key"),
+								pgnmi.PathAppend(datasourceOptPath(
+									"abc", "xyz", "option", "input2"), "value"),
+							},
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.PathAppend(
+									datasourceOptPath("abc", "xyz", "option", "input1"), "key"),
+									agnmi.TypedValue("input1")),
+								pgnmi.Update(pgnmi.PathAppend(
+									datasourceOptPath("abc", "xyz", "option", "input1"), "value"),
+									agnmi.TypedValue("value2")),
+							},
+						},
+					},
+				},
+			},
+			waitForMetadataPreSync: []string{"123|map[cred1:credv1 id:123" +
+				" input1:value1 input2:value2]"},
+			waitForMetadataPostSync: []string{"123|map[cred1:credv1 id:123" +
+				" input1:value2]"},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+			},
+		},
+		{
 			name: "delete existing datasource config items",
 			configSubResps: []*gnmi.SubscribeResponse{
 				subscribeUpdates(
