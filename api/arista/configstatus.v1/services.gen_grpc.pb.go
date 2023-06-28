@@ -440,6 +440,648 @@ var ConfigurationService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
+// SecurityProfileServiceClient is the client API for SecurityProfileService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SecurityProfileServiceClient interface {
+	GetOne(ctx context.Context, in *SecurityProfileRequest, opts ...grpc.CallOption) (*SecurityProfileResponse, error)
+	GetAll(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeClient, error)
+}
+
+type securityProfileServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSecurityProfileServiceClient(cc grpc.ClientConnInterface) SecurityProfileServiceClient {
+	return &securityProfileServiceClient{cc}
+}
+
+func (c *securityProfileServiceClient) GetOne(ctx context.Context, in *SecurityProfileRequest, opts ...grpc.CallOption) (*SecurityProfileResponse, error) {
+	out := new(SecurityProfileResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileServiceClient) GetAll(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_GetAllClient interface {
+	Recv() (*SecurityProfileStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceGetAllClient) Recv() (*SecurityProfileStreamResponse, error) {
+	m := new(SecurityProfileStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileServiceClient) Subscribe(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_SubscribeClient interface {
+	Recv() (*SecurityProfileStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceSubscribeClient) Recv() (*SecurityProfileStreamResponse, error) {
+	m := new(SecurityProfileStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// SecurityProfileServiceServer is the server API for SecurityProfileService service.
+// All implementations must embed UnimplementedSecurityProfileServiceServer
+// for forward compatibility
+type SecurityProfileServiceServer interface {
+	GetOne(context.Context, *SecurityProfileRequest) (*SecurityProfileResponse, error)
+	GetAll(*SecurityProfileStreamRequest, SecurityProfileService_GetAllServer) error
+	Subscribe(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeServer) error
+	mustEmbedUnimplementedSecurityProfileServiceServer()
+}
+
+// UnimplementedSecurityProfileServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedSecurityProfileServiceServer struct {
+}
+
+func (UnimplementedSecurityProfileServiceServer) GetOne(context.Context, *SecurityProfileRequest) (*SecurityProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) GetAll(*SecurityProfileStreamRequest, SecurityProfileService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) Subscribe(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) mustEmbedUnimplementedSecurityProfileServiceServer() {
+}
+
+// UnsafeSecurityProfileServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SecurityProfileServiceServer will
+// result in compilation errors.
+type UnsafeSecurityProfileServiceServer interface {
+	mustEmbedUnimplementedSecurityProfileServiceServer()
+}
+
+func RegisterSecurityProfileServiceServer(s grpc.ServiceRegistrar, srv SecurityProfileServiceServer) {
+	s.RegisterService(&SecurityProfileService_ServiceDesc, srv)
+}
+
+func _SecurityProfileService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileServiceServer).GetOne(ctx, req.(*SecurityProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).GetAll(m, &securityProfileServiceGetAllServer{stream})
+}
+
+type SecurityProfileService_GetAllServer interface {
+	Send(*SecurityProfileStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceGetAllServer) Send(m *SecurityProfileStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).Subscribe(m, &securityProfileServiceSubscribeServer{stream})
+}
+
+type SecurityProfileService_SubscribeServer interface {
+	Send(*SecurityProfileStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceSubscribeServer) Send(m *SecurityProfileStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// SecurityProfileService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SecurityProfileService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.configstatus.v1.SecurityProfileService",
+	HandlerType: (*SecurityProfileServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _SecurityProfileService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _SecurityProfileService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _SecurityProfileService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/configstatus.v1/services.gen.proto",
+}
+
+// SecurityProfileDiffServiceClient is the client API for SecurityProfileDiffService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SecurityProfileDiffServiceClient interface {
+	GetOne(ctx context.Context, in *SecurityProfileDiffRequest, opts ...grpc.CallOption) (*SecurityProfileDiffResponse, error)
+	GetAll(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeClient, error)
+}
+
+type securityProfileDiffServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSecurityProfileDiffServiceClient(cc grpc.ClientConnInterface) SecurityProfileDiffServiceClient {
+	return &securityProfileDiffServiceClient{cc}
+}
+
+func (c *securityProfileDiffServiceClient) GetOne(ctx context.Context, in *SecurityProfileDiffRequest, opts ...grpc.CallOption) (*SecurityProfileDiffResponse, error) {
+	out := new(SecurityProfileDiffResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileDiffService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileDiffServiceClient) GetAll(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_GetAllClient interface {
+	Recv() (*SecurityProfileDiffStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceGetAllClient) Recv() (*SecurityProfileDiffStreamResponse, error) {
+	m := new(SecurityProfileDiffStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileDiffServiceClient) Subscribe(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_SubscribeClient interface {
+	Recv() (*SecurityProfileDiffStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceSubscribeClient) Recv() (*SecurityProfileDiffStreamResponse, error) {
+	m := new(SecurityProfileDiffStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// SecurityProfileDiffServiceServer is the server API for SecurityProfileDiffService service.
+// All implementations must embed UnimplementedSecurityProfileDiffServiceServer
+// for forward compatibility
+type SecurityProfileDiffServiceServer interface {
+	GetOne(context.Context, *SecurityProfileDiffRequest) (*SecurityProfileDiffResponse, error)
+	GetAll(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_GetAllServer) error
+	Subscribe(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeServer) error
+	mustEmbedUnimplementedSecurityProfileDiffServiceServer()
+}
+
+// UnimplementedSecurityProfileDiffServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedSecurityProfileDiffServiceServer struct {
+}
+
+func (UnimplementedSecurityProfileDiffServiceServer) GetOne(context.Context, *SecurityProfileDiffRequest) (*SecurityProfileDiffResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) GetAll(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) Subscribe(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) mustEmbedUnimplementedSecurityProfileDiffServiceServer() {
+}
+
+// UnsafeSecurityProfileDiffServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SecurityProfileDiffServiceServer will
+// result in compilation errors.
+type UnsafeSecurityProfileDiffServiceServer interface {
+	mustEmbedUnimplementedSecurityProfileDiffServiceServer()
+}
+
+func RegisterSecurityProfileDiffServiceServer(s grpc.ServiceRegistrar, srv SecurityProfileDiffServiceServer) {
+	s.RegisterService(&SecurityProfileDiffService_ServiceDesc, srv)
+}
+
+func _SecurityProfileDiffService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileDiffRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileDiffServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileDiffService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileDiffServiceServer).GetOne(ctx, req.(*SecurityProfileDiffRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).GetAll(m, &securityProfileDiffServiceGetAllServer{stream})
+}
+
+type SecurityProfileDiffService_GetAllServer interface {
+	Send(*SecurityProfileDiffStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceGetAllServer) Send(m *SecurityProfileDiffStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileDiffService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).Subscribe(m, &securityProfileDiffServiceSubscribeServer{stream})
+}
+
+type SecurityProfileDiffService_SubscribeServer interface {
+	Send(*SecurityProfileDiffStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceSubscribeServer) Send(m *SecurityProfileDiffStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// SecurityProfileDiffService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SecurityProfileDiffService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.configstatus.v1.SecurityProfileDiffService",
+	HandlerType: (*SecurityProfileDiffServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _SecurityProfileDiffService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _SecurityProfileDiffService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _SecurityProfileDiffService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/configstatus.v1/services.gen.proto",
+}
+
+// SecurityProfileDiffSummaryServiceClient is the client API for SecurityProfileDiffSummaryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SecurityProfileDiffSummaryServiceClient interface {
+	GetOne(ctx context.Context, in *SecurityProfileDiffSummaryRequest, opts ...grpc.CallOption) (*SecurityProfileDiffSummaryResponse, error)
+	GetAll(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeClient, error)
+}
+
+type securityProfileDiffSummaryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSecurityProfileDiffSummaryServiceClient(cc grpc.ClientConnInterface) SecurityProfileDiffSummaryServiceClient {
+	return &securityProfileDiffSummaryServiceClient{cc}
+}
+
+func (c *securityProfileDiffSummaryServiceClient) GetOne(ctx context.Context, in *SecurityProfileDiffSummaryRequest, opts ...grpc.CallOption) (*SecurityProfileDiffSummaryResponse, error) {
+	out := new(SecurityProfileDiffSummaryResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileDiffSummaryServiceClient) GetAll(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_GetAllClient interface {
+	Recv() (*SecurityProfileDiffSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetAllClient) Recv() (*SecurityProfileDiffSummaryStreamResponse, error) {
+	m := new(SecurityProfileDiffSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileDiffSummaryServiceClient) Subscribe(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_SubscribeClient interface {
+	Recv() (*SecurityProfileDiffSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeClient) Recv() (*SecurityProfileDiffSummaryStreamResponse, error) {
+	m := new(SecurityProfileDiffSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// SecurityProfileDiffSummaryServiceServer is the server API for SecurityProfileDiffSummaryService service.
+// All implementations must embed UnimplementedSecurityProfileDiffSummaryServiceServer
+// for forward compatibility
+type SecurityProfileDiffSummaryServiceServer interface {
+	GetOne(context.Context, *SecurityProfileDiffSummaryRequest) (*SecurityProfileDiffSummaryResponse, error)
+	GetAll(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_GetAllServer) error
+	Subscribe(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeServer) error
+	mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer()
+}
+
+// UnimplementedSecurityProfileDiffSummaryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedSecurityProfileDiffSummaryServiceServer struct {
+}
+
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetOne(context.Context, *SecurityProfileDiffSummaryRequest) (*SecurityProfileDiffSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetAll(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) Subscribe(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer() {
+}
+
+// UnsafeSecurityProfileDiffSummaryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SecurityProfileDiffSummaryServiceServer will
+// result in compilation errors.
+type UnsafeSecurityProfileDiffSummaryServiceServer interface {
+	mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer()
+}
+
+func RegisterSecurityProfileDiffSummaryServiceServer(s grpc.ServiceRegistrar, srv SecurityProfileDiffSummaryServiceServer) {
+	s.RegisterService(&SecurityProfileDiffSummaryService_ServiceDesc, srv)
+}
+
+func _SecurityProfileDiffSummaryService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileDiffSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileDiffSummaryServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileDiffSummaryServiceServer).GetOne(ctx, req.(*SecurityProfileDiffSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffSummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).GetAll(m, &securityProfileDiffSummaryServiceGetAllServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_GetAllServer interface {
+	Send(*SecurityProfileDiffSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetAllServer) Send(m *SecurityProfileDiffSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileDiffSummaryService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).Subscribe(m, &securityProfileDiffSummaryServiceSubscribeServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_SubscribeServer interface {
+	Send(*SecurityProfileDiffSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeServer) Send(m *SecurityProfileDiffSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// SecurityProfileDiffSummaryService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffSummaryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SecurityProfileDiffSummaryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.configstatus.v1.SecurityProfileDiffSummaryService",
+	HandlerType: (*SecurityProfileDiffSummaryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _SecurityProfileDiffSummaryService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _SecurityProfileDiffSummaryService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _SecurityProfileDiffSummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/configstatus.v1/services.gen.proto",
+}
+
 // SummaryServiceClient is the client API for SummaryService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

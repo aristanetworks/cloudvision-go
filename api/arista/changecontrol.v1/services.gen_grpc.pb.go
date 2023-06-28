@@ -23,6 +23,7 @@ type ApproveConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *ApproveConfigSetRequest, opts ...grpc.CallOption) (*ApproveConfigSetResponse, error)
 	Delete(ctx context.Context, in *ApproveConfigDeleteRequest, opts ...grpc.CallOption) (*ApproveConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *ApproveConfigDeleteAllRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteAllClient, error)
 }
 
 type approveConfigServiceClient struct {
@@ -124,6 +125,38 @@ func (c *approveConfigServiceClient) Delete(ctx context.Context, in *ApproveConf
 	return out, nil
 }
 
+func (c *approveConfigServiceClient) DeleteAll(ctx context.Context, in *ApproveConfigDeleteAllRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[2], "/arista.changecontrol.v1.ApproveConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_DeleteAllClient interface {
+	Recv() (*ApproveConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceDeleteAllClient) Recv() (*ApproveConfigDeleteAllResponse, error) {
+	m := new(ApproveConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ApproveConfigServiceServer is the server API for ApproveConfigService service.
 // All implementations must embed UnimplementedApproveConfigServiceServer
 // for forward compatibility
@@ -133,6 +166,7 @@ type ApproveConfigServiceServer interface {
 	Subscribe(*ApproveConfigStreamRequest, ApproveConfigService_SubscribeServer) error
 	Set(context.Context, *ApproveConfigSetRequest) (*ApproveConfigSetResponse, error)
 	Delete(context.Context, *ApproveConfigDeleteRequest) (*ApproveConfigDeleteResponse, error)
+	DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedApproveConfigServiceServer()
 }
 
@@ -154,6 +188,9 @@ func (UnimplementedApproveConfigServiceServer) Set(context.Context, *ApproveConf
 }
 func (UnimplementedApproveConfigServiceServer) Delete(context.Context, *ApproveConfigDeleteRequest) (*ApproveConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedApproveConfigServiceServer) mustEmbedUnimplementedApproveConfigServiceServer() {}
 
@@ -264,6 +301,27 @@ func _ApproveConfigService_Delete_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ApproveConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).DeleteAll(m, &approveConfigServiceDeleteAllServer{stream})
+}
+
+type ApproveConfigService_DeleteAllServer interface {
+	Send(*ApproveConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceDeleteAllServer) Send(m *ApproveConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ApproveConfigService_ServiceDesc is the grpc.ServiceDesc for ApproveConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -293,6 +351,11 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ApproveConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _ApproveConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -521,6 +584,7 @@ type ChangeControlConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *ChangeControlConfigSetRequest, opts ...grpc.CallOption) (*ChangeControlConfigSetResponse, error)
 	Delete(ctx context.Context, in *ChangeControlConfigDeleteRequest, opts ...grpc.CallOption) (*ChangeControlConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *ChangeControlConfigDeleteAllRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteAllClient, error)
 }
 
 type changeControlConfigServiceClient struct {
@@ -622,6 +686,38 @@ func (c *changeControlConfigServiceClient) Delete(ctx context.Context, in *Chang
 	return out, nil
 }
 
+func (c *changeControlConfigServiceClient) DeleteAll(ctx context.Context, in *ChangeControlConfigDeleteAllRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[2], "/arista.changecontrol.v1.ChangeControlConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_DeleteAllClient interface {
+	Recv() (*ChangeControlConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceDeleteAllClient) Recv() (*ChangeControlConfigDeleteAllResponse, error) {
+	m := new(ChangeControlConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChangeControlConfigServiceServer is the server API for ChangeControlConfigService service.
 // All implementations must embed UnimplementedChangeControlConfigServiceServer
 // for forward compatibility
@@ -631,6 +727,7 @@ type ChangeControlConfigServiceServer interface {
 	Subscribe(*ChangeControlConfigStreamRequest, ChangeControlConfigService_SubscribeServer) error
 	Set(context.Context, *ChangeControlConfigSetRequest) (*ChangeControlConfigSetResponse, error)
 	Delete(context.Context, *ChangeControlConfigDeleteRequest) (*ChangeControlConfigDeleteResponse, error)
+	DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedChangeControlConfigServiceServer()
 }
 
@@ -652,6 +749,9 @@ func (UnimplementedChangeControlConfigServiceServer) Set(context.Context, *Chang
 }
 func (UnimplementedChangeControlConfigServiceServer) Delete(context.Context, *ChangeControlConfigDeleteRequest) (*ChangeControlConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedChangeControlConfigServiceServer) mustEmbedUnimplementedChangeControlConfigServiceServer() {
 }
@@ -763,6 +863,27 @@ func _ChangeControlConfigService_Delete_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChangeControlConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).DeleteAll(m, &changeControlConfigServiceDeleteAllServer{stream})
+}
+
+type ChangeControlConfigService_DeleteAllServer interface {
+	Send(*ChangeControlConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceDeleteAllServer) Send(m *ChangeControlConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChangeControlConfigService_ServiceDesc is the grpc.ServiceDesc for ChangeControlConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -792,6 +913,11 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ChangeControlConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _ChangeControlConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},

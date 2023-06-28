@@ -235,7 +235,9 @@ type AssignedTagsConfigServiceClient interface {
 	GetAll(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *AssignedTagsConfigSetRequest, opts ...grpc.CallOption) (*AssignedTagsConfigSetResponse, error)
+	SetSome(ctx context.Context, in *AssignedTagsConfigSetSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *AssignedTagsConfigDeleteRequest, opts ...grpc.CallOption) (*AssignedTagsConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *AssignedTagsConfigDeleteAllRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteAllClient, error)
 }
 
 type assignedTagsConfigServiceClient struct {
@@ -328,6 +330,38 @@ func (c *assignedTagsConfigServiceClient) Set(ctx context.Context, in *AssignedT
 	return out, nil
 }
 
+func (c *assignedTagsConfigServiceClient) SetSome(ctx context.Context, in *AssignedTagsConfigSetSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AssignedTagsConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_SetSomeClient interface {
+	Recv() (*AssignedTagsConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceSetSomeClient) Recv() (*AssignedTagsConfigSetSomeResponse, error) {
+	m := new(AssignedTagsConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *assignedTagsConfigServiceClient) Delete(ctx context.Context, in *AssignedTagsConfigDeleteRequest, opts ...grpc.CallOption) (*AssignedTagsConfigDeleteResponse, error) {
 	out := new(AssignedTagsConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.AssignedTagsConfigService/Delete", in, out, opts...)
@@ -335,6 +369,38 @@ func (c *assignedTagsConfigServiceClient) Delete(ctx context.Context, in *Assign
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *assignedTagsConfigServiceClient) DeleteAll(ctx context.Context, in *AssignedTagsConfigDeleteAllRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AssignedTagsConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_DeleteAllClient interface {
+	Recv() (*AssignedTagsConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceDeleteAllClient) Recv() (*AssignedTagsConfigDeleteAllResponse, error) {
+	m := new(AssignedTagsConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // AssignedTagsConfigServiceServer is the server API for AssignedTagsConfigService service.
@@ -345,7 +411,9 @@ type AssignedTagsConfigServiceServer interface {
 	GetAll(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_GetAllServer) error
 	Subscribe(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_SubscribeServer) error
 	Set(context.Context, *AssignedTagsConfigSetRequest) (*AssignedTagsConfigSetResponse, error)
+	SetSome(*AssignedTagsConfigSetSomeRequest, AssignedTagsConfigService_SetSomeServer) error
 	Delete(context.Context, *AssignedTagsConfigDeleteRequest) (*AssignedTagsConfigDeleteResponse, error)
+	DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedAssignedTagsConfigServiceServer()
 }
 
@@ -365,8 +433,14 @@ func (UnimplementedAssignedTagsConfigServiceServer) Subscribe(*AssignedTagsConfi
 func (UnimplementedAssignedTagsConfigServiceServer) Set(context.Context, *AssignedTagsConfigSetRequest) (*AssignedTagsConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedAssignedTagsConfigServiceServer) SetSome(*AssignedTagsConfigSetSomeRequest, AssignedTagsConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedAssignedTagsConfigServiceServer) Delete(context.Context, *AssignedTagsConfigDeleteRequest) (*AssignedTagsConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedAssignedTagsConfigServiceServer) mustEmbedUnimplementedAssignedTagsConfigServiceServer() {
 }
@@ -460,6 +534,27 @@ func _AssignedTagsConfigService_Set_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssignedTagsConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).SetSome(m, &assignedTagsConfigServiceSetSomeServer{stream})
+}
+
+type AssignedTagsConfigService_SetSomeServer interface {
+	Send(*AssignedTagsConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceSetSomeServer) Send(m *AssignedTagsConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _AssignedTagsConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AssignedTagsConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -476,6 +571,27 @@ func _AssignedTagsConfigService_Delete_Handler(srv interface{}, ctx context.Cont
 		return srv.(AssignedTagsConfigServiceServer).Delete(ctx, req.(*AssignedTagsConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignedTagsConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).DeleteAll(m, &assignedTagsConfigServiceDeleteAllServer{stream})
+}
+
+type AssignedTagsConfigService_DeleteAllServer interface {
+	Send(*AssignedTagsConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceDeleteAllServer) Send(m *AssignedTagsConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // AssignedTagsConfigService_ServiceDesc is the grpc.ServiceDesc for AssignedTagsConfigService service.
@@ -507,6 +623,641 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _AssignedTagsConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _AssignedTagsConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _AssignedTagsConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// AutofillActionServiceClient is the client API for AutofillActionService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AutofillActionServiceClient interface {
+	GetOne(ctx context.Context, in *AutofillActionRequest, opts ...grpc.CallOption) (*AutofillActionResponse, error)
+	GetAll(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeClient, error)
+}
+
+type autofillActionServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAutofillActionServiceClient(cc grpc.ClientConnInterface) AutofillActionServiceClient {
+	return &autofillActionServiceClient{cc}
+}
+
+func (c *autofillActionServiceClient) GetOne(ctx context.Context, in *AutofillActionRequest, opts ...grpc.CallOption) (*AutofillActionResponse, error) {
+	out := new(AutofillActionResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionServiceClient) GetAll(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_GetAllClient interface {
+	Recv() (*AutofillActionStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceGetAllClient) Recv() (*AutofillActionStreamResponse, error) {
+	m := new(AutofillActionStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionServiceClient) Subscribe(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_SubscribeClient interface {
+	Recv() (*AutofillActionStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceSubscribeClient) Recv() (*AutofillActionStreamResponse, error) {
+	m := new(AutofillActionStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// AutofillActionServiceServer is the server API for AutofillActionService service.
+// All implementations must embed UnimplementedAutofillActionServiceServer
+// for forward compatibility
+type AutofillActionServiceServer interface {
+	GetOne(context.Context, *AutofillActionRequest) (*AutofillActionResponse, error)
+	GetAll(*AutofillActionStreamRequest, AutofillActionService_GetAllServer) error
+	Subscribe(*AutofillActionStreamRequest, AutofillActionService_SubscribeServer) error
+	mustEmbedUnimplementedAutofillActionServiceServer()
+}
+
+// UnimplementedAutofillActionServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAutofillActionServiceServer struct {
+}
+
+func (UnimplementedAutofillActionServiceServer) GetOne(context.Context, *AutofillActionRequest) (*AutofillActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) GetAll(*AutofillActionStreamRequest, AutofillActionService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) Subscribe(*AutofillActionStreamRequest, AutofillActionService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) mustEmbedUnimplementedAutofillActionServiceServer() {}
+
+// UnsafeAutofillActionServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AutofillActionServiceServer will
+// result in compilation errors.
+type UnsafeAutofillActionServiceServer interface {
+	mustEmbedUnimplementedAutofillActionServiceServer()
+}
+
+func RegisterAutofillActionServiceServer(s grpc.ServiceRegistrar, srv AutofillActionServiceServer) {
+	s.RegisterService(&AutofillActionService_ServiceDesc, srv)
+}
+
+func _AutofillActionService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionServiceServer).GetOne(ctx, req.(*AutofillActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).GetAll(m, &autofillActionServiceGetAllServer{stream})
+}
+
+type AutofillActionService_GetAllServer interface {
+	Send(*AutofillActionStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceGetAllServer) Send(m *AutofillActionStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).Subscribe(m, &autofillActionServiceSubscribeServer{stream})
+}
+
+type AutofillActionService_SubscribeServer interface {
+	Send(*AutofillActionStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceSubscribeServer) Send(m *AutofillActionStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// AutofillActionService_ServiceDesc is the grpc.ServiceDesc for AutofillActionService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AutofillActionService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.AutofillActionService",
+	HandlerType: (*AutofillActionServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _AutofillActionService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _AutofillActionService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _AutofillActionService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// AutofillActionConfigServiceClient is the client API for AutofillActionConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AutofillActionConfigServiceClient interface {
+	GetOne(ctx context.Context, in *AutofillActionConfigRequest, opts ...grpc.CallOption) (*AutofillActionConfigResponse, error)
+	GetAll(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeClient, error)
+	Set(ctx context.Context, in *AutofillActionConfigSetRequest, opts ...grpc.CallOption) (*AutofillActionConfigSetResponse, error)
+	SetSome(ctx context.Context, in *AutofillActionConfigSetSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *AutofillActionConfigDeleteRequest, opts ...grpc.CallOption) (*AutofillActionConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *AutofillActionConfigDeleteAllRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteAllClient, error)
+}
+
+type autofillActionConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAutofillActionConfigServiceClient(cc grpc.ClientConnInterface) AutofillActionConfigServiceClient {
+	return &autofillActionConfigServiceClient{cc}
+}
+
+func (c *autofillActionConfigServiceClient) GetOne(ctx context.Context, in *AutofillActionConfigRequest, opts ...grpc.CallOption) (*AutofillActionConfigResponse, error) {
+	out := new(AutofillActionConfigResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionConfigService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionConfigServiceClient) GetAll(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_GetAllClient interface {
+	Recv() (*AutofillActionConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceGetAllClient) Recv() (*AutofillActionConfigStreamResponse, error) {
+	m := new(AutofillActionConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionConfigServiceClient) Subscribe(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionConfigService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_SubscribeClient interface {
+	Recv() (*AutofillActionConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceSubscribeClient) Recv() (*AutofillActionConfigStreamResponse, error) {
+	m := new(AutofillActionConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionConfigServiceClient) Set(ctx context.Context, in *AutofillActionConfigSetRequest, opts ...grpc.CallOption) (*AutofillActionConfigSetResponse, error) {
+	out := new(AutofillActionConfigSetResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionConfigService/Set", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionConfigServiceClient) SetSome(ctx context.Context, in *AutofillActionConfigSetSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AutofillActionConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_SetSomeClient interface {
+	Recv() (*AutofillActionConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceSetSomeClient) Recv() (*AutofillActionConfigSetSomeResponse, error) {
+	m := new(AutofillActionConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionConfigServiceClient) Delete(ctx context.Context, in *AutofillActionConfigDeleteRequest, opts ...grpc.CallOption) (*AutofillActionConfigDeleteResponse, error) {
+	out := new(AutofillActionConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionConfigService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionConfigServiceClient) DeleteAll(ctx context.Context, in *AutofillActionConfigDeleteAllRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AutofillActionConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_DeleteAllClient interface {
+	Recv() (*AutofillActionConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceDeleteAllClient) Recv() (*AutofillActionConfigDeleteAllResponse, error) {
+	m := new(AutofillActionConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// AutofillActionConfigServiceServer is the server API for AutofillActionConfigService service.
+// All implementations must embed UnimplementedAutofillActionConfigServiceServer
+// for forward compatibility
+type AutofillActionConfigServiceServer interface {
+	GetOne(context.Context, *AutofillActionConfigRequest) (*AutofillActionConfigResponse, error)
+	GetAll(*AutofillActionConfigStreamRequest, AutofillActionConfigService_GetAllServer) error
+	Subscribe(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeServer) error
+	Set(context.Context, *AutofillActionConfigSetRequest) (*AutofillActionConfigSetResponse, error)
+	SetSome(*AutofillActionConfigSetSomeRequest, AutofillActionConfigService_SetSomeServer) error
+	Delete(context.Context, *AutofillActionConfigDeleteRequest) (*AutofillActionConfigDeleteResponse, error)
+	DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error
+	mustEmbedUnimplementedAutofillActionConfigServiceServer()
+}
+
+// UnimplementedAutofillActionConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAutofillActionConfigServiceServer struct {
+}
+
+func (UnimplementedAutofillActionConfigServiceServer) GetOne(context.Context, *AutofillActionConfigRequest) (*AutofillActionConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) GetAll(*AutofillActionConfigStreamRequest, AutofillActionConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) Subscribe(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) Set(context.Context, *AutofillActionConfigSetRequest) (*AutofillActionConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) SetSome(*AutofillActionConfigSetSomeRequest, AutofillActionConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) Delete(context.Context, *AutofillActionConfigDeleteRequest) (*AutofillActionConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) mustEmbedUnimplementedAutofillActionConfigServiceServer() {
+}
+
+// UnsafeAutofillActionConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AutofillActionConfigServiceServer will
+// result in compilation errors.
+type UnsafeAutofillActionConfigServiceServer interface {
+	mustEmbedUnimplementedAutofillActionConfigServiceServer()
+}
+
+func RegisterAutofillActionConfigServiceServer(s grpc.ServiceRegistrar, srv AutofillActionConfigServiceServer) {
+	s.RegisterService(&AutofillActionConfigService_ServiceDesc, srv)
+}
+
+func _AutofillActionConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionConfigService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionConfigServiceServer).GetOne(ctx, req.(*AutofillActionConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).GetAll(m, &autofillActionConfigServiceGetAllServer{stream})
+}
+
+type AutofillActionConfigService_GetAllServer interface {
+	Send(*AutofillActionConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceGetAllServer) Send(m *AutofillActionConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).Subscribe(m, &autofillActionConfigServiceSubscribeServer{stream})
+}
+
+type AutofillActionConfigService_SubscribeServer interface {
+	Send(*AutofillActionConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceSubscribeServer) Send(m *AutofillActionConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionConfigService/Set",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionConfigServiceServer).Set(ctx, req.(*AutofillActionConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).SetSome(m, &autofillActionConfigServiceSetSomeServer{stream})
+}
+
+type AutofillActionConfigService_SetSomeServer interface {
+	Send(*AutofillActionConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceSetSomeServer) Send(m *AutofillActionConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionConfigService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionConfigServiceServer).Delete(ctx, req.(*AutofillActionConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).DeleteAll(m, &autofillActionConfigServiceDeleteAllServer{stream})
+}
+
+type AutofillActionConfigService_DeleteAllServer interface {
+	Send(*AutofillActionConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceDeleteAllServer) Send(m *AutofillActionConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// AutofillActionConfigService_ServiceDesc is the grpc.ServiceDesc for AutofillActionConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.AutofillActionConfigService",
+	HandlerType: (*AutofillActionConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _AutofillActionConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _AutofillActionConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _AutofillActionConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _AutofillActionConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _AutofillActionConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _AutofillActionConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _AutofillActionConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -734,7 +1485,9 @@ type InputsConfigServiceClient interface {
 	GetAll(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *InputsConfigSetRequest, opts ...grpc.CallOption) (*InputsConfigSetResponse, error)
+	SetSome(ctx context.Context, in *InputsConfigSetSomeRequest, opts ...grpc.CallOption) (InputsConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *InputsConfigDeleteRequest, opts ...grpc.CallOption) (*InputsConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *InputsConfigDeleteAllRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteAllClient, error)
 }
 
 type inputsConfigServiceClient struct {
@@ -827,6 +1580,38 @@ func (c *inputsConfigServiceClient) Set(ctx context.Context, in *InputsConfigSet
 	return out, nil
 }
 
+func (c *inputsConfigServiceClient) SetSome(ctx context.Context, in *InputsConfigSetSomeRequest, opts ...grpc.CallOption) (InputsConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.InputsConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_SetSomeClient interface {
+	Recv() (*InputsConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceSetSomeClient) Recv() (*InputsConfigSetSomeResponse, error) {
+	m := new(InputsConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *inputsConfigServiceClient) Delete(ctx context.Context, in *InputsConfigDeleteRequest, opts ...grpc.CallOption) (*InputsConfigDeleteResponse, error) {
 	out := new(InputsConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.InputsConfigService/Delete", in, out, opts...)
@@ -834,6 +1619,38 @@ func (c *inputsConfigServiceClient) Delete(ctx context.Context, in *InputsConfig
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *inputsConfigServiceClient) DeleteAll(ctx context.Context, in *InputsConfigDeleteAllRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.InputsConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_DeleteAllClient interface {
+	Recv() (*InputsConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceDeleteAllClient) Recv() (*InputsConfigDeleteAllResponse, error) {
+	m := new(InputsConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // InputsConfigServiceServer is the server API for InputsConfigService service.
@@ -844,7 +1661,9 @@ type InputsConfigServiceServer interface {
 	GetAll(*InputsConfigStreamRequest, InputsConfigService_GetAllServer) error
 	Subscribe(*InputsConfigStreamRequest, InputsConfigService_SubscribeServer) error
 	Set(context.Context, *InputsConfigSetRequest) (*InputsConfigSetResponse, error)
+	SetSome(*InputsConfigSetSomeRequest, InputsConfigService_SetSomeServer) error
 	Delete(context.Context, *InputsConfigDeleteRequest) (*InputsConfigDeleteResponse, error)
+	DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedInputsConfigServiceServer()
 }
 
@@ -864,8 +1683,14 @@ func (UnimplementedInputsConfigServiceServer) Subscribe(*InputsConfigStreamReque
 func (UnimplementedInputsConfigServiceServer) Set(context.Context, *InputsConfigSetRequest) (*InputsConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedInputsConfigServiceServer) SetSome(*InputsConfigSetSomeRequest, InputsConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedInputsConfigServiceServer) Delete(context.Context, *InputsConfigDeleteRequest) (*InputsConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedInputsConfigServiceServer) mustEmbedUnimplementedInputsConfigServiceServer() {}
 
@@ -958,6 +1783,27 @@ func _InputsConfigService_Set_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InputsConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).SetSome(m, &inputsConfigServiceSetSomeServer{stream})
+}
+
+type InputsConfigService_SetSomeServer interface {
+	Send(*InputsConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceSetSomeServer) Send(m *InputsConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _InputsConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InputsConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -974,6 +1820,27 @@ func _InputsConfigService_Delete_Handler(srv interface{}, ctx context.Context, d
 		return srv.(InputsConfigServiceServer).Delete(ctx, req.(*InputsConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _InputsConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).DeleteAll(m, &inputsConfigServiceDeleteAllServer{stream})
+}
+
+type InputsConfigService_DeleteAllServer interface {
+	Send(*InputsConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceDeleteAllServer) Send(m *InputsConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // InputsConfigService_ServiceDesc is the grpc.ServiceDesc for InputsConfigService service.
@@ -1005,6 +1872,229 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _InputsConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _InputsConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _InputsConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// SecretInputServiceClient is the client API for SecretInputService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SecretInputServiceClient interface {
+	GetOne(ctx context.Context, in *SecretInputRequest, opts ...grpc.CallOption) (*SecretInputResponse, error)
+	GetAll(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeClient, error)
+}
+
+type secretInputServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSecretInputServiceClient(cc grpc.ClientConnInterface) SecretInputServiceClient {
+	return &secretInputServiceClient{cc}
+}
+
+func (c *secretInputServiceClient) GetOne(ctx context.Context, in *SecretInputRequest, opts ...grpc.CallOption) (*SecretInputResponse, error) {
+	out := new(SecretInputResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.SecretInputService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretInputServiceClient) GetAll(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[0], "/arista.studio.v1.SecretInputService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_GetAllClient interface {
+	Recv() (*SecretInputStreamResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceGetAllClient) Recv() (*SecretInputStreamResponse, error) {
+	m := new(SecretInputStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *secretInputServiceClient) Subscribe(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[1], "/arista.studio.v1.SecretInputService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_SubscribeClient interface {
+	Recv() (*SecretInputStreamResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceSubscribeClient) Recv() (*SecretInputStreamResponse, error) {
+	m := new(SecretInputStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// SecretInputServiceServer is the server API for SecretInputService service.
+// All implementations must embed UnimplementedSecretInputServiceServer
+// for forward compatibility
+type SecretInputServiceServer interface {
+	GetOne(context.Context, *SecretInputRequest) (*SecretInputResponse, error)
+	GetAll(*SecretInputStreamRequest, SecretInputService_GetAllServer) error
+	Subscribe(*SecretInputStreamRequest, SecretInputService_SubscribeServer) error
+	mustEmbedUnimplementedSecretInputServiceServer()
+}
+
+// UnimplementedSecretInputServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedSecretInputServiceServer struct {
+}
+
+func (UnimplementedSecretInputServiceServer) GetOne(context.Context, *SecretInputRequest) (*SecretInputResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedSecretInputServiceServer) GetAll(*SecretInputStreamRequest, SecretInputService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedSecretInputServiceServer) Subscribe(*SecretInputStreamRequest, SecretInputService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecretInputServiceServer) mustEmbedUnimplementedSecretInputServiceServer() {}
+
+// UnsafeSecretInputServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SecretInputServiceServer will
+// result in compilation errors.
+type UnsafeSecretInputServiceServer interface {
+	mustEmbedUnimplementedSecretInputServiceServer()
+}
+
+func RegisterSecretInputServiceServer(s grpc.ServiceRegistrar, srv SecretInputServiceServer) {
+	s.RegisterService(&SecretInputService_ServiceDesc, srv)
+}
+
+func _SecretInputService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecretInputRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretInputServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.SecretInputService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretInputServiceServer).GetOne(ctx, req.(*SecretInputRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretInputService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).GetAll(m, &secretInputServiceGetAllServer{stream})
+}
+
+type SecretInputService_GetAllServer interface {
+	Send(*SecretInputStreamResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceGetAllServer) Send(m *SecretInputStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecretInputService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).Subscribe(m, &secretInputServiceSubscribeServer{stream})
+}
+
+type SecretInputService_SubscribeServer interface {
+	Send(*SecretInputStreamResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceSubscribeServer) Send(m *SecretInputStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// SecretInputService_ServiceDesc is the grpc.ServiceDesc for SecretInputService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SecretInputService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.SecretInputService",
+	HandlerType: (*SecretInputServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _SecretInputService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _SecretInputService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _SecretInputService_Subscribe_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -1232,7 +2322,9 @@ type StudioConfigServiceClient interface {
 	GetAll(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *StudioConfigSetRequest, opts ...grpc.CallOption) (*StudioConfigSetResponse, error)
+	SetSome(ctx context.Context, in *StudioConfigSetSomeRequest, opts ...grpc.CallOption) (StudioConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *StudioConfigDeleteRequest, opts ...grpc.CallOption) (*StudioConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *StudioConfigDeleteAllRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteAllClient, error)
 }
 
 type studioConfigServiceClient struct {
@@ -1325,6 +2417,38 @@ func (c *studioConfigServiceClient) Set(ctx context.Context, in *StudioConfigSet
 	return out, nil
 }
 
+func (c *studioConfigServiceClient) SetSome(ctx context.Context, in *StudioConfigSetSomeRequest, opts ...grpc.CallOption) (StudioConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.StudioConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_SetSomeClient interface {
+	Recv() (*StudioConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceSetSomeClient) Recv() (*StudioConfigSetSomeResponse, error) {
+	m := new(StudioConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioConfigServiceClient) Delete(ctx context.Context, in *StudioConfigDeleteRequest, opts ...grpc.CallOption) (*StudioConfigDeleteResponse, error) {
 	out := new(StudioConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioConfigService/Delete", in, out, opts...)
@@ -1332,6 +2456,38 @@ func (c *studioConfigServiceClient) Delete(ctx context.Context, in *StudioConfig
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *studioConfigServiceClient) DeleteAll(ctx context.Context, in *StudioConfigDeleteAllRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.StudioConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_DeleteAllClient interface {
+	Recv() (*StudioConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceDeleteAllClient) Recv() (*StudioConfigDeleteAllResponse, error) {
+	m := new(StudioConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // StudioConfigServiceServer is the server API for StudioConfigService service.
@@ -1342,7 +2498,9 @@ type StudioConfigServiceServer interface {
 	GetAll(*StudioConfigStreamRequest, StudioConfigService_GetAllServer) error
 	Subscribe(*StudioConfigStreamRequest, StudioConfigService_SubscribeServer) error
 	Set(context.Context, *StudioConfigSetRequest) (*StudioConfigSetResponse, error)
+	SetSome(*StudioConfigSetSomeRequest, StudioConfigService_SetSomeServer) error
 	Delete(context.Context, *StudioConfigDeleteRequest) (*StudioConfigDeleteResponse, error)
+	DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedStudioConfigServiceServer()
 }
 
@@ -1362,8 +2520,14 @@ func (UnimplementedStudioConfigServiceServer) Subscribe(*StudioConfigStreamReque
 func (UnimplementedStudioConfigServiceServer) Set(context.Context, *StudioConfigSetRequest) (*StudioConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedStudioConfigServiceServer) SetSome(*StudioConfigSetSomeRequest, StudioConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedStudioConfigServiceServer) Delete(context.Context, *StudioConfigDeleteRequest) (*StudioConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedStudioConfigServiceServer) mustEmbedUnimplementedStudioConfigServiceServer() {}
 
@@ -1456,6 +2620,27 @@ func _StudioConfigService_Set_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StudioConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).SetSome(m, &studioConfigServiceSetSomeServer{stream})
+}
+
+type StudioConfigService_SetSomeServer interface {
+	Send(*StudioConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceSetSomeServer) Send(m *StudioConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _StudioConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StudioConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -1472,6 +2657,27 @@ func _StudioConfigService_Delete_Handler(srv interface{}, ctx context.Context, d
 		return srv.(StudioConfigServiceServer).Delete(ctx, req.(*StudioConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).DeleteAll(m, &studioConfigServiceDeleteAllServer{stream})
+}
+
+type StudioConfigService_DeleteAllServer interface {
+	Send(*StudioConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceDeleteAllServer) Send(m *StudioConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // StudioConfigService_ServiceDesc is the grpc.ServiceDesc for StudioConfigService service.
@@ -1503,6 +2709,2105 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _StudioConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _StudioConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _StudioConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// StudioSummaryServiceClient is the client API for StudioSummaryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type StudioSummaryServiceClient interface {
+	GetOne(ctx context.Context, in *StudioSummaryRequest, opts ...grpc.CallOption) (*StudioSummaryResponse, error)
+	GetAll(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeClient, error)
+}
+
+type studioSummaryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewStudioSummaryServiceClient(cc grpc.ClientConnInterface) StudioSummaryServiceClient {
+	return &studioSummaryServiceClient{cc}
+}
+
+func (c *studioSummaryServiceClient) GetOne(ctx context.Context, in *StudioSummaryRequest, opts ...grpc.CallOption) (*StudioSummaryResponse, error) {
+	out := new(StudioSummaryResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioSummaryService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioSummaryServiceClient) GetAll(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioSummaryService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_GetAllClient interface {
+	Recv() (*StudioSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceGetAllClient) Recv() (*StudioSummaryStreamResponse, error) {
+	m := new(StudioSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioSummaryServiceClient) Subscribe(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioSummaryService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_SubscribeClient interface {
+	Recv() (*StudioSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceSubscribeClient) Recv() (*StudioSummaryStreamResponse, error) {
+	m := new(StudioSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// StudioSummaryServiceServer is the server API for StudioSummaryService service.
+// All implementations must embed UnimplementedStudioSummaryServiceServer
+// for forward compatibility
+type StudioSummaryServiceServer interface {
+	GetOne(context.Context, *StudioSummaryRequest) (*StudioSummaryResponse, error)
+	GetAll(*StudioSummaryStreamRequest, StudioSummaryService_GetAllServer) error
+	Subscribe(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeServer) error
+	mustEmbedUnimplementedStudioSummaryServiceServer()
+}
+
+// UnimplementedStudioSummaryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedStudioSummaryServiceServer struct {
+}
+
+func (UnimplementedStudioSummaryServiceServer) GetOne(context.Context, *StudioSummaryRequest) (*StudioSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) GetAll(*StudioSummaryStreamRequest, StudioSummaryService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) Subscribe(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) mustEmbedUnimplementedStudioSummaryServiceServer() {}
+
+// UnsafeStudioSummaryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to StudioSummaryServiceServer will
+// result in compilation errors.
+type UnsafeStudioSummaryServiceServer interface {
+	mustEmbedUnimplementedStudioSummaryServiceServer()
+}
+
+func RegisterStudioSummaryServiceServer(s grpc.ServiceRegistrar, srv StudioSummaryServiceServer) {
+	s.RegisterService(&StudioSummaryService_ServiceDesc, srv)
+}
+
+func _StudioSummaryService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioSummaryServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.StudioSummaryService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioSummaryServiceServer).GetOne(ctx, req.(*StudioSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioSummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).GetAll(m, &studioSummaryServiceGetAllServer{stream})
+}
+
+type StudioSummaryService_GetAllServer interface {
+	Send(*StudioSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceGetAllServer) Send(m *StudioSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioSummaryService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).Subscribe(m, &studioSummaryServiceSubscribeServer{stream})
+}
+
+type StudioSummaryService_SubscribeServer interface {
+	Send(*StudioSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceSubscribeServer) Send(m *StudioSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// StudioSummaryService_ServiceDesc is the grpc.ServiceDesc for StudioSummaryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var StudioSummaryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.StudioSummaryService",
+	HandlerType: (*StudioSummaryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _StudioSummaryService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _StudioSummaryService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _StudioSummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyInputServiceClient is the client API for TopologyInputService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyInputServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyInputRequest, opts ...grpc.CallOption) (*TopologyInputResponse, error)
+	GetAll(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_SubscribeClient, error)
+}
+
+type topologyInputServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyInputServiceClient(cc grpc.ClientConnInterface) TopologyInputServiceClient {
+	return &topologyInputServiceClient{cc}
+}
+
+func (c *topologyInputServiceClient) GetOne(ctx context.Context, in *TopologyInputRequest, opts ...grpc.CallOption) (*TopologyInputResponse, error) {
+	out := new(TopologyInputResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyInputServiceClient) GetAll(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyInputService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputService_GetAllClient interface {
+	Recv() (*TopologyInputStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputServiceGetAllClient) Recv() (*TopologyInputStreamResponse, error) {
+	m := new(TopologyInputStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyInputServiceClient) Subscribe(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyInputService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputService_SubscribeClient interface {
+	Recv() (*TopologyInputStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputServiceSubscribeClient) Recv() (*TopologyInputStreamResponse, error) {
+	m := new(TopologyInputStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyInputServiceServer is the server API for TopologyInputService service.
+// All implementations must embed UnimplementedTopologyInputServiceServer
+// for forward compatibility
+type TopologyInputServiceServer interface {
+	GetOne(context.Context, *TopologyInputRequest) (*TopologyInputResponse, error)
+	GetAll(*TopologyInputStreamRequest, TopologyInputService_GetAllServer) error
+	Subscribe(*TopologyInputStreamRequest, TopologyInputService_SubscribeServer) error
+	mustEmbedUnimplementedTopologyInputServiceServer()
+}
+
+// UnimplementedTopologyInputServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyInputServiceServer struct {
+}
+
+func (UnimplementedTopologyInputServiceServer) GetOne(context.Context, *TopologyInputRequest) (*TopologyInputResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyInputServiceServer) GetAll(*TopologyInputStreamRequest, TopologyInputService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyInputServiceServer) Subscribe(*TopologyInputStreamRequest, TopologyInputService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyInputServiceServer) mustEmbedUnimplementedTopologyInputServiceServer() {}
+
+// UnsafeTopologyInputServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyInputServiceServer will
+// result in compilation errors.
+type UnsafeTopologyInputServiceServer interface {
+	mustEmbedUnimplementedTopologyInputServiceServer()
+}
+
+func RegisterTopologyInputServiceServer(s grpc.ServiceRegistrar, srv TopologyInputServiceServer) {
+	s.RegisterService(&TopologyInputService_ServiceDesc, srv)
+}
+
+func _TopologyInputService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyInputRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyInputServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyInputService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyInputServiceServer).GetOne(ctx, req.(*TopologyInputRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyInputService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputServiceServer).GetAll(m, &topologyInputServiceGetAllServer{stream})
+}
+
+type TopologyInputService_GetAllServer interface {
+	Send(*TopologyInputStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputServiceGetAllServer) Send(m *TopologyInputStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyInputService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputServiceServer).Subscribe(m, &topologyInputServiceSubscribeServer{stream})
+}
+
+type TopologyInputService_SubscribeServer interface {
+	Send(*TopologyInputStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputServiceSubscribeServer) Send(m *TopologyInputStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyInputService_ServiceDesc is the grpc.ServiceDesc for TopologyInputService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyInputService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyInputService",
+	HandlerType: (*TopologyInputServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyInputService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyInputService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyInputService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyInputConfigServiceClient is the client API for TopologyInputConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyInputConfigServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyInputConfigRequest, opts ...grpc.CallOption) (*TopologyInputConfigResponse, error)
+	GetAll(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SubscribeClient, error)
+	Set(ctx context.Context, in *TopologyInputConfigSetRequest, opts ...grpc.CallOption) (*TopologyInputConfigSetResponse, error)
+	SetSome(ctx context.Context, in *TopologyInputConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *TopologyInputConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyInputConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *TopologyInputConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyInputConfigService_DeleteAllClient, error)
+}
+
+type topologyInputConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyInputConfigServiceClient(cc grpc.ClientConnInterface) TopologyInputConfigServiceClient {
+	return &topologyInputConfigServiceClient{cc}
+}
+
+func (c *topologyInputConfigServiceClient) GetOne(ctx context.Context, in *TopologyInputConfigRequest, opts ...grpc.CallOption) (*TopologyInputConfigResponse, error) {
+	out := new(TopologyInputConfigResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyInputConfigServiceClient) GetAll(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyInputConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputConfigService_GetAllClient interface {
+	Recv() (*TopologyInputConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputConfigServiceGetAllClient) Recv() (*TopologyInputConfigStreamResponse, error) {
+	m := new(TopologyInputConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyInputConfigServiceClient) Subscribe(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyInputConfigService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputConfigService_SubscribeClient interface {
+	Recv() (*TopologyInputConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputConfigServiceSubscribeClient) Recv() (*TopologyInputConfigStreamResponse, error) {
+	m := new(TopologyInputConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyInputConfigServiceClient) Set(ctx context.Context, in *TopologyInputConfigSetRequest, opts ...grpc.CallOption) (*TopologyInputConfigSetResponse, error) {
+	out := new(TopologyInputConfigSetResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/Set", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyInputConfigServiceClient) SetSome(ctx context.Context, in *TopologyInputConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyInputConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputConfigService_SetSomeClient interface {
+	Recv() (*TopologyInputConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputConfigServiceSetSomeClient) Recv() (*TopologyInputConfigSetSomeResponse, error) {
+	m := new(TopologyInputConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyInputConfigServiceClient) Delete(ctx context.Context, in *TopologyInputConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyInputConfigDeleteResponse, error) {
+	out := new(TopologyInputConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyInputConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyInputConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyInputConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyInputConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyInputConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyInputConfigService_DeleteAllClient interface {
+	Recv() (*TopologyInputConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type topologyInputConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyInputConfigServiceDeleteAllClient) Recv() (*TopologyInputConfigDeleteAllResponse, error) {
+	m := new(TopologyInputConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyInputConfigServiceServer is the server API for TopologyInputConfigService service.
+// All implementations must embed UnimplementedTopologyInputConfigServiceServer
+// for forward compatibility
+type TopologyInputConfigServiceServer interface {
+	GetOne(context.Context, *TopologyInputConfigRequest) (*TopologyInputConfigResponse, error)
+	GetAll(*TopologyInputConfigStreamRequest, TopologyInputConfigService_GetAllServer) error
+	Subscribe(*TopologyInputConfigStreamRequest, TopologyInputConfigService_SubscribeServer) error
+	Set(context.Context, *TopologyInputConfigSetRequest) (*TopologyInputConfigSetResponse, error)
+	SetSome(*TopologyInputConfigSetSomeRequest, TopologyInputConfigService_SetSomeServer) error
+	Delete(context.Context, *TopologyInputConfigDeleteRequest) (*TopologyInputConfigDeleteResponse, error)
+	DeleteAll(*TopologyInputConfigDeleteAllRequest, TopologyInputConfigService_DeleteAllServer) error
+	mustEmbedUnimplementedTopologyInputConfigServiceServer()
+}
+
+// UnimplementedTopologyInputConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyInputConfigServiceServer struct {
+}
+
+func (UnimplementedTopologyInputConfigServiceServer) GetOne(context.Context, *TopologyInputConfigRequest) (*TopologyInputConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) GetAll(*TopologyInputConfigStreamRequest, TopologyInputConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) Subscribe(*TopologyInputConfigStreamRequest, TopologyInputConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) Set(context.Context, *TopologyInputConfigSetRequest) (*TopologyInputConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) SetSome(*TopologyInputConfigSetSomeRequest, TopologyInputConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) Delete(context.Context, *TopologyInputConfigDeleteRequest) (*TopologyInputConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) DeleteAll(*TopologyInputConfigDeleteAllRequest, TopologyInputConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedTopologyInputConfigServiceServer) mustEmbedUnimplementedTopologyInputConfigServiceServer() {
+}
+
+// UnsafeTopologyInputConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyInputConfigServiceServer will
+// result in compilation errors.
+type UnsafeTopologyInputConfigServiceServer interface {
+	mustEmbedUnimplementedTopologyInputConfigServiceServer()
+}
+
+func RegisterTopologyInputConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyInputConfigServiceServer) {
+	s.RegisterService(&TopologyInputConfigService_ServiceDesc, srv)
+}
+
+func _TopologyInputConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyInputConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyInputConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyInputConfigService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyInputConfigServiceServer).GetOne(ctx, req.(*TopologyInputConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyInputConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputConfigServiceServer).GetAll(m, &topologyInputConfigServiceGetAllServer{stream})
+}
+
+type TopologyInputConfigService_GetAllServer interface {
+	Send(*TopologyInputConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputConfigServiceGetAllServer) Send(m *TopologyInputConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyInputConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputConfigServiceServer).Subscribe(m, &topologyInputConfigServiceSubscribeServer{stream})
+}
+
+type TopologyInputConfigService_SubscribeServer interface {
+	Send(*TopologyInputConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputConfigServiceSubscribeServer) Send(m *TopologyInputConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyInputConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyInputConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyInputConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyInputConfigService/Set",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyInputConfigServiceServer).Set(ctx, req.(*TopologyInputConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyInputConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputConfigServiceServer).SetSome(m, &topologyInputConfigServiceSetSomeServer{stream})
+}
+
+type TopologyInputConfigService_SetSomeServer interface {
+	Send(*TopologyInputConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputConfigServiceSetSomeServer) Send(m *TopologyInputConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyInputConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyInputConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyInputConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyInputConfigService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyInputConfigServiceServer).Delete(ctx, req.(*TopologyInputConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyInputConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyInputConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyInputConfigServiceServer).DeleteAll(m, &topologyInputConfigServiceDeleteAllServer{stream})
+}
+
+type TopologyInputConfigService_DeleteAllServer interface {
+	Send(*TopologyInputConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type topologyInputConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyInputConfigServiceDeleteAllServer) Send(m *TopologyInputConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyInputConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyInputConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyInputConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyInputConfigService",
+	HandlerType: (*TopologyInputConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyInputConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _TopologyInputConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _TopologyInputConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyInputConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyInputConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _TopologyInputConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _TopologyInputConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyUpdateServiceClient is the client API for TopologyUpdateService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyUpdateServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyUpdateRequest, opts ...grpc.CallOption) (*TopologyUpdateResponse, error)
+	GetAll(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_SubscribeClient, error)
+}
+
+type topologyUpdateServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyUpdateServiceClient(cc grpc.ClientConnInterface) TopologyUpdateServiceClient {
+	return &topologyUpdateServiceClient{cc}
+}
+
+func (c *topologyUpdateServiceClient) GetOne(ctx context.Context, in *TopologyUpdateRequest, opts ...grpc.CallOption) (*TopologyUpdateResponse, error) {
+	out := new(TopologyUpdateResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateServiceClient) GetAll(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateService_GetAllClient interface {
+	Recv() (*TopologyUpdateStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateServiceGetAllClient) Recv() (*TopologyUpdateStreamResponse, error) {
+	m := new(TopologyUpdateStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateService_SubscribeClient interface {
+	Recv() (*TopologyUpdateStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateServiceSubscribeClient) Recv() (*TopologyUpdateStreamResponse, error) {
+	m := new(TopologyUpdateStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyUpdateServiceServer is the server API for TopologyUpdateService service.
+// All implementations must embed UnimplementedTopologyUpdateServiceServer
+// for forward compatibility
+type TopologyUpdateServiceServer interface {
+	GetOne(context.Context, *TopologyUpdateRequest) (*TopologyUpdateResponse, error)
+	GetAll(*TopologyUpdateStreamRequest, TopologyUpdateService_GetAllServer) error
+	Subscribe(*TopologyUpdateStreamRequest, TopologyUpdateService_SubscribeServer) error
+	mustEmbedUnimplementedTopologyUpdateServiceServer()
+}
+
+// UnimplementedTopologyUpdateServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyUpdateServiceServer struct {
+}
+
+func (UnimplementedTopologyUpdateServiceServer) GetOne(context.Context, *TopologyUpdateRequest) (*TopologyUpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyUpdateServiceServer) GetAll(*TopologyUpdateStreamRequest, TopologyUpdateService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyUpdateServiceServer) Subscribe(*TopologyUpdateStreamRequest, TopologyUpdateService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyUpdateServiceServer) mustEmbedUnimplementedTopologyUpdateServiceServer() {}
+
+// UnsafeTopologyUpdateServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyUpdateServiceServer will
+// result in compilation errors.
+type UnsafeTopologyUpdateServiceServer interface {
+	mustEmbedUnimplementedTopologyUpdateServiceServer()
+}
+
+func RegisterTopologyUpdateServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateServiceServer) {
+	s.RegisterService(&TopologyUpdateService_ServiceDesc, srv)
+}
+
+func _TopologyUpdateService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateServiceServer).GetOne(ctx, req.(*TopologyUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateServiceServer).GetAll(m, &topologyUpdateServiceGetAllServer{stream})
+}
+
+type TopologyUpdateService_GetAllServer interface {
+	Send(*TopologyUpdateStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateServiceGetAllServer) Send(m *TopologyUpdateStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateServiceServer).Subscribe(m, &topologyUpdateServiceSubscribeServer{stream})
+}
+
+type TopologyUpdateService_SubscribeServer interface {
+	Send(*TopologyUpdateStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateServiceSubscribeServer) Send(m *TopologyUpdateStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyUpdateService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyUpdateService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyUpdateService",
+	HandlerType: (*TopologyUpdateServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyUpdateService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyUpdateService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyUpdateService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyUpdateConfigServiceClient is the client API for TopologyUpdateConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyUpdateConfigServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyUpdateConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigResponse, error)
+	GetAll(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SubscribeClient, error)
+	Set(ctx context.Context, in *TopologyUpdateConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigSetResponse, error)
+	SetSome(ctx context.Context, in *TopologyUpdateConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *TopologyUpdateConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *TopologyUpdateConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_DeleteAllClient, error)
+}
+
+type topologyUpdateConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyUpdateConfigServiceClient(cc grpc.ClientConnInterface) TopologyUpdateConfigServiceClient {
+	return &topologyUpdateConfigServiceClient{cc}
+}
+
+func (c *topologyUpdateConfigServiceClient) GetOne(ctx context.Context, in *TopologyUpdateConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigResponse, error) {
+	out := new(TopologyUpdateConfigResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) GetAll(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateConfigService_GetAllClient interface {
+	Recv() (*TopologyUpdateConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateConfigServiceGetAllClient) Recv() (*TopologyUpdateConfigStreamResponse, error) {
+	m := new(TopologyUpdateConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateConfigService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateConfigService_SubscribeClient interface {
+	Recv() (*TopologyUpdateConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateConfigServiceSubscribeClient) Recv() (*TopologyUpdateConfigStreamResponse, error) {
+	m := new(TopologyUpdateConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) Set(ctx context.Context, in *TopologyUpdateConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigSetResponse, error) {
+	out := new(TopologyUpdateConfigSetResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/Set", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) SetSome(ctx context.Context, in *TopologyUpdateConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyUpdateConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateConfigService_SetSomeClient interface {
+	Recv() (*TopologyUpdateConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateConfigServiceSetSomeClient) Recv() (*TopologyUpdateConfigSetSomeResponse, error) {
+	m := new(TopologyUpdateConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) Delete(ctx context.Context, in *TopologyUpdateConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigDeleteResponse, error) {
+	out := new(TopologyUpdateConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyUpdateConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyUpdateConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateConfigService_DeleteAllClient interface {
+	Recv() (*TopologyUpdateConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateConfigServiceDeleteAllClient) Recv() (*TopologyUpdateConfigDeleteAllResponse, error) {
+	m := new(TopologyUpdateConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyUpdateConfigServiceServer is the server API for TopologyUpdateConfigService service.
+// All implementations must embed UnimplementedTopologyUpdateConfigServiceServer
+// for forward compatibility
+type TopologyUpdateConfigServiceServer interface {
+	GetOne(context.Context, *TopologyUpdateConfigRequest) (*TopologyUpdateConfigResponse, error)
+	GetAll(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_GetAllServer) error
+	Subscribe(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_SubscribeServer) error
+	Set(context.Context, *TopologyUpdateConfigSetRequest) (*TopologyUpdateConfigSetResponse, error)
+	SetSome(*TopologyUpdateConfigSetSomeRequest, TopologyUpdateConfigService_SetSomeServer) error
+	Delete(context.Context, *TopologyUpdateConfigDeleteRequest) (*TopologyUpdateConfigDeleteResponse, error)
+	DeleteAll(*TopologyUpdateConfigDeleteAllRequest, TopologyUpdateConfigService_DeleteAllServer) error
+	mustEmbedUnimplementedTopologyUpdateConfigServiceServer()
+}
+
+// UnimplementedTopologyUpdateConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyUpdateConfigServiceServer struct {
+}
+
+func (UnimplementedTopologyUpdateConfigServiceServer) GetOne(context.Context, *TopologyUpdateConfigRequest) (*TopologyUpdateConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) GetAll(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) Subscribe(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) Set(context.Context, *TopologyUpdateConfigSetRequest) (*TopologyUpdateConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) SetSome(*TopologyUpdateConfigSetSomeRequest, TopologyUpdateConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) Delete(context.Context, *TopologyUpdateConfigDeleteRequest) (*TopologyUpdateConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) DeleteAll(*TopologyUpdateConfigDeleteAllRequest, TopologyUpdateConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedTopologyUpdateConfigServiceServer) mustEmbedUnimplementedTopologyUpdateConfigServiceServer() {
+}
+
+// UnsafeTopologyUpdateConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyUpdateConfigServiceServer will
+// result in compilation errors.
+type UnsafeTopologyUpdateConfigServiceServer interface {
+	mustEmbedUnimplementedTopologyUpdateConfigServiceServer()
+}
+
+func RegisterTopologyUpdateConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateConfigServiceServer) {
+	s.RegisterService(&TopologyUpdateConfigService_ServiceDesc, srv)
+}
+
+func _TopologyUpdateConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateConfigServiceServer).GetOne(ctx, req.(*TopologyUpdateConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateConfigServiceServer).GetAll(m, &topologyUpdateConfigServiceGetAllServer{stream})
+}
+
+type TopologyUpdateConfigService_GetAllServer interface {
+	Send(*TopologyUpdateConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateConfigServiceGetAllServer) Send(m *TopologyUpdateConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateConfigServiceServer).Subscribe(m, &topologyUpdateConfigServiceSubscribeServer{stream})
+}
+
+type TopologyUpdateConfigService_SubscribeServer interface {
+	Send(*TopologyUpdateConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateConfigServiceSubscribeServer) Send(m *TopologyUpdateConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/Set",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateConfigServiceServer).Set(ctx, req.(*TopologyUpdateConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateConfigServiceServer).SetSome(m, &topologyUpdateConfigServiceSetSomeServer{stream})
+}
+
+type TopologyUpdateConfigService_SetSomeServer interface {
+	Send(*TopologyUpdateConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateConfigServiceSetSomeServer) Send(m *TopologyUpdateConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateConfigServiceServer).Delete(ctx, req.(*TopologyUpdateConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateConfigServiceServer).DeleteAll(m, &topologyUpdateConfigServiceDeleteAllServer{stream})
+}
+
+type TopologyUpdateConfigService_DeleteAllServer interface {
+	Send(*TopologyUpdateConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateConfigServiceDeleteAllServer) Send(m *TopologyUpdateConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyUpdateConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyUpdateConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyUpdateConfigService",
+	HandlerType: (*TopologyUpdateConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyUpdateConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _TopologyUpdateConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _TopologyUpdateConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyUpdateConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyUpdateConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _TopologyUpdateConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _TopologyUpdateConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyUpdateSyncServiceClient is the client API for TopologyUpdateSyncService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyUpdateSyncServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyUpdateSyncRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncResponse, error)
+	GetAll(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_SubscribeClient, error)
+}
+
+type topologyUpdateSyncServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyUpdateSyncServiceClient(cc grpc.ClientConnInterface) TopologyUpdateSyncServiceClient {
+	return &topologyUpdateSyncServiceClient{cc}
+}
+
+func (c *topologyUpdateSyncServiceClient) GetOne(ctx context.Context, in *TopologyUpdateSyncRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncResponse, error) {
+	out := new(TopologyUpdateSyncResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateSyncServiceClient) GetAll(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateSyncService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncService_GetAllClient interface {
+	Recv() (*TopologyUpdateSyncStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncServiceGetAllClient) Recv() (*TopologyUpdateSyncStreamResponse, error) {
+	m := new(TopologyUpdateSyncStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateSyncServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateSyncService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncService_SubscribeClient interface {
+	Recv() (*TopologyUpdateSyncStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncServiceSubscribeClient) Recv() (*TopologyUpdateSyncStreamResponse, error) {
+	m := new(TopologyUpdateSyncStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyUpdateSyncServiceServer is the server API for TopologyUpdateSyncService service.
+// All implementations must embed UnimplementedTopologyUpdateSyncServiceServer
+// for forward compatibility
+type TopologyUpdateSyncServiceServer interface {
+	GetOne(context.Context, *TopologyUpdateSyncRequest) (*TopologyUpdateSyncResponse, error)
+	GetAll(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_GetAllServer) error
+	Subscribe(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_SubscribeServer) error
+	mustEmbedUnimplementedTopologyUpdateSyncServiceServer()
+}
+
+// UnimplementedTopologyUpdateSyncServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyUpdateSyncServiceServer struct {
+}
+
+func (UnimplementedTopologyUpdateSyncServiceServer) GetOne(context.Context, *TopologyUpdateSyncRequest) (*TopologyUpdateSyncResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyUpdateSyncServiceServer) GetAll(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyUpdateSyncServiceServer) Subscribe(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyUpdateSyncServiceServer) mustEmbedUnimplementedTopologyUpdateSyncServiceServer() {
+}
+
+// UnsafeTopologyUpdateSyncServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyUpdateSyncServiceServer will
+// result in compilation errors.
+type UnsafeTopologyUpdateSyncServiceServer interface {
+	mustEmbedUnimplementedTopologyUpdateSyncServiceServer()
+}
+
+func RegisterTopologyUpdateSyncServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateSyncServiceServer) {
+	s.RegisterService(&TopologyUpdateSyncService_ServiceDesc, srv)
+}
+
+func _TopologyUpdateSyncService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateSyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateSyncServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateSyncService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateSyncServiceServer).GetOne(ctx, req.(*TopologyUpdateSyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateSyncService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncServiceServer).GetAll(m, &topologyUpdateSyncServiceGetAllServer{stream})
+}
+
+type TopologyUpdateSyncService_GetAllServer interface {
+	Send(*TopologyUpdateSyncStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncServiceGetAllServer) Send(m *TopologyUpdateSyncStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateSyncService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncServiceServer).Subscribe(m, &topologyUpdateSyncServiceSubscribeServer{stream})
+}
+
+type TopologyUpdateSyncService_SubscribeServer interface {
+	Send(*TopologyUpdateSyncStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncServiceSubscribeServer) Send(m *TopologyUpdateSyncStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyUpdateSyncService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateSyncService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyUpdateSyncService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyUpdateSyncService",
+	HandlerType: (*TopologyUpdateSyncServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyUpdateSyncService_GetOne_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyUpdateSyncService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyUpdateSyncService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/studio.v1/services.gen.proto",
+}
+
+// TopologyUpdateSyncConfigServiceClient is the client API for TopologyUpdateSyncConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TopologyUpdateSyncConfigServiceClient interface {
+	GetOne(ctx context.Context, in *TopologyUpdateSyncConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigResponse, error)
+	GetAll(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SubscribeClient, error)
+	Set(ctx context.Context, in *TopologyUpdateSyncConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigSetResponse, error)
+	SetSome(ctx context.Context, in *TopologyUpdateSyncConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *TopologyUpdateSyncConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *TopologyUpdateSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_DeleteAllClient, error)
+}
+
+type topologyUpdateSyncConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTopologyUpdateSyncConfigServiceClient(cc grpc.ClientConnInterface) TopologyUpdateSyncConfigServiceClient {
+	return &topologyUpdateSyncConfigServiceClient{cc}
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) GetOne(ctx context.Context, in *TopologyUpdateSyncConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigResponse, error) {
+	out := new(TopologyUpdateSyncConfigResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) GetAll(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateSyncConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncConfigService_GetAllClient interface {
+	Recv() (*TopologyUpdateSyncConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncConfigServiceGetAllClient) Recv() (*TopologyUpdateSyncConfigStreamResponse, error) {
+	m := new(TopologyUpdateSyncConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateSyncConfigService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncConfigService_SubscribeClient interface {
+	Recv() (*TopologyUpdateSyncConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncConfigServiceSubscribeClient) Recv() (*TopologyUpdateSyncConfigStreamResponse, error) {
+	m := new(TopologyUpdateSyncConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) Set(ctx context.Context, in *TopologyUpdateSyncConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigSetResponse, error) {
+	out := new(TopologyUpdateSyncConfigSetResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/Set", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) SetSome(ctx context.Context, in *TopologyUpdateSyncConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyUpdateSyncConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncConfigService_SetSomeClient interface {
+	Recv() (*TopologyUpdateSyncConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncConfigServiceSetSomeClient) Recv() (*TopologyUpdateSyncConfigSetSomeResponse, error) {
+	m := new(TopologyUpdateSyncConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) Delete(ctx context.Context, in *TopologyUpdateSyncConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigDeleteResponse, error) {
+	out := new(TopologyUpdateSyncConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *topologyUpdateSyncConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyUpdateSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyUpdateSyncConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &topologyUpdateSyncConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TopologyUpdateSyncConfigService_DeleteAllClient interface {
+	Recv() (*TopologyUpdateSyncConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type topologyUpdateSyncConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *topologyUpdateSyncConfigServiceDeleteAllClient) Recv() (*TopologyUpdateSyncConfigDeleteAllResponse, error) {
+	m := new(TopologyUpdateSyncConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// TopologyUpdateSyncConfigServiceServer is the server API for TopologyUpdateSyncConfigService service.
+// All implementations must embed UnimplementedTopologyUpdateSyncConfigServiceServer
+// for forward compatibility
+type TopologyUpdateSyncConfigServiceServer interface {
+	GetOne(context.Context, *TopologyUpdateSyncConfigRequest) (*TopologyUpdateSyncConfigResponse, error)
+	GetAll(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_GetAllServer) error
+	Subscribe(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_SubscribeServer) error
+	Set(context.Context, *TopologyUpdateSyncConfigSetRequest) (*TopologyUpdateSyncConfigSetResponse, error)
+	SetSome(*TopologyUpdateSyncConfigSetSomeRequest, TopologyUpdateSyncConfigService_SetSomeServer) error
+	Delete(context.Context, *TopologyUpdateSyncConfigDeleteRequest) (*TopologyUpdateSyncConfigDeleteResponse, error)
+	DeleteAll(*TopologyUpdateSyncConfigDeleteAllRequest, TopologyUpdateSyncConfigService_DeleteAllServer) error
+	mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer()
+}
+
+// UnimplementedTopologyUpdateSyncConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTopologyUpdateSyncConfigServiceServer struct {
+}
+
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) GetOne(context.Context, *TopologyUpdateSyncConfigRequest) (*TopologyUpdateSyncConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) GetAll(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) Subscribe(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) Set(context.Context, *TopologyUpdateSyncConfigSetRequest) (*TopologyUpdateSyncConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) SetSome(*TopologyUpdateSyncConfigSetSomeRequest, TopologyUpdateSyncConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) Delete(context.Context, *TopologyUpdateSyncConfigDeleteRequest) (*TopologyUpdateSyncConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) DeleteAll(*TopologyUpdateSyncConfigDeleteAllRequest, TopologyUpdateSyncConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedTopologyUpdateSyncConfigServiceServer) mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer() {
+}
+
+// UnsafeTopologyUpdateSyncConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TopologyUpdateSyncConfigServiceServer will
+// result in compilation errors.
+type UnsafeTopologyUpdateSyncConfigServiceServer interface {
+	mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer()
+}
+
+func RegisterTopologyUpdateSyncConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateSyncConfigServiceServer) {
+	s.RegisterService(&TopologyUpdateSyncConfigService_ServiceDesc, srv)
+}
+
+func _TopologyUpdateSyncConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateSyncConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateSyncConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateSyncConfigServiceServer).GetOne(ctx, req.(*TopologyUpdateSyncConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateSyncConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncConfigServiceServer).GetAll(m, &topologyUpdateSyncConfigServiceGetAllServer{stream})
+}
+
+type TopologyUpdateSyncConfigService_GetAllServer interface {
+	Send(*TopologyUpdateSyncConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncConfigServiceGetAllServer) Send(m *TopologyUpdateSyncConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateSyncConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncConfigServiceServer).Subscribe(m, &topologyUpdateSyncConfigServiceSubscribeServer{stream})
+}
+
+type TopologyUpdateSyncConfigService_SubscribeServer interface {
+	Send(*TopologyUpdateSyncConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncConfigServiceSubscribeServer) Send(m *TopologyUpdateSyncConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateSyncConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateSyncConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateSyncConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/Set",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateSyncConfigServiceServer).Set(ctx, req.(*TopologyUpdateSyncConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateSyncConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncConfigServiceServer).SetSome(m, &topologyUpdateSyncConfigServiceSetSomeServer{stream})
+}
+
+type TopologyUpdateSyncConfigService_SetSomeServer interface {
+	Send(*TopologyUpdateSyncConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncConfigServiceSetSomeServer) Send(m *TopologyUpdateSyncConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TopologyUpdateSyncConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TopologyUpdateSyncConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TopologyUpdateSyncConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TopologyUpdateSyncConfigServiceServer).Delete(ctx, req.(*TopologyUpdateSyncConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TopologyUpdateSyncConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TopologyUpdateSyncConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TopologyUpdateSyncConfigServiceServer).DeleteAll(m, &topologyUpdateSyncConfigServiceDeleteAllServer{stream})
+}
+
+type TopologyUpdateSyncConfigService_DeleteAllServer interface {
+	Send(*TopologyUpdateSyncConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type topologyUpdateSyncConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *topologyUpdateSyncConfigServiceDeleteAllServer) Send(m *TopologyUpdateSyncConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// TopologyUpdateSyncConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateSyncConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TopologyUpdateSyncConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.studio.v1.TopologyUpdateSyncConfigService",
+	HandlerType: (*TopologyUpdateSyncConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TopologyUpdateSyncConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _TopologyUpdateSyncConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _TopologyUpdateSyncConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TopologyUpdateSyncConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TopologyUpdateSyncConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _TopologyUpdateSyncConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _TopologyUpdateSyncConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
