@@ -106,6 +106,12 @@ func (c *v2Client) metadataRequest(ctx context.Context) *gnmi.SetRequest {
 			agnmi.TypedValue(c.info.Config.Device)))
 	}
 
+	// Add managed-device-status, if present.
+	if c.info != nil && c.info.Status != "" {
+		u = append(u, pgnmi.Update(pgnmi.Path("managed-device-status"),
+			agnmi.TypedValue(string(c.info.Status))))
+	}
+
 	ip, err := c.device.IPAddr(ctx)
 	if err != nil {
 		log.Log(c).Debugf("v2Client: metadataRequest: error in IPAddr [%s]: %s",

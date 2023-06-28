@@ -245,6 +245,19 @@ func (i *inventory) Delete(key string) error {
 	// has manage go routine closed too.
 	dc.cancel()
 	dc.group.Wait()
+
+	ctx := i.ctx
+	if dc.info.Context != nil {
+		ctx = dc.info.Context
+	}
+	// send metadata update for device as removed
+	// so that it can be removed from CloudVision.
+	dc.info.Status = StatusRemoved
+	if err := dc.cvClient.SendDeviceMetadata(ctx); err != nil {
+		return fmt.Errorf("Error sending device metadata for device "+
+			"%q (%s): %w", key, dc.info.Status, err)
+	}
+
 	delete(i.devices, key)
 	log.Log(dc.info.Device).Infof("Deleted device %s", key)
 	return nil

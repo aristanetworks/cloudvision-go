@@ -14,6 +14,20 @@ import (
 	"google.golang.org/grpc"
 )
 
+// ManagedDeviceStatus contains the status of a managed device.
+type ManagedDeviceStatus string
+
+var (
+	// StatusActive indicates that a device is active.
+	StatusActive ManagedDeviceStatus = "DEVICE_STATUS_ACTIVE"
+	// StatusInactive indicates that a device is inactive, should
+	// still be tracked by CloudVision.
+	StatusInactive ManagedDeviceStatus = " DEVICE_STATUS_INACTIVE"
+	// StatusRemoved indicates that a device should no longer
+	// be tracked by CloudVision.
+	StatusRemoved ManagedDeviceStatus = "DEVICE_STATUS_REMOVED"
+)
+
 // badConfigError is an error that is impossible to fix without user intervention.
 // This error is use to prevent retrying runs of the device that will never work.
 type badConfigError struct {
@@ -140,6 +154,7 @@ type Info struct {
 	Context context.Context
 	Device  Device
 	Config  *Config
+	Status  ManagedDeviceStatus
 }
 
 func (i *Info) String() string {

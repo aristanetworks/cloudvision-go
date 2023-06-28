@@ -49,6 +49,8 @@ func verifyMetadataLeaves(r *gnmi.SetRequest, c *v2Client) error {
 		"/device-metadata/state/metadata/source-type":       integ,
 		"/device-metadata/state/metadata/collector-version": agnmi.TypedValue(versionString),
 		"/device-metadata/state/metadata/ip-addr":           agnmi.TypedValue(ip),
+		"/device-metadata/state/metadata/managed-device-status": agnmi.
+			TypedValue(string(c.info.Status)),
 	}
 	return verifyUpdates(r, expData, true)
 }
@@ -82,6 +84,7 @@ func TestMetadataRequest(t *testing.T) {
 			Config: &device.Config{
 				Device: "test",
 			},
+			Status: device.StatusRemoved,
 		}).(*v2Client)
 	r := c.metadataRequest(context.Background())
 	if err := verifyMetadataLeaves(r, c); err != nil {
