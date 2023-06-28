@@ -235,6 +235,7 @@ type DashboardConfigServiceClient interface {
 	GetAll(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *DashboardConfigSetRequest, opts ...grpc.CallOption) (*DashboardConfigSetResponse, error)
+	SetSome(ctx context.Context, in *DashboardConfigSetSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *DashboardConfigDeleteRequest, opts ...grpc.CallOption) (*DashboardConfigDeleteResponse, error)
 	DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error)
 }
@@ -329,6 +330,38 @@ func (c *dashboardConfigServiceClient) Set(ctx context.Context, in *DashboardCon
 	return out, nil
 }
 
+func (c *dashboardConfigServiceClient) SetSome(ctx context.Context, in *DashboardConfigSetSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardConfigService_SetSomeClient interface {
+	Recv() (*DashboardConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardConfigServiceSetSomeClient) Recv() (*DashboardConfigSetSomeResponse, error) {
+	m := new(DashboardConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *dashboardConfigServiceClient) Delete(ctx context.Context, in *DashboardConfigDeleteRequest, opts ...grpc.CallOption) (*DashboardConfigDeleteResponse, error) {
 	out := new(DashboardConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.dashboard.v1.DashboardConfigService/Delete", in, out, opts...)
@@ -339,7 +372,7 @@ func (c *dashboardConfigServiceClient) Delete(ctx context.Context, in *Dashboard
 }
 
 func (c *dashboardConfigServiceClient) DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[3], "/arista.dashboard.v1.DashboardConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -378,6 +411,7 @@ type DashboardConfigServiceServer interface {
 	GetAll(*DashboardConfigStreamRequest, DashboardConfigService_GetAllServer) error
 	Subscribe(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeServer) error
 	Set(context.Context, *DashboardConfigSetRequest) (*DashboardConfigSetResponse, error)
+	SetSome(*DashboardConfigSetSomeRequest, DashboardConfigService_SetSomeServer) error
 	Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error)
 	DeleteAll(*DashboardConfigDeleteAllRequest, DashboardConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedDashboardConfigServiceServer()
@@ -398,6 +432,9 @@ func (UnimplementedDashboardConfigServiceServer) Subscribe(*DashboardConfigStrea
 }
 func (UnimplementedDashboardConfigServiceServer) Set(context.Context, *DashboardConfigSetRequest) (*DashboardConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedDashboardConfigServiceServer) SetSome(*DashboardConfigSetSomeRequest, DashboardConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
 }
 func (UnimplementedDashboardConfigServiceServer) Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -497,6 +534,27 @@ func _DashboardConfigService_Set_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DashboardConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardConfigServiceServer).SetSome(m, &dashboardConfigServiceSetSomeServer{stream})
+}
+
+type DashboardConfigService_SetSomeServer interface {
+	Send(*DashboardConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type dashboardConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardConfigServiceSetSomeServer) Send(m *DashboardConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DashboardConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DashboardConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -565,6 +623,11 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DashboardConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _DashboardConfigService_SetSome_Handler,
 			ServerStreams: true,
 		},
 		{
