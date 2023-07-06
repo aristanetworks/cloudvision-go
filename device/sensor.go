@@ -812,7 +812,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 					dscfg.option[k] = upd.Val.GetStringVal()
 				}
 			}
-		case "loglevel":
+		case "log-level":
 			level := upd.Val.GetStringVal()
 			loglevel, ok := logMapping[level]
 			if !ok {
@@ -834,7 +834,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	// Reset redeploy timer so we have a few moments to aggregate more changes
 	for name := range dsUpdated {
 		ds := s.getDatasource(ctx, name)
-		if _, ok := dsUpdated[name]["loglevel"]; ok {
+		if _, ok := dsUpdated[name]["log-level"]; ok {
 			ds.monitor.SetLoggerLevel(s.datasourceConfig[name].loglevel)
 			if len(dsUpdated[name]) == 1 {
 				// If only the log level changes in the datasource config, skip the restart.
