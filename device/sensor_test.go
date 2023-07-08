@@ -227,6 +227,10 @@ var mockDeviceOptions = map[string]Option{
 		Description: "somedata",
 		Required:    false,
 	},
+	"log-level": {
+		Description: "log level for mock datasource",
+		Required:    false,
+	},
 }
 
 type sensorTestCase struct {
@@ -294,7 +298,7 @@ func datasourceOptUpdate(id, name, optOrCred, key, val string) []*gnmi.Update {
 }
 
 func datasourceUpdates(configOrState, id, name, typ string, enabled bool,
-	opts map[string]string, creds map[string]string) []*gnmi.Update {
+	opts map[string]string, creds map[string]string, logLevel string) []*gnmi.Update {
 	upds := []*gnmi.Update{
 		datasourceUpdate(configOrState, id, name, "name", name),
 		datasourceUpdate(configOrState, id, name, "type", typ),
@@ -306,6 +310,7 @@ func datasourceUpdates(configOrState, id, name, typ string, enabled bool,
 	for k, v := range creds {
 		upds = append(upds, datasourceOptUpdate(id, name, "credential", k, v)...)
 	}
+	upds = append(upds, datasourceOptUpdate(id, name, "option", "log-level", logLevel)...)
 	return upds
 }
 
@@ -574,7 +579,8 @@ func TestSensor(t *testing.T) {
 			configSubResps: []*gnmi.SubscribeResponse{
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123", "input1": "value1"}, nil)...),
+						true, map[string]string{"id": "123", "input1": "value1"},
+						nil, "LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
@@ -598,7 +604,8 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
-			waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
 		},
 		{
 			name: "Update existing datasource",
@@ -606,7 +613,7 @@ func TestSensor(t *testing.T) {
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
 						true, map[string]string{"id": "123", "input1": "value1"},
-						map[string]string{"cred1": "credv1"})...),
+						map[string]string{"cred1": "credv1"}, "LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
@@ -615,10 +622,12 @@ func TestSensor(t *testing.T) {
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
 						true, map[string]string{"id": "123", "input1": "value2"},
-						map[string]string{"cred1": "credv2"})...),
+						map[string]string{"cred1": "credv2"}, "LOG_LEVEL_DEBUG")...),
 			},
-			waitForMetadataPreSync:  []string{"123|map[cred1:credv1 id:123 input1:value1]"},
-			waitForMetadataPostSync: []string{"123|map[cred1:credv2 id:123 input1:value2]"},
+			waitForMetadataPreSync: []string{"123|" +
+				"map[cred1:credv1 id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[cred1:credv2 id:123 input1:value2 log-level:LOG_LEVEL_DEBUG]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -660,7 +669,8 @@ func TestSensor(t *testing.T) {
 							"id":     "123",
 							"input1": "value1",
 							"input2": "value2"},
-						map[string]string{"cred1": "credv1"})...),
+						map[string]string{"cred1": "credv1"},
+						"LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
@@ -687,10 +697,10 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
-			waitForMetadataPreSync: []string{"123|map[cred1:credv1 id:123" +
-				" input1:value1 input2:value2]"},
-			waitForMetadataPostSync: []string{"123|map[cred1:credv1 id:123" +
-				" input1:value2]"},
+			waitForMetadataPreSync: []string{"123|" +
+				"map[cred1:credv1 id:123 input1:value1 input2:value2 log-level:LOG_LEVEL_INFO]"},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[cred1:credv1 id:123 input1:value2 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -732,7 +742,8 @@ func TestSensor(t *testing.T) {
 							"id":     "123",
 							"input1": "value1",
 							"input2": "value2"},
-						map[string]string{"cred1": "credv1", "cred2": "credv2"})...),
+						map[string]string{"cred1": "credv1", "cred2": "credv2"},
+						"LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
@@ -756,9 +767,10 @@ func TestSensor(t *testing.T) {
 				},
 			},
 			waitForMetadataPreSync: []string{
-				"123|map[cred1:credv1 cred2:credv2 id:123 input1:value1 input2:value2]"},
+				"123|map[cred1:credv1 cred2:credv2 id:123 " +
+					"input1:value1 input2:value2 log-level:LOG_LEVEL_INFO]"},
 			waitForMetadataPostSync: []string{
-				"123|map[cred1:credv1 id:123 input1:value1]"},
+				"123|map[cred1:credv1 id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -796,7 +808,8 @@ func TestSensor(t *testing.T) {
 			configSubResps: []*gnmi.SubscribeResponse{
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123", "input1": "value1"}, nil)...),
+						true, map[string]string{"id": "123", "input1": "value1"}, nil,
+						"LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
@@ -804,9 +817,11 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						false, map[string]string{"id": "123", "input1": "value2"}, nil)...),
+						false, map[string]string{"id": "123", "input1": "value2"}, nil,
+						"LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPreSync: []string{"123|map[id:123 input1:value1]"},
+			waitForMetadataPreSync: []string{"123|" +
+				"map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -843,9 +858,10 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123"}, nil)...),
+						true, map[string]string{"id": "123"}, nil,
+						"LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPostSync: []string{"123|map[id:123]"},
+			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -869,17 +885,17 @@ func TestSensor(t *testing.T) {
 			configSubResps: []*gnmi.SubscribeResponse{
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "bad1", "invalidtype",
-						true, map[string]string{"id": "111"}, nil)...),
+						true, map[string]string{"id": "111"}, nil, "")...),
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123"}, nil)...),
+						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
 				{
 					Response: &gnmi.SubscribeResponse_SyncResponse{
 						SyncResponse: true,
 					},
 				},
 			},
-			waitForMetadataPreSync: []string{"123|map[id:123]"},
+			waitForMetadataPreSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -925,12 +941,12 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "bad1", "invalidtype",
-						true, map[string]string{"id": "111"}, nil)...),
+						true, map[string]string{"id": "111"}, nil, "")...),
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123"}, nil)...),
+						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPostSync: []string{"123|map[id:123]"},
+			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -976,11 +992,12 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123", "crash": "provider"}, nil)...),
+						true, map[string]string{"id": "123", "crash": "provider"},
+						nil, "LOG_LEVEL_INFO")...),
 			},
 			waitForMetadataPostSync: []string{
-				"123|map[crash:provider id:123]",
-				"123|map[crash:provider id:123]"},
+				"123|map[crash:provider id:123 log-level:LOG_LEVEL_INFO]",
+				"123|map[crash:provider id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -1044,9 +1061,11 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123", "crash": "manager"}, nil)...),
+						true, map[string]string{"id": "123", "crash": "manager"},
+						nil, "LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPostSync: []string{"123|map[crash:manager id:123]"},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[crash:manager id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -1086,9 +1105,9 @@ func TestSensor(t *testing.T) {
 						},
 						subscribeUpdates(
 							datasourceUpdates("config", "abc", "xyz", "mock",
-								true, map[string]string{"id": "123"}, nil)...),
+								true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
 					},
-					waitForMetadataPostSync: []string{"123|map[id:123]"},
+					waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 					expectSet: []*gnmi.SetRequest{
 						initialSetReq("abc"),
 						{
@@ -1152,9 +1171,9 @@ func TestSensor(t *testing.T) {
 				},
 				subscribeUpdates(
 					datasourceUpdates("config", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123"}, nil)...),
+						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPostSync: []string{"123|map[id:123]"},
+			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -1192,9 +1211,10 @@ func TestSensor(t *testing.T) {
 					datasourceUpdates("config", "abc", "xyz", "mock",
 						true, map[string]string{
 							"id":      "123",
-							"managed": "m1,m2"}, nil)...),
+							"managed": "m1,m2"}, nil, "LOG_LEVEL_INFO")...),
 			},
-			waitForMetadataPostSync: []string{"123|map[id:123 managed:m1,m2]"},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[id:123 log-level:LOG_LEVEL_INFO managed:m1,m2]"},
 			expectSet: []*gnmi.SetRequest{
 				initialSetReq("abc"),
 				{
@@ -1372,6 +1392,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				option: map[string]string{
 					"id": "123",
 				},
+				loglevel: logrus.InfoLevel,
 			},
 			expectDeviceCreate: 1,
 		},
@@ -1408,6 +1429,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				option: map[string]string{
 					"id": "124", // change should trigger restart
 				},
+				loglevel: logrus.InfoLevel,
 			},
 			expectDeviceCreate: 1,
 		},
@@ -1423,6 +1445,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				credential: map[string]string{
 					"cred1": "abc", // change should trigger restart
 				},
+				loglevel: logrus.InfoLevel,
 			},
 			expectDeviceCreate: 1,
 		},
@@ -1438,6 +1461,23 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				credential: map[string]string{
 					"cred1": "abc",
 				},
+				loglevel: logrus.InfoLevel,
+			},
+			expectDeviceCreate: 0,
+		},
+		{
+			name: "modify loglevel will not redeploy",
+			config: datasourceConfig{
+				name:    deviceName,
+				typ:     deviceType,
+				enabled: true,
+				option: map[string]string{
+					"id": "124",
+				},
+				credential: map[string]string{
+					"cred1": "abc",
+				},
+				loglevel: logrus.DebugLevel,
 			},
 			expectDeviceCreate: 0,
 		},
