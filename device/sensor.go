@@ -424,45 +424,46 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 	streamingStart := true
 
 	for {
+		alive, err := d.info.Device.Alive(ctx)
+		if err == nil && alive {
+			ts := agnmi.TypedValue(time.Now().UnixNano())
+			updates := []*gnmi.Update{pgnmi.Update(lastSeenKey, ts)}
+
+			if wasFailing {
+				d.log.Info("Device is back alive")
+				wasFailing = false
+				updates = append(updates, pgnmi.Update(lastErrorKey,
+					agnmi.TypedValue("Device is back alive")))
+			}
+
+			if streamingStart {
+				updates = append(updates, pgnmi.Update(pgnmi.Path("streaming-start"), ts))
+			}
+
+			if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
+				d.log.Error("Publish status failed:", err)
+			} else if err == nil {
+				// Clear flag only after first successful set
+				streamingStart = false
+			}
+
+			if err := d.cvClient.SendHeartbeat(ctx, alive); err != nil {
+				// Don't give up if an update fails for some reason.
+				d.log.Errorf("Error sending heartbeat: %v", err)
+			}
+		} else if !wasFailing {
+			msg := errors.New("Device not alive")
+			if err != nil {
+				msg = fmt.Errorf("Device not alive: %w", err)
+			}
+			d.handleDatasourceError(ctx, msg)
+			wasFailing = true
+		}
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			alive, err := d.info.Device.Alive(ctx)
-			if err == nil && alive {
-				ts := agnmi.TypedValue(time.Now().UnixNano())
-				updates := []*gnmi.Update{pgnmi.Update(lastSeenKey, ts)}
-
-				if wasFailing {
-					d.log.Info("Device is back alive")
-					wasFailing = false
-					updates = append(updates, pgnmi.Update(lastErrorKey,
-						agnmi.TypedValue("Device is back alive")))
-				}
-
-				if streamingStart {
-					updates = append(updates, pgnmi.Update(pgnmi.Path("streaming-start"), ts))
-				}
-
-				if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
-					d.log.Error("Publish status failed:", err)
-				} else if err == nil {
-					// Clear flag only after first successful set
-					streamingStart = false
-				}
-
-				if err := d.cvClient.SendHeartbeat(ctx, alive); err != nil {
-					// Don't give up if an update fails for some reason.
-					d.log.Errorf("Error sending heartbeat: %v", err)
-				}
-			} else if !wasFailing {
-				msg := errors.New("Device not alive")
-				if err != nil {
-					msg = fmt.Errorf("Device not alive: %w", err)
-				}
-				d.handleDatasourceError(ctx, msg)
-				wasFailing = true
-			}
+			continue
 		}
 	}
 }

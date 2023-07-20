@@ -148,6 +148,8 @@ func (m *mockDevice) Providers() ([]provider.Provider, error) {
 	if ok {
 		switch v {
 		case "": // not set
+		case "manager":
+			return nil, nil
 		case "provider":
 			return []provider.Provider{&crashProvider{}}, nil
 		case "no-retry":
@@ -237,12 +239,13 @@ type sensorTestCase struct {
 	name     string
 	substeps []*sensorTestCase
 
-	stateSubResps           []*gnmi.SubscribeResponse
-	configSubResps          []*gnmi.SubscribeResponse
-	waitForMetadataPreSync  []string
-	waitForMetadataPostSync []string
-	expectSet               []*gnmi.SetRequest
-	dynamicConfigs          []*Config
+	stateSubResps              []*gnmi.SubscribeResponse
+	configSubResps             []*gnmi.SubscribeResponse
+	waitForMetadataPreSync     []string
+	waitForMetadataPostSync    []string
+	expectSet                  []*gnmi.SetRequest
+	dynamicConfigs             []*Config
+	ignoreDatasourceHeartbeats bool
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -498,6 +501,11 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 					case setReq, ok := <-gnmic.SetReq:
 						setsIdx++
 						t.Logf("Got set #%d: %v", setsIdx, setReq)
+
+						// Always send the set response
+						gnmic.SetResp <- &gnmi.SetResponse{
+							Prefix: pgnmi.PathFromString("ok-dont-care")}
+
 						if !ok {
 							if len(tc.expectSet) > 0 {
 								return fmt.Errorf("Set channel closed but expected more sets: %v",
@@ -506,28 +514,30 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 							return nil
 						}
 
-						// Always send the set response
-						select {
-						case gnmic.SetResp <- &gnmi.SetResponse{
-							Prefix: pgnmi.PathFromString("ok-dont-care")}:
-						case <-ctx.Done():
-							return nil
-						}
-
 						// change date in set request so we can easily match it
-						heartbeat := false
+						sensorHeartBeat, datasourceHeartBeat := false, false
 						for _, u := range setReq.Update {
 							if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
 								u.Val = agnmi.TypedValue(42)
 							}
 							if pgnmi.PathMatch(u.Path, pgnmi.Path("last-seen")) {
 								u.Val = agnmi.TypedValue(43)
-								heartbeat = len(setReq.Update) == 1
+								if len(setReq.Update) == 1 &&
+									pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
+									sensorHeartBeat = true
+								} else if (len(setReq.Update) == 1 || len(setReq.Update) == 2) &&
+									setReq.Prefix.Elem[0].Name == "datasource" {
+									datasourceHeartBeat = true
+								}
 							}
 						}
 
-						// Skip sensor heartbeats
-						if heartbeat && pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
+						if tc.ignoreDatasourceHeartbeats && datasourceHeartBeat {
+							t.Log("skipping datasource heartbeat")
+							continue
+						}
+
+						if sensorHeartBeat {
 							t.Log("skipping sensor heartbeat")
 							continue
 						}
@@ -606,6 +616,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|" +
 				"map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Update existing datasource",
@@ -659,6 +670,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Update existing datasource 2",
@@ -732,6 +744,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "delete existing datasource config items",
@@ -802,6 +815,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Disable existing datasource",
@@ -847,6 +861,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Datasource added after sync",
@@ -879,6 +894,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Datasource with invalid config should keep others going (Pre-sync)",
@@ -930,6 +946,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Datasource with invalid config should keep others going (Post-sync)",
@@ -981,6 +998,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Datasource with provider crash",
@@ -1050,6 +1068,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Datasource with Manager crash",
@@ -1091,6 +1110,51 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
+		},
+		{
+			name: "Datasource with Manager Provider crash",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123", "crash": "manager-provider"},
+						nil, "LOG_LEVEL_INFO")...),
+			},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[crash:manager-provider id:123 log-level:LOG_LEVEL_INFO]"},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc"),
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue(
+							"Datasource stopped unexpectedly: "+
+								"error starting providers for device \"123\" (mock): "+
+								"provider *device.crashProvider exiting with error: "+
+								"manager-provider. Retrying in 1s")),
+					},
+				},
+			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Delete sensor config and start new configs again",
@@ -1125,6 +1189,7 @@ func TestSensor(t *testing.T) {
 							},
 						},
 					},
+					ignoreDatasourceHeartbeats: true,
 				},
 				{
 					name: "Delete sensor config and see delete happening",
@@ -1153,13 +1218,15 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "No configs, no sets",
 			configSubResps: []*gnmi.SubscribeResponse{
 				{Response: &gnmi.SubscribeResponse_SyncResponse{SyncResponse: true}},
 			},
-			expectSet: []*gnmi.SetRequest{},
+			expectSet:                  []*gnmi.SetRequest{},
+			ignoreDatasourceHeartbeats: true,
 		},
 		{
 			name: "Device heartbeat and streaming-start",
@@ -1198,6 +1265,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: false,
 		},
 		{
 			name: "Device heartbeat with managed devices",
@@ -1257,6 +1325,7 @@ func TestSensor(t *testing.T) {
 					},
 				},
 			},
+			ignoreDatasourceHeartbeats: false,
 		},
 		{
 			name: "Custom config add and remove",
@@ -1292,8 +1361,16 @@ func TestSensor(t *testing.T) {
 								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 							},
 						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
 					},
-					waitForMetadataPostSync: []string{"123|map[id:123 input1:value1]"},
+					waitForMetadataPostSync:    []string{"123|map[id:123 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
 				},
 				{ // Same config will give no updates
 					dynamicConfigs: []*Config{
@@ -1309,11 +1386,10 @@ func TestSensor(t *testing.T) {
 						{
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
-								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
-								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
-							},
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43))},
 						},
 					},
+					ignoreDatasourceHeartbeats: false,
 				},
 				{ // Delete config
 					dynamicConfigs: []*Config{
@@ -1326,6 +1402,7 @@ func TestSensor(t *testing.T) {
 							},
 						},
 					},
+					ignoreDatasourceHeartbeats: true,
 				},
 			},
 		},

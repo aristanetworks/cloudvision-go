@@ -69,12 +69,9 @@ func (mc *MockClient) Set(ctx context.Context, req *gnmi.SetRequest,
 		return nil, context.Canceled
 	case mc.SetReq <- req:
 	}
-	select {
-	case <-ctx.Done():
-		return nil, context.Canceled
-	case setResp := <-mc.SetResp:
-		return setResp, nil
-	}
+
+	setResp := <-mc.SetResp
+	return setResp, nil
 }
 
 // Capabilities retrieves capabilities
