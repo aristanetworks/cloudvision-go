@@ -551,8 +551,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 						}
 						if found >= 0 {
 							t.Log("Matched set")
-							copy(tc.expectSet[found:], tc.expectSet[found+1:])
-							tc.expectSet = tc.expectSet[:len(tc.expectSet)-1]
+							lastIndex := len(tc.expectSet) - 1
+							tc.expectSet[found] = tc.expectSet[lastIndex]
+							tc.expectSet = tc.expectSet[:lastIndex]
 							if len(tc.expectSet) == 0 {
 								extraReads.Reset(5 * time.Millisecond) // schedule last check
 							}
