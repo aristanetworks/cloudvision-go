@@ -358,6 +358,7 @@ func initialSetReq(sensor string) *gnmi.SetRequest {
 		Prefix: prefix,
 		Update: []*gnmi.Update{
 			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue("dev")),
+			pgnmi.Update(pgnmi.Path("hostname-or-ip"), agnmi.TypedValue("1.1.1.1")),
 			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 			pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
 			pgnmi.Update(pgnmi.Path("last-error"), agnmi.TypedValue("Sensor started")),
@@ -399,7 +400,8 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		WithSensorClientFactory(
 			func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
 				return newMockCVClient(gc, info, metadataCh)
-			}))
+			}),
+		WithSensorNodeIP("1.1.1.1"))
 	sensor.log = sensor.log.WithField("test", tc.name)
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
 	errg, ctx := errgroup.WithContext(ctx)

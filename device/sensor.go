@@ -604,27 +604,30 @@ type Sensor struct {
 	log           *logrus.Entry
 	logRate       float64
 	statePrefix   *gnmi.Path
+	nodeIP        string
 }
 
-// SensorOption is used to configure the Sensor
+// SensorOption is used to configure the Sensor.
 type SensorOption func(m *Sensor)
 
-// WithSensorConnectorAddress sets the connector address
+// WithSensorConnectorAddress sets the connector address.
 func WithSensorConnectorAddress(addr string) SensorOption {
 	return func(s *Sensor) { s.apiaddr = addr }
 }
 
-// WithSensorHeartbeatInterval sets the duration between sensor heartbeats
+// WithSensorHeartbeatInterval sets the duration between sensor heartbeats.
 func WithSensorHeartbeatInterval(d time.Duration) SensorOption {
 	return func(s *Sensor) { s.heartbeatInterval = d }
 }
 
-// WithSensorFailureRetryBackoffBase sets the duration between datasource restarts on failure
+// WithSensorFailureRetryBackoffBase sets the duration
+// between datasource restarts on failure.
 func WithSensorFailureRetryBackoffBase(d time.Duration) SensorOption {
 	return func(s *Sensor) { s.failureRetryBackoffBase = d }
 }
 
-// WithSensorFailureRetryBackoffMax sets the max backoff between datasource restarts due to failures
+// WithSensorFailureRetryBackoffMax sets the max backoff
+// between datasource restarts due to failures.
 func WithSensorFailureRetryBackoffMax(d time.Duration) SensorOption {
 	return func(s *Sensor) { s.failureRetryBackoffMax = d }
 }
@@ -639,17 +642,17 @@ func WithSensorGRPCConn(c *grpc.ClientConn) SensorOption {
 	return func(s *Sensor) { s.grpcc = c }
 }
 
-// WithSensorConnector sets a gRPC connector
+// WithSensorConnector sets a gRPC connector.
 func WithSensorConnector(c GRPCConnector) SensorOption {
 	return func(s *Sensor) { s.grpcConnector = c }
 }
 
-// WithSensorCredentialResolver sets a credential resolver
+// WithSensorCredentialResolver sets a credential resolver.
 func WithSensorCredentialResolver(c CredentialResolver) SensorOption {
 	return func(s *Sensor) { s.credResolver = c }
 }
 
-// WithSensorStandaloneStatus sets the stanalone status
+// WithSensorStandaloneStatus sets the stanalone status.
 func WithSensorStandaloneStatus(standalone bool) SensorOption {
 	return func(s *Sensor) { s.standalone = standalone }
 }
@@ -663,6 +666,11 @@ func WithSensorConfigChan(configCh chan *Config) SensorOption {
 func WithSensorClientFactory(f func(gnmi.GNMIClient,
 	*Info) cvclient.CVClient) SensorOption {
 	return func(s *Sensor) { s.clientFactory = f }
+}
+
+// WithSensorNodeIP sets the the hostname or IP of the Sensor.
+func WithSensorNodeIP(hostnameOrIP string) SensorOption {
+	return func(s *Sensor) { s.nodeIP = hostnameOrIP }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -1019,6 +1027,7 @@ func (s *Sensor) syncState(ctx context.Context, stateNames map[string]struct{}) 
 		Delete: toDelete,
 		Update: []*gnmi.Update{
 			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue(version.CollectorVersion)),
+			pgnmi.Update(pgnmi.Path("hostname-or-ip"), agnmi.TypedValue(s.nodeIP)),
 			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
 			pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)),
 			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Sensor started")),
