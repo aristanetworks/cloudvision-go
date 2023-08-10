@@ -57,7 +57,7 @@ func (p *passthroughCredResolver) Resolve(ctx context.Context, ref string) (stri
 
 var passthroughResolver CredentialResolver = &passthroughCredResolver{}
 
-// datasourceConfig holds the configs received from the server
+// datasourceConfig holds the configs received from the server.
 type datasourceConfig struct {
 	name       string
 	typ        string
