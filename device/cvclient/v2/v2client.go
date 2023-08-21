@@ -7,8 +7,6 @@ package v2
 
 import (
 	"context"
-	"fmt"
-	"runtime"
 	"sync"
 	"time"
 
@@ -33,10 +31,9 @@ const (
 	WirelessAP = "DEVICE_TYPE_WIRELESS_AP"
 )
 
-// versionString describes the version of the collector, the SDK, and the go runtime.
+// versionString describes the version of the collector.
 // This is sent as device metadata to CV and can be used for debugging.
-var versionString = fmt.Sprintf("Collector version: %s, SDK version: %s, Go version: %s",
-	version.CollectorVersion, version.Version, runtime.Version())
+var versionString = version.CollectorVersion
 
 type v2Client struct {
 	gnmiClient gnmi.GNMIClient // underlying raw GNMI client
