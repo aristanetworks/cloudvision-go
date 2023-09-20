@@ -30,13 +30,14 @@ func DialWithAuth(ctx context.Context, target string, auth *Auth, opts ...grpc.D
 		return nil, fmt.Errorf("failed to configuration authentication scheme: %s", err)
 	}
 	opts = append(opts, grpc.WithBlock())
+	opts = append(opts, authOpts...)
 
 	target, err = resolveRedirection(ctx, target, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to redirect: %w", err)
 	}
 
-	return grpc.DialContext(ctx, target, append(opts, authOpts...)...)
+	return grpc.DialContext(ctx, target, opts...)
 }
 
 // DialWithToken dials a gRPC endpoint, target, with the provided
