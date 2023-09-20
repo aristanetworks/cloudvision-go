@@ -335,10 +335,13 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			if err != nil {
 				logrus.Fatalf("DialWithAuth error: %v", err)
 			}
+			logrus.Infof("gRPC server address redirected to %s", grpcConn.Target())
 			logrus.Info("Connected")
 			opts = append(opts,
 				device.WithGRPCConn(grpcConn),
 			)
+			// Update gnmiCfg.Addr with the new redirected target address
+			gnmiCfg.Addr = grpcConn.Target()
 		}
 		opts = append(opts,
 			device.WithGRPCServerAddr(*ingestServerAddr),
