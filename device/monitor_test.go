@@ -62,6 +62,7 @@ func TestDatasourceMonitor(t *testing.T) {
 		t.Fatalf("Monitor last message has wrong level, got %s", got)
 	}
 	b.Reset()
+	<-dm.logCh
 
 	// Monitor should log out nothing, since current level is lower than Debug level.
 	dm.Debugf("Datasource monitor msg-2")
@@ -70,6 +71,11 @@ func TestDatasourceMonitor(t *testing.T) {
 		t.Fatalf("Monitor last message should be empty, got: %v", got)
 	}
 	b.Reset()
+	select { // make sure we are not pushing to the channel if loglevel is not enabled
+	case d := <-dm.logCh:
+		t.Fatal("unexpected message:", d)
+	default:
+	}
 
 	// Set Monitor to Debug level.
 	msg3 := "Datasource monitor msg-3"

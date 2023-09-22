@@ -54,7 +54,9 @@ func (l *datasourceLogger) Tracef(format string, args ...interface{}) {
 func (l *datasourceLogger) logf(level logrus.Level,
 	format string, args ...interface{}) {
 	l.logger.Logf(level, format, args...)
-	l.logCh <- fmt.Sprintf(format, args...)
+	if l.log.IsLevelEnabled(level) {
+		l.logCh <- fmt.Sprintf(format, args...)
+	}
 }
 
 // DatasourceMonitor passes datasource context to device/manager
