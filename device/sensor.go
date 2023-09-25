@@ -604,7 +604,8 @@ type Sensor struct {
 	log           *logrus.Entry
 	logRate       float64
 	statePrefix   *gnmi.Path
-	nodeIP        string
+	hostname      string
+	hostIP        string
 }
 
 // SensorOption is used to configure the Sensor.
@@ -668,9 +669,14 @@ func WithSensorClientFactory(f func(gnmi.GNMIClient,
 	return func(s *Sensor) { s.clientFactory = f }
 }
 
-// WithSensorNodeIP sets the the hostname or IP of the Sensor.
-func WithSensorNodeIP(hostnameOrIP string) SensorOption {
-	return func(s *Sensor) { s.nodeIP = hostnameOrIP }
+// WithSensorHostname sets the the hostname of the Sensor.
+func WithSensorHostname(hostname string) SensorOption {
+	return func(s *Sensor) { s.hostname = hostname }
+}
+
+// WithSensorHostIP sets the the host IP of the Sensor.
+func WithSensorHostIP(hostIP string) SensorOption {
+	return func(s *Sensor) { s.hostIP = hostIP }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -1027,7 +1033,8 @@ func (s *Sensor) syncState(ctx context.Context, stateNames map[string]struct{}) 
 		Delete: toDelete,
 		Update: []*gnmi.Update{
 			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue(version.CollectorVersion)),
-			pgnmi.Update(pgnmi.Path("hostname-or-ip"), agnmi.TypedValue(s.nodeIP)),
+			pgnmi.Update(pgnmi.Path("hostname"), agnmi.TypedValue(s.hostname)),
+			pgnmi.Update(pgnmi.Path("host-ip"), agnmi.TypedValue(s.hostIP)),
 			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
 			pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)),
 			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Sensor started")),
