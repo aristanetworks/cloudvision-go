@@ -206,4 +206,7 @@ type SensorConfig struct {
 
 	// Receives the grpcServer connection and returns a CredentialResolver.
 	CredResolverCreator func(conn *grpc.ClientConn) (CredentialResolver, error)
+
+	//Receives the grpc connection and returns a ClusterClock
+	ClusterClockCreator func(conn *grpc.ClientConn) (ClusterClock, error)
 }

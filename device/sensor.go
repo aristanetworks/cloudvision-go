@@ -57,6 +57,27 @@ func (p *passthroughCredResolver) Resolve(ctx context.Context, ref string) (stri
 
 var passthroughResolver CredentialResolver = &passthroughCredResolver{}
 
+// ClusterClock is the interface used to implement clock sync logic.
+type ClusterClock interface {
+	// clock channel created using below function is expected to be closed,
+	// in case of any failures
+	SubscribeToClusterClock(ctx context.Context,
+		conn grpc.ClientConnInterface) (chan time.Time, error)
+}
+
+type defaultClock struct {
+}
+
+// default implementation of cluster clock time
+func (d *defaultClock) SubscribeToClusterClock(ctx context.Context,
+	conn grpc.ClientConnInterface) (chan time.Time, error) {
+	clockChan := make(chan time.Time, 1)
+	clockChan <- time.Now()
+	return clockChan, nil
+}
+
+var defaultClockObj ClusterClock = &defaultClock{}
+
 // datasourceConfig holds the configs received from the server.
 type datasourceConfig struct {
 	name       string
@@ -161,6 +182,16 @@ func (d *datasource) handleDatasourceError(ctx context.Context, e error) {
 		pgnmi.Update(lastErrorKey, agnmi.TypedValue(e.Error())))
 	if err != nil {
 		d.log.Errorf("Failed to publish error: %v. Reason: %v", e, err)
+	}
+}
+
+// It will set message on datasource
+func (d *datasource) handleDatasourceMessage(ctx context.Context, message string) {
+	d.log.Info(message)
+	err := d.submitDatasourceUpdates(ctx,
+		pgnmi.Update(lastErrorKey, agnmi.TypedValue(message)))
+	if err != nil {
+		d.log.Errorf("Failed to publish datasource message: %s. Reason: %v", message, err)
 	}
 }
 
@@ -606,6 +637,12 @@ type Sensor struct {
 	statePrefix   *gnmi.Path
 	hostname      string
 	ip            string
+
+	//cluster clock sync
+	maxClockDelta time.Duration
+	clockSynced   bool
+	clusterClock  ClusterClock
+	clockChan     chan time.Time
 }
 
 // SensorOption is used to configure the Sensor.
@@ -677,6 +714,16 @@ func WithSensorHostname(hostname string) SensorOption {
 // WithSensorIP sets the the IP of the Sensor.
 func WithSensorIP(ip string) SensorOption {
 	return func(s *Sensor) { s.ip = ip }
+}
+
+// WithSensorMaxClockDelta sets the time delta allowed between sensor and server clock
+func WithSensorMaxClockDelta(d time.Duration) SensorOption {
+	return func(s *Sensor) { s.maxClockDelta = d }
+}
+
+// WithSensorClusterClock sets a cluster clock object.
+func WithSensorClusterClock(c ClusterClock) SensorOption {
+	return func(s *Sensor) { s.clusterClock = c }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -751,7 +798,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 		}
 	}
 
-	if len(resp.Update) > 0 && !s.active {
+	if len(resp.Update) > 0 && !s.active && s.clockSynced {
 		s.heartbeatLock.Lock()
 		s.active = true
 		// Sync state, assuming no state needs to be deleted as there is not supposed
@@ -936,8 +983,12 @@ func (s *Sensor) runDatasourceConfig(ctx context.Context, name string) error {
 	if !ok {
 		return fmt.Errorf("config not found: %v", name)
 	}
-
 	runtime := s.getDatasource(ctx, name)
+	if !s.clockSynced {
+		msg := fmt.Errorf("Sensor clock is not in sync, skipping data source deployment")
+		runtime.handleDatasourceError(ctx, msg)
+		return nil
+	}
 	return runtime.deploy(ctx, cfg)
 }
 
@@ -958,6 +1009,11 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 		postSync := false
 		for {
 			select {
+			case clockTime, ok := <-s.clockChan:
+				if !ok {
+					return fmt.Errorf("Error while reading cluster clock")
+				}
+				s.handleClockSync(ctx, clockTime)
 			case name := <-s.redeployDatasource:
 				if err := s.runDatasourceConfig(ctx, name); err != nil {
 					s.log.Errorf("redeploy failed: %v", err)
@@ -1076,7 +1132,24 @@ func (s *Sensor) Run(ctx context.Context) error {
 	s.log.Infof("Running sensor %q, version %v", s.id, version.CollectorVersion)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
+	if s.maxClockDelta == 0 {
+		s.log.Info("Clock delta is 0, hence disabling clock sync check")
+		s.clockSynced = true
+	} else {
+		err := s.initializeClusterClockStatus(ctx)
+		if err != nil {
+			s.log.Errorf("Error while initializing cluster clock, Err:%v", err)
+			return err
+		}
+		if !s.clockSynced {
+			msg := fmt.Errorf("Sensor clock is not in sync, waiting for clock sync to start sensor")
+			s.handleSensorError(ctx, msg)
+			err := s.waitForClockSync(ctx)
+			if err != nil {
+				return fmt.Errorf("Cluster clock sync failure, err: %w", err)
+			}
+		}
+	}
 	sensorConfigPath := fmt.Sprintf("/datasource/config/sensor[id=%s]", s.id)
 	sensorStatePath := fmt.Sprintf("/datasource/state/sensor[id=%s]", s.id)
 
@@ -1186,10 +1259,154 @@ func NewSensor(name string, logRate float64, opts ...SensorOption) *Sensor {
 		failureRetryBackoffBase: time.Minute,
 		failureRetryBackoffMax:  1 * time.Hour,
 		credResolver:            passthroughResolver,
+		clusterClock:            defaultClockObj,
 	}
 	for _, opt := range opts {
 		opt(s)
 	}
 	s.validateOptions()
 	return s
+}
+
+func (s *Sensor) initializeClusterClockStatus(ctx context.Context) error {
+	clock, err := s.clusterClock.SubscribeToClusterClock(ctx, s.grpcc)
+	s.clockChan = clock
+	if err != nil {
+		s.log.Errorf("Error while getting cluster clock status, Err:%v", err)
+		s.clockSynced = false
+		return err
+	}
+	clusterClock, ok := <-s.clockChan
+	if !ok {
+		return fmt.Errorf("Error while reading cluster clock")
+	}
+	s.updateClusterClockStatus(clusterClock)
+	return nil
+}
+
+// This function will take cluster clock as input, compare it with current
+// system clock and set clock sync status based on clock delta
+func (s *Sensor) updateClusterClockStatus(clockTime time.Time) {
+	ts := time.Now()
+	if clockTime.IsZero() {
+		s.clockSynced = true
+		return
+	}
+
+	if ok, delta := s.areClocksSynced(ts, clockTime, s.maxClockDelta); !ok {
+		s.clockSynced = false
+		s.log.Errorf("The clock on this device is out of sync with CloudVision "+
+			"cluster by %s. Please configure NTP. A retry will occur when "+
+			"the clocks are synchronized", delta)
+	} else {
+		s.clockSynced = true
+	}
+}
+
+// This function will act upon previous and current state of clock. If state
+// is changed in current status then it will stop or stop sensor and datastore.
+func (s *Sensor) handleClockSync(ctx context.Context, clockTime time.Time) {
+	prevClockSyncStatus := s.clockSynced
+	s.updateClusterClockStatus(clockTime)
+	if s.clockSynced {
+		if !prevClockSyncStatus {
+			s.handleClockInSync(ctx)
+		}
+	} else if !s.clockSynced {
+		if prevClockSyncStatus {
+			s.handleClockOutOfSync(ctx)
+		}
+	}
+}
+
+// It will retrun sync status and delta between clocks.
+func (s *Sensor) areClocksSynced(t1, t2 time.Time, clockDelta time.Duration) (bool, time.Duration) {
+	// Assume t1 will be ahead of t2.
+	after, before := t1, t2
+	if after.Before(before) {
+		// If that is not the case then swap the timestamps
+		after, before = t2, t1
+	}
+	delta := after.Sub(before)
+	s.log.Debugf("Delta threashold:%v and Clock Delta:%v\n", clockDelta, delta)
+	return delta <= clockDelta, delta
+}
+
+// It will set clock out of sync message and stop sensor and datasource
+func (s *Sensor) handleClockOutOfSync(ctx context.Context) {
+	for _, ds := range s.datasource {
+		if _, ok := s.datasourceConfig[ds.config.name]; !ok {
+			continue
+		}
+		msg := fmt.Errorf("Sensor clock is not in sync, stopping data source")
+		ds.handleDatasourceError(ctx, msg)
+		ds.stop()
+	}
+	msg := fmt.Errorf("Sensor clock is not in sync, stopping Sensor")
+	s.handleSensorError(ctx, msg)
+	s.heartbeatLock.Lock()
+	s.active = false
+	s.heartbeatLock.Unlock()
+	s.log.Info("All datasources stopped")
+}
+
+// It will set error message on sensor
+func (s *Sensor) handleSensorError(ctx context.Context, e error) {
+	s.log.Error(e)
+	_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+		Prefix: s.statePrefix,
+		Update: []*gnmi.Update{
+			pgnmi.Update(lastErrorKey, agnmi.TypedValue(e.Error())),
+		},
+	})
+	if err != nil {
+		s.log.Errorf("Failed to publish sensor error: %v. Reason: %v", e, err)
+	}
+}
+
+// It will set message on sensor
+func (s *Sensor) handleSensorMessage(ctx context.Context, message string) {
+	s.log.Info(message)
+	_, err := s.gnmic.Set(ctx, &gnmi.SetRequest{
+		Prefix: s.statePrefix,
+		Update: []*gnmi.Update{
+			pgnmi.Update(lastErrorKey, agnmi.TypedValue(message)),
+		},
+	})
+	if err != nil {
+		s.log.Errorf("Failed to publish sensor message: %s. Reason: %v", message, err)
+	}
+}
+
+// It will set clock is in sync message and start sensor and datasource
+func (s *Sensor) handleClockInSync(ctx context.Context) {
+	s.handleSensorMessage(ctx, "Sensor clock is in sync, starting Sensor")
+	s.heartbeatLock.Lock()
+	s.active = true
+	s.heartbeatLock.Unlock()
+	for _, ds := range s.datasource {
+		if _, ok := s.datasourceConfig[ds.config.name]; !ok {
+			continue
+		}
+		ds.handleDatasourceMessage(ctx, "Sensor clock is in sync, starting data source")
+		ds.scheduleRestart(1 * time.Millisecond)
+	}
+}
+
+// It will wait for clock synced.
+func (s *Sensor) waitForClockSync(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case clockTime, ok := <-s.clockChan:
+			if !ok {
+				return fmt.Errorf("Error while reading cluster clock")
+			}
+			s.updateClusterClockStatus(clockTime)
+			if s.clockSynced {
+				return nil
+			}
+		}
+	}
 }

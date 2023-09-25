@@ -246,6 +246,9 @@ type sensorTestCase struct {
 	expectSet                  []*gnmi.SetRequest
 	dynamicConfigs             []*Config
 	ignoreDatasourceHeartbeats bool
+	handleClusterClock         bool
+	maxClockDelta              time.Duration
+	clockUpdate                func(chan time.Time)
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -350,6 +353,18 @@ func waitMetas(ctx context.Context, t *testing.T,
 	return nil
 }
 
+type defaultTestClock struct {
+}
+
+func (d *defaultTestClock) SubscribeToClusterClock(ctx context.Context,
+	conn grpc.ClientConnInterface) (chan time.Time, error) {
+	clockStatus := make(chan time.Time, 1)
+	clockStatus <- time.Now()
+	return clockStatus, nil
+}
+
+var defaultTestClockObj ClusterClock = &defaultTestClock{}
+
 func initialSetReq(sensor string) *gnmi.SetRequest {
 	prefix := pgnmi.PathFromString("datasource/state/sensor[id=" + sensor + "]/")
 	prefix.Origin = "arista"
@@ -406,6 +421,10 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		WithSensorIP("1.1.1.1"))
 	sensor.log = sensor.log.WithField("test", tc.name)
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
+	if tc.handleClusterClock {
+		sensor.clusterClock = defaultTestClockObj
+		sensor.maxClockDelta = tc.maxClockDelta
+	}
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {
 		return sensor.Run(ctx)
@@ -438,7 +457,6 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		t.Logf("Got config sub request: %v", <-configStream.SubReq)
 		return nil
 	})
-
 	for _, tc := range tc.substeps {
 		// Start a sequence of checks for each substep.
 		// This allow us to wait and see a set of SetRequests based on some input
@@ -446,6 +464,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(ctx)
 			errgSub, ctx := errgroup.WithContext(ctx)
+			if tc.clockUpdate != nil {
+				tc.clockUpdate(sensor.clockChan)
+			}
 
 			errgSub.Go(func() error {
 				// config responses
@@ -1411,6 +1432,161 @@ func TestSensor(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Cluster clock out of sync when datasource onboarded",
+			substeps: []*sensorTestCase{
+				{
+					name: "First onboard device and see it streaming",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "xyz", "mock",
+								true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
+					},
+					waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc"),
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Sensor and datasource will stop on clock out of sync",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now().Add(-10 * time.Minute)
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is not in sync, stopping Sensor")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue(
+										"Sensor clock is not in sync, stopping data source"))},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "start sensor and datasource once clock is in sync",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now()
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is in sync, starting Sensor")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue(
+										"Sensor clock is in sync, starting data source"))},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+			ignoreDatasourceHeartbeats: true,
+			handleClusterClock:         true,
+			maxClockDelta:              200 * time.Millisecond,
+		},
+		{
+			name: "Cluster clock out of sync when no datasource onboarded",
+			substeps: []*sensorTestCase{
+				{
+					name: "Sync response before clock out of sync",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Sensor will stop on clock out of sync",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now().Add(-10 * time.Minute)
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is not in sync, stopping Sensor")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Sensor will start if clock gets synced",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now()
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is in sync, starting Sensor")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+			ignoreDatasourceHeartbeats: true,
+			handleClusterClock:         true,
+			maxClockDelta:              200 * time.Millisecond,
+		},
 	}
 
 	// Register mockDevice.
@@ -1626,7 +1802,7 @@ func TestDatasourceDeployLoop(t *testing.T) {
 				ds.failureRetryTimer.BackoffBase = tc.redeployBaseBackoff
 				ds.failureRetryTimer.Reset()
 			}
-
+			sensor.clockSynced = true
 			err := sensor.runDatasourceConfig(ctx, deviceName)
 			if err != nil {
 				t.Fatal(err)

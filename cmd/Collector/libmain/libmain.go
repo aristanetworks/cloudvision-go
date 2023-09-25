@@ -101,6 +101,7 @@ var (
 	sensorName              *string
 	sensorHeartbeat         *time.Duration
 	sensorFailureMaxBackoff *time.Duration
+	maxClockDelta           *time.Duration
 
 	// Datasource monitor settings
 	logRate *float64
@@ -184,6 +185,10 @@ func Main(sc device.SensorConfig) {
 
 	logRate = flag.Float64("logRate", 100.0, "Log rate limit (times per minute)"+
 		" for datasource monitor")
+
+	maxClockDelta = flag.Duration("maxClockDelta", 0*time.Second,
+		"Defines max clock delta allowed between sensor and server clock, 0 sec indicates "+
+			"that clock sync check is disabled")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -401,6 +406,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		opts := []device.SensorOption{
 			device.WithSensorHeartbeatInterval(*sensorHeartbeat),
 			device.WithSensorGNMIClient(gnmiClient),
+			device.WithSensorMaxClockDelta(*maxClockDelta),
 			device.WithSensorClientFactory(newCVClient),
 			device.WithSensorConfigChan(configCh),
 		}
@@ -410,6 +416,13 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 				logrus.Fatal(err)
 			}
 			opts = append(opts, device.WithSensorCredentialResolver(resolver))
+		}
+		if sc.ClusterClockCreator != nil {
+			clusterClock, err := sc.ClusterClockCreator(conn)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			opts = append(opts, device.WithSensorClusterClock(clusterClock))
 		}
 		if *grpcServerAddr != "" {
 			opts = append(opts,
