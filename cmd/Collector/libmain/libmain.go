@@ -80,11 +80,11 @@ var (
 	// local http monitor server addr
 	monitorAddr *string
 
-	// Hostname
+	// Sensor Hostname
 	hostname *string
 
-	// Hostname
-	hostIP *string
+	// Sensor Ip
+	ip *string
 
 	// Auth config
 	caFile   *string
@@ -161,7 +161,7 @@ func Main(sc device.SensorConfig) {
 	// local hostname and IP of the sensor
 	hostname = flag.String("hostname", "",
 		"The hostname that can be used for logging into the sensor")
-	hostIP = flag.String("hostIP", "",
+	ip = flag.String("ip", "",
 		"The IP that can be used for logging into the sensor")
 
 	// Auth config
@@ -419,8 +419,8 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		if *hostname != "" {
 			opts = append(opts, device.WithSensorHostname(*hostname))
 		}
-		if *hostIP != "" {
-			opts = append(opts, device.WithSensorHostIP(*hostIP))
+		if *ip != "" {
+			opts = append(opts, device.WithSensorIP(*ip))
 		}
 		group.Go(func() error {
 			logrus.Infof("Starting sensor %v", *sensorName)

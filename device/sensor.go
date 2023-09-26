@@ -605,7 +605,7 @@ type Sensor struct {
 	logRate       float64
 	statePrefix   *gnmi.Path
 	hostname      string
-	hostIP        string
+	ip            string
 }
 
 // SensorOption is used to configure the Sensor.
@@ -674,9 +674,9 @@ func WithSensorHostname(hostname string) SensorOption {
 	return func(s *Sensor) { s.hostname = hostname }
 }
 
-// WithSensorHostIP sets the the host IP of the Sensor.
-func WithSensorHostIP(hostIP string) SensorOption {
-	return func(s *Sensor) { s.hostIP = hostIP }
+// WithSensorIP sets the the IP of the Sensor.
+func WithSensorIP(ip string) SensorOption {
+	return func(s *Sensor) { s.ip = ip }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -1034,7 +1034,7 @@ func (s *Sensor) syncState(ctx context.Context, stateNames map[string]struct{}) 
 		Update: []*gnmi.Update{
 			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue(version.CollectorVersion)),
 			pgnmi.Update(pgnmi.Path("hostname"), agnmi.TypedValue(s.hostname)),
-			pgnmi.Update(pgnmi.Path("host-ip"), agnmi.TypedValue(s.hostIP)),
+			pgnmi.Update(pgnmi.Path("ip"), agnmi.TypedValue(s.ip)),
 			pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(ts)),
 			pgnmi.Update(lastSeenKey, agnmi.TypedValue(ts)),
 			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Sensor started")),
