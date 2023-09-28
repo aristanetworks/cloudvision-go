@@ -337,6 +337,9 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			)
 			// Update gnmiCfg.Addr with the new redirected target address
 			gnmiCfg.Addr = grpcConn.Target()
+
+			// Update grpcServerAddr with the new redirected target address
+			*grpcServerAddr = grpcConn.Target()
 		}
 		opts = append(opts,
 			device.WithGRPCServerAddr(*ingestServerAddr),
