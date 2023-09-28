@@ -595,6 +595,10 @@ func (s *datasourceInventory) List() []*Info {
 	return out
 }
 
+func (s *datasourceInventory) SetStatus(key string, status ManagedDeviceStatus) error {
+	return nil
+}
+
 func mergeOpts(o, c map[string]string) map[string]string {
 	x := make(map[string]string, len(o)+len(c))
 	for k, v := range o {

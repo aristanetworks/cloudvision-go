@@ -22,7 +22,7 @@ var (
 	StatusActive ManagedDeviceStatus = "DEVICE_STATUS_ACTIVE"
 	// StatusInactive indicates that a device is inactive, should
 	// still be tracked by CloudVision.
-	StatusInactive ManagedDeviceStatus = " DEVICE_STATUS_INACTIVE"
+	StatusInactive ManagedDeviceStatus = "DEVICE_STATUS_INACTIVE"
 	// StatusRemoved indicates that a device should no longer
 	// be tracked by CloudVision.
 	StatusRemoved ManagedDeviceStatus = "DEVICE_STATUS_REMOVED"

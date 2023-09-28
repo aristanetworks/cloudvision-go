@@ -28,6 +28,7 @@ type Inventory interface {
 	Delete(key string) error
 	Get(key string) (*Info, error)
 	List() []*Info
+	SetStatus(key string, status ManagedDeviceStatus) error
 }
 
 // InventoryOption configures how we create the Inventory.
@@ -282,6 +283,25 @@ func (i *inventory) List() []*Info {
 		ret = append(ret, conn.info)
 	}
 	return ret
+}
+
+func (i *inventory) SetStatus(key string, status ManagedDeviceStatus) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	if key == "" {
+		return fmt.Errorf("key in inventory.Update cannot be empty")
+	}
+	dc, ok := i.devices[key]
+	if !ok {
+		return fmt.Errorf("device %s is not present in inventory", key)
+	}
+
+	dc.info.Status = status
+	if err := dc.cvClient.SendDeviceMetadata(dc.ctx); err != nil {
+		return fmt.Errorf("error sending device metadata for device "+
+			"%s: %w", key, err)
+	}
+	return nil
 }
 
 // WithGNMIClient sets a gNMI client on the Inventory.
