@@ -448,7 +448,9 @@ type TagAssignmentConfigServiceClient interface {
 	GetAll(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *TagAssignmentConfigSetRequest, opts ...grpc.CallOption) (*TagAssignmentConfigSetResponse, error)
+	SetSome(ctx context.Context, in *TagAssignmentConfigSetSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *TagAssignmentConfigDeleteRequest, opts ...grpc.CallOption) (*TagAssignmentConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *TagAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteAllClient, error)
 }
 
 type tagAssignmentConfigServiceClient struct {
@@ -541,6 +543,38 @@ func (c *tagAssignmentConfigServiceClient) Set(ctx context.Context, in *TagAssig
 	return out, nil
 }
 
+func (c *tagAssignmentConfigServiceClient) SetSome(ctx context.Context, in *TagAssignmentConfigSetSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagAssignmentConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_SetSomeClient interface {
+	Recv() (*TagAssignmentConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceSetSomeClient) Recv() (*TagAssignmentConfigSetSomeResponse, error) {
+	m := new(TagAssignmentConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagAssignmentConfigServiceClient) Delete(ctx context.Context, in *TagAssignmentConfigDeleteRequest, opts ...grpc.CallOption) (*TagAssignmentConfigDeleteResponse, error) {
 	out := new(TagAssignmentConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagAssignmentConfigService/Delete", in, out, opts...)
@@ -548,6 +582,38 @@ func (c *tagAssignmentConfigServiceClient) Delete(ctx context.Context, in *TagAs
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *tagAssignmentConfigServiceClient) DeleteAll(ctx context.Context, in *TagAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagAssignmentConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_DeleteAllClient interface {
+	Recv() (*TagAssignmentConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceDeleteAllClient) Recv() (*TagAssignmentConfigDeleteAllResponse, error) {
+	m := new(TagAssignmentConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // TagAssignmentConfigServiceServer is the server API for TagAssignmentConfigService service.
@@ -558,7 +624,9 @@ type TagAssignmentConfigServiceServer interface {
 	GetAll(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_GetAllServer) error
 	Subscribe(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_SubscribeServer) error
 	Set(context.Context, *TagAssignmentConfigSetRequest) (*TagAssignmentConfigSetResponse, error)
+	SetSome(*TagAssignmentConfigSetSomeRequest, TagAssignmentConfigService_SetSomeServer) error
 	Delete(context.Context, *TagAssignmentConfigDeleteRequest) (*TagAssignmentConfigDeleteResponse, error)
+	DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedTagAssignmentConfigServiceServer()
 }
 
@@ -578,8 +646,14 @@ func (UnimplementedTagAssignmentConfigServiceServer) Subscribe(*TagAssignmentCon
 func (UnimplementedTagAssignmentConfigServiceServer) Set(context.Context, *TagAssignmentConfigSetRequest) (*TagAssignmentConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedTagAssignmentConfigServiceServer) SetSome(*TagAssignmentConfigSetSomeRequest, TagAssignmentConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedTagAssignmentConfigServiceServer) Delete(context.Context, *TagAssignmentConfigDeleteRequest) (*TagAssignmentConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedTagAssignmentConfigServiceServer) mustEmbedUnimplementedTagAssignmentConfigServiceServer() {
 }
@@ -673,6 +747,27 @@ func _TagAssignmentConfigService_Set_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TagAssignmentConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).SetSome(m, &tagAssignmentConfigServiceSetSomeServer{stream})
+}
+
+type TagAssignmentConfigService_SetSomeServer interface {
+	Send(*TagAssignmentConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceSetSomeServer) Send(m *TagAssignmentConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TagAssignmentConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TagAssignmentConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -689,6 +784,27 @@ func _TagAssignmentConfigService_Delete_Handler(srv interface{}, ctx context.Con
 		return srv.(TagAssignmentConfigServiceServer).Delete(ctx, req.(*TagAssignmentConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagAssignmentConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).DeleteAll(m, &tagAssignmentConfigServiceDeleteAllServer{stream})
+}
+
+type TagAssignmentConfigService_DeleteAllServer interface {
+	Send(*TagAssignmentConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceDeleteAllServer) Send(m *TagAssignmentConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // TagAssignmentConfigService_ServiceDesc is the grpc.ServiceDesc for TagAssignmentConfigService service.
@@ -722,6 +838,16 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _TagAssignmentConfigService_Subscribe_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _TagAssignmentConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _TagAssignmentConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/tag.v2/services.gen.proto",
 }
@@ -734,7 +860,9 @@ type TagConfigServiceClient interface {
 	GetAll(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeClient, error)
 	Set(ctx context.Context, in *TagConfigSetRequest, opts ...grpc.CallOption) (*TagConfigSetResponse, error)
+	SetSome(ctx context.Context, in *TagConfigSetSomeRequest, opts ...grpc.CallOption) (TagConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *TagConfigDeleteRequest, opts ...grpc.CallOption) (*TagConfigDeleteResponse, error)
+	DeleteAll(ctx context.Context, in *TagConfigDeleteAllRequest, opts ...grpc.CallOption) (TagConfigService_DeleteAllClient, error)
 }
 
 type tagConfigServiceClient struct {
@@ -827,6 +955,38 @@ func (c *tagConfigServiceClient) Set(ctx context.Context, in *TagConfigSetReques
 	return out, nil
 }
 
+func (c *tagConfigServiceClient) SetSome(ctx context.Context, in *TagConfigSetSomeRequest, opts ...grpc.CallOption) (TagConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_SetSomeClient interface {
+	Recv() (*TagConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceSetSomeClient) Recv() (*TagConfigSetSomeResponse, error) {
+	m := new(TagConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagConfigServiceClient) Delete(ctx context.Context, in *TagConfigDeleteRequest, opts ...grpc.CallOption) (*TagConfigDeleteResponse, error) {
 	out := new(TagConfigDeleteResponse)
 	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagConfigService/Delete", in, out, opts...)
@@ -834,6 +994,38 @@ func (c *tagConfigServiceClient) Delete(ctx context.Context, in *TagConfigDelete
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *tagConfigServiceClient) DeleteAll(ctx context.Context, in *TagConfigDeleteAllRequest, opts ...grpc.CallOption) (TagConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_DeleteAllClient interface {
+	Recv() (*TagConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceDeleteAllClient) Recv() (*TagConfigDeleteAllResponse, error) {
+	m := new(TagConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // TagConfigServiceServer is the server API for TagConfigService service.
@@ -844,7 +1036,9 @@ type TagConfigServiceServer interface {
 	GetAll(*TagConfigStreamRequest, TagConfigService_GetAllServer) error
 	Subscribe(*TagConfigStreamRequest, TagConfigService_SubscribeServer) error
 	Set(context.Context, *TagConfigSetRequest) (*TagConfigSetResponse, error)
+	SetSome(*TagConfigSetSomeRequest, TagConfigService_SetSomeServer) error
 	Delete(context.Context, *TagConfigDeleteRequest) (*TagConfigDeleteResponse, error)
+	DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedTagConfigServiceServer()
 }
 
@@ -864,8 +1058,14 @@ func (UnimplementedTagConfigServiceServer) Subscribe(*TagConfigStreamRequest, Ta
 func (UnimplementedTagConfigServiceServer) Set(context.Context, *TagConfigSetRequest) (*TagConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedTagConfigServiceServer) SetSome(*TagConfigSetSomeRequest, TagConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedTagConfigServiceServer) Delete(context.Context, *TagConfigDeleteRequest) (*TagConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTagConfigServiceServer) DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedTagConfigServiceServer) mustEmbedUnimplementedTagConfigServiceServer() {}
 
@@ -958,6 +1158,27 @@ func _TagConfigService_Set_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TagConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).SetSome(m, &tagConfigServiceSetSomeServer{stream})
+}
+
+type TagConfigService_SetSomeServer interface {
+	Send(*TagConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceSetSomeServer) Send(m *TagConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TagConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TagConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -974,6 +1195,27 @@ func _TagConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec 
 		return srv.(TagConfigServiceServer).Delete(ctx, req.(*TagConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).DeleteAll(m, &tagConfigServiceDeleteAllServer{stream})
+}
+
+type TagConfigService_DeleteAllServer interface {
+	Send(*TagConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceDeleteAllServer) Send(m *TagConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // TagConfigService_ServiceDesc is the grpc.ServiceDesc for TagConfigService service.
@@ -1005,6 +1247,16 @@ var TagConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _TagConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _TagConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _TagConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
