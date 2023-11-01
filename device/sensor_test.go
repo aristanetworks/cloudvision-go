@@ -249,6 +249,7 @@ type sensorTestCase struct {
 	handleClusterClock         bool
 	maxClockDelta              time.Duration
 	clockUpdate                func(chan time.Time)
+	skipSubscribe              bool
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -365,12 +366,13 @@ func (d *defaultTestClock) SubscribeToClusterClock(ctx context.Context,
 
 var defaultTestClockObj ClusterClock = &defaultTestClock{}
 
-func initialSetReq(sensor string) *gnmi.SetRequest {
+func initialSetReq(sensor string, deletes []*gnmi.Path) *gnmi.SetRequest {
 	prefix := pgnmi.PathFromString("datasource/state/sensor[id=" + sensor + "]/")
 	prefix.Origin = "arista"
 	prefix.Target = "cv"
 	return &gnmi.SetRequest{
 		Prefix: prefix,
+		Delete: deletes,
 		Update: []*gnmi.Update{
 			pgnmi.Update(pgnmi.Path("version"), agnmi.TypedValue("dev")),
 			pgnmi.Update(pgnmi.Path("hostname"), agnmi.TypedValue("abc.com")),
@@ -418,7 +420,8 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 				return newMockCVClient(gc, info, metadataCh)
 			}),
 		WithSensorHostname("abc.com"),
-		WithSensorIP("1.1.1.1"))
+		WithSensorIP("1.1.1.1"),
+		WithSensorSkipSubscribe(tc.skipSubscribe))
 	sensor.log = sensor.log.WithField("test", tc.name)
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
 	if tc.handleClusterClock {
@@ -452,9 +455,13 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 		close(stream.SubResp)
 		close(stream.SubReq)
 		close(stream.ErrC)
-		// Serve config stream.
-		gnmic.SubscribeStream <- configStream
-		t.Logf("Got config sub request: %v", <-configStream.SubReq)
+
+		// skip sending configStream b/c no one will read from it
+		if !sensor.skipSubscribe {
+			// Serve config stream.
+			gnmic.SubscribeStream <- configStream
+			t.Logf("Got config sub request: %v", <-configStream.SubReq)
+		}
 		return nil
 	})
 	for _, tc := range tc.substeps {
@@ -624,7 +631,7 @@ func TestSensor(t *testing.T) {
 				},
 			},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -666,7 +673,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|" +
 				"map[cred1:credv2 id:123 input1:value2 log-level:LOG_LEVEL_DEBUG]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -740,7 +747,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|" +
 				"map[cred1:credv1 id:123 input1:value2 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -811,7 +818,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{
 				"123|map[cred1:credv1 id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -863,7 +870,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPreSync: []string{"123|" +
 				"map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -904,7 +911,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -939,7 +946,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPreSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
@@ -991,7 +998,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "bad1", ""),
 					Update: []*gnmi.Update{
@@ -1043,7 +1050,7 @@ func TestSensor(t *testing.T) {
 				"123|map[crash:provider id:123 log-level:LOG_LEVEL_INFO]",
 				"123|map[crash:provider id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -1112,7 +1119,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|" +
 				"map[crash:manager id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -1154,7 +1161,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|" +
 				"map[crash:manager-provider id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -1199,7 +1206,7 @@ func TestSensor(t *testing.T) {
 					},
 					waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 					expectSet: []*gnmi.SetRequest{
-						initialSetReq("abc"),
+						initialSetReq("abc", nil),
 						{
 							Prefix: datasourcePath("state", "abc", "xyz", ""),
 							Update: []*gnmi.Update{
@@ -1268,7 +1275,7 @@ func TestSensor(t *testing.T) {
 			},
 			waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -1310,7 +1317,7 @@ func TestSensor(t *testing.T) {
 			waitForMetadataPostSync: []string{"123|" +
 				"map[id:123 log-level:LOG_LEVEL_INFO managed:m1,m2]"},
 			expectSet: []*gnmi.SetRequest{
-				initialSetReq("abc"),
+				initialSetReq("abc", nil),
 				{
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
@@ -1364,15 +1371,16 @@ func TestSensor(t *testing.T) {
 					},
 					dynamicConfigs: []*Config{
 						{
-							Name:   "device-1",
-							Device: "mock",
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
 							Options: map[string]string{
 								"id":     "123",
 								"input1": "value1"},
 						},
 					},
 					expectSet: []*gnmi.SetRequest{
-						initialSetReq("abc"),
+						initialSetReq("abc", nil),
 						{
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
@@ -1401,8 +1409,9 @@ func TestSensor(t *testing.T) {
 				{ // Same config will give no updates
 					dynamicConfigs: []*Config{
 						{
-							Name:   "device-1",
-							Device: "mock",
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
 							Options: map[string]string{
 								"id":     "123",
 								"input1": "value1"},
@@ -1449,7 +1458,7 @@ func TestSensor(t *testing.T) {
 					},
 					waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
 					expectSet: []*gnmi.SetRequest{
-						initialSetReq("abc"),
+						initialSetReq("abc", nil),
 						{
 							Prefix: datasourcePath("state", "abc", "xyz", ""),
 							Update: []*gnmi.Update{
@@ -1963,4 +1972,381 @@ func TestSendPeriodicUpdates(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSensorWithSkipSubscribe(t *testing.T) {
+
+	testCases := []sensorTestCase{
+		{
+			name:          "send complete config to configCh",
+			skipSubscribe: true,
+			substeps: []*sensorTestCase{
+				{ // Add device with custom config
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(), // send sync indicator
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"123|map[id:123 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
+				},
+				{ // Same config will give no updates
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{ // wait to see status update
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43))},
+						},
+					},
+					ignoreDatasourceHeartbeats: false,
+				},
+				{ // Delete config
+					dynamicConfigs: []*Config{
+						NewDeletedConfig("device-1"),
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "device-1", ""),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{ // send config with no name should skip and produce no sets
+					dynamicConfigs: []*Config{
+						{
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					ignoreDatasourceHeartbeats: false,
+				},
+			},
+		},
+		{
+			name:          "test incomplete config workflow",
+			skipSubscribe: true,
+			substeps: []*sensorTestCase{
+				{ // Add device with custom config
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(),
+						{
+							Name:    "device-1",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue(
+									"Data source stopped: "+
+										"Failed creating device '': "+
+										"Device '' not found"))},
+						},
+					},
+					ignoreDatasourceHeartbeats: false,
+				},
+				{ // send the complete config, expect the config to be run with no errors
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"123|map[id:123 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
+				},
+			},
+		},
+		{
+			name:          "delete all configs stored in the sensor state at startup",
+			skipSubscribe: true,
+			stateSubResps: []*gnmi.SubscribeResponse{
+				subscribeUpdates(
+					datasourceUpdates("state", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
+				subscribeUpdates(
+					datasourceUpdates("state", "abc", "device-2", "mock",
+						true, map[string]string{"id": "345"}, nil, "LOG_LEVEL_INFO")...),
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+			},
+			substeps: []*sensorTestCase{
+				{ // Add device with custom config
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(), // issue sync end config
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", []*gnmi.Path{
+							pgnmi.PathFromString("source[name=xyz]"),
+							pgnmi.PathFromString("source[name=device-2]"),
+						}),
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"123|map[id:123 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
+				},
+			},
+		},
+		{
+			name:          "Two configs loaded from state, delete one, keep one, add one",
+			skipSubscribe: true,
+			stateSubResps: []*gnmi.SubscribeResponse{
+				subscribeUpdates(
+					datasourceUpdates("state", "abc", "xyz", "mock",
+						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
+				subscribeUpdates(
+					datasourceUpdates("state", "abc", "device-1", "mock",
+						true, map[string]string{"id": "345"}, nil, "LOG_LEVEL_INFO")...),
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+			},
+			substeps: []*sensorTestCase{
+				{ // Add device-1 with custom config before sync is done
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+						NewSyncEndConfig(), // issue sync end config
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", []*gnmi.Path{
+							pgnmi.PathFromString("source[name=xyz]"),
+						}),
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"123|map[id:123 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
+				},
+				{ // add config after sync is done
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "124",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("124")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"124|map[id:124 input1:value1]"},
+					ignoreDatasourceHeartbeats: false,
+				},
+				{ // disable device-2 config
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: false,
+							Options: map[string]string{
+								"id":     "124",
+								"input1": "value1"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue("Data source disabled")),
+							},
+						},
+					},
+				},
+				{ // delete device-1 config
+					dynamicConfigs: []*Config{
+						NewDeletedConfig("device-1"),
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "device-1", ""),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Register mockDevice.
+	Register("mock", newMockDevice, mockDeviceOptions)
+
+	// Run through test cases.
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.name != "Two configs loaded from state, delete one, keep one, add one" {
+				return
+			}
+			runSensorTest(t, tc)
+		})
+	}
+
 }

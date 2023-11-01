@@ -184,8 +184,9 @@ func TestWatchConfig(t *testing.T) {
     opt2: val2`,
 			expectConfigs: []*device.Config{
 				{
-					Name:   "cfg1",
-					Device: "type1",
+					Name:    "cfg1",
+					Device:  "type1",
+					Enabled: true,
 					Options: map[string]string{
 						"opt1": "val1",
 						"opt2": "val2",
@@ -206,16 +207,18 @@ func TestWatchConfig(t *testing.T) {
     opt2: val2`,
 			expectConfigs: []*device.Config{
 				{
-					Name:   "auto-datasource-000",
-					Device: "type2",
+					Name:    "auto-datasource-000",
+					Device:  "type2",
+					Enabled: true,
 					Options: map[string]string{
 						"opt1": "val1",
 						"opt2": "val2",
 					},
 				},
 				{
-					Name:   "auto-datasource-001",
-					Device: "type3",
+					Name:    "auto-datasource-001",
+					Device:  "type3",
+					Enabled: true,
 					Options: map[string]string{
 						"opt1": "val1",
 						"opt2": "val2",
@@ -262,7 +265,7 @@ func TestWatchConfig(t *testing.T) {
 					case <-timer.C:
 						select {
 						case cfg := <-configCh:
-							return fmt.Errorf("Unexpected config update: %v", cfg)
+							return fmt.Errorf("Unexpected config update: %+v", cfg)
 						default:
 							if len(tc.expectConfigs) > 0 {
 								return fmt.Errorf("Did not match %v! Plus %d others",
@@ -275,11 +278,11 @@ func TestWatchConfig(t *testing.T) {
 							continue
 						}
 						if len(tc.expectConfigs) == 0 {
-							return fmt.Errorf("Unexpected config update: %v", cfg)
+							return fmt.Errorf("Unexpected config update: %+v", cfg)
 						}
 						expect := tc.expectConfigs[0]
 						if !reflect.DeepEqual(cfg, expect) {
-							return fmt.Errorf("Config mismatch, expected:\n%v\ngot:\n%v",
+							return fmt.Errorf("Config mismatch, expected:\n%+v\ngot:\n%+v",
 								expect, cfg)
 						}
 						tc.expectConfigs = tc.expectConfigs[1:] // wait for next

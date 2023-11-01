@@ -7,6 +7,7 @@ package device
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -19,7 +20,20 @@ type Config struct {
 	Options  map[string]string `yaml:"Options,omitempty"`
 	LogLevel string            `yaml:"LogLevel,omitempty"`
 
+	Credentials map[string]string `yaml:"Credentials,omitempty"`
+	Enabled     bool              `yaml:"Enabled,omitempty"`
+
 	deleted bool
+	syncEnd bool
+}
+
+// NewConfig creates a new Config
+func NewConfig(name string) *Config {
+	return &Config{
+		Name:        name,
+		Options:     make(map[string]string),
+		Credentials: make(map[string]string),
+	}
 }
 
 // NewDeletedConfig creates a config that indicates a deleted device config.
@@ -27,6 +41,13 @@ func NewDeletedConfig(name string) *Config {
 	return &Config{
 		Name:    name,
 		deleted: true,
+	}
+}
+
+// NewSyncEndConfig creates a new config that represents the end of the sync phase
+func NewSyncEndConfig() *Config {
+	return &Config{
+		syncEnd: true,
 	}
 }
 
@@ -40,6 +61,24 @@ func (c *Config) validate() error {
 		return fmt.Errorf("Device in config cannot be empty")
 	}
 	return nil
+}
+
+// Equal returns true if the two configs are config equal
+func (c *Config) Equal(o *Config) bool {
+	if c == nil || o == nil {
+		return false
+	}
+
+	// TODO: Switch to using https://pkg.go.dev/maps@go1.21.5 when the go version is upgraded
+	return reflect.DeepEqual(c.Options, o.Options) &&
+		reflect.DeepEqual(c.Credentials, o.Credentials) &&
+		c.Name == o.Name &&
+		c.Device == o.Device &&
+		c.NoStream == o.NoStream &&
+		c.LogLevel == o.LogLevel &&
+		c.Enabled == o.Enabled &&
+		c.deleted == o.deleted &&
+		c.syncEnd == o.syncEnd
 }
 
 // ReadConfigs generates device configs from the config file at the specified path.

@@ -407,6 +407,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			Device:   *deviceType,
 			NoStream: *noStream,
 			Options:  deviceOptions,
+			Enabled:  true,
 		}
 		group.Go(func() error {
 			<-ctx.Done()
@@ -591,11 +592,12 @@ func createDeviceConfigs(cmdDevice *device.Config,
 		configs = append(configs, readConfigs...)
 	}
 
-	// Make sure all configs have a name
+	// Make sure all configs have a name and are enabled
 	for i, config := range configs {
 		if len(config.Name) == 0 { // force a name if not set
 			config.Name = fmt.Sprintf("auto-datasource-%03d", i)
 		}
+		config.Enabled = true
 	}
 
 	return configs, nil

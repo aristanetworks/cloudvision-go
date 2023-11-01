@@ -647,6 +647,8 @@ type Sensor struct {
 	clockSynced   bool
 	clusterClock  ClusterClock
 	clockChan     chan time.Time
+
+	skipSubscribe bool // used to skip sensor subscribing to gnmi
 }
 
 // SensorOption is used to configure the Sensor.
@@ -728,6 +730,11 @@ func WithSensorMaxClockDelta(d time.Duration) SensorOption {
 // WithSensorClusterClock sets a cluster clock object.
 func WithSensorClusterClock(c ClusterClock) SensorOption {
 	return func(s *Sensor) { s.clusterClock = c }
+}
+
+// WithSensorSkipSubscribe determines whether we skip subscribing for datasource configurations
+func WithSensorSkipSubscribe(skipSubscribe bool) SensorOption {
+	return func(s *Sensor) { s.skipSubscribe = skipSubscribe }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -1005,12 +1012,15 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 
 	respCh := make(chan *gnmi.SubscribeResponse)
 	errg, ctx := errgroup.WithContext(ctx)
-	errg.Go(func() error {
-		return agnmi.SubscribeErr(ctx, s.gnmic, opts, respCh)
-	})
+	if !s.skipSubscribe {
+		errg.Go(func() error {
+			return agnmi.SubscribeErr(ctx, s.gnmic, opts, respCh)
+		})
+	}
 	errg.Go(func() error {
 		// Main sensor loop, reading new configs or redeploying datasources after config changes.
 		postSync := false
+		configChPostSync := false
 		for {
 			select {
 			case clockTime, ok := <-s.clockChan:
@@ -1047,6 +1057,31 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 				if cfg.IsDeleted() { // special case to know when config is removed
 					s.removeDatasource(ctx, cfg.Name)
 				} else {
+
+					// start sensor if we are skipping subscription phase b/c the configs
+					// will only be passed in via a channel
+					if s.skipSubscribe {
+						s.heartbeatLock.Lock()
+						s.active = true
+						s.heartbeatLock.Unlock()
+					}
+					// check if the config indicates the end of a sync. End of sync indicators
+					// will not be treated the same as a normal config. They will only be used
+					// to indicate that the sensor is in sync
+					if cfg.syncEnd {
+						configChPostSync = true
+						if err := handleSyncResponse(ctx); err != nil {
+							return err
+						}
+						continue
+					}
+
+					// skip datasources with no name b/c they will not match any device
+					if cfg.Name == "" {
+						s.log.Error("no config name for datasource config")
+						continue
+					}
+
 					loglevel, ok := logMapping[cfg.LogLevel]
 					if !ok {
 						s.log.Errorf("unknown datasource loglevel for %s: %s,"+
@@ -1054,14 +1089,16 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 						loglevel = logrus.InfoLevel
 					}
 					s.datasourceConfig[cfg.Name] = &datasourceConfig{
-						name:     cfg.Name,
-						typ:      cfg.Device,
-						enabled:  true,
-						option:   cfg.Options,
-						loglevel: loglevel,
+						name:       cfg.Name,
+						typ:        cfg.Device,
+						enabled:    cfg.Enabled,
+						option:     cfg.Options,
+						credential: cfg.Credentials,
+						loglevel:   loglevel,
 					}
 					ds := s.getDatasource(ctx, cfg.Name)
-					if s.active {
+					// schedule datasource to run after we have synced the datasources
+					if s.active && configChPostSync {
 						ds.scheduleRestart(s.deviceRedeployTimer)
 					}
 				}
@@ -1175,7 +1212,7 @@ func (s *Sensor) Run(ctx context.Context) error {
 		s.log.Info("state sync complete")
 		return nil
 	}
-	if err := s.subscribe(ctx,
+	if err := s.handleSensorState(ctx,
 		&agnmi.SubscribeOptions{
 			Origin: "arista",
 			Target: "cv",
@@ -1230,6 +1267,46 @@ func (s *Sensor) Run(ctx context.Context) error {
 	s.log.Infof("All datasources closed")
 
 	return err
+}
+
+func (s *Sensor) handleSensorState(ctx context.Context, opts *agnmi.SubscribeOptions,
+	handleUpdate handleUpdateFn, handleSyncResponse handleSyncResponseFn) error {
+	s.log.Debugf("handleSensorState: %v", opts)
+
+	respCh := make(chan *gnmi.SubscribeResponse)
+	errg, ctx := errgroup.WithContext(ctx)
+	errg.Go(func() error {
+		return agnmi.SubscribeErr(ctx, s.gnmic, opts, respCh)
+	})
+
+	errg.Go(func() error {
+		postSync := false
+		for {
+			select {
+			case resp, ok := <-respCh:
+				if !ok {
+					return nil
+				}
+				s.log.Tracef("Got response: %v", resp)
+				switch subResp := resp.Response.(type) {
+				case *gnmi.SubscribeResponse_Update:
+					if err := handleUpdate(ctx, subResp.Update, postSync); err != nil {
+						return err
+					}
+				case *gnmi.SubscribeResponse_SyncResponse:
+					postSync = true
+					if err := handleSyncResponse(ctx); err != nil {
+						return err
+					}
+				}
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	})
+
+	return errg.Wait()
+
 }
 
 func (s *Sensor) validateOptions() {
