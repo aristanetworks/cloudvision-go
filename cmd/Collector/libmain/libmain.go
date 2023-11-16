@@ -12,9 +12,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof" // import all pprof endpoints
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/aristanetworks/cloudvision-go/device"
@@ -109,6 +111,8 @@ var (
 	// Datasource monitor settings
 	logRate *float64
 )
+
+var ready atomic.Bool
 
 // Main is the "real" main.
 func Main(sc device.SensorConfig) {
@@ -254,6 +258,19 @@ func runMonitor() {
 		return
 	}
 
+	http.HandleFunc("/ready", http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			if !ready.Load() {
+				http.Error(rw, "not ready", http.StatusInternalServerError)
+			}
+			if _, err := rw.Write([]byte("OK")); err != nil {
+				http.Error(rw, http.StatusText(http.StatusInternalServerError),
+					http.StatusInternalServerError)
+			}
+		} else {
+			http.NotFound(rw, r)
+		}
+	}))
 	monitorListener, err := net.Listen("tcp", *monitorAddr)
 	if err != nil {
 		logrus.Fatalf("Failed to listen on monitor address %v: %v", *monitorAddr, err)
@@ -526,6 +543,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 		})
 	}
 
+	ready.Store(true)
 	logrus.Info("Collector is running")
 	if err := group.Wait(); err != nil {
 		logrus.Fatalf("group returned with error: %v", err)
