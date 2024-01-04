@@ -1060,7 +1060,7 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 
 					// start sensor if we are skipping subscription phase b/c the configs
 					// will only be passed in via a channel
-					if s.skipSubscribe {
+					if s.skipSubscribe && !s.active {
 						s.heartbeatLock.Lock()
 						s.active = true
 						s.heartbeatLock.Unlock()
