@@ -250,6 +250,7 @@ type sensorTestCase struct {
 	maxClockDelta              time.Duration
 	clockUpdate                func(chan time.Time)
 	skipSubscribe              bool
+	limit                      int
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -384,6 +385,16 @@ func initialSetReq(sensor string, deletes []*gnmi.Path) *gnmi.SetRequest {
 	}
 }
 
+func isSensorHeartbeat(setReq *gnmi.SetRequest, sensor *Sensor) bool {
+	if len(setReq.Update) == 1 &&
+		pgnmi.PathMatch(setReq.Update[0].Path, pgnmi.Path("last-seen")) &&
+		pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
+		return true
+	}
+
+	return false
+}
+
 func runSensorTest(t *testing.T, tc sensorTestCase) {
 	// Always run as if it was substeps.
 	if len(tc.substeps) > 0 && len(tc.configSubResps) > 0 {
@@ -421,7 +432,8 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 			}),
 		WithSensorHostname("abc.com"),
 		WithSensorIP("1.1.1.1"),
-		WithSensorSkipSubscribe(tc.skipSubscribe))
+		WithSensorSkipSubscribe(tc.skipSubscribe),
+		WithLimitDatasourcesToRun(tc.limit))
 	sensor.log = sensor.log.WithField("test", tc.name)
 	sensor.deviceRedeployTimer = 10 * time.Millisecond
 	if tc.handleClusterClock {
@@ -526,7 +538,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 					case <-extraReads.C:
 						select {
 						case r := <-gnmic.SetReq:
-							return fmt.Errorf("Unexpected set: %v", r)
+							if !isSensorHeartbeat(r, sensor) {
+								return fmt.Errorf("Unexpected set: %v", r)
+							}
 						default:
 							return nil
 						}
@@ -2147,9 +2161,6 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 			skipSubscribe: true,
 			stateSubResps: []*gnmi.SubscribeResponse{
 				subscribeUpdates(
-					datasourceUpdates("state", "abc", "xyz", "mock",
-						true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
-				subscribeUpdates(
 					datasourceUpdates("state", "abc", "device-2", "mock",
 						true, map[string]string{"id": "345"}, nil, "LOG_LEVEL_INFO")...),
 				{
@@ -2173,7 +2184,6 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 					},
 					expectSet: []*gnmi.SetRequest{
 						initialSetReq("abc", []*gnmi.Path{
-							pgnmi.PathFromString("source[name=xyz]"),
 							pgnmi.PathFromString("source[name=device-2]"),
 						}),
 						{
@@ -2342,11 +2352,729 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 	// Run through test cases.
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.name != "Two configs loaded from state, delete one, keep one, add one" {
-				return
-			}
 			runSensorTest(t, tc)
 		})
 	}
+}
 
+func TestSensorWithLimit(t *testing.T) {
+	testCases := []sensorTestCase{
+		{
+			name:          "Test receiving 2 configs via config channel, with limit of 1",
+			skipSubscribe: true,
+			limit:         1,
+			substeps: []*sensorTestCase{
+				{
+					name: "send 1 configs via config channel",
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(), // send sync indicator
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						// device-2
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("2")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"2|map[id:2 input1:value2]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "send 1 more config, it shouldn't be able to run",
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-3",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "3",
+								"input1": "value3"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device-3
+						{
+							Prefix: datasourcePath("state", "abc", "device-3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue("unable to run datasource, max number "+
+										"of datasources already running,limit=1")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "disable device-2, device-3 should run",
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: false,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device-2 updates
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue("Data source disabled")),
+							},
+						},
+						// device-3 updates
+						{
+							Prefix: datasourcePath("state", "abc", "device-3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("3")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"3|map[id:3 input1:value3]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "enable device-2, device-2 shouldn't run",
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device-2
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue("unable to run datasource, max number "+
+										"of datasources already running,limit=1")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "delete device-3, device-2 should now run",
+					dynamicConfigs: []*Config{
+						NewDeletedConfig("device-3"),
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device-1 updates
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "device-3", ""),
+							},
+						},
+						// device-2 updates
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("2")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"2|map[id:2 input1:value2]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+		},
+		{
+			name:          "send 2 configs, one disabled, with limit of 1",
+			skipSubscribe: true,
+			limit:         2,
+			dynamicConfigs: []*Config{
+				NewSyncEndConfig(), // send sync indicator
+				{
+					Name:    "device-1",
+					Device:  "mock",
+					Enabled: true,
+					Options: map[string]string{
+						"id":     "123",
+						"input1": "value1"},
+				},
+				{
+					Name:    "device-2",
+					Device:  "mock",
+					Enabled: false,
+					Options: map[string]string{
+						"id":     "2",
+						"input1": "value2"},
+				},
+			},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc", nil),
+				// device-1
+				{
+					Prefix: datasourcePath("state", "abc", "device-1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "device-1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				// device-2 updates
+				{
+					Prefix: datasourcePath("state", "abc", "device-2", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+						pgnmi.Update(pgnmi.Path("last-error"),
+							agnmi.TypedValue("Data source disabled")),
+					},
+				},
+			},
+			waitForMetadataPostSync: []string{
+				"123|map[id:123 input1:value1]",
+			},
+			ignoreDatasourceHeartbeats: true,
+		},
+		{
+			name:          "send 2 configs, with sync at end",
+			skipSubscribe: true,
+			limit:         2,
+			substeps: []*sensorTestCase{
+				{
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "123",
+								"input1": "value1"},
+						},
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+						NewSyncEndConfig(), // send sync indicator
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						// device-1
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						// device-2
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("2")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 input1:value1]",
+						"2|map[id:2 input1:value2]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+		},
+		{
+			name:  "Test create config via gnmi, with limit of 1",
+			limit: 1,
+			substeps: []*sensorTestCase{
+				{
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "device1", "mock",
+								true, map[string]string{"id": "123", "input1": "value1"},
+								nil, "LOG_LEVEL_INFO")...),
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						// device1 updates
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "send 2nd config via gnmi, shouldn't run",
+					configSubResps: []*gnmi.SubscribeResponse{
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "device3", "mock",
+								true, map[string]string{"id": "3", "input2": "value3"},
+								nil, "LOG_LEVEL_INFO")...),
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue("unable to run datasource, max number "+
+										"of datasources already running,limit=1")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Disable device1, device3 should run",
+					configSubResps: []*gnmi.SubscribeResponse{
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "device1", "mock",
+								false, map[string]string{"id": "123", "input1": "value1"},
+								nil, "LOG_LEVEL_INFO")...),
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device1
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue("Data source disabled")),
+							},
+						},
+						// device3
+						{
+							Prefix: datasourcePath("state", "abc", "device3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device3", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("3")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"3|map[id:3 input2:value3 log-level:LOG_LEVEL_INFO]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "re-enable device1, device1 shouldnt run",
+					configSubResps: []*gnmi.SubscribeResponse{
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "device1", "mock",
+								true, map[string]string{"id": "123", "input1": "value1"},
+								nil, "LOG_LEVEL_INFO")...),
+					},
+					expectSet: []*gnmi.SetRequest{
+						// device1
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue("unable to run datasource, max number "+
+										"of datasources already running,limit=1")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "delete device-3, device 1 should run",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_Update{
+								Update: &gnmi.Notification{
+									Delete: []*gnmi.Path{
+										datasourcePath("config",
+											"abc", "device3", "name"),
+									},
+								},
+							},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						//device3
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "device3", ""),
+							},
+						},
+						// device1 starts running
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]",
+					},
+					ignoreDatasourceHeartbeats: false,
+				},
+			},
+		},
+		{
+			name:  "add 1 config from configCh, 1 from gnmi with limit of 2",
+			limit: 2,
+			substeps: []*sensorTestCase{
+				{
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "device1", "mock",
+								true, map[string]string{"id": "123", "input1": "value1"},
+								nil, "LOG_LEVEL_INFO")...),
+					},
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						// device1 updates
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+						// device-2
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("2")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]",
+						"2|map[id:2 input1:value2]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+		},
+		{
+			name:  "Test clock sync with limit of 1",
+			limit: 1,
+			substeps: []*sensorTestCase{
+				{
+					name: "First onboard device and see it streaming",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "xyz", "mock",
+								true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Sensor and datasource will stop on clock out of sync",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now().Add(-10 * time.Minute)
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is not in sync, stopping Sensor")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue(
+										"Sensor clock is not in sync, stopping data source"))},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "start sensor and datasource once clock is in sync",
+					clockUpdate: func(clockStatus chan time.Time) {
+						clockStatus <- time.Now()
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: sensorPath("state", "abc"),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey,
+									agnmi.TypedValue(
+										"Sensor clock is in sync, starting Sensor")),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("last-error"),
+									agnmi.TypedValue(
+										"Sensor clock is in sync, starting data source"))},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+			ignoreDatasourceHeartbeats: true,
+			handleClusterClock:         true,
+			maxClockDelta:              200 * time.Millisecond,
+		},
+		{
+			name:          "Test sending 2 configs, 1 with invalid device",
+			skipSubscribe: true,
+			limit:         1,
+			substeps: []*sensorTestCase{
+				{
+					name: "send 1 invalid config, should exit and allow another datasource to run",
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(), // send sync indicator
+						{
+							Name:    "device-1",
+							Device:  "invalidType",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						// device-1
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("invalidType")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.PathFromString("last-error"), agnmi.TypedValue(
+									"Data source stopped: "+
+										"Failed creating device 'invalidType': "+
+										"Device 'invalidType' not found")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "send another config, should be able to run",
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device-2",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "2",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device-2", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("2")),
+							},
+						},
+					},
+					waitForMetadataPostSync:    []string{"2|map[id:2 input1:value2]"},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+		},
+	}
+
+	// Register mockDevice.
+	Register("mock", newMockDevice, mockDeviceOptions)
+
+	// Run through test cases.
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			runSensorTest(t, tc)
+		})
+	}
 }

@@ -164,6 +164,8 @@ type datasource struct {
 
 	monitor *datasourceMonitor
 	logRate float64
+
+	limitDatasourcesToRun int
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -200,7 +202,8 @@ func (d *datasource) scheduleRestart(in time.Duration) {
 	_ = d.redeployTimer.Reset(in)
 }
 
-func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
+func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig,
+	dsRunningTracker *atomic.Int32, dsStopped chan string) error {
 	d.log.Tracef("Trying to deploy config: %v. Current: %v", cfg, d.config)
 
 	// We don't need to re-run if we are already running the same config.
@@ -213,16 +216,6 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	d.stop()
 	d.config = cfg.clone()
 
-	if !cfg.enabled {
-		d.failureRetryTimer.Reset() // reset failure backoff
-		d.log.Infof("Data source %v disabled", d.config.name)
-		if err := d.submitDatasourceUpdates(ctx,
-			pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
-			pgnmi.Update(lastErrorKey, agnmi.TypedValue("Data source disabled"))); err != nil {
-			d.log.Error("Failed to publish disabled status:", err)
-		}
-		return nil
-	}
 	d.log.Info("Starting run")
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -233,7 +226,10 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 	d.execGroup.Go(func() error {
 		runCtx, cancel := context.WithCancel(ctx)
 		d.running.Store(true)
+		dsRunningTracker.Add(1)
+
 		defer func() {
+			dsRunningTracker.Add(-1)
 			d.running.Store(false)
 			cancel() // make sure to cancel everything if the Run function returns for any reason.
 		}()
@@ -262,6 +258,13 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig) error {
 					d.log.Errorf("failed to publish Data source stopped event due to: %v", errS)
 				}
 			}
+
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case dsStopped <- d.config.name:
+			}
+
 			// Return without scheduling a re-run.
 			// We treat returning no error as an acceptable stop.
 			// But still cancel run ctx which will mark the data source as inactive.
@@ -649,6 +652,11 @@ type Sensor struct {
 	clockChan     chan time.Time
 
 	skipSubscribe bool // used to skip sensor subscribing to gnmi
+
+	// keep track of number of datasources running
+	limitDatasourcesToRun int
+	datasourceStopped     chan string
+	numDatasourcesRunning atomic.Int32
 }
 
 // SensorOption is used to configure the Sensor.
@@ -735,6 +743,13 @@ func WithSensorClusterClock(c ClusterClock) SensorOption {
 // WithSensorSkipSubscribe determines whether we skip subscribing for datasource configurations
 func WithSensorSkipSubscribe(skipSubscribe bool) SensorOption {
 	return func(s *Sensor) { s.skipSubscribe = skipSubscribe }
+}
+
+// WithLimitDatasourcesToRun limits the number of datasources that can be run at any given time
+// in the sensor. The datasources that are run are random. If a datasources is
+// stopped/deleted once we hit the limit, an arbitary one will be chosen to run in its place.
+func WithLimitDatasourcesToRun(limit int) SensorOption {
+	return func(s *Sensor) { s.limitDatasourcesToRun = limit }
 }
 
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
@@ -938,6 +953,56 @@ func (s *Sensor) removeDatasource(ctx context.Context, name string) {
 		s.log.Errorf("Failed to delete state for %s: %v", name, err)
 	}
 	s.log.Infof("Datasource removed: %s", name)
+
+	// run another datasource if sensor has a limit
+	s.findAndRunDatasourceConfig(ctx, "")
+}
+
+// getNextRunnableDatasourceName returns the name of the first datasource that is not
+// scheduled. An empty string is returned if nothing is found
+func (s *Sensor) getNextRunnableDatasourceName(filterDS string) string {
+	for name, ds := range s.datasource {
+		if !ds.running.Load() && ds.config.enabled && filterDS != name {
+			return name
+		}
+	}
+	return ""
+}
+
+// findAndRunDatasourceConfig attempts to run a new datasource config if there is a limit
+func (s *Sensor) findAndRunDatasourceConfig(ctx context.Context, filterDS string) {
+	// no limit, so all datasources are already scheduled or running
+	if s.limitDatasourcesToRun <= 0 {
+		return
+	}
+	// run another datasource if sensor has a limit
+	dsNextName := s.getNextRunnableDatasourceName(filterDS)
+	if dsNextName != "" {
+		ds := s.getDatasource(ctx, dsNextName)
+		ds.scheduleRestart(s.deviceRedeployTimer)
+	}
+}
+
+func (s *Sensor) disableDatasource(ctx context.Context, d *datasource, cfg *datasourceConfig) {
+	// don't process a duplicate disable config
+	if cfg.equals(d.config) {
+		return
+	}
+
+	d.stop()
+	d.config = cfg.clone()
+
+	// reset failure retry timer back to the base so if we run this datasource again in the
+	// future, the failure backoff timer starts at its base
+	d.failureRetryTimer.Reset()
+	d.log.Infof("Data source %v disabled", d.config.name)
+	if err := d.submitDatasourceUpdates(ctx,
+		pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(false)),
+		pgnmi.Update(lastErrorKey, agnmi.TypedValue("Data source disabled"))); err != nil {
+		d.log.Error("Failed to publish disabled status:", err)
+	}
+
+	s.findAndRunDatasourceConfig(ctx, d.config.name)
 }
 
 func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
@@ -972,10 +1037,11 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 			// configs and runtime fields.
 			s.redeployDatasource <- name
 		}),
-		grpcc:             s.grpcc,
-		statePrefix:       prefix,
-		heartbeatInterval: s.heartbeatInterval,
-		logRate:           s.logRate,
+		grpcc:                 s.grpcc,
+		statePrefix:           prefix,
+		heartbeatInterval:     s.heartbeatInterval,
+		logRate:               s.logRate,
+		limitDatasourcesToRun: s.limitDatasourcesToRun,
 	}
 	// Setup monitor for datasource
 	runtime.monitor = newDatasourceMonitor(runtime.log, runtime.config.loglevel)
@@ -1000,7 +1066,28 @@ func (s *Sensor) runDatasourceConfig(ctx context.Context, name string) error {
 		runtime.handleDatasourceError(ctx, msg)
 		return nil
 	}
-	return runtime.deploy(ctx, cfg)
+
+	// if cfg is disabled then stop the run and set scheduled to false
+	if !cfg.enabled {
+		s.disableDatasource(ctx, runtime, cfg)
+		return nil
+	}
+
+	// if limit is greater than 0 or if we have already reached the max, then don't run additional
+	// datasources
+	if s.limitDatasourcesToRun > 0 &&
+		int(s.numDatasourcesRunning.Load()) >= s.limitDatasourcesToRun &&
+		!runtime.running.Load() {
+
+		msg := fmt.Errorf("unable to run datasource, max number of datasources already running,"+
+			"limit=%v", s.limitDatasourcesToRun)
+		runtime.handleDatasourceError(ctx, msg)
+		// update config for current datasource b/c it isn't deployed
+		runtime.config = cfg.clone()
+		return nil
+	}
+
+	return runtime.deploy(ctx, cfg, &s.numDatasourcesRunning, s.datasourceStopped)
 }
 
 type handleUpdateFn func(context.Context, *gnmi.Notification, bool) error
@@ -1023,6 +1110,12 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 		configChPostSync := false
 		for {
 			select {
+			case dsName, ok := <-s.datasourceStopped:
+				if !ok {
+					return fmt.Errorf("error while reading datasource stopped channel")
+				}
+
+				s.findAndRunDatasourceConfig(ctx, dsName)
 			case clockTime, ok := <-s.clockChan:
 				if !ok {
 					return fmt.Errorf("Error while reading cluster clock")
@@ -1096,6 +1189,7 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 						credential: cfg.Credentials,
 						loglevel:   loglevel,
 					}
+
 					ds := s.getDatasource(ctx, cfg.Name)
 					// schedule datasource to run after we have synced the datasources
 					if s.active && configChPostSync {
@@ -1341,6 +1435,7 @@ func NewSensor(name string, logRate float64, opts ...SensorOption) *Sensor {
 		failureRetryBackoffMax:  1 * time.Hour,
 		credResolver:            passthroughResolver,
 		clusterClock:            defaultClockObj,
+		datasourceStopped:       make(chan string),
 	}
 	for _, opt := range opts {
 		opt(s)
