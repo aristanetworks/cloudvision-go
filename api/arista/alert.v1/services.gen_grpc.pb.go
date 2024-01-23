@@ -19,7 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AlertServiceClient interface {
 	GetOne(ctx context.Context, in *AlertRequest, opts ...grpc.CallOption) (*AlertResponse, error)
+	GetAll(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeClient, error)
+	SubscribeMeta(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeMetaClient, error)
 }
 
 type alertServiceClient struct {
@@ -39,8 +41,40 @@ func (c *alertServiceClient) GetOne(ctx context.Context, in *AlertRequest, opts 
 	return out, nil
 }
 
+func (c *alertServiceClient) GetAll(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[0], "/arista.alert.v1.AlertService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &alertServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AlertService_GetAllClient interface {
+	Recv() (*AlertStreamResponse, error)
+	grpc.ClientStream
+}
+
+type alertServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *alertServiceGetAllClient) Recv() (*AlertStreamResponse, error) {
+	m := new(AlertStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *alertServiceClient) Subscribe(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[0], "/arista.alert.v1.AlertService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[1], "/arista.alert.v1.AlertService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +105,46 @@ func (x *alertServiceSubscribeClient) Recv() (*AlertStreamResponse, error) {
 	return m, nil
 }
 
+func (c *alertServiceClient) SubscribeMeta(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[2], "/arista.alert.v1.AlertService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &alertServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AlertService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type alertServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *alertServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AlertServiceServer is the server API for AlertService service.
 // All implementations must embed UnimplementedAlertServiceServer
 // for forward compatibility
 type AlertServiceServer interface {
 	GetOne(context.Context, *AlertRequest) (*AlertResponse, error)
+	GetAll(*AlertStreamRequest, AlertService_GetAllServer) error
 	Subscribe(*AlertStreamRequest, AlertService_SubscribeServer) error
+	SubscribeMeta(*AlertStreamRequest, AlertService_SubscribeMetaServer) error
 	mustEmbedUnimplementedAlertServiceServer()
 }
 
@@ -87,8 +155,14 @@ type UnimplementedAlertServiceServer struct {
 func (UnimplementedAlertServiceServer) GetOne(context.Context, *AlertRequest) (*AlertResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAlertServiceServer) GetAll(*AlertStreamRequest, AlertService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
 func (UnimplementedAlertServiceServer) Subscribe(*AlertStreamRequest, AlertService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAlertServiceServer) SubscribeMeta(*AlertStreamRequest, AlertService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAlertServiceServer) mustEmbedUnimplementedAlertServiceServer() {}
 
@@ -121,6 +195,27 @@ func _AlertService_GetOne_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AlertStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AlertServiceServer).GetAll(m, &alertServiceGetAllServer{stream})
+}
+
+type AlertService_GetAllServer interface {
+	Send(*AlertStreamResponse) error
+	grpc.ServerStream
+}
+
+type alertServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *alertServiceGetAllServer) Send(m *AlertStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _AlertService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(AlertStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -142,6 +237,27 @@ func (x *alertServiceSubscribeServer) Send(m *AlertStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AlertService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AlertStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AlertServiceServer).SubscribeMeta(m, &alertServiceSubscribeMetaServer{stream})
+}
+
+type AlertService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type alertServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *alertServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AlertService_ServiceDesc is the grpc.ServiceDesc for AlertService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -156,8 +272,18 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetAll",
+			Handler:       _AlertService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "Subscribe",
 			Handler:       _AlertService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AlertService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -169,7 +295,9 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AlertConfigServiceClient interface {
 	GetOne(ctx context.Context, in *AlertConfigRequest, opts ...grpc.CallOption) (*AlertConfigResponse, error)
+	GetAll(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeClient, error)
+	SubscribeMeta(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *AlertConfigSetRequest, opts ...grpc.CallOption) (*AlertConfigSetResponse, error)
 }
 
@@ -190,8 +318,40 @@ func (c *alertConfigServiceClient) GetOne(ctx context.Context, in *AlertConfigRe
 	return out, nil
 }
 
+func (c *alertConfigServiceClient) GetAll(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[0], "/arista.alert.v1.AlertConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &alertConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AlertConfigService_GetAllClient interface {
+	Recv() (*AlertConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type alertConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *alertConfigServiceGetAllClient) Recv() (*AlertConfigStreamResponse, error) {
+	m := new(AlertConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *alertConfigServiceClient) Subscribe(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[0], "/arista.alert.v1.AlertConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[1], "/arista.alert.v1.AlertConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +382,38 @@ func (x *alertConfigServiceSubscribeClient) Recv() (*AlertConfigStreamResponse, 
 	return m, nil
 }
 
+func (c *alertConfigServiceClient) SubscribeMeta(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[2], "/arista.alert.v1.AlertConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &alertConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AlertConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type alertConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *alertConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *alertConfigServiceClient) Set(ctx context.Context, in *AlertConfigSetRequest, opts ...grpc.CallOption) (*AlertConfigSetResponse, error) {
 	out := new(AlertConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.alert.v1.AlertConfigService/Set", in, out, opts...)
@@ -236,7 +428,9 @@ func (c *alertConfigServiceClient) Set(ctx context.Context, in *AlertConfigSetRe
 // for forward compatibility
 type AlertConfigServiceServer interface {
 	GetOne(context.Context, *AlertConfigRequest) (*AlertConfigResponse, error)
+	GetAll(*AlertConfigStreamRequest, AlertConfigService_GetAllServer) error
 	Subscribe(*AlertConfigStreamRequest, AlertConfigService_SubscribeServer) error
+	SubscribeMeta(*AlertConfigStreamRequest, AlertConfigService_SubscribeMetaServer) error
 	Set(context.Context, *AlertConfigSetRequest) (*AlertConfigSetResponse, error)
 	mustEmbedUnimplementedAlertConfigServiceServer()
 }
@@ -248,8 +442,14 @@ type UnimplementedAlertConfigServiceServer struct {
 func (UnimplementedAlertConfigServiceServer) GetOne(context.Context, *AlertConfigRequest) (*AlertConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAlertConfigServiceServer) GetAll(*AlertConfigStreamRequest, AlertConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
 func (UnimplementedAlertConfigServiceServer) Subscribe(*AlertConfigStreamRequest, AlertConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAlertConfigServiceServer) SubscribeMeta(*AlertConfigStreamRequest, AlertConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAlertConfigServiceServer) Set(context.Context, *AlertConfigSetRequest) (*AlertConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -285,6 +485,27 @@ func _AlertConfigService_GetOne_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AlertConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AlertConfigServiceServer).GetAll(m, &alertConfigServiceGetAllServer{stream})
+}
+
+type AlertConfigService_GetAllServer interface {
+	Send(*AlertConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type alertConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *alertConfigServiceGetAllServer) Send(m *AlertConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _AlertConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(AlertConfigStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -303,6 +524,27 @@ type alertConfigServiceSubscribeServer struct {
 }
 
 func (x *alertConfigServiceSubscribeServer) Send(m *AlertConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AlertConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AlertConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AlertConfigServiceServer).SubscribeMeta(m, &alertConfigServiceSubscribeMetaServer{stream})
+}
+
+type AlertConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type alertConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *alertConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -342,8 +584,394 @@ var AlertConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetAll",
+			Handler:       _AlertConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "Subscribe",
 			Handler:       _AlertConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AlertConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/alert.v1/services.gen.proto",
+}
+
+// DefaultTemplateServiceClient is the client API for DefaultTemplateService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DefaultTemplateServiceClient interface {
+	GetOne(ctx context.Context, in *DefaultTemplateRequest, opts ...grpc.CallOption) (*DefaultTemplateResponse, error)
+	GetSome(ctx context.Context, in *DefaultTemplateSomeRequest, opts ...grpc.CallOption) (DefaultTemplateService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_SubscribeMetaClient, error)
+}
+
+type defaultTemplateServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDefaultTemplateServiceClient(cc grpc.ClientConnInterface) DefaultTemplateServiceClient {
+	return &defaultTemplateServiceClient{cc}
+}
+
+func (c *defaultTemplateServiceClient) GetOne(ctx context.Context, in *DefaultTemplateRequest, opts ...grpc.CallOption) (*DefaultTemplateResponse, error) {
+	out := new(DefaultTemplateResponse)
+	err := c.cc.Invoke(ctx, "/arista.alert.v1.DefaultTemplateService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defaultTemplateServiceClient) GetSome(ctx context.Context, in *DefaultTemplateSomeRequest, opts ...grpc.CallOption) (DefaultTemplateService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DefaultTemplateService_ServiceDesc.Streams[0], "/arista.alert.v1.DefaultTemplateService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &defaultTemplateServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DefaultTemplateService_GetSomeClient interface {
+	Recv() (*DefaultTemplateSomeResponse, error)
+	grpc.ClientStream
+}
+
+type defaultTemplateServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *defaultTemplateServiceGetSomeClient) Recv() (*DefaultTemplateSomeResponse, error) {
+	m := new(DefaultTemplateSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *defaultTemplateServiceClient) GetAll(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DefaultTemplateService_ServiceDesc.Streams[1], "/arista.alert.v1.DefaultTemplateService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &defaultTemplateServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DefaultTemplateService_GetAllClient interface {
+	Recv() (*DefaultTemplateStreamResponse, error)
+	grpc.ClientStream
+}
+
+type defaultTemplateServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *defaultTemplateServiceGetAllClient) Recv() (*DefaultTemplateStreamResponse, error) {
+	m := new(DefaultTemplateStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *defaultTemplateServiceClient) Subscribe(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DefaultTemplateService_ServiceDesc.Streams[2], "/arista.alert.v1.DefaultTemplateService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &defaultTemplateServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DefaultTemplateService_SubscribeClient interface {
+	Recv() (*DefaultTemplateStreamResponse, error)
+	grpc.ClientStream
+}
+
+type defaultTemplateServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *defaultTemplateServiceSubscribeClient) Recv() (*DefaultTemplateStreamResponse, error) {
+	m := new(DefaultTemplateStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *defaultTemplateServiceClient) GetMeta(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.alert.v1.DefaultTemplateService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defaultTemplateServiceClient) SubscribeMeta(ctx context.Context, in *DefaultTemplateStreamRequest, opts ...grpc.CallOption) (DefaultTemplateService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DefaultTemplateService_ServiceDesc.Streams[3], "/arista.alert.v1.DefaultTemplateService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &defaultTemplateServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DefaultTemplateService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type defaultTemplateServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *defaultTemplateServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// DefaultTemplateServiceServer is the server API for DefaultTemplateService service.
+// All implementations must embed UnimplementedDefaultTemplateServiceServer
+// for forward compatibility
+type DefaultTemplateServiceServer interface {
+	GetOne(context.Context, *DefaultTemplateRequest) (*DefaultTemplateResponse, error)
+	GetSome(*DefaultTemplateSomeRequest, DefaultTemplateService_GetSomeServer) error
+	GetAll(*DefaultTemplateStreamRequest, DefaultTemplateService_GetAllServer) error
+	Subscribe(*DefaultTemplateStreamRequest, DefaultTemplateService_SubscribeServer) error
+	GetMeta(context.Context, *DefaultTemplateStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DefaultTemplateStreamRequest, DefaultTemplateService_SubscribeMetaServer) error
+	mustEmbedUnimplementedDefaultTemplateServiceServer()
+}
+
+// UnimplementedDefaultTemplateServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedDefaultTemplateServiceServer struct {
+}
+
+func (UnimplementedDefaultTemplateServiceServer) GetOne(context.Context, *DefaultTemplateRequest) (*DefaultTemplateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) GetSome(*DefaultTemplateSomeRequest, DefaultTemplateService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) GetAll(*DefaultTemplateStreamRequest, DefaultTemplateService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) Subscribe(*DefaultTemplateStreamRequest, DefaultTemplateService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) GetMeta(context.Context, *DefaultTemplateStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) SubscribeMeta(*DefaultTemplateStreamRequest, DefaultTemplateService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedDefaultTemplateServiceServer) mustEmbedUnimplementedDefaultTemplateServiceServer() {
+}
+
+// UnsafeDefaultTemplateServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DefaultTemplateServiceServer will
+// result in compilation errors.
+type UnsafeDefaultTemplateServiceServer interface {
+	mustEmbedUnimplementedDefaultTemplateServiceServer()
+}
+
+func RegisterDefaultTemplateServiceServer(s grpc.ServiceRegistrar, srv DefaultTemplateServiceServer) {
+	s.RegisterService(&DefaultTemplateService_ServiceDesc, srv)
+}
+
+func _DefaultTemplateService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DefaultTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DefaultTemplateServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.alert.v1.DefaultTemplateService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DefaultTemplateServiceServer).GetOne(ctx, req.(*DefaultTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DefaultTemplateService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DefaultTemplateSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DefaultTemplateServiceServer).GetSome(m, &defaultTemplateServiceGetSomeServer{stream})
+}
+
+type DefaultTemplateService_GetSomeServer interface {
+	Send(*DefaultTemplateSomeResponse) error
+	grpc.ServerStream
+}
+
+type defaultTemplateServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *defaultTemplateServiceGetSomeServer) Send(m *DefaultTemplateSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DefaultTemplateService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DefaultTemplateStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DefaultTemplateServiceServer).GetAll(m, &defaultTemplateServiceGetAllServer{stream})
+}
+
+type DefaultTemplateService_GetAllServer interface {
+	Send(*DefaultTemplateStreamResponse) error
+	grpc.ServerStream
+}
+
+type defaultTemplateServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *defaultTemplateServiceGetAllServer) Send(m *DefaultTemplateStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DefaultTemplateService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DefaultTemplateStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DefaultTemplateServiceServer).Subscribe(m, &defaultTemplateServiceSubscribeServer{stream})
+}
+
+type DefaultTemplateService_SubscribeServer interface {
+	Send(*DefaultTemplateStreamResponse) error
+	grpc.ServerStream
+}
+
+type defaultTemplateServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *defaultTemplateServiceSubscribeServer) Send(m *DefaultTemplateStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DefaultTemplateService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DefaultTemplateStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DefaultTemplateServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.alert.v1.DefaultTemplateService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DefaultTemplateServiceServer).GetMeta(ctx, req.(*DefaultTemplateStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DefaultTemplateService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DefaultTemplateStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DefaultTemplateServiceServer).SubscribeMeta(m, &defaultTemplateServiceSubscribeMetaServer{stream})
+}
+
+type DefaultTemplateService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type defaultTemplateServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *defaultTemplateServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// DefaultTemplateService_ServiceDesc is the grpc.ServiceDesc for DefaultTemplateService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DefaultTemplateService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.alert.v1.DefaultTemplateService",
+	HandlerType: (*DefaultTemplateServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _DefaultTemplateService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _DefaultTemplateService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DefaultTemplateService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _DefaultTemplateService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _DefaultTemplateService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DefaultTemplateService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -355,11 +983,15 @@ var AlertConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TemplateConfigServiceClient interface {
 	GetOne(ctx context.Context, in *TemplateConfigRequest, opts ...grpc.CallOption) (*TemplateConfigResponse, error)
+	GetSome(ctx context.Context, in *TemplateConfigSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *TemplateConfigSetRequest, opts ...grpc.CallOption) (*TemplateConfigSetResponse, error)
 	SetSome(ctx context.Context, in *TemplateConfigSetSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *TemplateConfigDeleteRequest, opts ...grpc.CallOption) (*TemplateConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *TemplateConfigDeleteSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *TemplateConfigDeleteAllRequest, opts ...grpc.CallOption) (TemplateConfigService_DeleteAllClient, error)
 }
 
@@ -380,8 +1012,40 @@ func (c *templateConfigServiceClient) GetOne(ctx context.Context, in *TemplateCo
 	return out, nil
 }
 
+func (c *templateConfigServiceClient) GetSome(ctx context.Context, in *TemplateConfigSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[0], "/arista.alert.v1.TemplateConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &templateConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TemplateConfigService_GetSomeClient interface {
+	Recv() (*TemplateConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type templateConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *templateConfigServiceGetSomeClient) Recv() (*TemplateConfigSomeResponse, error) {
+	m := new(TemplateConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *templateConfigServiceClient) GetAll(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[0], "/arista.alert.v1.TemplateConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[1], "/arista.alert.v1.TemplateConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +1077,7 @@ func (x *templateConfigServiceGetAllClient) Recv() (*TemplateConfigStreamRespons
 }
 
 func (c *templateConfigServiceClient) Subscribe(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[1], "/arista.alert.v1.TemplateConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[2], "/arista.alert.v1.TemplateConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -444,6 +1108,47 @@ func (x *templateConfigServiceSubscribeClient) Recv() (*TemplateConfigStreamResp
 	return m, nil
 }
 
+func (c *templateConfigServiceClient) GetMeta(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.alert.v1.TemplateConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *templateConfigServiceClient) SubscribeMeta(ctx context.Context, in *TemplateConfigStreamRequest, opts ...grpc.CallOption) (TemplateConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[3], "/arista.alert.v1.TemplateConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &templateConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TemplateConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type templateConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *templateConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *templateConfigServiceClient) Set(ctx context.Context, in *TemplateConfigSetRequest, opts ...grpc.CallOption) (*TemplateConfigSetResponse, error) {
 	out := new(TemplateConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.alert.v1.TemplateConfigService/Set", in, out, opts...)
@@ -454,7 +1159,7 @@ func (c *templateConfigServiceClient) Set(ctx context.Context, in *TemplateConfi
 }
 
 func (c *templateConfigServiceClient) SetSome(ctx context.Context, in *TemplateConfigSetSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[2], "/arista.alert.v1.TemplateConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[4], "/arista.alert.v1.TemplateConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -494,8 +1199,40 @@ func (c *templateConfigServiceClient) Delete(ctx context.Context, in *TemplateCo
 	return out, nil
 }
 
+func (c *templateConfigServiceClient) DeleteSome(ctx context.Context, in *TemplateConfigDeleteSomeRequest, opts ...grpc.CallOption) (TemplateConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[5], "/arista.alert.v1.TemplateConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &templateConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TemplateConfigService_DeleteSomeClient interface {
+	Recv() (*TemplateConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type templateConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *templateConfigServiceDeleteSomeClient) Recv() (*TemplateConfigDeleteSomeResponse, error) {
+	m := new(TemplateConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *templateConfigServiceClient) DeleteAll(ctx context.Context, in *TemplateConfigDeleteAllRequest, opts ...grpc.CallOption) (TemplateConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[3], "/arista.alert.v1.TemplateConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TemplateConfigService_ServiceDesc.Streams[6], "/arista.alert.v1.TemplateConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -531,11 +1268,15 @@ func (x *templateConfigServiceDeleteAllClient) Recv() (*TemplateConfigDeleteAllR
 // for forward compatibility
 type TemplateConfigServiceServer interface {
 	GetOne(context.Context, *TemplateConfigRequest) (*TemplateConfigResponse, error)
+	GetSome(*TemplateConfigSomeRequest, TemplateConfigService_GetSomeServer) error
 	GetAll(*TemplateConfigStreamRequest, TemplateConfigService_GetAllServer) error
 	Subscribe(*TemplateConfigStreamRequest, TemplateConfigService_SubscribeServer) error
+	GetMeta(context.Context, *TemplateConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*TemplateConfigStreamRequest, TemplateConfigService_SubscribeMetaServer) error
 	Set(context.Context, *TemplateConfigSetRequest) (*TemplateConfigSetResponse, error)
 	SetSome(*TemplateConfigSetSomeRequest, TemplateConfigService_SetSomeServer) error
 	Delete(context.Context, *TemplateConfigDeleteRequest) (*TemplateConfigDeleteResponse, error)
+	DeleteSome(*TemplateConfigDeleteSomeRequest, TemplateConfigService_DeleteSomeServer) error
 	DeleteAll(*TemplateConfigDeleteAllRequest, TemplateConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedTemplateConfigServiceServer()
 }
@@ -547,11 +1288,20 @@ type UnimplementedTemplateConfigServiceServer struct {
 func (UnimplementedTemplateConfigServiceServer) GetOne(context.Context, *TemplateConfigRequest) (*TemplateConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedTemplateConfigServiceServer) GetSome(*TemplateConfigSomeRequest, TemplateConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedTemplateConfigServiceServer) GetAll(*TemplateConfigStreamRequest, TemplateConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedTemplateConfigServiceServer) Subscribe(*TemplateConfigStreamRequest, TemplateConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTemplateConfigServiceServer) GetMeta(context.Context, *TemplateConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedTemplateConfigServiceServer) SubscribeMeta(*TemplateConfigStreamRequest, TemplateConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedTemplateConfigServiceServer) Set(context.Context, *TemplateConfigSetRequest) (*TemplateConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -561,6 +1311,9 @@ func (UnimplementedTemplateConfigServiceServer) SetSome(*TemplateConfigSetSomeRe
 }
 func (UnimplementedTemplateConfigServiceServer) Delete(context.Context, *TemplateConfigDeleteRequest) (*TemplateConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTemplateConfigServiceServer) DeleteSome(*TemplateConfigDeleteSomeRequest, TemplateConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedTemplateConfigServiceServer) DeleteAll(*TemplateConfigDeleteAllRequest, TemplateConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -594,6 +1347,27 @@ func _TemplateConfigService_GetOne_Handler(srv interface{}, ctx context.Context,
 		return srv.(TemplateConfigServiceServer).GetOne(ctx, req.(*TemplateConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TemplateConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TemplateConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TemplateConfigServiceServer).GetSome(m, &templateConfigServiceGetSomeServer{stream})
+}
+
+type TemplateConfigService_GetSomeServer interface {
+	Send(*TemplateConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type templateConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *templateConfigServiceGetSomeServer) Send(m *TemplateConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _TemplateConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -635,6 +1409,45 @@ type templateConfigServiceSubscribeServer struct {
 }
 
 func (x *templateConfigServiceSubscribeServer) Send(m *TemplateConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TemplateConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TemplateConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TemplateConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.alert.v1.TemplateConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TemplateConfigServiceServer).GetMeta(ctx, req.(*TemplateConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TemplateConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TemplateConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TemplateConfigServiceServer).SubscribeMeta(m, &templateConfigServiceSubscribeMetaServer{stream})
+}
+
+type TemplateConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type templateConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *templateConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -695,6 +1508,27 @@ func _TemplateConfigService_Delete_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TemplateConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TemplateConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TemplateConfigServiceServer).DeleteSome(m, &templateConfigServiceDeleteSomeServer{stream})
+}
+
+type TemplateConfigService_DeleteSomeServer interface {
+	Send(*TemplateConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type templateConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *templateConfigServiceDeleteSomeServer) Send(m *TemplateConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TemplateConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TemplateConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -728,6 +1562,10 @@ var TemplateConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TemplateConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _TemplateConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _TemplateConfigService_Set_Handler,
 		},
@@ -737,6 +1575,11 @@ var TemplateConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _TemplateConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _TemplateConfigService_GetAll_Handler,
@@ -748,8 +1591,18 @@ var TemplateConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TemplateConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _TemplateConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _TemplateConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
