@@ -3147,7 +3147,7 @@ type Matches struct {
 
 	// severities is a list of severities to filter on,
 	// if an event does not have one of these severities, it will not match
-	// Valid values are INFO, WARNING, ERROR and CRITICAL
+	// Valid values are DEBUG, INFO, WARNING, ERROR and CRITICAL
 	Severities *fmp.RepeatedString `protobuf:"bytes,1,opt,name=severities,proto3" json:"severities,omitempty"`
 	// devices is a list of device IDs to filter on,
 	// if an event does not belong to one of these devices, it will not match
