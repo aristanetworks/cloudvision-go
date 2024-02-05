@@ -4,10 +4,12 @@ go 1.19
 
 require (
 	github.com/aristanetworks/fsnotify v1.4.6
+	github.com/aristanetworks/glog v0.0.0-20220413230315-4bbe49d210b0
 	github.com/aristanetworks/goarista v0.0.0-20221223192338-9220b5f2fcde
 	github.com/fatih/color v1.13.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
+	github.com/google/uuid v1.6.0
 	github.com/gosnmp/gosnmp v1.35.0
 	github.com/openconfig/gnmi v0.0.0-20220920173703-480bf53a74d2
 	github.com/pkg/errors v0.9.1
