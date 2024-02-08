@@ -5,6 +5,7 @@
 package snmpoc
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -490,7 +491,8 @@ func processChassisID(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
 	case 5:
 		return IPFromBytes(p.Value.([]byte)), nil
 	}
-	return string(p.Value.([]byte)), nil
+	// Trim any NULL bytes from the value.
+	return string(bytes.Trim(p.Value.([]byte), "\x00")), nil
 }
 
 func processPortID(p *gosnmp.SnmpPDU, subtype int) (interface{}, error) {
