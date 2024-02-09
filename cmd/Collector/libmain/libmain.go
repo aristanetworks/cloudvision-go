@@ -439,6 +439,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			device.WithSensorMaxClockDelta(*maxClockDelta),
 			device.WithSensorClientFactory(newCVClient),
 			device.WithSensorConfigChan(configCh),
+			device.WithSensorGRPCConn(conn),
 		}
 		if sc.CredResolverCreator != nil {
 			resolver, err := sc.CredResolverCreator(conn)

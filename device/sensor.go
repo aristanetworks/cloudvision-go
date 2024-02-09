@@ -409,11 +409,13 @@ func (d *datasource) runProviders(ctx context.Context) error {
 
 	for _, p := range providers {
 		p := p // scope p for goroutines that use it
-
-		switch pt := p.(type) {
-		case provider.GNMIProvider:
-			pt.InitGNMI(d.cvClient.ForProvider(pt))
-		case provider.GRPCProvider:
+		isValidProvider := false
+		if gnmiprovider, ok := p.(provider.GNMIProvider); ok {
+			isValidProvider = true
+			gnmiprovider.InitGNMI(d.cvClient.ForProvider(gnmiprovider))
+		}
+		if grpcprovider, ok := p.(provider.GRPCProvider); ok {
+			isValidProvider = true
 			if d.grpcConnector != nil && grpcConn == d.grpcc {
 				// lazy initialize the new connection once for the device
 				cc := GRPCConnectorConfig{
@@ -433,8 +435,9 @@ func (d *datasource) runProviders(ctx context.Context) error {
 					return conn.Close()
 				})
 			}
-			pt.InitGRPC(grpcConn)
-		default:
+			grpcprovider.InitGRPC(grpcConn)
+		}
+		if !isValidProvider {
 			return fmt.Errorf("unexpected provider type %T", p)
 		}
 
