@@ -2033,12 +2033,20 @@ func TestSendPeriodicUpdates(t *testing.T) {
 			datasource := &datasource{
 				heartbeatInterval: 1 * time.Millisecond,
 				log:               logrus.WithField("test", t.Name()),
+				metricTracker:     noopMetricTracker{},
+				config: &datasourceConfig{
+					name: "mock",
+					typ:  "mock",
+				},
 			}
+
 			datasource.info = &Info{
 				ID:      "test",
 				Context: ctx,
 				Device:  fakeDevice,
-				Config:  &Config{},
+				Config: &Config{
+					Device: "mock",
+				},
 			}
 
 			gnmic := gmock.NewMockGNMIClient(ctrl)

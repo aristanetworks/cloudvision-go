@@ -33,6 +33,14 @@ var (
 	undefinedPathElem = &gnmi.PathElem{Name: "___undefined___"}
 )
 
+const (
+	sensorNotInSyncError     = "sensorClockNotInSync"
+	sensorErrMaxLimitReached = "maxLimitReached"
+	dsErrUnexpectedStop      = "unexpectedStop"
+	dsErrDeviceNotAlive      = "deviceNotAlive"
+	dsErrBadConfig           = "badConfig"
+)
+
 func catchPanic(desc string, f func() error) func() error {
 	return func() (err error) {
 		defer func() {
@@ -166,6 +174,7 @@ type datasource struct {
 	logRate float64
 
 	limitDatasourcesToRun int
+	metricTracker         MetricTracker
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -178,8 +187,9 @@ func (d *datasource) submitDatasourceUpdates(ctx context.Context,
 	return err
 }
 
-func (d *datasource) handleDatasourceError(ctx context.Context, e error) {
+func (d *datasource) handleDatasourceError(ctx context.Context, e error, errorName string) {
 	d.log.Error(e)
+	d.metricTracker.TrackDatasourceErrors(ctx, d.config.typ, errorName)
 	err := d.submitDatasourceUpdates(ctx,
 		pgnmi.Update(lastErrorKey, agnmi.TypedValue(e.Error())))
 	if err != nil {
@@ -197,14 +207,16 @@ func (d *datasource) handleDatasourceMessage(ctx context.Context, message string
 	}
 }
 
-func (d *datasource) scheduleRestart(in time.Duration) {
+func (d *datasource) scheduleRestart(ctx context.Context, in time.Duration) {
 	// If was already triggered we are ok in triggering it again
 	_ = d.redeployTimer.Reset(in)
+	d.metricTracker.TrackDatasourceRestarts(ctx, d.config.typ)
 }
 
 func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig,
 	dsRunningTracker *atomic.Int32, dsStopped chan string) error {
 	d.log.Tracef("Trying to deploy config: %v. Current: %v", cfg, d.config)
+	d.metricTracker.TrackDatasourceDeploys(ctx, cfg.typ)
 
 	// We don't need to re-run if we are already running the same config.
 	if d.running.Load() && cfg.equals(d.config) {
@@ -250,7 +262,8 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig,
 
 		if err == nil || IsBadConfigError(err) {
 			if err != nil {
-				d.handleDatasourceError(ctx, fmt.Errorf("Data source stopped: %v", err))
+				d.handleDatasourceError(
+					ctx, fmt.Errorf("Data source stopped: %v", err), dsErrBadConfig)
 			} else {
 				errS := d.submitDatasourceUpdates(ctx,
 					pgnmi.Update(lastErrorKey, agnmi.TypedValue("Data source stopped")))
@@ -274,8 +287,8 @@ func (d *datasource) deploy(ctx context.Context, cfg *datasourceConfig,
 		// Handle return error by pushing it to datasource last-error state
 		backoff := d.failureRetryTimer.Backoff()
 		err = fmt.Errorf("Datasource stopped unexpectedly: %w. Retrying in %v", err, backoff)
-		d.handleDatasourceError(ctx, err)
-		d.scheduleRestart(backoff)
+		d.handleDatasourceError(ctx, err, dsErrUnexpectedStop)
+		d.scheduleRestart(ctx, backoff)
 		return err
 	})
 
@@ -493,7 +506,7 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 			if err != nil {
 				msg = fmt.Errorf("Device not alive: %w", err)
 			}
-			d.handleDatasourceError(ctx, msg)
+			d.handleDatasourceError(ctx, msg, dsErrDeviceNotAlive)
 			wasFailing = true
 		}
 		select {
@@ -660,6 +673,8 @@ type Sensor struct {
 	limitDatasourcesToRun int
 	datasourceStopped     chan string
 	numDatasourcesRunning atomic.Int32
+
+	metricTracker MetricTracker
 }
 
 // SensorOption is used to configure the Sensor.
@@ -755,6 +770,11 @@ func WithLimitDatasourcesToRun(limit int) SensorOption {
 	return func(s *Sensor) { s.limitDatasourcesToRun = limit }
 }
 
+// WithMetricTracker adds a metric tracker to the sensor to track metrics
+func WithMetricTracker(metricTracker MetricTracker) SensorOption {
+	return func(s *Sensor) { s.metricTracker = metricTracker }
+}
+
 func (s *Sensor) handleConfigUpdate(ctx context.Context,
 	resp *gnmi.Notification, postSync bool) error {
 	// For each deleted datasource name, cancel that datasource and
@@ -843,7 +863,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 		// the cofigCh and reach the sensor before the sensor config.
 		for name := range s.datasourceConfig {
 			ds := s.getDatasource(ctx, name)
-			ds.scheduleRestart(s.deviceRedeployTimer)
+			ds.scheduleRestart(ctx, s.deviceRedeployTimer)
 		}
 	}
 
@@ -869,6 +889,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				loglevel:   logrus.InfoLevel,
 			}
 			s.datasourceConfig[name] = dscfg
+			s.metricTracker.TrackDatasources(ctx, 1)
 		}
 
 		curr := 4 // (0)datasource/(1)config/(2)sensor[id]/(3)source[name]/(4)fields
@@ -933,7 +954,7 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 			}
 		}
 		// We don't care if it already ran, we want to reschedule a run after the config changes.
-		ds.scheduleRestart(s.deviceRedeployTimer)
+		ds.scheduleRestart(ctx, s.deviceRedeployTimer)
 
 	}
 
@@ -956,7 +977,7 @@ func (s *Sensor) removeDatasource(ctx context.Context, name string) {
 		s.log.Errorf("Failed to delete state for %s: %v", name, err)
 	}
 	s.log.Infof("Datasource removed: %s", name)
-
+	s.metricTracker.TrackDatasources(ctx, -1)
 	// run another datasource if sensor has a limit
 	s.findAndRunDatasourceConfig(ctx, "")
 }
@@ -982,7 +1003,7 @@ func (s *Sensor) findAndRunDatasourceConfig(ctx context.Context, filterDS string
 	dsNextName := s.getNextRunnableDatasourceName(filterDS)
 	if dsNextName != "" {
 		ds := s.getDatasource(ctx, dsNextName)
-		ds.scheduleRestart(s.deviceRedeployTimer)
+		ds.scheduleRestart(ctx, s.deviceRedeployTimer)
 	}
 }
 
@@ -1045,6 +1066,7 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		heartbeatInterval:     s.heartbeatInterval,
 		logRate:               s.logRate,
 		limitDatasourcesToRun: s.limitDatasourcesToRun,
+		metricTracker:         s.metricTracker,
 	}
 	// Setup monitor for datasource
 	runtime.monitor = newDatasourceMonitor(runtime.log, runtime.config.loglevel)
@@ -1066,7 +1088,7 @@ func (s *Sensor) runDatasourceConfig(ctx context.Context, name string) error {
 	runtime := s.getDatasource(ctx, name)
 	if !s.clockSynced {
 		msg := fmt.Errorf("Sensor clock is not in sync, skipping data source deployment")
-		runtime.handleDatasourceError(ctx, msg)
+		runtime.handleDatasourceError(ctx, msg, sensorNotInSyncError)
 		return nil
 	}
 
@@ -1084,7 +1106,7 @@ func (s *Sensor) runDatasourceConfig(ctx context.Context, name string) error {
 
 		msg := fmt.Errorf("unable to run datasource, max number of datasources already running,"+
 			"limit=%v", s.limitDatasourcesToRun)
-		runtime.handleDatasourceError(ctx, msg)
+		runtime.handleDatasourceError(ctx, msg, sensorErrMaxLimitReached)
 		// update config for current datasource b/c it isn't deployed
 		runtime.config = cfg.clone()
 		return nil
@@ -1184,6 +1206,11 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 							"setting it to INFO level", cfg.Name, cfg.LogLevel)
 						loglevel = logrus.InfoLevel
 					}
+
+					if _, ok := s.datasourceConfig[cfg.Name]; !ok {
+						s.metricTracker.TrackDatasources(ctx, 1)
+					}
+
 					s.datasourceConfig[cfg.Name] = &datasourceConfig{
 						name:       cfg.Name,
 						typ:        cfg.Device,
@@ -1196,7 +1223,7 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 					ds := s.getDatasource(ctx, cfg.Name)
 					// schedule datasource to run after we have synced the datasources
 					if s.active && configChPostSync {
-						ds.scheduleRestart(s.deviceRedeployTimer)
+						ds.scheduleRestart(ctx, s.deviceRedeployTimer)
 					}
 				}
 			case <-ctx.Done():
@@ -1439,6 +1466,7 @@ func NewSensor(name string, logRate float64, opts ...SensorOption) *Sensor {
 		credResolver:            passthroughResolver,
 		clusterClock:            defaultClockObj,
 		datasourceStopped:       make(chan string),
+		metricTracker:           noopMetricTracker{},
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -1518,7 +1546,7 @@ func (s *Sensor) handleClockOutOfSync(ctx context.Context) {
 			continue
 		}
 		msg := fmt.Errorf("Sensor clock is not in sync, stopping data source")
-		ds.handleDatasourceError(ctx, msg)
+		ds.handleDatasourceError(ctx, msg, sensorNotInSyncError)
 		ds.stop()
 	}
 	msg := fmt.Errorf("Sensor clock is not in sync, stopping Sensor")
@@ -1568,7 +1596,7 @@ func (s *Sensor) handleClockInSync(ctx context.Context) {
 			continue
 		}
 		ds.handleDatasourceMessage(ctx, "Sensor clock is in sync, starting data source")
-		ds.scheduleRestart(1 * time.Millisecond)
+		ds.scheduleRestart(ctx, 1*time.Millisecond)
 	}
 }
 
