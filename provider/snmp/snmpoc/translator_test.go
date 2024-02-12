@@ -102,6 +102,12 @@ var basicIfTableResponse = `
 .1.3.6.1.2.1.2.2.1.5.5000000 = Gauge32: 0
 `
 
+// snmpwalk responses for one interface
+var basicIfTableCiscoDevResponse = `
+.1.3.6.1.2.1.2.2.1.1.438132736 = INTEGER: 438132736
+.1.3.6.1.2.1.2.2.1.2.438132736 = STRING: Ethernet4/6/3
+`
+
 var ifTableHighSpeedResponse = `
 .1.3.6.1.2.1.2.2.1.2.3001 = STRING: Ethernet3/1
 .1.3.6.1.2.1.2.2.1.2.3002 = STRING: Ethernet3/2
@@ -165,6 +171,14 @@ var basicLldpLocalSystemDataResponse = `
 .1.0.8802.1.1.2.1.3.7.1.3.452 = STRING: Ethernet3/2
 `
 
+var basicLldpLocalSystemDataCiscoDevResponse = `
+.1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
+.1.0.8802.1.1.2.1.3.2.0 = STRING: "34:f8:e7:a5:fa:41"
+.1.0.8802.1.1.2.1.3.3.0 = STRING: "dut373"
+.1.0.8802.1.1.2.1.3.7.1.2.535 = INTEGER: 7
+.1.0.8802.1.1.2.1.3.7.1.3.535 = STRING: "Ethernet4/6/3"
+`
+
 var lldpLocalSystemDataResponseStringID = `
 .1.0.8802.1.1.2.1.3.1.0 = INTEGER: 4
 .1.0.8802.1.1.2.1.3.2.0 = STRING: 50:87:89:a1:64:4f
@@ -189,6 +203,20 @@ var basicLldpRemTableResponse = `
 .1.0.8802.1.1.2.1.4.1.1.10.0.1.1 = STRING: Arista Networks EOS version x.y.z
 .1.0.8802.1.1.2.1.4.1.1.10.0.451.3 = STRING: Linux x.y.z
 .1.0.8802.1.1.2.1.4.1.1.10.0.451.4 = STRING: Linux x.y.z
+`
+
+// snmpwalk responses for one interface with lldpRemChassisId oid having a
+// string value with NULL bytes.
+var basicLldpRemTableCiscoDevResponse = `
+.1.0.8802.1.1.2.1.4.1.1.4.0.535.3 = INTEGER: 6
+.1.0.8802.1.1.2.1.4.1.1.5.0.535.3 = Hex-STRING: 76 6D 6E 69 63 35 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+.1.0.8802.1.1.2.1.4.1.1.6.0.535.3 = INTEGER: 3
+.1.0.8802.1.1.2.1.4.1.1.7.0.535.3 = Hex-STRING: 48 DF 37 12 60 99
+.1.0.8802.1.1.2.1.4.1.1.9.0.535.3 = STRING: "tst-esx-93.sjc.aristanetworks.com"
+.1.0.8802.1.1.2.1.4.1.1.10.0.535.3 = STRING: "VMware ESX Releasebuild-13006603"
 `
 
 var basicLldpStatisticsResponse = `
@@ -968,6 +996,55 @@ func TestTranslator(t *testing.T) {
 							uintval(0)),
 						update(pgnmi.LldpIntfCountersPath("Ethernet3/2", "frame-discard"),
 							uintval(0)),
+					},
+				},
+			},
+		},
+		{
+			name:        "updateLldpForCiscoDevice with NULL lldpRemChassisId bytes in value",
+			updatePaths: []string{"^/interfaces/", "^/lldp/"},
+			responses: map[string][]*gosnmp.SnmpPDU{
+				"ifTable":             PDUsFromString(basicIfTableCiscoDevResponse),
+				"ifXTable":            {},
+				"lldpLocalSystemData": PDUsFromString(basicLldpLocalSystemDataCiscoDevResponse),
+				"lldpRemTable":        PDUsFromString(basicLldpRemTableCiscoDevResponse),
+				"lldpStatistics":      {},
+			},
+			expectedSetRequests: []*gnmi.SetRequest{
+				{
+					Delete: []*gnmi.Path{pgnmi.Path("interfaces"), pgnmi.Path("lldp")},
+					Replace: []*gnmi.Update{
+						update(pgnmi.IntfStatePath("Ethernet4/6/3", "name"), strval(
+							"Ethernet4/6/3")),
+						update(pgnmi.IntfPath("Ethernet4/6/3", "name"), strval("Ethernet4/6/3")),
+						update(pgnmi.IntfConfigPath("Ethernet4/6/3", "name"), strval(
+							"Ethernet4/6/3")),
+						update(pgnmi.LldpStatePath("chassis-id-type"),
+							strval(openconfig.LLDPChassisIDType(4))),
+						update(pgnmi.LldpStatePath("chassis-id"), strval("34:f8:e7:a5:fa:41")),
+						update(pgnmi.LldpStatePath("system-name"), strval("dut373")),
+						update(pgnmi.LldpIntfConfigPath("Ethernet4/6/3", "name"),
+							strval("Ethernet4/6/3")),
+						update(pgnmi.LldpIntfPath("Ethernet4/6/3", "name"),
+							strval("Ethernet4/6/3")),
+						update(pgnmi.LldpIntfStatePath("Ethernet4/6/3", "name"),
+							strval("Ethernet4/6/3")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "id"),
+							strval("3")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "chassis-id-type"),
+							strval("INTERFACE_NAME")),
+						// After timming the NULL bytes from lldpRemChassisId value,
+						// chassis-id value is set correctly.
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "chassis-id"),
+							strval("vmnic5")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "port-id-type"),
+							strval("MAC_ADDRESS")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "port-id"),
+							strval("48:df:37:12:60:99")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3", "system-name"),
+							strval("tst-esx-93.sjc.aristanetworks.com")),
+						update(pgnmi.LldpNeighborStatePath("Ethernet4/6/3", "3",
+							"system-description"), strval("VMware ESX Releasebuild-13006603")),
 					},
 				},
 			},
