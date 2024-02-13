@@ -766,6 +766,18 @@ func entPhysicalTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	}
 }
 
+// downcastUint returns the downsized uint value.
+func downcastUint(x interface{}, max uint64) uint64 {
+	v, err := provider.ToUint64(x)
+	if err != nil {
+		return 0
+	}
+	if v > max {
+		v = max
+	}
+	return v
+}
+
 // mappers
 var (
 	// /interfaces
@@ -785,14 +797,7 @@ var (
 		"ifMtu", func(x interface{}) *gnmi.TypedValue {
 			// Make MTU values at most uint16_max, since the SNMP ifMtu
 			// type is int32 while the OpenConfig equivalent is uint16.
-			v, err := provider.ToUint64(x)
-			if err != nil {
-				return nil
-			}
-			if v > math.MaxUint16 {
-				v = math.MaxUint16
-			}
-			return uintval(v)
+			return uintval(downcastUint(x, math.MaxUint16))
 		})
 	interfaceType = ifTableMapperFn(interfaceStatePath+"type",
 		"ifType", func(x interface{}) *gnmi.TypedValue {
@@ -805,6 +810,11 @@ var (
 	interfaceOperStatus = ifTableMapperFn(interfaceStatePath+"oper-status",
 		"ifOperStatus", func(x interface{}) *gnmi.TypedValue {
 			return strval(openconfig.IntfOperStatus(x.(int)))
+		})
+	interfaceIndex = ifTableMapperFn(interfaceStatePath+"ifindex",
+		"ifIndex", func(x interface{}) *gnmi.TypedValue {
+			// Make ifIndex values at most uint32.
+			return uintval(downcastUint(x, math.MaxUint32))
 		})
 	interfaceInOctets64 = ifTableMapperFn(interfaceCounterPath+"in-octets",
 		"ifHCInOctets", uintval)
@@ -999,6 +1009,7 @@ var defaultMappings = map[string][]Mapper{
 	"/interfaces/interface[name=name]/state/type":         {interfaceType},
 	"/interfaces/interface[name=name]/state/admin-status": {interfaceAdminStatus},
 	"/interfaces/interface[name=name]/state/oper-status":  {interfaceOperStatus},
+	"/interfaces/interface[name=name]/state/ifindex":      {interfaceIndex},
 	"/interfaces/interface[name=name]/state/in-octets": {interfaceInOctets64,
 		interfaceInOctets32},
 	"/interfaces/interface[name=name]/state/in-unicast-pkts": {interfaceInUnicastPkts64,
