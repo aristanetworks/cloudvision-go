@@ -135,6 +135,10 @@ func NewDeviceInfo(ctx context.Context, config *Config, monitor provider.Monitor
 	if err != nil {
 		return nil, fmt.Errorf("Error getting device ID from Device %s: %w", config.Device, err)
 	}
+	if did == "" {
+		return nil, NewBadConfigErrorf(
+			"deviceID cannot be empty. From Device %s", config.Device)
+	}
 	return &Info{Device: d, ID: did, Config: config}, nil
 }
 

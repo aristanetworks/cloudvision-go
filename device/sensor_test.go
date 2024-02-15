@@ -1610,6 +1610,78 @@ func TestSensor(t *testing.T) {
 			handleClusterClock:         true,
 			maxClockDelta:              200 * time.Millisecond,
 		},
+		{
+			name:          "Test invalid deviceID",
+			skipSubscribe: true,
+			substeps: []*sensorTestCase{
+				{
+					name: "empty DeviceID, should not run",
+					dynamicConfigs: []*Config{
+						NewSyncEndConfig(), // send sync indicator
+						{
+							Name:    "device1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue(
+									"Data source stopped: "+
+										"deviceID cannot be empty. From Device mock"))},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "update datasource with deviceID",
+					dynamicConfigs: []*Config{
+						{
+							Name:    "device1",
+							Device:  "mock",
+							Enabled: true,
+							Options: map[string]string{
+								"id":     "1",
+								"input1": "value2"},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "device1", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("1")),
+							},
+						},
+					},
+					waitForMetadataPostSync: []string{
+						"1|map[id:1 input1:value2]",
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+			},
+		},
 	}
 
 	// Register mockDevice.
