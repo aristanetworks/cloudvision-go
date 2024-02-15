@@ -11,11 +11,13 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
 	pgnmi "github.com/aristanetworks/cloudvision-go/provider/gnmi"
 	"github.com/aristanetworks/cloudvision-go/provider/openconfig"
+	"github.com/aristanetworks/cloudvision-go/provider/snmp/pdu"
 	"github.com/aristanetworks/cloudvision-go/provider/snmp/smi"
 	"github.com/gosnmp/gosnmp"
 	"github.com/openconfig/gnmi/proto/gnmi"
@@ -157,6 +159,16 @@ var basicIfXTableResponse = `
 .1.3.6.1.2.1.31.1.1.1.12.1000001 = Counter64: 142240878356
 .1.3.6.1.2.1.31.1.1.1.12.2001610 = Counter64: 0
 .1.3.6.1.2.1.31.1.1.1.12.5000000 = Counter64: 0
+`
+
+var basicIPAddressTableResponse = `
+.1.3.6.1.2.1.4.34.1.3.1.4.172.20.193.1 = INTEGER: 3001
+.1.3.6.1.2.1.4.34.1.3.1.4.172.20.193.2 = INTEGER: 3002
+.1.3.6.1.2.1.4.34.1.3.1.4.172.20.253.81 = INTEGER: 1000001
+.1.3.6.1.2.1.4.34.1.3.1.4.172.20.252.98 = INTEGER: 5000000
+.1.3.6.1.2.1.4.34.1.3.2.16.253.122.98.159.82.164.32.193.0.0.0.0.0.0.0.1 = INTEGER: 3001
+.1.3.6.1.2.1.4.34.1.3.2.16.253.122.98.159.82.164.47.32.0.0.0.0.0.0.0.17 = INTEGER: 3002
+.1.3.6.1.2.1.4.34.1.3.2.16.253.122.98.159.82.164.47.128.0.0.0.0.0.0.0.152 = INTEGER: 5000000
 `
 
 var basicLldpLocalSystemDataResponse = `
@@ -665,8 +677,9 @@ func TestTranslator(t *testing.T) {
 			name:        "updateInterfacesBasic",
 			updatePaths: []string{"^/interfaces/"},
 			responses: map[string][]*gosnmp.SnmpPDU{
-				"ifTable":  PDUsFromString(basicIfTableResponse),
-				"ifXTable": PDUsFromString(basicIfXTableResponse),
+				"ifTable":        PDUsFromString(basicIfTableResponse),
+				"ifXTable":       PDUsFromString(basicIfXTableResponse),
+				"ipAddressTable": PDUsFromString(basicIPAddressTableResponse),
 			},
 			expectedSetRequests: []*gnmi.SetRequest{
 				{
@@ -765,6 +778,27 @@ func TestTranslator(t *testing.T) {
 							strval("SPEED_10MB")),
 						update(pgnmi.IntfEthernetStatePath("Loopback0", "port-speed"),
 							strval("SPEED_UNKNOWN")),
+						update(pgnmi.IntfSubIntfIPPath("Ethernet3/1", "ip", "ipv4",
+							"172.20.193.1"),
+							strval("172.20.193.1")),
+						update(pgnmi.IntfSubIntfIPPath("Ethernet3/2", "ip", "ipv4",
+							"172.20.193.2"),
+							strval("172.20.193.2")),
+						update(pgnmi.IntfSubIntfIPPath("Port-Channel1", "ip", "ipv4",
+							"172.20.253.81"),
+							strval("172.20.253.81")),
+						update(pgnmi.IntfSubIntfIPPath("Loopback0", "ip", "ipv4",
+							"172.20.252.98"),
+							strval("172.20.252.98")),
+						update(pgnmi.IntfSubIntfIPPath("Ethernet3/1", "ip", "ipv6",
+							"fd7a:629f:52a4:20c1:0000:0000:0000:0001"),
+							strval("fd7a:629f:52a4:20c1:0000:0000:0000:0001")),
+						update(pgnmi.IntfSubIntfIPPath("Ethernet3/2", "ip", "ipv6",
+							"fd7a:629f:52a4:2f20:0000:0000:0000:0011"),
+							strval("fd7a:629f:52a4:2f20:0000:0000:0000:0011")),
+						update(pgnmi.IntfSubIntfIPPath("Loopback0", "ip", "ipv6",
+							"fd7a:629f:52a4:2f80:0000:0000:0000:0098"),
+							strval("fd7a:629f:52a4:2f80:0000:0000:0000:0098")),
 					},
 				},
 			},
@@ -1031,6 +1065,7 @@ func TestTranslator(t *testing.T) {
 						update(pgnmi.IntfPath("Ethernet4/6/3", "name"), strval("Ethernet4/6/3")),
 						update(pgnmi.IntfConfigPath("Ethernet4/6/3", "name"), strval(
 							"Ethernet4/6/3")),
+						update(pgnmi.IntfStatePath("Ethernet4/6/3", "ifindex"), uintval(438132736)),
 						update(pgnmi.LldpStatePath("chassis-id-type"),
 							strval(openconfig.LLDPChassisIDType(4))),
 						update(pgnmi.LldpStatePath("chassis-id"), strval("34:f8:e7:a5:fa:41")),
@@ -2159,5 +2194,65 @@ func TestTranslatorErr(t *testing.T) {
 		if err.Error() != fmt.Sprintf("SNMP Walker failed: %s", errmsg) {
 			t.Fatalf("Expected err: %s, but got %s", errmsg, err.Error())
 		}
+	}
+}
+
+func TestBuildIPAddrMap(t *testing.T) {
+
+	for _, tc := range []struct {
+		name           string
+		expectedMapper map[string]string
+		pdus           []*gosnmp.SnmpPDU
+	}{
+		{
+			name: "Correct IP to interface name mapping with puds from both ifTable and" +
+				" ipAddressTable",
+			pdus: append(PDUsFromString(basicIfTableResponse),
+				PDUsFromString(basicIPAddressTableResponse)...),
+			expectedMapper: map[string]string{
+				"172.20.193.1":  "Ethernet3/1",
+				"172.20.193.2":  "Ethernet3/2",
+				"172.20.253.81": "Port-Channel1",
+				"172.20.252.98": "Loopback0",
+				"fd7a:629f:52a4:20c1:0000:0000:0000:0001": "Ethernet3/1",
+				"fd7a:629f:52a4:2f20:0000:0000:0000:0011": "Ethernet3/2",
+				"fd7a:629f:52a4:2f80:0000:0000:0000:0098": "Loopback0",
+			},
+		},
+		{
+			name: "No interface name mapped for ip when there are no pdus from ifTable",
+			pdus: PDUsFromString(`.1.3.6.1.2.1.4.34.1.3.1.4.172.20.193.1 = INTEGER: 3001`),
+			expectedMapper: map[string]string{
+				"172.20.193.1": "",
+			},
+		},
+		{
+			name:           "No mapping when there are no pdus from ipAddressTable",
+			pdus:           PDUsFromString(`1.3.6.1.2.1.2.2.1.2.301 = STRING: Ethernet3/1`),
+			expectedMapper: map[string]string{},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mibStore, _ := smi.NewStore("../smi/mibs")
+			mapper := sync.Map{}
+
+			ps, _ := pdu.NewStore(mibStore)
+			for _, p := range tc.pdus {
+				err := ps.Add(p)
+				if err != nil {
+					t.Fatalf("error adding pdu to store: %v", err)
+				}
+			}
+
+			err := buildIPAddrMap(mibStore, ps, &mapper, nil)
+			if err != nil {
+				t.Fatalf("expected no error, found: %v", err)
+			}
+
+			i, _ := mapper.Load("ipAddrIntfName")
+			if !reflect.DeepEqual(i.(map[string]string), tc.expectedMapper) {
+				t.Errorf("got: %v, \nexpected: %v", i.(map[string]string), tc.expectedMapper)
+			}
+		})
 	}
 }

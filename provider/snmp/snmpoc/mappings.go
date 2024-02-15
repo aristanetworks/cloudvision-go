@@ -11,6 +11,7 @@ import (
 	"math"
 	"net"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -78,6 +79,10 @@ func sanitizedString(s interface{}) string {
 		return t
 	case []byte:
 		return BytesToSanitizedString(t)
+	case int64, int32, int16, int8, int:
+		return strconv.Itoa(s.(int))
+	case uint64, uint32, uint16, uint8, uint:
+		return strconv.FormatUint(s.(uint64), 10)
 	}
 	return ""
 }
@@ -242,7 +247,12 @@ func ifTableMapper(ss smi.Store, ps pdu.Store,
 
 	updates := []*gnmi.Update{}
 	for _, p := range pdus {
-		ifIndex := pdu.IndexValues(ss, p)[0]
+		indexVals, err := pdu.IndexValues(ss, p)
+		if err != nil {
+			logger.Errorf("failed to index value with error: %v", err)
+			continue
+		}
+		ifIndex := indexVals[0]
 		ifDescr, err := getIntfName(mapperData, ifIndex)
 		if err != nil || ifDescr == "" {
 			if err = setIntfNames(ss, ps, mapperData); err != nil {
@@ -270,6 +280,158 @@ func ifTableMapperFn(path, oid string, vp ValueProcessor) Mapper {
 	return func(ss smi.Store, ps pdu.Store,
 		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
 		return ifTableMapper(ss, ps, mapperData, logger, path, oid, vp)
+	}
+}
+
+// Build a map from ipAddress -> ifDescr.
+func buildIPAddrMap(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, logger Logger) error {
+	m, ok := mapperData.Load("ipAddrIntfName")
+	if !ok {
+		mapperData.Store("ipAddrIntfName", make(map[string]string))
+		m, ok = mapperData.Load("ipAddrIntfName")
+		if !ok {
+			return errors.New("failed to load ipAddrIntfName from mapperData")
+		}
+	}
+
+	mp := m.(map[string]string)
+
+	// Build the ifIndex -> ifDescr mapping
+	err := setIndexStringMappings(ss, ps, mapperData, "ifDescr",
+		"ifIndex", "intfName")
+	if err != nil {
+		return err
+	}
+
+	n, ok := mapperData.Load("intfName")
+	if !ok {
+		return errors.New("Failed to load ipAdEntAddr from mapperData")
+	}
+	ifIdxToIfNameMap := n.(map[string]string)
+
+	// Build the ipAddress -> ifIndex mapping
+	_, ok = mapperData.Load("ipAddressIfIndex")
+	if !ok {
+		ipMap := map[string]string{}
+		pdus, err := getTabular(ps, "ipAddressIfIndex")
+		if err != nil {
+			return err
+		}
+
+		for _, p := range pdus {
+			ipAddrIdxVal, err := pdu.IndexValues(ss, p)
+			if err != nil {
+				logger.Errorf("failed to index value with error: %v", err)
+				continue
+			}
+			if ipAddrIdxVal[1] == "" {
+				continue
+			}
+			val := sanitizedString(p.Value)
+			ipMap[ipAddrIdxVal[1]] = val
+		}
+
+		mapperData.Store("ipAddressIfIndex", ipMap)
+	}
+
+	i, ok := mapperData.Load("ipAddressIfIndex")
+	if !ok {
+		return errors.New("failed to load ipAddressIfIndex from mapperData")
+	}
+	ipAddrToIfIdxMap := i.(map[string]string)
+
+	// map[ip address] -> interface name
+	for ipAddr, idx := range ipAddrToIfIdxMap {
+		mp[ipAddr] = ifIdxToIfNameMap[idx]
+	}
+
+	mapperData.Store("ipAddrIntfName", mp)
+	return nil
+}
+
+func getInterfaceFromIPAddr(ss smi.Store, ps pdu.Store,
+	mapperData *sync.Map, ipAddr string, logger Logger) (string, error) {
+	_, ok := mapperData.Load("ipAddrIntfName")
+	if !ok {
+		if err := buildIPAddrMap(ss, ps, mapperData, logger); err != nil {
+			return "", err
+		}
+	}
+
+	m, ok := mapperData.Load("ipAddrIntfName")
+	if !ok {
+		return "", fmt.Errorf("ipAddrIntfName doesn't exist in mapperData")
+	}
+	mp := m.(map[string]string)
+
+	intfName, ok := mp[ipAddr]
+	if !ok {
+		return "", nil
+	}
+
+	return intfName, nil
+}
+
+// generic mapper for PDUs from ipAddressTable
+func ifSubIntfIPMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map, logger Logger, path string,
+	oid string, vp ValueProcessor) ([]*gnmi.Update, error) {
+
+	isIPv4 := strings.Contains(path, "ipv4")
+
+	pdus, err := getTabular(ps, oid)
+	if err != nil || pdus == nil {
+		return nil, err
+	}
+
+	updates := []*gnmi.Update{}
+	for _, p := range pdus {
+		ipAddrIdxVal, err := pdu.IndexValues(ss, p)
+		if err != nil {
+			logger.Errorf("failed to index value with error: %v", err)
+			continue
+		}
+
+		// An example oid is .1.3.6.1.2.1.4.34.1.3.1.4.172.31.26.139, where
+		// .1.3.6.1.2.1.4.34.1.3 represents ipAddressIfIndex,
+		// 1 represents ipAddressAddrType (ipv4 in this case)
+		// 4 represents the next number of bytes to be considered as ip address
+		// 172.31.26.139 represents ipAddressAddr which is the ip address.
+		//
+		// .1.3.6.1.2.1.4.34.1.3.2.16.253.122.98.159.82.164.119.119.0.0.0.0.0.31.26.139, where
+		// 2 represents ipAddressAddrType (ipv6 in this case)
+		// 16 represents the next number of bytes to be considered as ip address
+		// 253.122.98.159.82.164.119.119.0.0.0.0.0.31.26.139 represents ipAddressAddr which is the
+		// ip address(fd:7a:62:9f:52:a4:77:77:00:00:00:00:00:1f:1a:8b).
+
+		if isIPv4 && ipAddrIdxVal[0] == "2" {
+			// when path is ipv4 but oid is of ipv6 address
+			continue
+		}
+
+		if !isIPv4 && ipAddrIdxVal[0] == "1" {
+			// when path is ipv6 but oid is of ipv4 address
+			continue
+		}
+
+		// Get interface name corresponding to this ipaddress.
+		intfName, err := getInterfaceFromIPAddr(ss, ps, mapperData, ipAddrIdxVal[1], logger)
+		if err != nil {
+			return nil, err
+		} else if intfName == "" {
+			continue
+		}
+
+		fullPath := pgnmi.PathFromString(fmt.Sprintf(path, intfName, 0, ipAddrIdxVal[1]))
+		updates = append(updates, update(fullPath, strval(ipAddrIdxVal[1])))
+	}
+	return updates, nil
+}
+
+func ifSubIntfIPMapperFn(path, oid string, vp ValueProcessor) Mapper {
+	return func(ss smi.Store, ps pdu.Store,
+		mapperData *sync.Map, logger Logger) ([]*gnmi.Update, error) {
+		return ifSubIntfIPMapper(ss, ps, mapperData, logger, path, oid, vp)
 	}
 }
 
@@ -312,7 +474,7 @@ func alternateIntfName(intfName string) string {
 
 // Build a map from lldpLocPortNum -> ifDescr.
 func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
-	mapperData *sync.Map) error {
+	mapperData *sync.Map, logger Logger) error {
 	m, ok := mapperData.Load("lldpLocPortNum")
 	if !ok {
 		mapperData.Store("lldpLocPortNum", make(map[string]string))
@@ -345,7 +507,12 @@ func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
 			return fmt.Errorf("buildLldpLocPortNumMap: %s", err)
 		}
 		for _, p := range pdus {
-			portNum := pdu.IndexValues(ss, p)[0]
+			indexVals, err := pdu.IndexValues(ss, p)
+			if err != nil {
+				logger.Errorf("failed to index value with error: %v", err)
+				continue
+			}
+			portNum := indexVals[0]
 			intfName := string(p.Value.([]byte))
 			if _, ok := ifDescrMap[intfName]; !ok {
 				// We've seen some implementations where the lldpLocPortTable interface
@@ -368,10 +535,10 @@ func buildLldpLocPortNumMap(ss smi.Store, ps pdu.Store,
 }
 
 func getInterfaceFromLldpPortNum(ss smi.Store, ps pdu.Store,
-	mapperData *sync.Map, port string) (string, error) {
+	mapperData *sync.Map, port string, logger Logger) (string, error) {
 	_, ok := mapperData.Load("lldpLocPortNum")
 	if !ok {
-		if err := buildLldpLocPortNumMap(ss, ps, mapperData); err != nil {
+		if err := buildLldpLocPortNumMap(ss, ps, mapperData, logger); err != nil {
 			return "", err
 		}
 	}
@@ -551,9 +718,14 @@ func lldpLocPortTableMapper(ss smi.Store, ps pdu.Store,
 	updates := []*gnmi.Update{}
 
 	for _, p := range pdus {
-		lldpPortNum := pdu.IndexValues(ss, p)[0]
+		indexVals, err := pdu.IndexValues(ss, p)
+		if err != nil {
+			logger.Errorf("failed to index value with error: %v", err)
+			continue
+		}
+		lldpPortNum := indexVals[0]
 		// Get interface name corresponding to this port number.
-		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
+		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum, logger)
 		if err != nil {
 			return nil, err
 		} else if intfName == "" {
@@ -661,7 +833,7 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 		}
 
 		// get the interface name corresponding to this lldpRemLocalPortNum
-		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum)
+		intfName, err := getInterfaceFromLldpPortNum(ss, ps, mapperData, lldpPortNum, logger)
 		if err != nil {
 			return nil, err
 		} else if intfName == "" {
@@ -738,7 +910,12 @@ func entPhysicalMapper(ss smi.Store, ps pdu.Store,
 	}
 
 	for _, p := range pdus {
-		epi := pdu.IndexValues(ss, p)[0]
+		indexVals, err := pdu.IndexValues(ss, p)
+		if err != nil {
+			logger.Errorf("failed to fetch index value with error: %v", err)
+			continue
+		}
+		epi := indexVals[0]
 		var v interface{}
 		namePath := nameRegex.MatchString(path)
 		if oid == "entPhysicalDescr" && namePath {
@@ -785,6 +962,7 @@ var (
 	interfaceEthernetPath      = interfacePath + "ethernet/"
 	interfaceStatePath         = interfacePath + "state/"
 	interfaceConfigPath        = interfacePath + "config/"
+	interfaceSubIntfPath       = interfacePath + "subinterfaces/subinterface[index=%d]/"
 	interfaceCounterPath       = interfaceStatePath + "counters/"
 	interfaceEthernetStatePath = interfaceEthernetPath + "state/"
 	interfaceName              = ifTableMapperFn(interfacePath+"name",
@@ -856,6 +1034,10 @@ var (
 		"ifSpeed", ifSpeedStrVal)
 	interfacePhysAddress = ifTableMapperFn(interfaceEthernetStatePath+"mac-address",
 		"ifPhysAddress", macAddrStrVal)
+	interfaceSubIntfIPv4 = ifSubIntfIPMapperFn(
+		interfaceSubIntfPath+"ipv4/addresses/address[ip=%s]/ip", "ipAddressIfIndex", strval)
+	interfaceSubIntfIPv6 = ifSubIntfIPMapperFn(
+		interfaceSubIntfPath+"ipv6/addresses/address[ip=%s]/ip", "ipAddressIfIndex", strval)
 
 	// /system/state
 	systemStatePath     = "/system/state/"
@@ -1030,6 +1212,10 @@ var defaultMappings = map[string][]Mapper{
 	"/interfaces/interface[name=name]/ethernet/state/mac-address": {interfacePhysAddress},
 	"/interfaces/interface[name=name]/ethernet/state/port-speed": {interfaceHighSpeed,
 		interfaceSpeed},
+	"/interfaces/interface[name=name]/subinterfaces/subinterface[index=index]/ipv4/addresses" +
+		"/address/[ip=ip]/ip": {interfaceSubIntfIPv4},
+	"/interfaces/interface[name=name]/subinterfaces/subinterface[index=index]/ipv6/addresses" +
+		"/address/[ip=ip]/ip": {interfaceSubIntfIPv6},
 
 	// system
 	"/system/state/hostname":    {systemStateHostname, systemStateHostnameLldp},

@@ -305,6 +305,13 @@ func IntfEthernetStatePath(intfName, leafName string) *gnmi.Path {
 		"ethernet", "state", leafName)
 }
 
+// IntfSubIntfIPPath returns an interface sub interface ip-address path.
+func IntfSubIntfIPPath(intfName, leafName, ipVersion, ipAddr string) *gnmi.Path {
+	return Path("interfaces", ListWithKey("interface", "name", intfName),
+		"subinterfaces", ListWithKey("subinterface", "index", "0"), ipVersion,
+		"addresses", ListWithKey("address", "ip", ipAddr), leafName)
+}
+
 // LLDP paths of interest:
 
 // LldpStatePath returns an LLDP state path.

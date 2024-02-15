@@ -49,6 +49,7 @@ func NewTranslator(mibStore smi.Store, gs *gosnmp.GoSNMP) (*Translator, error) {
 type Logger interface {
 	Infof(format string, args ...interface{})
 	Debugf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
 }
 
 // model describes a set of paths rooted at rootPath for which
@@ -87,6 +88,7 @@ type nonlogger struct{}
 
 func (n *nonlogger) Infof(format string, args ...interface{})  {}
 func (n *nonlogger) Debugf(format string, args ...interface{}) {}
+func (n *nonlogger) Errorf(format string, args ...interface{}) {}
 
 // Translator defines an interface for producing translations from a
 // set of received SNMP PDUs to a set of gNMI updates.
@@ -228,7 +230,7 @@ var supportedModels = map[string]*model{
 	"interfaces": {
 		name:         "interfaces",
 		rootPath:     "/interfaces",
-		snmpWalkOIDs: []string{"ifTable", "ifXTable"},
+		snmpWalkOIDs: []string{"ifTable", "ifXTable", "ipAddressTable"},
 	},
 	"system": {
 		name:     "system",

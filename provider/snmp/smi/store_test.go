@@ -249,6 +249,65 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
+			name: "ipAddressTable",
+			oid:  "ipAddressTable",
+			expectedObject: &Object{
+				Access: AccessNotAccessible,
+				Description: "This table contains addressing information relevant to the " +
+					"entity's interfaces. " +
+					"This table does not contain multicast address information. " +
+					"Tables for such information should be contained in multicast " +
+					"specific MIBs, such as RFC 3019. " +
+					"While this table is writable, the user will note that " +
+					"several objects, such as ipAddressOrigin, are not. The " +
+					"intention in allowing a user to write to this table is to " +
+					"allow them to add or remove any entry that isn't " +
+					"permanent. The user should be allowed to modify objects " +
+					"and entries when that would not cause inconsistencies " +
+					"within the table. Allowing write access to objects, such " +
+					"as ipAddressOrigin, could allow a user to insert an entry " +
+					"and then label it incorrectly. " +
+					"Note well: When including IPv6 link-local addresses in this " +
+					"table, the entry must use an InetAddressType of 'ipv6z' in " +
+					"order to differentiate between the possible interfaces.",
+				Kind:   KindTable,
+				Module: "IP-MIB",
+				Name:   "ipAddressTable",
+				Oid:    "1.3.6.1.2.1.4.34",
+				Status: StatusCurrent,
+			},
+		},
+		{
+			name: "ipAddressEntry",
+			oid:  "ipAddressEntry",
+			expectedObject: &Object{
+				Access:      AccessNotAccessible,
+				Description: "An address mapping for a particular interface.",
+				Indexes:     []string{"ipAddressAddrType", "ipAddressAddr"},
+				Kind:        KindRow,
+				Module:      "IP-MIB",
+				Name:        "ipAddressEntry",
+				Oid:         "1.3.6.1.2.1.4.34.1",
+				Status:      StatusCurrent,
+			},
+		},
+		{
+			name: "ipAddressIfIndex",
+			oid:  "ipAddressIfIndex",
+			expectedObject: &Object{
+				Access: AccessReadCreate,
+				Description: "The index value that uniquely identifies the interface to " +
+					"which this entry is applicable. The interface identified by " +
+					"a particular value of this index is the same interface as " +
+					"identified by the same value of the IF-MIB's ifIndex.",
+				Kind:   KindColumn,
+				Module: "IP-MIB",
+				Name:   "ipAddressIfIndex",
+				Oid:    "1.3.6.1.2.1.4.34.1.3",
+				Status: StatusCurrent,
+			},
+		},
+		{
 			name: "LLDP-MIB::lldpLocChassisId",
 			oid:  "LLDP-MIB::lldpLocChassisId",
 			expectedObject: &Object{

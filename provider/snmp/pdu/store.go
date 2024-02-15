@@ -6,6 +6,7 @@ package pdu
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -76,19 +77,65 @@ func (s *store) addScalar(p *gosnmp.SnmpPDU, o *smi.Object) error {
 	return nil
 }
 
-func indexValues(pdu *gosnmp.SnmpPDU, o *smi.Object) []string {
+// convertDecimalToHexStr converts decimal representation from oid to its equivalent hex string.
+// 253.122.98.159.82.164.119.119.0.0.0.0.0.31.26.139 is converted to
+// "fd7a:629f:52a4:7777:0000:0000:001f:1a8b"
+func convertDecimalToHexStr(decimalIP string) (string, error) {
+	decimalArray := strings.Split(decimalIP, ".")
+	var hexArray []string
+	for i := 0; i < len(decimalArray); i = i + 2 {
+		dec, err := strconv.Atoi(decimalArray[i])
+		if err != nil {
+			return "", fmt.Errorf("failed to parse %v in decimal array %v", decimalArray[i],
+				decimalArray)
+		}
+		dec1, err := strconv.Atoi(decimalArray[i+1])
+		if err != nil {
+			return "", fmt.Errorf("failed to parse %v in decimal array %v",
+				decimalArray[i+1], decimalArray)
+		}
+		hexArray = append(hexArray, fmt.Sprintf("%02x%02x", dec, dec1))
+	}
+
+	hexIP := strings.Join(hexArray, ":")
+	return hexIP, nil
+}
+
+func indexValForIPAddressTable(pdu *gosnmp.SnmpPDU, o *smi.Object) ([]string, error) {
 	ss := strings.Split(pdu.Name, ".")
-	return ss[(len(ss) - len(o.Parent.Indexes)):]
+	indexOid := strings.Split(o.Oid, ".")
+	ip := strings.Join(ss[len(indexOid)+3:], ".")
+	var err error
+	if ss[len(indexOid)+1] == "2" {
+		//IPv6 case
+		ip, err = convertDecimalToHexStr(ip)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return []string{ss[len(indexOid)+1], ip}, nil
+}
+
+func indexValues(pdu *gosnmp.SnmpPDU, o *smi.Object) ([]string, error) {
+	if o.Name == "ipAddressIfIndex" {
+		return indexValForIPAddressTable(pdu, o)
+	}
+	ss := strings.Split(pdu.Name, ".")
+	return ss[(len(ss) - len(o.Parent.Indexes)):], nil
 }
 
 // IndexValues returns the index portion of the OID of the specified
 // PDU.
-func IndexValues(mibStore smi.Store, pdu *gosnmp.SnmpPDU) []string {
+func IndexValues(mibStore smi.Store, pdu *gosnmp.SnmpPDU) ([]string, error) {
 	o := mibStore.GetObject(pdu.Name)
 	if o == nil {
-		return nil
+		return nil, fmt.Errorf("No object for OID '%s'", pdu.Name)
 	}
-	return indexValues(pdu, o)
+	indexVals, err := indexValues(pdu, o)
+	if err != nil {
+		return nil, err
+	}
+	return indexVals, err
 }
 
 // IndexValueByName returns the value of the index specified by
@@ -106,7 +153,11 @@ func IndexValueByName(mibStore smi.Store, pdu *gosnmp.SnmpPDU,
 	}
 	for i, iname := range o.Parent.Indexes {
 		if indexName == iname {
-			return indexValues(pdu, o)[i], nil
+			indexVals, err := indexValues(pdu, o)
+			if err != nil {
+				return "", err
+			}
+			return indexVals[i], nil
 		}
 	}
 	return "", fmt.Errorf("No index '%s' for OID '%s'", indexName, pdu.Name)
@@ -119,7 +170,10 @@ func (s *store) addTabular(p *gosnmp.SnmpPDU, o *smi.Object) error {
 	if len(o.Parent.Indexes) == 0 {
 		return fmt.Errorf("OID %s has no indexes", p.Name)
 	}
-	indexVals := indexValues(p, o)
+	indexVals, err := indexValues(p, o)
+	if err != nil {
+		return err
+	}
 	col, ok := s.columns[o.Oid]
 	if !ok {
 		col = &columnStore{
@@ -271,7 +325,11 @@ func (s *store) getTabularPartiallyConstrained(o *smi.Object,
 		}
 		intersection := []*gosnmp.SnmpPDU{}
 		for _, p := range pdus {
-			allIndexes := strings.Join(indexValues(p, o), ".")
+			idxVals, err := indexValues(p, o)
+			if err != nil {
+				return nil, err
+			}
+			allIndexes := strings.Join(idxVals, ".")
 			idx, ok := col.indexes[c.Name]
 			if !ok {
 				return nil, nil
