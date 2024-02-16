@@ -421,7 +421,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 
 	// Do periodic state updates forever.
 	if err := s.sendUpdates(ctx); err != nil && !ignoredError(err) {
-		s.monitor.Infof("Error in sendUpdates: %s", err)
+		s.monitor.Errorf("Error in sendUpdates: %s", err)
 	}
 
 	tick := time.NewTicker(s.pollInterval)
@@ -430,7 +430,7 @@ func (s *Snmp) Run(ctx context.Context) error {
 		select {
 		case <-tick.C:
 			if err := s.sendUpdates(ctx); err != nil && !ignoredError(err) {
-				s.monitor.Infof("Error in sendUpdates: %s", err)
+				s.monitor.Errorf("Error in sendUpdates: %s", err)
 			}
 		case <-ctx.Done():
 			s.stop()
