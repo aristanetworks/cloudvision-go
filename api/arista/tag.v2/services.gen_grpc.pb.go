@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TagServiceClient interface {
 	GetOne(ctx context.Context, in *TagRequest, opts ...grpc.CallOption) (*TagResponse, error)
+	GetSome(ctx context.Context, in *TagSomeRequest, opts ...grpc.CallOption) (TagService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeMetaClient, error)
 }
 
 type tagServiceClient struct {
@@ -40,8 +43,40 @@ func (c *tagServiceClient) GetOne(ctx context.Context, in *TagRequest, opts ...g
 	return out, nil
 }
 
+func (c *tagServiceClient) GetSome(ctx context.Context, in *TagSomeRequest, opts ...grpc.CallOption) (TagService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[0], "/arista.tag.v2.TagService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagService_GetSomeClient interface {
+	Recv() (*TagSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagServiceGetSomeClient) Recv() (*TagSomeResponse, error) {
+	m := new(TagSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagServiceClient) GetAll(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[0], "/arista.tag.v2.TagService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[1], "/arista.tag.v2.TagService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *tagServiceGetAllClient) Recv() (*TagStreamResponse, error) {
 }
 
 func (c *tagServiceClient) Subscribe(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[1], "/arista.tag.v2.TagService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[2], "/arista.tag.v2.TagService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *tagServiceSubscribeClient) Recv() (*TagStreamResponse, error) {
 	return m, nil
 }
 
+func (c *tagServiceClient) GetMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagServiceClient) SubscribeMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[3], "/arista.tag.v2.TagService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type tagServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagServiceServer is the server API for TagService service.
 // All implementations must embed UnimplementedTagServiceServer
 // for forward compatibility
 type TagServiceServer interface {
 	GetOne(context.Context, *TagRequest) (*TagResponse, error)
+	GetSome(*TagSomeRequest, TagService_GetSomeServer) error
 	GetAll(*TagStreamRequest, TagService_GetAllServer) error
 	Subscribe(*TagStreamRequest, TagService_SubscribeServer) error
+	GetMeta(context.Context, *TagStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*TagStreamRequest, TagService_SubscribeMetaServer) error
 	mustEmbedUnimplementedTagServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedTagServiceServer struct {
 func (UnimplementedTagServiceServer) GetOne(context.Context, *TagRequest) (*TagResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedTagServiceServer) GetSome(*TagSomeRequest, TagService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedTagServiceServer) GetAll(*TagStreamRequest, TagService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedTagServiceServer) Subscribe(*TagStreamRequest, TagService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTagServiceServer) GetMeta(context.Context, *TagStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedTagServiceServer) SubscribeMeta(*TagStreamRequest, TagService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedTagServiceServer) mustEmbedUnimplementedTagServiceServer() {}
 
@@ -156,6 +244,27 @@ func _TagService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(i
 		return srv.(TagServiceServer).GetOne(ctx, req.(*TagRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagServiceServer).GetSome(m, &tagServiceGetSomeServer{stream})
+}
+
+type TagService_GetSomeServer interface {
+	Send(*TagSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagServiceGetSomeServer) Send(m *TagSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _TagService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *tagServiceSubscribeServer) Send(m *TagStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.tag.v2.TagService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagServiceServer).GetMeta(ctx, req.(*TagStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagServiceServer).SubscribeMeta(m, &tagServiceSubscribeMetaServer{stream})
+}
+
+type TagService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type tagServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagService_ServiceDesc is the grpc.ServiceDesc for TagService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var TagService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _TagService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _TagService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _TagService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _TagService_GetAll_Handler,
@@ -221,6 +378,11 @@ var TagService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _TagService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TagService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,8 +394,11 @@ var TagService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TagAssignmentServiceClient interface {
 	GetOne(ctx context.Context, in *TagAssignmentRequest, opts ...grpc.CallOption) (*TagAssignmentResponse, error)
+	GetSome(ctx context.Context, in *TagAssignmentSomeRequest, opts ...grpc.CallOption) (TagAssignmentService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeMetaClient, error)
 }
 
 type tagAssignmentServiceClient struct {
@@ -253,8 +418,40 @@ func (c *tagAssignmentServiceClient) GetOne(ctx context.Context, in *TagAssignme
 	return out, nil
 }
 
+func (c *tagAssignmentServiceClient) GetSome(ctx context.Context, in *TagAssignmentSomeRequest, opts ...grpc.CallOption) (TagAssignmentService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[0], "/arista.tag.v2.TagAssignmentService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentService_GetSomeClient interface {
+	Recv() (*TagAssignmentSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentServiceGetSomeClient) Recv() (*TagAssignmentSomeResponse, error) {
+	m := new(TagAssignmentSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagAssignmentServiceClient) GetAll(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[0], "/arista.tag.v2.TagAssignmentService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[1], "/arista.tag.v2.TagAssignmentService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +483,7 @@ func (x *tagAssignmentServiceGetAllClient) Recv() (*TagAssignmentStreamResponse,
 }
 
 func (c *tagAssignmentServiceClient) Subscribe(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[1], "/arista.tag.v2.TagAssignmentService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[2], "/arista.tag.v2.TagAssignmentService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -317,13 +514,57 @@ func (x *tagAssignmentServiceSubscribeClient) Recv() (*TagAssignmentStreamRespon
 	return m, nil
 }
 
+func (c *tagAssignmentServiceClient) GetMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagAssignmentService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagAssignmentServiceClient) SubscribeMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[3], "/arista.tag.v2.TagAssignmentService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagAssignmentServiceServer is the server API for TagAssignmentService service.
 // All implementations must embed UnimplementedTagAssignmentServiceServer
 // for forward compatibility
 type TagAssignmentServiceServer interface {
 	GetOne(context.Context, *TagAssignmentRequest) (*TagAssignmentResponse, error)
+	GetSome(*TagAssignmentSomeRequest, TagAssignmentService_GetSomeServer) error
 	GetAll(*TagAssignmentStreamRequest, TagAssignmentService_GetAllServer) error
 	Subscribe(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeServer) error
+	GetMeta(context.Context, *TagAssignmentStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeMetaServer) error
 	mustEmbedUnimplementedTagAssignmentServiceServer()
 }
 
@@ -334,11 +575,20 @@ type UnimplementedTagAssignmentServiceServer struct {
 func (UnimplementedTagAssignmentServiceServer) GetOne(context.Context, *TagAssignmentRequest) (*TagAssignmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedTagAssignmentServiceServer) GetSome(*TagAssignmentSomeRequest, TagAssignmentService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedTagAssignmentServiceServer) GetAll(*TagAssignmentStreamRequest, TagAssignmentService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedTagAssignmentServiceServer) Subscribe(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTagAssignmentServiceServer) GetMeta(context.Context, *TagAssignmentStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedTagAssignmentServiceServer) SubscribeMeta(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedTagAssignmentServiceServer) mustEmbedUnimplementedTagAssignmentServiceServer() {}
 
@@ -369,6 +619,27 @@ func _TagAssignmentService_GetOne_Handler(srv interface{}, ctx context.Context, 
 		return srv.(TagAssignmentServiceServer).GetOne(ctx, req.(*TagAssignmentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagAssignmentService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentServiceServer).GetSome(m, &tagAssignmentServiceGetSomeServer{stream})
+}
+
+type TagAssignmentService_GetSomeServer interface {
+	Send(*TagAssignmentSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentServiceGetSomeServer) Send(m *TagAssignmentSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _TagAssignmentService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -413,6 +684,45 @@ func (x *tagAssignmentServiceSubscribeServer) Send(m *TagAssignmentStreamRespons
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagAssignmentService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagAssignmentStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagAssignmentServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.tag.v2.TagAssignmentService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagAssignmentServiceServer).GetMeta(ctx, req.(*TagAssignmentStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagAssignmentService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentServiceServer).SubscribeMeta(m, &tagAssignmentServiceSubscribeMetaServer{stream})
+}
+
+type TagAssignmentService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagAssignmentService_ServiceDesc is the grpc.ServiceDesc for TagAssignmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -424,8 +734,17 @@ var TagAssignmentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _TagAssignmentService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _TagAssignmentService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _TagAssignmentService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _TagAssignmentService_GetAll_Handler,
@@ -434,6 +753,11 @@ var TagAssignmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _TagAssignmentService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TagAssignmentService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -445,11 +769,15 @@ var TagAssignmentService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TagAssignmentConfigServiceClient interface {
 	GetOne(ctx context.Context, in *TagAssignmentConfigRequest, opts ...grpc.CallOption) (*TagAssignmentConfigResponse, error)
+	GetSome(ctx context.Context, in *TagAssignmentConfigSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *TagAssignmentConfigSetRequest, opts ...grpc.CallOption) (*TagAssignmentConfigSetResponse, error)
 	SetSome(ctx context.Context, in *TagAssignmentConfigSetSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *TagAssignmentConfigDeleteRequest, opts ...grpc.CallOption) (*TagAssignmentConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *TagAssignmentConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *TagAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteAllClient, error)
 }
 
@@ -470,8 +798,40 @@ func (c *tagAssignmentConfigServiceClient) GetOne(ctx context.Context, in *TagAs
 	return out, nil
 }
 
+func (c *tagAssignmentConfigServiceClient) GetSome(ctx context.Context, in *TagAssignmentConfigSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[0], "/arista.tag.v2.TagAssignmentConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_GetSomeClient interface {
+	Recv() (*TagAssignmentConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceGetSomeClient) Recv() (*TagAssignmentConfigSomeResponse, error) {
+	m := new(TagAssignmentConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagAssignmentConfigServiceClient) GetAll(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[0], "/arista.tag.v2.TagAssignmentConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[1], "/arista.tag.v2.TagAssignmentConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +863,7 @@ func (x *tagAssignmentConfigServiceGetAllClient) Recv() (*TagAssignmentConfigStr
 }
 
 func (c *tagAssignmentConfigServiceClient) Subscribe(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[1], "/arista.tag.v2.TagAssignmentConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagAssignmentConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -534,6 +894,47 @@ func (x *tagAssignmentConfigServiceSubscribeClient) Recv() (*TagAssignmentConfig
 	return m, nil
 }
 
+func (c *tagAssignmentConfigServiceClient) GetMeta(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagAssignmentConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagAssignmentConfigServiceClient) SubscribeMeta(ctx context.Context, in *TagAssignmentConfigStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagAssignmentConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagAssignmentConfigServiceClient) Set(ctx context.Context, in *TagAssignmentConfigSetRequest, opts ...grpc.CallOption) (*TagAssignmentConfigSetResponse, error) {
 	out := new(TagAssignmentConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagAssignmentConfigService/Set", in, out, opts...)
@@ -544,7 +945,7 @@ func (c *tagAssignmentConfigServiceClient) Set(ctx context.Context, in *TagAssig
 }
 
 func (c *tagAssignmentConfigServiceClient) SetSome(ctx context.Context, in *TagAssignmentConfigSetSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagAssignmentConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[4], "/arista.tag.v2.TagAssignmentConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -584,8 +985,40 @@ func (c *tagAssignmentConfigServiceClient) Delete(ctx context.Context, in *TagAs
 	return out, nil
 }
 
+func (c *tagAssignmentConfigServiceClient) DeleteSome(ctx context.Context, in *TagAssignmentConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[5], "/arista.tag.v2.TagAssignmentConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_DeleteSomeClient interface {
+	Recv() (*TagAssignmentConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceDeleteSomeClient) Recv() (*TagAssignmentConfigDeleteSomeResponse, error) {
+	m := new(TagAssignmentConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagAssignmentConfigServiceClient) DeleteAll(ctx context.Context, in *TagAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagAssignmentConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[6], "/arista.tag.v2.TagAssignmentConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -621,11 +1054,15 @@ func (x *tagAssignmentConfigServiceDeleteAllClient) Recv() (*TagAssignmentConfig
 // for forward compatibility
 type TagAssignmentConfigServiceServer interface {
 	GetOne(context.Context, *TagAssignmentConfigRequest) (*TagAssignmentConfigResponse, error)
+	GetSome(*TagAssignmentConfigSomeRequest, TagAssignmentConfigService_GetSomeServer) error
 	GetAll(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_GetAllServer) error
 	Subscribe(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_SubscribeServer) error
+	GetMeta(context.Context, *TagAssignmentConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_SubscribeMetaServer) error
 	Set(context.Context, *TagAssignmentConfigSetRequest) (*TagAssignmentConfigSetResponse, error)
 	SetSome(*TagAssignmentConfigSetSomeRequest, TagAssignmentConfigService_SetSomeServer) error
 	Delete(context.Context, *TagAssignmentConfigDeleteRequest) (*TagAssignmentConfigDeleteResponse, error)
+	DeleteSome(*TagAssignmentConfigDeleteSomeRequest, TagAssignmentConfigService_DeleteSomeServer) error
 	DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedTagAssignmentConfigServiceServer()
 }
@@ -637,11 +1074,20 @@ type UnimplementedTagAssignmentConfigServiceServer struct {
 func (UnimplementedTagAssignmentConfigServiceServer) GetOne(context.Context, *TagAssignmentConfigRequest) (*TagAssignmentConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedTagAssignmentConfigServiceServer) GetSome(*TagAssignmentConfigSomeRequest, TagAssignmentConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedTagAssignmentConfigServiceServer) GetAll(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedTagAssignmentConfigServiceServer) Subscribe(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) GetMeta(context.Context, *TagAssignmentConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) SubscribeMeta(*TagAssignmentConfigStreamRequest, TagAssignmentConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedTagAssignmentConfigServiceServer) Set(context.Context, *TagAssignmentConfigSetRequest) (*TagAssignmentConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -651,6 +1097,9 @@ func (UnimplementedTagAssignmentConfigServiceServer) SetSome(*TagAssignmentConfi
 }
 func (UnimplementedTagAssignmentConfigServiceServer) Delete(context.Context, *TagAssignmentConfigDeleteRequest) (*TagAssignmentConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) DeleteSome(*TagAssignmentConfigDeleteSomeRequest, TagAssignmentConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedTagAssignmentConfigServiceServer) DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -685,6 +1134,27 @@ func _TagAssignmentConfigService_GetOne_Handler(srv interface{}, ctx context.Con
 		return srv.(TagAssignmentConfigServiceServer).GetOne(ctx, req.(*TagAssignmentConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagAssignmentConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).GetSome(m, &tagAssignmentConfigServiceGetSomeServer{stream})
+}
+
+type TagAssignmentConfigService_GetSomeServer interface {
+	Send(*TagAssignmentConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceGetSomeServer) Send(m *TagAssignmentConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _TagAssignmentConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -726,6 +1196,45 @@ type tagAssignmentConfigServiceSubscribeServer struct {
 }
 
 func (x *tagAssignmentConfigServiceSubscribeServer) Send(m *TagAssignmentConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagAssignmentConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagAssignmentConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagAssignmentConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.tag.v2.TagAssignmentConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagAssignmentConfigServiceServer).GetMeta(ctx, req.(*TagAssignmentConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagAssignmentConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).SubscribeMeta(m, &tagAssignmentConfigServiceSubscribeMetaServer{stream})
+}
+
+type TagAssignmentConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -786,6 +1295,27 @@ func _TagAssignmentConfigService_Delete_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TagAssignmentConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).DeleteSome(m, &tagAssignmentConfigServiceDeleteSomeServer{stream})
+}
+
+type TagAssignmentConfigService_DeleteSomeServer interface {
+	Send(*TagAssignmentConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceDeleteSomeServer) Send(m *TagAssignmentConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TagAssignmentConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TagAssignmentConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -819,6 +1349,10 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TagAssignmentConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _TagAssignmentConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _TagAssignmentConfigService_Set_Handler,
 		},
@@ -828,6 +1362,11 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _TagAssignmentConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _TagAssignmentConfigService_GetAll_Handler,
@@ -839,8 +1378,18 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TagAssignmentConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _TagAssignmentConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _TagAssignmentConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -857,11 +1406,15 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TagConfigServiceClient interface {
 	GetOne(ctx context.Context, in *TagConfigRequest, opts ...grpc.CallOption) (*TagConfigResponse, error)
+	GetSome(ctx context.Context, in *TagConfigSomeRequest, opts ...grpc.CallOption) (TagConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *TagConfigSetRequest, opts ...grpc.CallOption) (*TagConfigSetResponse, error)
 	SetSome(ctx context.Context, in *TagConfigSetSomeRequest, opts ...grpc.CallOption) (TagConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *TagConfigDeleteRequest, opts ...grpc.CallOption) (*TagConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *TagConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *TagConfigDeleteAllRequest, opts ...grpc.CallOption) (TagConfigService_DeleteAllClient, error)
 }
 
@@ -882,8 +1435,40 @@ func (c *tagConfigServiceClient) GetOne(ctx context.Context, in *TagConfigReques
 	return out, nil
 }
 
+func (c *tagConfigServiceClient) GetSome(ctx context.Context, in *TagConfigSomeRequest, opts ...grpc.CallOption) (TagConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[0], "/arista.tag.v2.TagConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_GetSomeClient interface {
+	Recv() (*TagConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceGetSomeClient) Recv() (*TagConfigSomeResponse, error) {
+	m := new(TagConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagConfigServiceClient) GetAll(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[0], "/arista.tag.v2.TagConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[1], "/arista.tag.v2.TagConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -915,7 +1500,7 @@ func (x *tagConfigServiceGetAllClient) Recv() (*TagConfigStreamResponse, error) 
 }
 
 func (c *tagConfigServiceClient) Subscribe(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[1], "/arista.tag.v2.TagConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -946,6 +1531,47 @@ func (x *tagConfigServiceSubscribeClient) Recv() (*TagConfigStreamResponse, erro
 	return m, nil
 }
 
+func (c *tagConfigServiceClient) GetMeta(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tagConfigServiceClient) SubscribeMeta(ctx context.Context, in *TagConfigStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagConfigServiceClient) Set(ctx context.Context, in *TagConfigSetRequest, opts ...grpc.CallOption) (*TagConfigSetResponse, error) {
 	out := new(TagConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.tag.v2.TagConfigService/Set", in, out, opts...)
@@ -956,7 +1582,7 @@ func (c *tagConfigServiceClient) Set(ctx context.Context, in *TagConfigSetReques
 }
 
 func (c *tagConfigServiceClient) SetSome(ctx context.Context, in *TagConfigSetSomeRequest, opts ...grpc.CallOption) (TagConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[2], "/arista.tag.v2.TagConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[4], "/arista.tag.v2.TagConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -996,8 +1622,40 @@ func (c *tagConfigServiceClient) Delete(ctx context.Context, in *TagConfigDelete
 	return out, nil
 }
 
+func (c *tagConfigServiceClient) DeleteSome(ctx context.Context, in *TagConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[5], "/arista.tag.v2.TagConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_DeleteSomeClient interface {
+	Recv() (*TagConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceDeleteSomeClient) Recv() (*TagConfigDeleteSomeResponse, error) {
+	m := new(TagConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *tagConfigServiceClient) DeleteAll(ctx context.Context, in *TagConfigDeleteAllRequest, opts ...grpc.CallOption) (TagConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[3], "/arista.tag.v2.TagConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[6], "/arista.tag.v2.TagConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1033,11 +1691,15 @@ func (x *tagConfigServiceDeleteAllClient) Recv() (*TagConfigDeleteAllResponse, e
 // for forward compatibility
 type TagConfigServiceServer interface {
 	GetOne(context.Context, *TagConfigRequest) (*TagConfigResponse, error)
+	GetSome(*TagConfigSomeRequest, TagConfigService_GetSomeServer) error
 	GetAll(*TagConfigStreamRequest, TagConfigService_GetAllServer) error
 	Subscribe(*TagConfigStreamRequest, TagConfigService_SubscribeServer) error
+	GetMeta(context.Context, *TagConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*TagConfigStreamRequest, TagConfigService_SubscribeMetaServer) error
 	Set(context.Context, *TagConfigSetRequest) (*TagConfigSetResponse, error)
 	SetSome(*TagConfigSetSomeRequest, TagConfigService_SetSomeServer) error
 	Delete(context.Context, *TagConfigDeleteRequest) (*TagConfigDeleteResponse, error)
+	DeleteSome(*TagConfigDeleteSomeRequest, TagConfigService_DeleteSomeServer) error
 	DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedTagConfigServiceServer()
 }
@@ -1049,11 +1711,20 @@ type UnimplementedTagConfigServiceServer struct {
 func (UnimplementedTagConfigServiceServer) GetOne(context.Context, *TagConfigRequest) (*TagConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedTagConfigServiceServer) GetSome(*TagConfigSomeRequest, TagConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedTagConfigServiceServer) GetAll(*TagConfigStreamRequest, TagConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedTagConfigServiceServer) Subscribe(*TagConfigStreamRequest, TagConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTagConfigServiceServer) GetMeta(context.Context, *TagConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedTagConfigServiceServer) SubscribeMeta(*TagConfigStreamRequest, TagConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedTagConfigServiceServer) Set(context.Context, *TagConfigSetRequest) (*TagConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -1063,6 +1734,9 @@ func (UnimplementedTagConfigServiceServer) SetSome(*TagConfigSetSomeRequest, Tag
 }
 func (UnimplementedTagConfigServiceServer) Delete(context.Context, *TagConfigDeleteRequest) (*TagConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedTagConfigServiceServer) DeleteSome(*TagConfigDeleteSomeRequest, TagConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedTagConfigServiceServer) DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -1096,6 +1770,27 @@ func _TagConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec 
 		return srv.(TagConfigServiceServer).GetOne(ctx, req.(*TagConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _TagConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).GetSome(m, &tagConfigServiceGetSomeServer{stream})
+}
+
+type TagConfigService_GetSomeServer interface {
+	Send(*TagConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceGetSomeServer) Send(m *TagConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _TagConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1137,6 +1832,45 @@ type tagConfigServiceSubscribeServer struct {
 }
 
 func (x *tagConfigServiceSubscribeServer) Send(m *TagConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TagConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.tag.v2.TagConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TagConfigServiceServer).GetMeta(ctx, req.(*TagConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TagConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).SubscribeMeta(m, &tagConfigServiceSubscribeMetaServer{stream})
+}
+
+type TagConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1197,6 +1931,27 @@ func _TagConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TagConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).DeleteSome(m, &tagConfigServiceDeleteSomeServer{stream})
+}
+
+type TagConfigService_DeleteSomeServer interface {
+	Send(*TagConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceDeleteSomeServer) Send(m *TagConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TagConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TagConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1230,6 +1985,10 @@ var TagConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TagConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _TagConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _TagConfigService_Set_Handler,
 		},
@@ -1239,6 +1998,11 @@ var TagConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _TagConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _TagConfigService_GetAll_Handler,
@@ -1250,8 +2014,18 @@ var TagConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TagConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _TagConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _TagConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
