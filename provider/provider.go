@@ -16,10 +16,19 @@ type Logger interface {
 	Tracef(format string, args ...interface{})
 }
 
+// A MetricCollector will collect and publish metrics
+type MetricCollector interface {
+	SetMetricString(name string, value string) error
+	SetMetricFloat(name string, value float64) error
+	SetMetricInt(name string, value int64) error
+	CreateMetric(name string, valueUnit string, description string) error
+}
+
 // A Monitor owns the state and metrics information.
 // Datasource could extract information through this interface.
 type Monitor interface {
 	Logger
+	MetricCollector
 }
 
 // A Provider "owns" some states on a target device streams out notifications on any

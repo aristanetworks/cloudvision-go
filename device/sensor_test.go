@@ -251,6 +251,7 @@ type sensorTestCase struct {
 	clockUpdate                func(chan time.Time)
 	skipSubscribe              bool
 	limit                      int
+	considerMetricUpdates      bool
 }
 
 func subscribeUpdates(ups ...*gnmi.Update) *gnmi.SubscribeResponse {
@@ -561,7 +562,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 						}
 
 						// change date in set request so we can easily match it
-						sensorHeartBeat, datasourceHeartBeat := false, false
+						sensorHeartBeat, datasourceHeartBeat, metricUpdate := false, false, false
 						for _, u := range setReq.Update {
 							if pgnmi.PathMatch(u.Path, pgnmi.Path("streaming-start")) {
 								u.Val = agnmi.TypedValue(42)
@@ -576,6 +577,9 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 									datasourceHeartBeat = true
 								}
 							}
+							if u.Path.Elem[0].Name == "metric" {
+								metricUpdate = true
+							}
 						}
 
 						if tc.ignoreDatasourceHeartbeats && datasourceHeartBeat {
@@ -585,6 +589,11 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 
 						if sensorHeartBeat {
 							t.Log("skipping sensor heartbeat")
+							continue
+						}
+
+						if !tc.considerMetricUpdates && metricUpdate {
+							t.Log("skipping metrics update")
 							continue
 						}
 
@@ -3215,6 +3224,245 @@ func TestSensorWithLimit(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			runSensorTest(t, tc)
+		})
+	}
+}
+
+func TestMetrics(t *testing.T) {
+
+	const deviceName = "dev1"
+	const deviceType = "mock"
+
+	Register("mock", newMockDevice, mockDeviceOptions)
+
+	gnmic := &internal.MockClient{
+		SubscribeStream: make(chan *internal.MockClientStream),
+		SetReq:          make(chan *gnmi.SetRequest, 100),
+		SetResp:         make(chan *gnmi.SetResponse),
+	}
+	close(gnmic.SetResp) // we don't care about these responses, so make it always return nil
+
+	for _, tc := range []struct {
+		name          string
+		runSensor     bool
+		metricInfoMap map[string]metricInfo
+		metricDataMap map[string]interface{}
+		expectSet     []*gnmi.SetRequest
+	}{
+		{
+			name:      "test sensor metric",
+			runSensor: true,
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: sensorPath("state", "abc"),
+					Update: []*gnmi.Update{
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=sensor_go_routines]/data/unit"),
+							agnmi.TypedValue("Number")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_go_routines]/data/description"),
+							agnmi.TypedValue("total go routines in sensor pod")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_go_routines]/data/val-int"),
+							agnmi.TypedValue(100)),
+					},
+				},
+			},
+		},
+		{
+			name: "verify datasource for int metric",
+			metricInfoMap: map[string]metricInfo{
+				"test1": {unit: "Number", description: "Test1 description"},
+			},
+			metricDataMap: map[string]interface{}{
+				"test1": int64(123),
+			},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "dev1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test1]/data/unit"),
+							agnmi.TypedValue("Number")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test1]/data/description"),
+							agnmi.TypedValue("Test1 description")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test1]/data/val-int"),
+							agnmi.TypedValue(123)),
+					},
+				},
+			},
+		},
+		{
+			name: "verify datasource for string metric",
+			metricInfoMap: map[string]metricInfo{
+				"test2": {unit: "status", description: "Test2 description"},
+			},
+			metricDataMap: map[string]interface{}{
+				"test2": "blocked",
+			},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "dev1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test2]/data/unit"),
+							agnmi.TypedValue("status")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test2]/data/description"),
+							agnmi.TypedValue("Test2 description")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test2]/data/val-str"),
+							agnmi.TypedValue("blocked")),
+					},
+				},
+			},
+		},
+		{
+			name: "verify datasource for float metric",
+			metricInfoMap: map[string]metricInfo{
+				"test3": {unit: "percentage", description: "Test3 description"},
+			},
+			metricDataMap: map[string]interface{}{
+				"test3": float64(55.34),
+			},
+			expectSet: []*gnmi.SetRequest{
+				{
+					Prefix: datasourcePath("state", "abc", "dev1", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test3]/data/unit"),
+							agnmi.TypedValue("percentage")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test3]/data/description"),
+							agnmi.TypedValue("Test3 description")),
+						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=test3]/data/val-double"),
+							agnmi.TypedValue(55.34)),
+					},
+				},
+			},
+		},
+	} {
+		metadataCh := make(chan string, 100)
+		sensor := NewSensor("abc", 100.0,
+			WithSensorClientFactory(func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
+				return newMockCVClient(gnmic, info, metadataCh)
+			}), WithSensorGNMIClient(gnmic), WithSensorMetricIntervalTime(3*time.Second))
+		sensor.datasourceConfig[deviceName] = &datasourceConfig{
+			name:    deviceName,
+			typ:     deviceType,
+			enabled: true,
+			option: map[string]string{
+				"id": "123",
+			},
+		}
+		cfg := sensor.datasourceConfig[deviceName]
+		cfg.enabled = true
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(ctx)
+			ds := sensor.getDatasource(ctx, deviceName)
+			sensor.clockSynced = true
+			sensor.active = true
+			err := sensor.runDatasourceConfig(ctx, deviceName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if tc.runSensor {
+				go sensor.publishSensorMetrics(ctx)
+			}
+			errgSub, ctx := errgroup.WithContext(ctx)
+			for name, metric := range tc.metricInfoMap {
+				err = ds.monitor.metricCollector.CreateMetric(
+					name, metric.unit, metric.description)
+				if err != nil {
+					t.Fatalf("Failed to create metric with name:%s", name)
+				}
+			}
+			for name, data := range tc.metricDataMap {
+				switch val := data.(type) {
+				case int64:
+					err = ds.monitor.metricCollector.SetMetricInt(name, val)
+				case float64:
+					err = ds.monitor.metricCollector.SetMetricFloat(name, val)
+				case string:
+					err = ds.monitor.metricCollector.SetMetricString(name, val)
+				}
+				if err != nil {
+					t.Fatalf("Failed to set metric:%v", err)
+				}
+			}
+
+			errgSub.Go(func() error {
+				defer cancel()
+				setsIdx := 0
+				for timeout := time.After(5 * time.Second); ; {
+					select {
+					case <-timeout:
+						if len(tc.expectSet) > 0 {
+							return fmt.Errorf("Timed out reading sets, expecting: %v",
+								tc.expectSet)
+						}
+						return nil
+					case setReq, ok := <-gnmic.SetReq:
+						setsIdx++
+						t.Logf("Got set #%d: %v", setsIdx, setReq)
+
+						if !ok {
+							if len(tc.expectSet) > 0 {
+								return fmt.Errorf("Set channel closed but expected more sets: %v",
+									tc.expectSet)
+							}
+							return nil
+						}
+						ignoreUpdate := false
+						for _, u := range setReq.Update {
+							if u.Path.Elem[0].Name != "metric" {
+								ignoreUpdate = true
+								continue
+							}
+							if u.Path.Elem[0].Name == "metric" &&
+								u.Path.Elem[0].Key["name"] == "sensor_go_routines" &&
+								strings.HasPrefix(u.Path.Elem[2].Name, "val-") {
+								u.Val = agnmi.TypedValue(100)
+							}
+						}
+
+						if ignoreUpdate {
+							continue
+						}
+						found := -1
+						for i, expectSet := range tc.expectSet {
+							if proto.Equal(expectSet, setReq) {
+								found = i
+								break
+							}
+						}
+						if found >= 0 {
+							t.Log("Matched set")
+							lastIndex := len(tc.expectSet) - 1
+							tc.expectSet[found] = tc.expectSet[lastIndex]
+							tc.expectSet = tc.expectSet[:lastIndex]
+						} else {
+							return fmt.Errorf("Set %d unexpected:\n%s\nexpecting:\n%v",
+								setsIdx, setReq, tc.expectSet)
+						}
+					case <-ctx.Done():
+						if len(tc.expectSet) > 0 {
+							t.Errorf("Context cancel but did not match all sets: %v", tc.expectSet)
+						}
+						return nil
+					}
+				}
+			})
+			if err := errgSub.Wait(); err != nil && err != context.Canceled {
+				t.Error(err)
+			}
 		})
 	}
 }

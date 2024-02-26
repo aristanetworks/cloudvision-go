@@ -115,3 +115,90 @@ func TestDatasourceMonitor(t *testing.T) {
 	}
 	b.Reset()
 }
+
+// This suite contains test cases to verify the functionality of the DatasourceMetrics struct,
+// which manages the creation and manipulation of metrics within a datasource.
+// It includes tests for creating metrics, setting metric values, and error handling.
+func TestDatasourceMonitorMetrics(t *testing.T) {
+	dm := newDatasourceMonitor(logrus.WithField("test", t.Name()), logrus.InfoLevel)
+
+	// Test case to verify that the metric map is initially empty.
+	if len(dm.metricMap) != 0 {
+		t.Fatal("Metric map should be empty")
+	}
+
+	err := dm.CreateMetric("test1", "Number", "test1Description")
+	if err != nil {
+		t.Fatal("Failed to create metric")
+	}
+
+	// Test case to verify that metric can be created successfully.
+	// It creates a new metric with the specified name, type, and description.
+	// Then, it checks if the metric exists in the metric map.
+	metricObj, ok := dm.metricMap["test1"]
+	if len(dm.metricMap) != 1 || !ok {
+		t.Fatal("Metric map should have test1 metric")
+	}
+
+	// Test case to update existing metric
+	err = dm.CreateMetric("test1", "Number", "test1Description")
+	if err == nil {
+		t.Fatal("Metric should not be updated or modified")
+	}
+
+	// create few other metrics
+	err = dm.CreateMetric("test2", "Seconds", "test2Description")
+	if err != nil {
+		t.Fatal("Failed to create metric")
+	}
+	err = dm.CreateMetric("test3", "MB", "test3Description")
+	if err != nil {
+		t.Fatal("Failed to create metric")
+	}
+
+	// Test case to verify error handling when setting a value for a non-existing metric.
+	// It will set a value for a metric that doesn't exist in the metric map.
+	err = dm.SetMetricInt("test4", 12)
+	if !dm.metricMap["test4"].isChanged || err != nil {
+		t.Fatal("Failed to create metric")
+	}
+
+	// Test case to verify int metric get added successfully without any error
+	err = dm.SetMetricInt("test1", 12)
+	if !dm.metricMap["test1"].isChanged || err != nil {
+		t.Fatal("Failed to update metric")
+	}
+
+	// Test case will validate if isChanged flag will not change if we set same
+	// value and it will only update if new value received in set request
+	dm.metricMap["test1"] = metricInfo{
+		value:     int64(14),
+		isChanged: false,
+	}
+	err = dm.SetMetricInt("test1", 14)
+	if dm.metricMap["test1"].isChanged || err != nil {
+		t.Fatal("Failed to update metric")
+	}
+	err = dm.SetMetricInt("test1", 15)
+	if !dm.metricMap["test1"].isChanged || err != nil {
+		t.Fatal("Failed to update metric")
+	}
+	// Test case to verify successful updating of an existing metric with an integer value.
+	// It checks if the value of the metric in the metric map is updated accordingly.
+	err = dm.SetMetricInt("test1", 16)
+	metricObj, ok = dm.metricMap["test1"]
+	if err != nil || !ok || metricObj.value != int64(16) {
+		t.Fatal("Incorrect metric data received")
+	}
+
+	// Test case to verify successful updating of an existing metric with a string value.
+	// It attempts to update the value of an existing metric with a
+	// string value, which should fail. The test verifies that the correct error is returned
+	// when attempting to set an incorrect value type.
+	err = dm.SetMetricString("test1", "15")
+	if err == nil ||
+		err.Error() != "Error: Metric type mismatch for metric name:test1, "+
+			"Expected type:int64 and Received type:string" {
+		t.Fatal("Failed to update metric")
+	}
+}

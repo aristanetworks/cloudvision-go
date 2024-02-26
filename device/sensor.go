@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -175,6 +176,7 @@ type datasource struct {
 
 	limitDatasourcesToRun int
 	metricTracker         MetricTracker
+	metricIntervalTime    time.Duration
 }
 
 func (d *datasource) submitDatasourceUpdates(ctx context.Context,
@@ -387,10 +389,18 @@ func (d *datasource) Run(ctx context.Context) (err error) {
 		return nil
 	})
 
-	// Send minoitor logging updates.
+	// Send monitor logging updates.
 	errg.Go(func() error {
 		if err := d.sendMonitorLogging(ctx); err != nil {
 			return fmt.Errorf("error updating monitor logging: %w", err)
+		}
+		return nil
+	})
+
+	// Send minoitor metric updates.
+	errg.Go(func() error {
+		if err := d.sendMonitorMetrics(ctx); err != nil {
+			return fmt.Errorf("error updating monitor metrics: %w", err)
 		}
 		return nil
 	})
@@ -546,6 +556,22 @@ func (d *datasource) sendMonitorLogging(ctx context.Context) error {
 	}
 }
 
+func (d *datasource) sendMonitorMetrics(ctx context.Context) error {
+	firstUpdate := true
+	ticker := time.NewTicker(d.metricIntervalTime)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			publishMetrics(ctx, &d.monitor.metricCollector,
+				firstUpdate, d.statePrefix, d.gnmic, d.log)
+			firstUpdate = false
+		}
+	}
+}
+
 func datasourceFromPath(path *gnmi.Path) string {
 	for _, elm := range path.Elem {
 		if elm.Name == "source" {
@@ -675,6 +701,9 @@ type Sensor struct {
 	numDatasourcesRunning atomic.Int32
 
 	metricTracker MetricTracker
+
+	// metricIntervalTime represents the time interval at which metric data is published to server
+	metricIntervalTime time.Duration
 }
 
 // SensorOption is used to configure the Sensor.
@@ -751,6 +780,11 @@ func WithSensorIP(ip string) SensorOption {
 // WithSensorMaxClockDelta sets the time delta allowed between sensor and server clock
 func WithSensorMaxClockDelta(d time.Duration) SensorOption {
 	return func(s *Sensor) { s.maxClockDelta = d }
+}
+
+// WithSensorMetricIntervalTime sets the interval time used to send metrics to server
+func WithSensorMetricIntervalTime(d time.Duration) SensorOption {
+	return func(s *Sensor) { s.metricIntervalTime = d }
 }
 
 // WithSensorClusterClock sets a cluster clock object.
@@ -1070,6 +1104,7 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 		logRate:               s.logRate,
 		limitDatasourcesToRun: s.limitDatasourcesToRun,
 		metricTracker:         s.metricTracker,
+		metricIntervalTime:    s.metricIntervalTime,
 	}
 	// Setup monitor for datasource
 	runtime.monitor = newDatasourceMonitor(runtime.log, runtime.config.loglevel)
@@ -1352,6 +1387,9 @@ func (s *Sensor) Run(ctx context.Context) error {
 	// Start sensor heartbeat loop. This will wait to do work only when we have a valid config.
 	go s.heartbeatLoop(ctx)
 
+	// Send sensor metrics updates.
+	go s.publishSensorMetrics(ctx)
+
 	// Subscribe to config forever.
 	handleConfigUpdate := func(ctx context.Context,
 		notif *gnmi.Notification, postSync bool) error {
@@ -1470,6 +1508,7 @@ func NewSensor(name string, logRate float64, opts ...SensorOption) *Sensor {
 		clusterClock:            defaultClockObj,
 		datasourceStopped:       make(chan string),
 		metricTracker:           noopMetricTracker{},
+		metricIntervalTime:      1 * time.Minute,
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -1617,6 +1656,91 @@ func (s *Sensor) waitForClockSync(ctx context.Context) error {
 			if s.clockSynced {
 				return nil
 			}
+		}
+	}
+}
+
+func (s *Sensor) publishSensorMetrics(ctx context.Context) {
+	sensorMetric := &metricCollector{
+		metricMap: make(map[string]metricInfo, 0),
+	}
+
+	err := sensorMetric.CreateMetric("sensor_go_routines", "Number",
+		"total go routines in sensor pod")
+	if err != nil {
+		s.log.Errorf("Failed to create metric: %v", err)
+		return
+	}
+
+	firstUpdate := true
+	ticker := time.NewTicker(s.metricIntervalTime)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			if !errors.Is(ctx.Err(), context.Canceled) {
+				s.log.Errorf("Failed to publish metrics: %v", ctx.Err())
+			}
+			return
+		case <-ticker.C:
+			if !s.active {
+				continue
+			}
+			err := sensorMetric.SetMetricInt("sensor_go_routines", int64(runtime.NumGoroutine()))
+			if err != nil {
+				s.log.Errorf("Failed to set metric: %s, Error:%v", "sensor_go_routines", err)
+				continue
+			}
+			publishMetrics(ctx, sensorMetric, firstUpdate, s.statePrefix, s.gnmic, s.log)
+		}
+		firstUpdate = false
+	}
+}
+
+func publishMetrics(ctx context.Context, metrics *metricCollector, firstUpdate bool,
+	statePrefix *gnmi.Path, gnmic gnmi.GNMIClient, log *logrus.Entry) {
+	metrics.mu.Lock()
+	metricMap := metrics.metricMap
+	update := []*gnmi.Update{}
+	for key, metric := range metricMap {
+		if firstUpdate {
+			update = append(update,
+				pgnmi.Update(pgnmi.Path(pgnmi.MultiKeyList("metric", "name", key),
+					"data", "unit"), agnmi.TypedValue(metric.unit)),
+				pgnmi.Update(pgnmi.Path(pgnmi.MultiKeyList("metric", "name", key),
+					"data", "description"), agnmi.TypedValue(metric.description)),
+			)
+		}
+		if metric.isChanged {
+			switch val := metric.value.(type) {
+			case int64:
+				update = append(update, pgnmi.Update(
+					pgnmi.Path(pgnmi.MultiKeyList("metric", "name", key),
+						"data", "val-int"),
+					agnmi.TypedValue(val)))
+			case float64:
+				update = append(update, pgnmi.Update(
+					pgnmi.Path(pgnmi.MultiKeyList("metric", "name", key),
+						"data", "val-double"),
+					agnmi.TypedValue(val)))
+			case string:
+				update = append(update, pgnmi.Update(
+					pgnmi.Path(pgnmi.MultiKeyList("metric", "name", key),
+						"data", "val-str"),
+					agnmi.TypedValue(val)))
+			}
+			metric.isChanged = false
+		}
+	}
+
+	metrics.mu.Unlock()
+	if len(update) > 0 {
+		_, err := gnmic.Set(ctx, &gnmi.SetRequest{
+			Prefix: statePrefix,
+			Update: update,
+		})
+		if err != nil {
+			log.Errorf("Error while publishing metrics: %v", err)
 		}
 	}
 }

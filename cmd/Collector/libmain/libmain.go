@@ -107,6 +107,7 @@ var (
 	sensorHeartbeat         *time.Duration
 	sensorFailureMaxBackoff *time.Duration
 	maxClockDelta           *time.Duration
+	metricIntervalTime      *time.Duration
 
 	// Datasource monitor settings
 	logRate *float64
@@ -198,6 +199,8 @@ func Main(sc device.SensorConfig) {
 	maxClockDelta = flag.Duration("maxClockDelta", 0*time.Second,
 		"Defines max clock delta allowed between sensor and server clock, 0 sec indicates "+
 			"that clock sync check is disabled")
+	metricIntervalTime = flag.Duration("metricIntervalTime", 1*time.Minute,
+		"Defines the time interval at which metric data is published to server")
 
 	flag.Var(mockFeature, "mockFeature",
 		"<feature>=<path> option for mock mode, where <path> is a path that, "+
@@ -437,6 +440,7 @@ func runMain(ctx context.Context, sc device.SensorConfig) {
 			device.WithSensorHeartbeatInterval(*sensorHeartbeat),
 			device.WithSensorGNMIClient(gnmiClient),
 			device.WithSensorMaxClockDelta(*maxClockDelta),
+			device.WithSensorMetricIntervalTime(*metricIntervalTime),
 			device.WithSensorClientFactory(newCVClient),
 			device.WithSensorConfigChan(configCh),
 			device.WithSensorGRPCConn(conn),
@@ -657,6 +661,10 @@ func validateConfig() {
 
 	if !*standalone && *ingestServerAddr == "" {
 		logrus.Fatal("-ingestServerAddr must be specified in case of sensor not running standalone")
+	}
+
+	if *metricIntervalTime < 30*time.Second {
+		logrus.Fatal("-metricIntervalTime should be at least 30 seconds or longer")
 	}
 }
 
