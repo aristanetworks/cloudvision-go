@@ -19,10 +19,16 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApproveConfigServiceClient interface {
 	GetOne(ctx context.Context, in *ApproveConfigRequest, opts ...grpc.CallOption) (*ApproveConfigResponse, error)
+	GetSome(ctx context.Context, in *ApproveConfigSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *ApproveConfigSetRequest, opts ...grpc.CallOption) (*ApproveConfigSetResponse, error)
+	SetSome(ctx context.Context, in *ApproveConfigSetSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *ApproveConfigDeleteRequest, opts ...grpc.CallOption) (*ApproveConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *ApproveConfigDeleteSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteSomeClient, error)
+	DeleteAll(ctx context.Context, in *ApproveConfigDeleteAllRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteAllClient, error)
 }
 
 type approveConfigServiceClient struct {
@@ -42,8 +48,40 @@ func (c *approveConfigServiceClient) GetOne(ctx context.Context, in *ApproveConf
 	return out, nil
 }
 
+func (c *approveConfigServiceClient) GetSome(ctx context.Context, in *ApproveConfigSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ApproveConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_GetSomeClient interface {
+	Recv() (*ApproveConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceGetSomeClient) Recv() (*ApproveConfigSomeResponse, error) {
+	m := new(ApproveConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *approveConfigServiceClient) GetAll(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ApproveConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ApproveConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +113,7 @@ func (x *approveConfigServiceGetAllClient) Recv() (*ApproveConfigStreamResponse,
 }
 
 func (c *approveConfigServiceClient) Subscribe(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ApproveConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[2], "/arista.changecontrol.v1.ApproveConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +144,47 @@ func (x *approveConfigServiceSubscribeClient) Recv() (*ApproveConfigStreamRespon
 	return m, nil
 }
 
+func (c *approveConfigServiceClient) GetMeta(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.changecontrol.v1.ApproveConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *approveConfigServiceClient) SubscribeMeta(ctx context.Context, in *ApproveConfigStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[3], "/arista.changecontrol.v1.ApproveConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *approveConfigServiceClient) Set(ctx context.Context, in *ApproveConfigSetRequest, opts ...grpc.CallOption) (*ApproveConfigSetResponse, error) {
 	out := new(ApproveConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.changecontrol.v1.ApproveConfigService/Set", in, out, opts...)
@@ -113,6 +192,38 @@ func (c *approveConfigServiceClient) Set(ctx context.Context, in *ApproveConfigS
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *approveConfigServiceClient) SetSome(ctx context.Context, in *ApproveConfigSetSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[4], "/arista.changecontrol.v1.ApproveConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_SetSomeClient interface {
+	Recv() (*ApproveConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceSetSomeClient) Recv() (*ApproveConfigSetSomeResponse, error) {
+	m := new(ApproveConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *approveConfigServiceClient) Delete(ctx context.Context, in *ApproveConfigDeleteRequest, opts ...grpc.CallOption) (*ApproveConfigDeleteResponse, error) {
@@ -124,15 +235,85 @@ func (c *approveConfigServiceClient) Delete(ctx context.Context, in *ApproveConf
 	return out, nil
 }
 
+func (c *approveConfigServiceClient) DeleteSome(ctx context.Context, in *ApproveConfigDeleteSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[5], "/arista.changecontrol.v1.ApproveConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_DeleteSomeClient interface {
+	Recv() (*ApproveConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceDeleteSomeClient) Recv() (*ApproveConfigDeleteSomeResponse, error) {
+	m := new(ApproveConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *approveConfigServiceClient) DeleteAll(ctx context.Context, in *ApproveConfigDeleteAllRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[6], "/arista.changecontrol.v1.ApproveConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_DeleteAllClient interface {
+	Recv() (*ApproveConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceDeleteAllClient) Recv() (*ApproveConfigDeleteAllResponse, error) {
+	m := new(ApproveConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ApproveConfigServiceServer is the server API for ApproveConfigService service.
 // All implementations must embed UnimplementedApproveConfigServiceServer
 // for forward compatibility
 type ApproveConfigServiceServer interface {
 	GetOne(context.Context, *ApproveConfigRequest) (*ApproveConfigResponse, error)
+	GetSome(*ApproveConfigSomeRequest, ApproveConfigService_GetSomeServer) error
 	GetAll(*ApproveConfigStreamRequest, ApproveConfigService_GetAllServer) error
 	Subscribe(*ApproveConfigStreamRequest, ApproveConfigService_SubscribeServer) error
+	GetMeta(context.Context, *ApproveConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ApproveConfigStreamRequest, ApproveConfigService_SubscribeMetaServer) error
 	Set(context.Context, *ApproveConfigSetRequest) (*ApproveConfigSetResponse, error)
+	SetSome(*ApproveConfigSetSomeRequest, ApproveConfigService_SetSomeServer) error
 	Delete(context.Context, *ApproveConfigDeleteRequest) (*ApproveConfigDeleteResponse, error)
+	DeleteSome(*ApproveConfigDeleteSomeRequest, ApproveConfigService_DeleteSomeServer) error
+	DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedApproveConfigServiceServer()
 }
 
@@ -143,17 +324,35 @@ type UnimplementedApproveConfigServiceServer struct {
 func (UnimplementedApproveConfigServiceServer) GetOne(context.Context, *ApproveConfigRequest) (*ApproveConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedApproveConfigServiceServer) GetSome(*ApproveConfigSomeRequest, ApproveConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedApproveConfigServiceServer) GetAll(*ApproveConfigStreamRequest, ApproveConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedApproveConfigServiceServer) Subscribe(*ApproveConfigStreamRequest, ApproveConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedApproveConfigServiceServer) GetMeta(context.Context, *ApproveConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) SubscribeMeta(*ApproveConfigStreamRequest, ApproveConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedApproveConfigServiceServer) Set(context.Context, *ApproveConfigSetRequest) (*ApproveConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedApproveConfigServiceServer) SetSome(*ApproveConfigSetSomeRequest, ApproveConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedApproveConfigServiceServer) Delete(context.Context, *ApproveConfigDeleteRequest) (*ApproveConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) DeleteSome(*ApproveConfigDeleteSomeRequest, ApproveConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedApproveConfigServiceServer) mustEmbedUnimplementedApproveConfigServiceServer() {}
 
@@ -184,6 +383,27 @@ func _ApproveConfigService_GetOne_Handler(srv interface{}, ctx context.Context, 
 		return srv.(ApproveConfigServiceServer).GetOne(ctx, req.(*ApproveConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ApproveConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).GetSome(m, &approveConfigServiceGetSomeServer{stream})
+}
+
+type ApproveConfigService_GetSomeServer interface {
+	Send(*ApproveConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceGetSomeServer) Send(m *ApproveConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ApproveConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -228,6 +448,45 @@ func (x *approveConfigServiceSubscribeServer) Send(m *ApproveConfigStreamRespons
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ApproveConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApproveConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.changecontrol.v1.ApproveConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApproveConfigServiceServer).GetMeta(ctx, req.(*ApproveConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApproveConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).SubscribeMeta(m, &approveConfigServiceSubscribeMetaServer{stream})
+}
+
+type ApproveConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _ApproveConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApproveConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -244,6 +503,27 @@ func _ApproveConfigService_Set_Handler(srv interface{}, ctx context.Context, dec
 		return srv.(ApproveConfigServiceServer).Set(ctx, req.(*ApproveConfigSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ApproveConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).SetSome(m, &approveConfigServiceSetSomeServer{stream})
+}
+
+type ApproveConfigService_SetSomeServer interface {
+	Send(*ApproveConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceSetSomeServer) Send(m *ApproveConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ApproveConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -264,6 +544,48 @@ func _ApproveConfigService_Delete_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ApproveConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).DeleteSome(m, &approveConfigServiceDeleteSomeServer{stream})
+}
+
+type ApproveConfigService_DeleteSomeServer interface {
+	Send(*ApproveConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceDeleteSomeServer) Send(m *ApproveConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ApproveConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).DeleteAll(m, &approveConfigServiceDeleteAllServer{stream})
+}
+
+type ApproveConfigService_DeleteAllServer interface {
+	Send(*ApproveConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceDeleteAllServer) Send(m *ApproveConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ApproveConfigService_ServiceDesc is the grpc.ServiceDesc for ApproveConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -276,6 +598,10 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ApproveConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _ApproveConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _ApproveConfigService_Set_Handler,
 		},
@@ -286,6 +612,11 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetSome",
+			Handler:       _ApproveConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "GetAll",
 			Handler:       _ApproveConfigService_GetAll_Handler,
 			ServerStreams: true,
@@ -293,6 +624,26 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ApproveConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ApproveConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _ApproveConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _ApproveConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _ApproveConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -304,8 +655,11 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChangeControlServiceClient interface {
 	GetOne(ctx context.Context, in *ChangeControlRequest, opts ...grpc.CallOption) (*ChangeControlResponse, error)
+	GetSome(ctx context.Context, in *ChangeControlSomeRequest, opts ...grpc.CallOption) (ChangeControlService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeMetaClient, error)
 }
 
 type changeControlServiceClient struct {
@@ -325,8 +679,40 @@ func (c *changeControlServiceClient) GetOne(ctx context.Context, in *ChangeContr
 	return out, nil
 }
 
+func (c *changeControlServiceClient) GetSome(ctx context.Context, in *ChangeControlSomeRequest, opts ...grpc.CallOption) (ChangeControlService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ChangeControlService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlService_GetSomeClient interface {
+	Recv() (*ChangeControlSomeResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlServiceGetSomeClient) Recv() (*ChangeControlSomeResponse, error) {
+	m := new(ChangeControlSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *changeControlServiceClient) GetAll(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ChangeControlService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ChangeControlService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +744,7 @@ func (x *changeControlServiceGetAllClient) Recv() (*ChangeControlStreamResponse,
 }
 
 func (c *changeControlServiceClient) Subscribe(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ChangeControlService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[2], "/arista.changecontrol.v1.ChangeControlService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -389,13 +775,57 @@ func (x *changeControlServiceSubscribeClient) Recv() (*ChangeControlStreamRespon
 	return m, nil
 }
 
+func (c *changeControlServiceClient) GetMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.changecontrol.v1.ChangeControlService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changeControlServiceClient) SubscribeMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[3], "/arista.changecontrol.v1.ChangeControlService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChangeControlServiceServer is the server API for ChangeControlService service.
 // All implementations must embed UnimplementedChangeControlServiceServer
 // for forward compatibility
 type ChangeControlServiceServer interface {
 	GetOne(context.Context, *ChangeControlRequest) (*ChangeControlResponse, error)
+	GetSome(*ChangeControlSomeRequest, ChangeControlService_GetSomeServer) error
 	GetAll(*ChangeControlStreamRequest, ChangeControlService_GetAllServer) error
 	Subscribe(*ChangeControlStreamRequest, ChangeControlService_SubscribeServer) error
+	GetMeta(context.Context, *ChangeControlStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ChangeControlStreamRequest, ChangeControlService_SubscribeMetaServer) error
 	mustEmbedUnimplementedChangeControlServiceServer()
 }
 
@@ -406,11 +836,20 @@ type UnimplementedChangeControlServiceServer struct {
 func (UnimplementedChangeControlServiceServer) GetOne(context.Context, *ChangeControlRequest) (*ChangeControlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedChangeControlServiceServer) GetSome(*ChangeControlSomeRequest, ChangeControlService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedChangeControlServiceServer) GetAll(*ChangeControlStreamRequest, ChangeControlService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedChangeControlServiceServer) Subscribe(*ChangeControlStreamRequest, ChangeControlService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedChangeControlServiceServer) GetMeta(context.Context, *ChangeControlStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedChangeControlServiceServer) SubscribeMeta(*ChangeControlStreamRequest, ChangeControlService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedChangeControlServiceServer) mustEmbedUnimplementedChangeControlServiceServer() {}
 
@@ -441,6 +880,27 @@ func _ChangeControlService_GetOne_Handler(srv interface{}, ctx context.Context, 
 		return srv.(ChangeControlServiceServer).GetOne(ctx, req.(*ChangeControlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlServiceServer).GetSome(m, &changeControlServiceGetSomeServer{stream})
+}
+
+type ChangeControlService_GetSomeServer interface {
+	Send(*ChangeControlSomeResponse) error
+	grpc.ServerStream
+}
+
+type changeControlServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlServiceGetSomeServer) Send(m *ChangeControlSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ChangeControlService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -485,6 +945,45 @@ func (x *changeControlServiceSubscribeServer) Send(m *ChangeControlStreamRespons
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ChangeControlService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeControlStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChangeControlServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.changecontrol.v1.ChangeControlService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChangeControlServiceServer).GetMeta(ctx, req.(*ChangeControlStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlServiceServer).SubscribeMeta(m, &changeControlServiceSubscribeMetaServer{stream})
+}
+
+type ChangeControlService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type changeControlServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChangeControlService_ServiceDesc is the grpc.ServiceDesc for ChangeControlService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -496,8 +995,17 @@ var ChangeControlService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _ChangeControlService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ChangeControlService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ChangeControlService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _ChangeControlService_GetAll_Handler,
@@ -506,6 +1014,11 @@ var ChangeControlService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ChangeControlService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ChangeControlService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -517,10 +1030,16 @@ var ChangeControlService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChangeControlConfigServiceClient interface {
 	GetOne(ctx context.Context, in *ChangeControlConfigRequest, opts ...grpc.CallOption) (*ChangeControlConfigResponse, error)
+	GetSome(ctx context.Context, in *ChangeControlConfigSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *ChangeControlConfigSetRequest, opts ...grpc.CallOption) (*ChangeControlConfigSetResponse, error)
+	SetSome(ctx context.Context, in *ChangeControlConfigSetSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *ChangeControlConfigDeleteRequest, opts ...grpc.CallOption) (*ChangeControlConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *ChangeControlConfigDeleteSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteSomeClient, error)
+	DeleteAll(ctx context.Context, in *ChangeControlConfigDeleteAllRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteAllClient, error)
 }
 
 type changeControlConfigServiceClient struct {
@@ -540,8 +1059,40 @@ func (c *changeControlConfigServiceClient) GetOne(ctx context.Context, in *Chang
 	return out, nil
 }
 
+func (c *changeControlConfigServiceClient) GetSome(ctx context.Context, in *ChangeControlConfigSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ChangeControlConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_GetSomeClient interface {
+	Recv() (*ChangeControlConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceGetSomeClient) Recv() (*ChangeControlConfigSomeResponse, error) {
+	m := new(ChangeControlConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *changeControlConfigServiceClient) GetAll(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[0], "/arista.changecontrol.v1.ChangeControlConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ChangeControlConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -573,7 +1124,7 @@ func (x *changeControlConfigServiceGetAllClient) Recv() (*ChangeControlConfigStr
 }
 
 func (c *changeControlConfigServiceClient) Subscribe(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[1], "/arista.changecontrol.v1.ChangeControlConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[2], "/arista.changecontrol.v1.ChangeControlConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -604,6 +1155,47 @@ func (x *changeControlConfigServiceSubscribeClient) Recv() (*ChangeControlConfig
 	return m, nil
 }
 
+func (c *changeControlConfigServiceClient) GetMeta(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.changecontrol.v1.ChangeControlConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changeControlConfigServiceClient) SubscribeMeta(ctx context.Context, in *ChangeControlConfigStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[3], "/arista.changecontrol.v1.ChangeControlConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *changeControlConfigServiceClient) Set(ctx context.Context, in *ChangeControlConfigSetRequest, opts ...grpc.CallOption) (*ChangeControlConfigSetResponse, error) {
 	out := new(ChangeControlConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.changecontrol.v1.ChangeControlConfigService/Set", in, out, opts...)
@@ -611,6 +1203,38 @@ func (c *changeControlConfigServiceClient) Set(ctx context.Context, in *ChangeCo
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *changeControlConfigServiceClient) SetSome(ctx context.Context, in *ChangeControlConfigSetSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[4], "/arista.changecontrol.v1.ChangeControlConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_SetSomeClient interface {
+	Recv() (*ChangeControlConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceSetSomeClient) Recv() (*ChangeControlConfigSetSomeResponse, error) {
+	m := new(ChangeControlConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *changeControlConfigServiceClient) Delete(ctx context.Context, in *ChangeControlConfigDeleteRequest, opts ...grpc.CallOption) (*ChangeControlConfigDeleteResponse, error) {
@@ -622,15 +1246,85 @@ func (c *changeControlConfigServiceClient) Delete(ctx context.Context, in *Chang
 	return out, nil
 }
 
+func (c *changeControlConfigServiceClient) DeleteSome(ctx context.Context, in *ChangeControlConfigDeleteSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[5], "/arista.changecontrol.v1.ChangeControlConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_DeleteSomeClient interface {
+	Recv() (*ChangeControlConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceDeleteSomeClient) Recv() (*ChangeControlConfigDeleteSomeResponse, error) {
+	m := new(ChangeControlConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlConfigServiceClient) DeleteAll(ctx context.Context, in *ChangeControlConfigDeleteAllRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[6], "/arista.changecontrol.v1.ChangeControlConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_DeleteAllClient interface {
+	Recv() (*ChangeControlConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceDeleteAllClient) Recv() (*ChangeControlConfigDeleteAllResponse, error) {
+	m := new(ChangeControlConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChangeControlConfigServiceServer is the server API for ChangeControlConfigService service.
 // All implementations must embed UnimplementedChangeControlConfigServiceServer
 // for forward compatibility
 type ChangeControlConfigServiceServer interface {
 	GetOne(context.Context, *ChangeControlConfigRequest) (*ChangeControlConfigResponse, error)
+	GetSome(*ChangeControlConfigSomeRequest, ChangeControlConfigService_GetSomeServer) error
 	GetAll(*ChangeControlConfigStreamRequest, ChangeControlConfigService_GetAllServer) error
 	Subscribe(*ChangeControlConfigStreamRequest, ChangeControlConfigService_SubscribeServer) error
+	GetMeta(context.Context, *ChangeControlConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ChangeControlConfigStreamRequest, ChangeControlConfigService_SubscribeMetaServer) error
 	Set(context.Context, *ChangeControlConfigSetRequest) (*ChangeControlConfigSetResponse, error)
+	SetSome(*ChangeControlConfigSetSomeRequest, ChangeControlConfigService_SetSomeServer) error
 	Delete(context.Context, *ChangeControlConfigDeleteRequest) (*ChangeControlConfigDeleteResponse, error)
+	DeleteSome(*ChangeControlConfigDeleteSomeRequest, ChangeControlConfigService_DeleteSomeServer) error
+	DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedChangeControlConfigServiceServer()
 }
 
@@ -641,17 +1335,35 @@ type UnimplementedChangeControlConfigServiceServer struct {
 func (UnimplementedChangeControlConfigServiceServer) GetOne(context.Context, *ChangeControlConfigRequest) (*ChangeControlConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedChangeControlConfigServiceServer) GetSome(*ChangeControlConfigSomeRequest, ChangeControlConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedChangeControlConfigServiceServer) GetAll(*ChangeControlConfigStreamRequest, ChangeControlConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedChangeControlConfigServiceServer) Subscribe(*ChangeControlConfigStreamRequest, ChangeControlConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedChangeControlConfigServiceServer) GetMeta(context.Context, *ChangeControlConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) SubscribeMeta(*ChangeControlConfigStreamRequest, ChangeControlConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedChangeControlConfigServiceServer) Set(context.Context, *ChangeControlConfigSetRequest) (*ChangeControlConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedChangeControlConfigServiceServer) SetSome(*ChangeControlConfigSetSomeRequest, ChangeControlConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedChangeControlConfigServiceServer) Delete(context.Context, *ChangeControlConfigDeleteRequest) (*ChangeControlConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) DeleteSome(*ChangeControlConfigDeleteSomeRequest, ChangeControlConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
 }
 func (UnimplementedChangeControlConfigServiceServer) mustEmbedUnimplementedChangeControlConfigServiceServer() {
 }
@@ -683,6 +1395,27 @@ func _ChangeControlConfigService_GetOne_Handler(srv interface{}, ctx context.Con
 		return srv.(ChangeControlConfigServiceServer).GetOne(ctx, req.(*ChangeControlConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).GetSome(m, &changeControlConfigServiceGetSomeServer{stream})
+}
+
+type ChangeControlConfigService_GetSomeServer interface {
+	Send(*ChangeControlConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceGetSomeServer) Send(m *ChangeControlConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ChangeControlConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -727,6 +1460,45 @@ func (x *changeControlConfigServiceSubscribeServer) Send(m *ChangeControlConfigS
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ChangeControlConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeControlConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChangeControlConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.changecontrol.v1.ChangeControlConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChangeControlConfigServiceServer).GetMeta(ctx, req.(*ChangeControlConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).SubscribeMeta(m, &changeControlConfigServiceSubscribeMetaServer{stream})
+}
+
+type ChangeControlConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _ChangeControlConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChangeControlConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -743,6 +1515,27 @@ func _ChangeControlConfigService_Set_Handler(srv interface{}, ctx context.Contex
 		return srv.(ChangeControlConfigServiceServer).Set(ctx, req.(*ChangeControlConfigSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).SetSome(m, &changeControlConfigServiceSetSomeServer{stream})
+}
+
+type ChangeControlConfigService_SetSomeServer interface {
+	Send(*ChangeControlConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceSetSomeServer) Send(m *ChangeControlConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ChangeControlConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -763,6 +1556,48 @@ func _ChangeControlConfigService_Delete_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChangeControlConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).DeleteSome(m, &changeControlConfigServiceDeleteSomeServer{stream})
+}
+
+type ChangeControlConfigService_DeleteSomeServer interface {
+	Send(*ChangeControlConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceDeleteSomeServer) Send(m *ChangeControlConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).DeleteAll(m, &changeControlConfigServiceDeleteAllServer{stream})
+}
+
+type ChangeControlConfigService_DeleteAllServer interface {
+	Send(*ChangeControlConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceDeleteAllServer) Send(m *ChangeControlConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChangeControlConfigService_ServiceDesc is the grpc.ServiceDesc for ChangeControlConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -775,6 +1610,10 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ChangeControlConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _ChangeControlConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _ChangeControlConfigService_Set_Handler,
 		},
@@ -785,6 +1624,11 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetSome",
+			Handler:       _ChangeControlConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "GetAll",
 			Handler:       _ChangeControlConfigService_GetAll_Handler,
 			ServerStreams: true,
@@ -792,6 +1636,26 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ChangeControlConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ChangeControlConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _ChangeControlConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _ChangeControlConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _ChangeControlConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
