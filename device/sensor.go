@@ -805,7 +805,14 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 			}); err != nil {
 				return err
 			}
-		} else if leafName != "name" {
+		} else if leafName == "source" {
+			// a delete on the leaf `source` means we want to delete the whole datasource
+			if name := datasourceFromPath(fullPath); name != "" {
+				s.removeDatasource(ctx, name)
+			}
+
+		} else {
+			// want to delete a specific leaf under source
 			name := datasourceFromPath(fullPath)
 			dscfg, ok := s.datasourceConfig[name]
 			if ok {
@@ -839,10 +846,6 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				default:
 					delete(dsUpdated[name], elem.Name)
 				}
-			}
-		} else {
-			if name := datasourceFromPath(fullPath); name != "" {
-				s.removeDatasource(ctx, name)
 			}
 		}
 	}

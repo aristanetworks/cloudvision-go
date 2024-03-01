@@ -1682,6 +1682,65 @@ func TestSensor(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Delete datasource config",
+			substeps: []*sensorTestCase{
+				{
+					name: "Onboard mock device",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_SyncResponse{
+								SyncResponse: true,
+							},
+						},
+						subscribeUpdates(
+							datasourceUpdates("config", "abc", "xyz", "mock",
+								true, map[string]string{"id": "123"}, nil, "LOG_LEVEL_INFO")...),
+					},
+					waitForMetadataPostSync: []string{"123|map[id:123 log-level:LOG_LEVEL_INFO]"},
+					expectSet: []*gnmi.SetRequest{
+						initialSetReq("abc", nil),
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+								pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+								pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+							},
+						},
+						{
+							Prefix: datasourcePath("state", "abc", "xyz", ""),
+							Update: []*gnmi.Update{
+								pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+							},
+						},
+					},
+					ignoreDatasourceHeartbeats: true,
+				},
+				{
+					name: "Delete sensor config and see delete happening",
+					configSubResps: []*gnmi.SubscribeResponse{
+						{
+							Response: &gnmi.SubscribeResponse_Update{
+								Update: &gnmi.Notification{
+									Delete: []*gnmi.Path{
+										datasourcePath("config", "abc", "xyz", ""),
+									},
+								},
+							},
+						},
+					},
+					expectSet: []*gnmi.SetRequest{
+						{
+							Delete: []*gnmi.Path{
+								datasourcePath("state", "abc", "xyz", ""),
+							},
+						},
+					},
+				},
+			},
+			ignoreDatasourceHeartbeats: true,
+		},
 	}
 
 	// Register mockDevice.
@@ -2734,6 +2793,7 @@ func TestSensorWithLimit(t *testing.T) {
 			limit: 1,
 			substeps: []*sensorTestCase{
 				{
+					name: "create device1 datasource with type mock",
 					configSubResps: []*gnmi.SubscribeResponse{
 						{
 							Response: &gnmi.SubscribeResponse_SyncResponse{
@@ -2856,7 +2916,7 @@ func TestSensorWithLimit(t *testing.T) {
 								Update: &gnmi.Notification{
 									Delete: []*gnmi.Path{
 										datasourcePath("config",
-											"abc", "device3", "name"),
+											"abc", "device3", ""),
 									},
 								},
 							},
