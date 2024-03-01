@@ -349,6 +349,44 @@ func TestGetOptionHelpers(t *testing.T) {
 		})
 	}
 
+	// Test GetIntOption
+	for _, tc := range []struct {
+		name          string
+		intString     string
+		expectedInt   int
+		errorExpected bool
+	}{
+		{
+			name:        "Success - valid integer",
+			intString:   "123",
+			expectedInt: 123,
+		},
+		{
+			name:          "Fail - float number",
+			intString:     "123.456",
+			errorExpected: true,
+		},
+		{
+			name:          "Fail - string",
+			intString:     "abc",
+			errorExpected: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			om := map[string]string{"x": tc.intString}
+			i, err := GetIntOption("x", om)
+			if (err == nil) == tc.errorExpected {
+				t.Fatalf("expected error: %v; got: %s", tc.errorExpected, err)
+			}
+			if err != nil {
+				return
+			}
+			if i != tc.expectedInt {
+				t.Fatalf("expected: %d; got: %d", tc.expectedInt, i)
+			}
+		})
+	}
+
 	for _, tc := range []struct {
 		name             string
 		durationString   string

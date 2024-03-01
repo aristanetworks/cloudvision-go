@@ -183,3 +183,13 @@ func GetStringListOption(optionName string,
 	}
 	return strings.Split(o, ","), nil
 }
+
+// GetIntOption returns the option specified by optionName as an int.
+func GetIntOption(optionName string,
+	options map[string]string) (int, error) {
+	o, ok := options[optionName]
+	if !ok {
+		return 0, fmt.Errorf("no option '%s'", optionName)
+	}
+	return strconv.Atoi(o)
+}
