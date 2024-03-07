@@ -325,6 +325,10 @@ func buildIPAddrMap(ss smi.Store, ps pdu.Store,
 				logger.Errorf("failed to index value with error: %v", err)
 				continue
 			}
+			if ipAddrIdxVal[0] != "1" && ipAddrIdxVal[0] != "2" {
+				// when the ipaddress type is ipv4z(3) or ipv6z(4) or dns(5) ignore these addresses
+				continue
+			}
 			if ipAddrIdxVal[1] == "" {
 				continue
 			}
@@ -403,6 +407,10 @@ func ifSubIntfIPMapper(ss smi.Store, ps pdu.Store, mapperData *sync.Map, logger 
 		// 16 represents the next number of bytes to be considered as ip address
 		// 253.122.98.159.82.164.119.119.0.0.0.0.0.31.26.139 represents ipAddressAddr which is the
 		// ip address(fd:7a:62:9f:52:a4:77:77:00:00:00:00:00:1f:1a:8b).
+		if ipAddrIdxVal[0] != "1" && ipAddrIdxVal[0] != "2" {
+			// when the ipaddress type is ipv4z(3) or ipv6z(4) or dns(5) ignore these addresses
+			continue
+		}
 
 		if isIPv4 && ipAddrIdxVal[0] == "2" {
 			// when path is ipv4 but oid is of ipv6 address
