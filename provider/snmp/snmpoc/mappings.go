@@ -884,17 +884,14 @@ func processEntPhysicalTableVal(oid string, pdu *gosnmp.SnmpPDU) (interface{}, e
 		2:  "",
 		3:  "CHASSIS",
 		4:  "BACKPLANE",
-		5:  "CONTAINER",
+		5:  "",
 		6:  "POWER_SUPPLY",
 		7:  "FAN",
 		8:  "SENSOR",
-		9:  "MODULE",
+		9:  "",
 		10: "PORT",
-		11: "STACK",
+		11: "",
 		12: "CPU",
-		13: "ENERGY_OBJECT",
-		14: "BATTERY",
-		15: "STORAGE_DRIVE",
 	}
 	class, ok := ocComponentTypeMap[v]
 	if !ok {
