@@ -65,6 +65,8 @@ type BaseMonitor struct {
 // NewBaseMonitor returns a new noop monitor for the collector.
 func NewBaseMonitor(logger *log.Entry) *BaseMonitor {
 	nm := &BaseMonitor{
-		BaseLogger: BaseLogger{logger: logger, level: log.InfoLevel}}
+		BaseLogger:          BaseLogger{logger: logger, level: log.InfoLevel},
+		BaseMetricCollector: BaseMetricCollector{},
+	}
 	return nm
 }

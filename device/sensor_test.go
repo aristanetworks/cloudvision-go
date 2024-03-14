@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -394,6 +395,20 @@ func isSensorHeartbeat(setReq *gnmi.SetRequest, sensor *Sensor) bool {
 	}
 
 	return false
+}
+
+func isExpectedSetPresentInRequest(expectSet *gnmi.SetRequest,
+	setReq *gnmi.SetRequest) bool {
+	// sort setRequest update and check if its equal for unordered updates
+	sort.Slice(setReq.Update, func(i, j int) bool {
+		identifier1 := setReq.Update[i].Path.Elem[0].Key["name"] +
+			setReq.Update[i].Path.Elem[2].Name
+		identifier2 := setReq.Update[j].Path.Elem[0].Key["name"] +
+			setReq.Update[j].Path.Elem[2].Name
+		return identifier1 < identifier2
+	})
+
+	return proto.Equal(expectSet, setReq)
 }
 
 func runSensorTest(t *testing.T, tc sensorTestCase) {
@@ -3257,15 +3272,67 @@ func TestMetrics(t *testing.T) {
 					Prefix: sensorPath("state", "abc"),
 					Update: []*gnmi.Update{
 						pgnmi.Update(
-							pgnmi.PathFromString("metric[name=sensor_go_routines]/data/unit"),
-							agnmi.TypedValue("Number")),
-						pgnmi.Update(
 							pgnmi.PathFromString(
 								"metric[name=sensor_go_routines]/data/description"),
 							agnmi.TypedValue("total go routines in sensor pod")),
 						pgnmi.Update(
+							pgnmi.PathFromString("metric[name=sensor_go_routines]/data/unit"),
+							agnmi.TypedValue("Number")),
+						pgnmi.Update(
 							pgnmi.PathFromString(
 								"metric[name=sensor_go_routines]/data/val-int"),
+							agnmi.TypedValue(100)),
+
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_in_use]/data/description"),
+							agnmi.TypedValue("Sensor pod heap in use in MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_in_use]/data/unit"),
+							agnmi.TypedValue("MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_in_use]/data/val-int"),
+							agnmi.TypedValue(100)),
+
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_released]/data/description"),
+							agnmi.TypedValue("Sensor pod heap released in MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_released]/data/unit"),
+							agnmi.TypedValue("MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_released]/data/val-int"),
+							agnmi.TypedValue(100)),
+
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_sys_allocation]/data/description"),
+							agnmi.TypedValue("Sensor pod heap system allocation in MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_sys_allocation]/data/unit"),
+							agnmi.TypedValue("MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_heap_sys_allocation]/data/val-int"),
+							agnmi.TypedValue(100)),
+
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_memory_allocation]/data/description"),
+							agnmi.TypedValue("Sensor pod memory utilization in MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_memory_allocation]/data/unit"),
+							agnmi.TypedValue("MiB")),
+						pgnmi.Update(
+							pgnmi.PathFromString(
+								"metric[name=sensor_pod_memory_allocation]/data/val-int"),
 							agnmi.TypedValue(100)),
 					},
 				},
@@ -3427,7 +3494,7 @@ func TestMetrics(t *testing.T) {
 								continue
 							}
 							if u.Path.Elem[0].Name == "metric" &&
-								u.Path.Elem[0].Key["name"] == "sensor_go_routines" &&
+								strings.HasPrefix(u.Path.Elem[0].Key["name"], "sensor_") &&
 								strings.HasPrefix(u.Path.Elem[2].Name, "val-") {
 								u.Val = agnmi.TypedValue(100)
 							}
@@ -3438,7 +3505,8 @@ func TestMetrics(t *testing.T) {
 						}
 						found := -1
 						for i, expectSet := range tc.expectSet {
-							if proto.Equal(expectSet, setReq) {
+							if proto.Equal(expectSet, setReq) ||
+								isExpectedSetPresentInRequest(expectSet, setReq) {
 								found = i
 								break
 							}

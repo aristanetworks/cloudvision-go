@@ -1664,14 +1664,11 @@ func (s *Sensor) publishSensorMetrics(ctx context.Context) {
 	sensorMetric := &metricCollector{
 		metricMap: make(map[string]metricInfo, 0),
 	}
-
-	err := sensorMetric.CreateMetric("sensor_go_routines", "Number",
-		"total go routines in sensor pod")
+	err := s.createSensorMetrics(sensorMetric)
 	if err != nil {
-		s.log.Errorf("Failed to create metric: %v", err)
+		s.log.Errorf("Failed to create sensor metrics, Error:%v", err)
 		return
 	}
-
 	firstUpdate := true
 	ticker := time.NewTicker(s.metricIntervalTime)
 	defer ticker.Stop()
@@ -1686,10 +1683,12 @@ func (s *Sensor) publishSensorMetrics(ctx context.Context) {
 			if !s.active {
 				continue
 			}
-			err := sensorMetric.SetMetricInt("sensor_go_routines", int64(runtime.NumGoroutine()))
-			if err != nil {
-				s.log.Errorf("Failed to set metric: %s, Error:%v", "sensor_go_routines", err)
-				continue
+			podStats := s.fetchSensorPodStats()
+			for metric, value := range podStats {
+				err := sensorMetric.SetMetricInt(metric, value)
+				if err != nil {
+					s.log.Errorf("Failed to set metric: %s, Error:%v", metric, err)
+				}
 			}
 			publishMetrics(ctx, sensorMetric, firstUpdate, s.statePrefix, s.gnmic, s.log)
 		}
@@ -1743,4 +1742,54 @@ func publishMetrics(ctx context.Context, metrics *metricCollector, firstUpdate b
 			log.Errorf("Error while publishing metrics: %v", err)
 		}
 	}
+}
+
+func (s *Sensor) createSensorMetrics(sensorMetric *metricCollector) error {
+	err := sensorMetric.CreateMetric("sensor_go_routines", "Number",
+		"total go routines in sensor pod")
+	if err != nil {
+		return fmt.Errorf("Failed to create metric, Error: %v", err)
+	}
+	err = sensorMetric.CreateMetric("sensor_pod_memory_allocation", "MiB",
+		"Sensor pod memory utilization in MiB")
+	if err != nil {
+		return fmt.Errorf("Failed to create metric, Error: %v", err)
+	}
+	err = sensorMetric.CreateMetric("sensor_pod_heap_sys_allocation", "MiB",
+		"Sensor pod heap system allocation in MiB")
+	if err != nil {
+		return fmt.Errorf("Failed to create metric, Error: %v", err)
+	}
+	err = sensorMetric.CreateMetric("sensor_pod_heap_in_use", "MiB",
+		"Sensor pod heap in use in MiB")
+	if err != nil {
+		return fmt.Errorf("Failed to create metric, Error: %v", err)
+	}
+	err = sensorMetric.CreateMetric("sensor_pod_heap_released", "MiB",
+		"Sensor pod heap released in MiB")
+	if err != nil {
+		return fmt.Errorf("Failed to create metric, Error: %v", err)
+	}
+	return nil
+}
+
+func (s *Sensor) fetchSensorPodStats() map[string]int64 {
+	podStats := make(map[string]int64, 0)
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	// Sets the number of goroutines that currently exist in sensor application.
+	podStats["sensor_go_routines"] = int64(runtime.NumGoroutine())
+	// convert memstats Bytes to MiB.
+	// Bytes of allocated heap objects. This represents the current heap memory usage.
+	podStats["sensor_pod_memory_allocation"] = int64(m.Alloc) / (1024 * 1024)
+	// Bytes of heap memory obtained from the OS. It measures the amount of virtual
+	// address space reserved for the heap.
+	podStats["sensor_pod_heap_sys_allocation"] = int64(m.HeapSys) / (1024 * 1024)
+	// Bytes in in-use spans. It represents the amount of memory that is currently being
+	// used by allocated heap objects.
+	podStats["sensor_pod_heap_in_use"] = int64(m.HeapInuse) / (1024 * 1024)
+	// Bytes of physical memory returned to the OS. This counts heap memory from idle
+	// spans that was returned to the OS and has not yet been reacquired for the heap.
+	podStats["sensor_pod_heap_released"] = int64(m.HeapReleased) / (1024 * 1024)
+	return podStats
 }
