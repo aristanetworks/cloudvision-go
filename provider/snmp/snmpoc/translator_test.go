@@ -213,7 +213,7 @@ var basicLldpRemTableResponse = `
 .1.0.8802.1.1.2.1.4.1.1.7.0.451.4 = STRING: macvlan-bond0
 .1.0.8802.1.1.2.1.4.1.1.9.0.1.1 = STRING: r1-rack1-tor1.sjc.aristanetworks.com
 .1.0.8802.1.1.2.1.4.1.1.9.0.451.3 = STRING: server123.sjc.aristanetworks.com
-.1.0.8802.1.1.2.1.4.1.1.9.0.451.4 = STRING: server123.sjc.aristanetworks.com
+.1.0.8802.1.1.2.1.4.1.1.9.0.451.4 = STRING:
 .1.0.8802.1.1.2.1.4.1.1.10.0.1.1 = STRING: Arista Networks EOS version x.y.z
 .1.0.8802.1.1.2.1.4.1.1.10.0.451.3 = STRING: Linux x.y.z
 .1.0.8802.1.1.2.1.4.1.1.10.0.451.4 = STRING: Linux x.y.z
@@ -1020,8 +1020,6 @@ func TestTranslator(t *testing.T) {
 						update(pgnmi.LldpNeighborStatePath("Management1/1", "1", "system-name"),
 							strval("r1-rack1-tor1.sjc.aristanetworks.com")),
 						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "3", "system-name"),
-							strval("server123.sjc.aristanetworks.com")),
-						update(pgnmi.LldpNeighborStatePath("Ethernet3/1", "4", "system-name"),
 							strval("server123.sjc.aristanetworks.com")),
 						update(pgnmi.LldpNeighborStatePath("Management1/1", "1",
 							"system-description"),

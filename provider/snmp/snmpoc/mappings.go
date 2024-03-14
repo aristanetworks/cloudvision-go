@@ -861,7 +861,12 @@ func lldpRemTableMapper(ss smi.Store, ps pdu.Store,
 		if err != nil {
 			return nil, err
 		}
-		updates = append(updates, update(fullPath, vp(v)))
+		val := vp(v)
+		// If the interface lldp neighbour's system-name or system-description is not set,
+		// the value processor returns nil, in which case no updates should be generated.
+		if val != nil {
+			updates = append(updates, update(fullPath, val))
+		}
 	}
 	return updates, nil
 }
