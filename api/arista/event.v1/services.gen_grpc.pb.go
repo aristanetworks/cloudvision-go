@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventServiceClient interface {
 	GetOne(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*EventResponse, error)
+	GetSome(ctx context.Context, in *EventSomeRequest, opts ...grpc.CallOption) (EventService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_SubscribeMetaClient, error)
 }
 
 type eventServiceClient struct {
@@ -40,8 +43,40 @@ func (c *eventServiceClient) GetOne(ctx context.Context, in *EventRequest, opts 
 	return out, nil
 }
 
+func (c *eventServiceClient) GetSome(ctx context.Context, in *EventSomeRequest, opts ...grpc.CallOption) (EventService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[0], "/arista.event.v1.EventService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventService_GetSomeClient interface {
+	Recv() (*EventSomeResponse, error)
+	grpc.ClientStream
+}
+
+type eventServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventServiceGetSomeClient) Recv() (*EventSomeResponse, error) {
+	m := new(EventSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *eventServiceClient) GetAll(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[0], "/arista.event.v1.EventService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[1], "/arista.event.v1.EventService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *eventServiceGetAllClient) Recv() (*EventStreamResponse, error) {
 }
 
 func (c *eventServiceClient) Subscribe(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[1], "/arista.event.v1.EventService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[2], "/arista.event.v1.EventService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *eventServiceSubscribeClient) Recv() (*EventStreamResponse, error) {
 	return m, nil
 }
 
+func (c *eventServiceClient) GetMeta(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.EventService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) SubscribeMeta(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (EventService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[3], "/arista.event.v1.EventService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type eventServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility
 type EventServiceServer interface {
 	GetOne(context.Context, *EventRequest) (*EventResponse, error)
+	GetSome(*EventSomeRequest, EventService_GetSomeServer) error
 	GetAll(*EventStreamRequest, EventService_GetAllServer) error
 	Subscribe(*EventStreamRequest, EventService_SubscribeServer) error
+	GetMeta(context.Context, *EventStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*EventStreamRequest, EventService_SubscribeMetaServer) error
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedEventServiceServer struct {
 func (UnimplementedEventServiceServer) GetOne(context.Context, *EventRequest) (*EventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedEventServiceServer) GetSome(*EventSomeRequest, EventService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedEventServiceServer) GetAll(*EventStreamRequest, EventService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedEventServiceServer) Subscribe(*EventStreamRequest, EventService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedEventServiceServer) GetMeta(context.Context, *EventStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedEventServiceServer) SubscribeMeta(*EventStreamRequest, EventService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 
@@ -156,6 +244,27 @@ func _EventService_GetOne_Handler(srv interface{}, ctx context.Context, dec func
 		return srv.(EventServiceServer).GetOne(ctx, req.(*EventRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventServiceServer).GetSome(m, &eventServiceGetSomeServer{stream})
+}
+
+type EventService_GetSomeServer interface {
+	Send(*EventSomeResponse) error
+	grpc.ServerStream
+}
+
+type eventServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventServiceGetSomeServer) Send(m *EventSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _EventService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *eventServiceSubscribeServer) Send(m *EventStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _EventService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.EventService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetMeta(ctx, req.(*EventStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventServiceServer).SubscribeMeta(m, &eventServiceSubscribeMetaServer{stream})
+}
+
+type EventService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type eventServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _EventService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _EventService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _EventService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _EventService_GetAll_Handler,
@@ -221,6 +378,11 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _EventService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _EventService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,11 +394,15 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventAnnotationConfigServiceClient interface {
 	GetOne(ctx context.Context, in *EventAnnotationConfigRequest, opts ...grpc.CallOption) (*EventAnnotationConfigResponse, error)
+	GetSome(ctx context.Context, in *EventAnnotationConfigSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *EventAnnotationConfigSetRequest, opts ...grpc.CallOption) (*EventAnnotationConfigSetResponse, error)
 	SetSome(ctx context.Context, in *EventAnnotationConfigSetSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *EventAnnotationConfigDeleteRequest, opts ...grpc.CallOption) (*EventAnnotationConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *EventAnnotationConfigDeleteSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *EventAnnotationConfigDeleteAllRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_DeleteAllClient, error)
 }
 
@@ -257,8 +423,40 @@ func (c *eventAnnotationConfigServiceClient) GetOne(ctx context.Context, in *Eve
 	return out, nil
 }
 
+func (c *eventAnnotationConfigServiceClient) GetSome(ctx context.Context, in *EventAnnotationConfigSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[0], "/arista.event.v1.EventAnnotationConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventAnnotationConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventAnnotationConfigService_GetSomeClient interface {
+	Recv() (*EventAnnotationConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type eventAnnotationConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventAnnotationConfigServiceGetSomeClient) Recv() (*EventAnnotationConfigSomeResponse, error) {
+	m := new(EventAnnotationConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *eventAnnotationConfigServiceClient) GetAll(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[0], "/arista.event.v1.EventAnnotationConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[1], "/arista.event.v1.EventAnnotationConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +488,7 @@ func (x *eventAnnotationConfigServiceGetAllClient) Recv() (*EventAnnotationConfi
 }
 
 func (c *eventAnnotationConfigServiceClient) Subscribe(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[1], "/arista.event.v1.EventAnnotationConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[2], "/arista.event.v1.EventAnnotationConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,6 +519,47 @@ func (x *eventAnnotationConfigServiceSubscribeClient) Recv() (*EventAnnotationCo
 	return m, nil
 }
 
+func (c *eventAnnotationConfigServiceClient) GetMeta(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.EventAnnotationConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventAnnotationConfigServiceClient) SubscribeMeta(ctx context.Context, in *EventAnnotationConfigStreamRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[3], "/arista.event.v1.EventAnnotationConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventAnnotationConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventAnnotationConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type eventAnnotationConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventAnnotationConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *eventAnnotationConfigServiceClient) Set(ctx context.Context, in *EventAnnotationConfigSetRequest, opts ...grpc.CallOption) (*EventAnnotationConfigSetResponse, error) {
 	out := new(EventAnnotationConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.event.v1.EventAnnotationConfigService/Set", in, out, opts...)
@@ -331,7 +570,7 @@ func (c *eventAnnotationConfigServiceClient) Set(ctx context.Context, in *EventA
 }
 
 func (c *eventAnnotationConfigServiceClient) SetSome(ctx context.Context, in *EventAnnotationConfigSetSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[2], "/arista.event.v1.EventAnnotationConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[4], "/arista.event.v1.EventAnnotationConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -371,8 +610,40 @@ func (c *eventAnnotationConfigServiceClient) Delete(ctx context.Context, in *Eve
 	return out, nil
 }
 
+func (c *eventAnnotationConfigServiceClient) DeleteSome(ctx context.Context, in *EventAnnotationConfigDeleteSomeRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[5], "/arista.event.v1.EventAnnotationConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventAnnotationConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventAnnotationConfigService_DeleteSomeClient interface {
+	Recv() (*EventAnnotationConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type eventAnnotationConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventAnnotationConfigServiceDeleteSomeClient) Recv() (*EventAnnotationConfigDeleteSomeResponse, error) {
+	m := new(EventAnnotationConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *eventAnnotationConfigServiceClient) DeleteAll(ctx context.Context, in *EventAnnotationConfigDeleteAllRequest, opts ...grpc.CallOption) (EventAnnotationConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[3], "/arista.event.v1.EventAnnotationConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventAnnotationConfigService_ServiceDesc.Streams[6], "/arista.event.v1.EventAnnotationConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -408,11 +679,15 @@ func (x *eventAnnotationConfigServiceDeleteAllClient) Recv() (*EventAnnotationCo
 // for forward compatibility
 type EventAnnotationConfigServiceServer interface {
 	GetOne(context.Context, *EventAnnotationConfigRequest) (*EventAnnotationConfigResponse, error)
+	GetSome(*EventAnnotationConfigSomeRequest, EventAnnotationConfigService_GetSomeServer) error
 	GetAll(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_GetAllServer) error
 	Subscribe(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_SubscribeServer) error
+	GetMeta(context.Context, *EventAnnotationConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_SubscribeMetaServer) error
 	Set(context.Context, *EventAnnotationConfigSetRequest) (*EventAnnotationConfigSetResponse, error)
 	SetSome(*EventAnnotationConfigSetSomeRequest, EventAnnotationConfigService_SetSomeServer) error
 	Delete(context.Context, *EventAnnotationConfigDeleteRequest) (*EventAnnotationConfigDeleteResponse, error)
+	DeleteSome(*EventAnnotationConfigDeleteSomeRequest, EventAnnotationConfigService_DeleteSomeServer) error
 	DeleteAll(*EventAnnotationConfigDeleteAllRequest, EventAnnotationConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedEventAnnotationConfigServiceServer()
 }
@@ -424,11 +699,20 @@ type UnimplementedEventAnnotationConfigServiceServer struct {
 func (UnimplementedEventAnnotationConfigServiceServer) GetOne(context.Context, *EventAnnotationConfigRequest) (*EventAnnotationConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedEventAnnotationConfigServiceServer) GetSome(*EventAnnotationConfigSomeRequest, EventAnnotationConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedEventAnnotationConfigServiceServer) GetAll(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedEventAnnotationConfigServiceServer) Subscribe(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedEventAnnotationConfigServiceServer) GetMeta(context.Context, *EventAnnotationConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedEventAnnotationConfigServiceServer) SubscribeMeta(*EventAnnotationConfigStreamRequest, EventAnnotationConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedEventAnnotationConfigServiceServer) Set(context.Context, *EventAnnotationConfigSetRequest) (*EventAnnotationConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -438,6 +722,9 @@ func (UnimplementedEventAnnotationConfigServiceServer) SetSome(*EventAnnotationC
 }
 func (UnimplementedEventAnnotationConfigServiceServer) Delete(context.Context, *EventAnnotationConfigDeleteRequest) (*EventAnnotationConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedEventAnnotationConfigServiceServer) DeleteSome(*EventAnnotationConfigDeleteSomeRequest, EventAnnotationConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedEventAnnotationConfigServiceServer) DeleteAll(*EventAnnotationConfigDeleteAllRequest, EventAnnotationConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -472,6 +759,27 @@ func _EventAnnotationConfigService_GetOne_Handler(srv interface{}, ctx context.C
 		return srv.(EventAnnotationConfigServiceServer).GetOne(ctx, req.(*EventAnnotationConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _EventAnnotationConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventAnnotationConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventAnnotationConfigServiceServer).GetSome(m, &eventAnnotationConfigServiceGetSomeServer{stream})
+}
+
+type EventAnnotationConfigService_GetSomeServer interface {
+	Send(*EventAnnotationConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type eventAnnotationConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventAnnotationConfigServiceGetSomeServer) Send(m *EventAnnotationConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _EventAnnotationConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -513,6 +821,45 @@ type eventAnnotationConfigServiceSubscribeServer struct {
 }
 
 func (x *eventAnnotationConfigServiceSubscribeServer) Send(m *EventAnnotationConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _EventAnnotationConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventAnnotationConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventAnnotationConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.EventAnnotationConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventAnnotationConfigServiceServer).GetMeta(ctx, req.(*EventAnnotationConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventAnnotationConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventAnnotationConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventAnnotationConfigServiceServer).SubscribeMeta(m, &eventAnnotationConfigServiceSubscribeMetaServer{stream})
+}
+
+type EventAnnotationConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type eventAnnotationConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventAnnotationConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -573,6 +920,27 @@ func _EventAnnotationConfigService_Delete_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventAnnotationConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventAnnotationConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventAnnotationConfigServiceServer).DeleteSome(m, &eventAnnotationConfigServiceDeleteSomeServer{stream})
+}
+
+type EventAnnotationConfigService_DeleteSomeServer interface {
+	Send(*EventAnnotationConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type eventAnnotationConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventAnnotationConfigServiceDeleteSomeServer) Send(m *EventAnnotationConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _EventAnnotationConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(EventAnnotationConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -606,6 +974,10 @@ var EventAnnotationConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EventAnnotationConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _EventAnnotationConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _EventAnnotationConfigService_Set_Handler,
 		},
@@ -615,6 +987,11 @@ var EventAnnotationConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _EventAnnotationConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _EventAnnotationConfigService_GetAll_Handler,
@@ -626,13 +1003,660 @@ var EventAnnotationConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _EventAnnotationConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _EventAnnotationConfigService_SetSome_Handler,
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "DeleteSome",
+			Handler:       _EventAnnotationConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "DeleteAll",
 			Handler:       _EventAnnotationConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/event.v1/services.gen.proto",
+}
+
+// UserEventCreationConfigServiceClient is the client API for UserEventCreationConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type UserEventCreationConfigServiceClient interface {
+	GetOne(ctx context.Context, in *UserEventCreationConfigRequest, opts ...grpc.CallOption) (*UserEventCreationConfigResponse, error)
+	GetSome(ctx context.Context, in *UserEventCreationConfigSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SubscribeMetaClient, error)
+	Set(ctx context.Context, in *UserEventCreationConfigSetRequest, opts ...grpc.CallOption) (*UserEventCreationConfigSetResponse, error)
+	SetSome(ctx context.Context, in *UserEventCreationConfigSetSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *UserEventCreationConfigDeleteRequest, opts ...grpc.CallOption) (*UserEventCreationConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *UserEventCreationConfigDeleteSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_DeleteSomeClient, error)
+	DeleteAll(ctx context.Context, in *UserEventCreationConfigDeleteAllRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_DeleteAllClient, error)
+}
+
+type userEventCreationConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewUserEventCreationConfigServiceClient(cc grpc.ClientConnInterface) UserEventCreationConfigServiceClient {
+	return &userEventCreationConfigServiceClient{cc}
+}
+
+func (c *userEventCreationConfigServiceClient) GetOne(ctx context.Context, in *UserEventCreationConfigRequest, opts ...grpc.CallOption) (*UserEventCreationConfigResponse, error) {
+	out := new(UserEventCreationConfigResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.UserEventCreationConfigService/GetOne", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userEventCreationConfigServiceClient) GetSome(ctx context.Context, in *UserEventCreationConfigSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[0], "/arista.event.v1.UserEventCreationConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_GetSomeClient interface {
+	Recv() (*UserEventCreationConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceGetSomeClient) Recv() (*UserEventCreationConfigSomeResponse, error) {
+	m := new(UserEventCreationConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) GetAll(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[1], "/arista.event.v1.UserEventCreationConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_GetAllClient interface {
+	Recv() (*UserEventCreationConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceGetAllClient) Recv() (*UserEventCreationConfigStreamResponse, error) {
+	m := new(UserEventCreationConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) Subscribe(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[2], "/arista.event.v1.UserEventCreationConfigService/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_SubscribeClient interface {
+	Recv() (*UserEventCreationConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceSubscribeClient) Recv() (*UserEventCreationConfigStreamResponse, error) {
+	m := new(UserEventCreationConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) GetMeta(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.UserEventCreationConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userEventCreationConfigServiceClient) SubscribeMeta(ctx context.Context, in *UserEventCreationConfigStreamRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[3], "/arista.event.v1.UserEventCreationConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) Set(ctx context.Context, in *UserEventCreationConfigSetRequest, opts ...grpc.CallOption) (*UserEventCreationConfigSetResponse, error) {
+	out := new(UserEventCreationConfigSetResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.UserEventCreationConfigService/Set", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userEventCreationConfigServiceClient) SetSome(ctx context.Context, in *UserEventCreationConfigSetSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[4], "/arista.event.v1.UserEventCreationConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_SetSomeClient interface {
+	Recv() (*UserEventCreationConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceSetSomeClient) Recv() (*UserEventCreationConfigSetSomeResponse, error) {
+	m := new(UserEventCreationConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) Delete(ctx context.Context, in *UserEventCreationConfigDeleteRequest, opts ...grpc.CallOption) (*UserEventCreationConfigDeleteResponse, error) {
+	out := new(UserEventCreationConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, "/arista.event.v1.UserEventCreationConfigService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userEventCreationConfigServiceClient) DeleteSome(ctx context.Context, in *UserEventCreationConfigDeleteSomeRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[5], "/arista.event.v1.UserEventCreationConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_DeleteSomeClient interface {
+	Recv() (*UserEventCreationConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceDeleteSomeClient) Recv() (*UserEventCreationConfigDeleteSomeResponse, error) {
+	m := new(UserEventCreationConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *userEventCreationConfigServiceClient) DeleteAll(ctx context.Context, in *UserEventCreationConfigDeleteAllRequest, opts ...grpc.CallOption) (UserEventCreationConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserEventCreationConfigService_ServiceDesc.Streams[6], "/arista.event.v1.UserEventCreationConfigService/DeleteAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userEventCreationConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserEventCreationConfigService_DeleteAllClient interface {
+	Recv() (*UserEventCreationConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type userEventCreationConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *userEventCreationConfigServiceDeleteAllClient) Recv() (*UserEventCreationConfigDeleteAllResponse, error) {
+	m := new(UserEventCreationConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// UserEventCreationConfigServiceServer is the server API for UserEventCreationConfigService service.
+// All implementations must embed UnimplementedUserEventCreationConfigServiceServer
+// for forward compatibility
+type UserEventCreationConfigServiceServer interface {
+	GetOne(context.Context, *UserEventCreationConfigRequest) (*UserEventCreationConfigResponse, error)
+	GetSome(*UserEventCreationConfigSomeRequest, UserEventCreationConfigService_GetSomeServer) error
+	GetAll(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_GetAllServer) error
+	Subscribe(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_SubscribeServer) error
+	GetMeta(context.Context, *UserEventCreationConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_SubscribeMetaServer) error
+	Set(context.Context, *UserEventCreationConfigSetRequest) (*UserEventCreationConfigSetResponse, error)
+	SetSome(*UserEventCreationConfigSetSomeRequest, UserEventCreationConfigService_SetSomeServer) error
+	Delete(context.Context, *UserEventCreationConfigDeleteRequest) (*UserEventCreationConfigDeleteResponse, error)
+	DeleteSome(*UserEventCreationConfigDeleteSomeRequest, UserEventCreationConfigService_DeleteSomeServer) error
+	DeleteAll(*UserEventCreationConfigDeleteAllRequest, UserEventCreationConfigService_DeleteAllServer) error
+	mustEmbedUnimplementedUserEventCreationConfigServiceServer()
+}
+
+// UnimplementedUserEventCreationConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedUserEventCreationConfigServiceServer struct {
+}
+
+func (UnimplementedUserEventCreationConfigServiceServer) GetOne(context.Context, *UserEventCreationConfigRequest) (*UserEventCreationConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) GetSome(*UserEventCreationConfigSomeRequest, UserEventCreationConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) GetAll(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) Subscribe(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) GetMeta(context.Context, *UserEventCreationConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) SubscribeMeta(*UserEventCreationConfigStreamRequest, UserEventCreationConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) Set(context.Context, *UserEventCreationConfigSetRequest) (*UserEventCreationConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) SetSome(*UserEventCreationConfigSetSomeRequest, UserEventCreationConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) Delete(context.Context, *UserEventCreationConfigDeleteRequest) (*UserEventCreationConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) DeleteSome(*UserEventCreationConfigDeleteSomeRequest, UserEventCreationConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) DeleteAll(*UserEventCreationConfigDeleteAllRequest, UserEventCreationConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedUserEventCreationConfigServiceServer) mustEmbedUnimplementedUserEventCreationConfigServiceServer() {
+}
+
+// UnsafeUserEventCreationConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserEventCreationConfigServiceServer will
+// result in compilation errors.
+type UnsafeUserEventCreationConfigServiceServer interface {
+	mustEmbedUnimplementedUserEventCreationConfigServiceServer()
+}
+
+func RegisterUserEventCreationConfigServiceServer(s grpc.ServiceRegistrar, srv UserEventCreationConfigServiceServer) {
+	s.RegisterService(&UserEventCreationConfigService_ServiceDesc, srv)
+}
+
+func _UserEventCreationConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserEventCreationConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserEventCreationConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.UserEventCreationConfigService/GetOne",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserEventCreationConfigServiceServer).GetOne(ctx, req.(*UserEventCreationConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserEventCreationConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).GetSome(m, &userEventCreationConfigServiceGetSomeServer{stream})
+}
+
+type UserEventCreationConfigService_GetSomeServer interface {
+	Send(*UserEventCreationConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceGetSomeServer) Send(m *UserEventCreationConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).GetAll(m, &userEventCreationConfigServiceGetAllServer{stream})
+}
+
+type UserEventCreationConfigService_GetAllServer interface {
+	Send(*UserEventCreationConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceGetAllServer) Send(m *UserEventCreationConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).Subscribe(m, &userEventCreationConfigServiceSubscribeServer{stream})
+}
+
+type UserEventCreationConfigService_SubscribeServer interface {
+	Send(*UserEventCreationConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceSubscribeServer) Send(m *UserEventCreationConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserEventCreationConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserEventCreationConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.UserEventCreationConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserEventCreationConfigServiceServer).GetMeta(ctx, req.(*UserEventCreationConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserEventCreationConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).SubscribeMeta(m, &userEventCreationConfigServiceSubscribeMetaServer{stream})
+}
+
+type UserEventCreationConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserEventCreationConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserEventCreationConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.UserEventCreationConfigService/Set",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserEventCreationConfigServiceServer).Set(ctx, req.(*UserEventCreationConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserEventCreationConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).SetSome(m, &userEventCreationConfigServiceSetSomeServer{stream})
+}
+
+type UserEventCreationConfigService_SetSomeServer interface {
+	Send(*UserEventCreationConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceSetSomeServer) Send(m *UserEventCreationConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserEventCreationConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserEventCreationConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.event.v1.UserEventCreationConfigService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserEventCreationConfigServiceServer).Delete(ctx, req.(*UserEventCreationConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserEventCreationConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).DeleteSome(m, &userEventCreationConfigServiceDeleteSomeServer{stream})
+}
+
+type UserEventCreationConfigService_DeleteSomeServer interface {
+	Send(*UserEventCreationConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceDeleteSomeServer) Send(m *UserEventCreationConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _UserEventCreationConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(UserEventCreationConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserEventCreationConfigServiceServer).DeleteAll(m, &userEventCreationConfigServiceDeleteAllServer{stream})
+}
+
+type UserEventCreationConfigService_DeleteAllServer interface {
+	Send(*UserEventCreationConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type userEventCreationConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *userEventCreationConfigServiceDeleteAllServer) Send(m *UserEventCreationConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// UserEventCreationConfigService_ServiceDesc is the grpc.ServiceDesc for UserEventCreationConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var UserEventCreationConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.event.v1.UserEventCreationConfigService",
+	HandlerType: (*UserEventCreationConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _UserEventCreationConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _UserEventCreationConfigService_GetMeta_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _UserEventCreationConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _UserEventCreationConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _UserEventCreationConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _UserEventCreationConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _UserEventCreationConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _UserEventCreationConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _UserEventCreationConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _UserEventCreationConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _UserEventCreationConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
 	},
