@@ -121,6 +121,31 @@ func (c *crashProvider) Run(ctx context.Context) error {
 	panic("Crash!")
 }
 
+var expectedSensorMetadata = provider.SensorMetadata{
+	SensorIP:       "1.1.1.1",
+	SensorHostname: "abc.com",
+}
+
+type sensorMetadataProvider struct {
+	metadata *provider.SensorMetadata
+}
+
+func (mp *sensorMetadataProvider) Init(metadata *provider.SensorMetadata) {
+	mp.metadata = metadata
+}
+
+func (mp *sensorMetadataProvider) Run(ctx context.Context) error {
+	if mp.metadata == nil {
+		return fmt.Errorf("provider's sensor metdata is nil which means " +
+			"Init method of sensorMetadataProvider was not called")
+	}
+	if *mp.metadata != expectedSensorMetadata {
+		return fmt.Errorf("provider's sensor metdata %+v does not match"+
+			" with expected sensor metadata %+v", mp.metadata, expectedSensorMetadata)
+	}
+	return nil
+}
+
 var _ provider.GRPCProvider = (*crashProvider)(nil)
 
 type mockDevice struct {
@@ -157,6 +182,14 @@ func (m *mockDevice) Providers() ([]provider.Provider, error) {
 			return []provider.Provider{&crashProvider{err: badConfigError{errors.New(v)}}}, nil
 		default:
 			return []provider.Provider{&crashProvider{err: errors.New(v)}}, nil
+		}
+	}
+	v, ok = m.config["sensorMetadata"]
+	if ok {
+		switch v {
+		case "": // not set
+		case "sensorMetadata":
+			return []provider.Provider{&sensorMetadataProvider{}}, nil
 		}
 	}
 	return nil, nil
@@ -232,6 +265,10 @@ var mockDeviceOptions = map[string]Option{
 	},
 	"log-level": {
 		Description: "log level for mock datasource",
+		Required:    false,
+	},
+	"sensorMetadata": {
+		Description: "Providers() method return only sensorMetadataProvider for test purposes",
 		Required:    false,
 	},
 }
@@ -3532,5 +3569,73 @@ func TestMetrics(t *testing.T) {
 				t.Error(err)
 			}
 		})
+	}
+}
+
+func TestSensorMetadataProvider(t *testing.T) {
+	const deviceName = "dev1"
+	const deviceType = "mock"
+
+	Register(deviceType, newMockDevice, mockDeviceOptions)
+
+	// setup sensor object
+	gnmic := &internal.MockClient{
+		SubscribeStream: make(chan *internal.MockClientStream),
+		SetReq:          make(chan *gnmi.SetRequest),
+		SetResp:         make(chan *gnmi.SetResponse),
+	}
+	defer close(gnmic.SubscribeStream)
+	sensor := NewSensor("abc", 100.0,
+		WithSensorGNMIClient(gnmic),
+		WithSensorHeartbeatInterval(50*time.Millisecond),
+		WithSensorFailureRetryBackoffBase(1*time.Second),
+		WithSensorGRPCConn(nil),
+		WithSensorHostname("abc.com"),
+		WithSensorIP("1.1.1.1"),
+		WithSensorClientFactory(func(gc gnmi.GNMIClient, info *Info) cvclient.CVClient {
+			return newMockCVClient(gnmic, info, make(chan string, 100))
+		}),
+	)
+
+	// setup datasource object
+	sensor.datasourceConfig[deviceName] = &datasourceConfig{
+		name:    deviceName,
+		typ:     deviceType,
+		enabled: true,
+		option: map[string]string{
+			"id": "123",
+			// making sure the Providers() method return only sensorMetadataProvider
+			"sensorMetadata": "sensorMetadata",
+		},
+	}
+
+	// setup device object
+	cfg := sensor.datasourceConfig[deviceName]
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	ds := sensor.getDatasource(ctx, deviceName)
+	ds.config.option = cfg.option
+	info, err := NewDeviceInfo(ctx, &Config{
+		Device:  deviceType,
+		Options: ds.config.option,
+	}, ds.monitor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ds.info = info
+	providers, _ := ds.info.Device.Providers()
+	if len(providers) != 1 {
+		t.Fatalf("One provider should have been present but found %v\n", len(providers))
+	}
+	if _, ok := providers[0].(*sensorMetadataProvider); !ok {
+		t.Fatal("provider should have been of type sensorMetadataProvider")
+	}
+
+	// call runProviders
+	// this is expected to call Init method of provider as the provider implements
+	// SensorMetadataProvider interface; and set the metadata variable of the provider
+	err = ds.runProviders(ctx)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

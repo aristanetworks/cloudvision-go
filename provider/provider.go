@@ -8,6 +8,12 @@ import (
 	"context"
 )
 
+// SensorMetadata structure holds sensor metadata
+type SensorMetadata struct {
+	SensorIP       string
+	SensorHostname string
+}
+
 // A Logger logs and records messages
 type Logger interface {
 	Infof(format string, args ...interface{})
@@ -39,4 +45,10 @@ type Provider interface {
 	// is cancelled or an error is encountered,
 	// and is thus usually invoked by doing `go provider.Run()'.
 	Run(ctx context.Context) error
+}
+
+// SensorMetadataProvider gives way for provider to initialize itself with sensor metadata.
+type SensorMetadataProvider interface {
+	// Init provider with metadata about sensor environment.
+	Init(sensorMD *SensorMetadata)
 }

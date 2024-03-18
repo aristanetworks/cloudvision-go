@@ -144,13 +144,15 @@ func mapEquals(lh map[string]string, rh map[string]string) bool {
 }
 
 type datasource struct {
-	log           *logrus.Entry
-	sensorID      string
-	gnmic         gnmi.GNMIClient
-	apiaddr       string
-	clientFactory func(gnmi.GNMIClient, *Info) cvclient.CVClient
-	grpcConnector GRPCConnector // Connector to get gRPC connection
-	standalone    bool
+	log            *logrus.Entry
+	sensorID       string
+	sensorIP       string
+	sensorHostname string
+	gnmic          gnmi.GNMIClient
+	apiaddr        string
+	clientFactory  func(gnmi.GNMIClient, *Info) cvclient.CVClient
+	grpcConnector  GRPCConnector // Connector to get gRPC connection
+	standalone     bool
 
 	credResolver CredentialResolver
 
@@ -433,6 +435,13 @@ func (d *datasource) runProviders(ctx context.Context) error {
 	for _, p := range providers {
 		p := p // scope p for goroutines that use it
 		isValidProvider := false
+		if sensorMetadataProvider, ok := p.(provider.SensorMetadataProvider); ok {
+			isValidProvider = true
+			sensorMetadataProvider.Init(&provider.SensorMetadata{
+				SensorIP:       d.sensorIP,
+				SensorHostname: d.sensorHostname,
+			})
+		}
 		if gnmiprovider, ok := p.(provider.GNMIProvider); ok {
 			isValidProvider = true
 			gnmiprovider.InitGNMI(d.cvClient.ForProvider(gnmiprovider))
@@ -1079,14 +1088,16 @@ func (s *Sensor) getDatasource(ctx context.Context, name string) *datasource {
 	prefix.Target = "cv"
 
 	runtime := &datasource{
-		log:           s.log.WithField("datasource", name),
-		sensorID:      s.id,
-		clientFactory: s.clientFactory,
-		gnmic:         s.gnmic,
-		apiaddr:       s.apiaddr,
-		grpcConnector: s.grpcConnector,
-		standalone:    s.standalone,
-		credResolver:  s.credResolver,
+		log:            s.log.WithField("datasource", name),
+		sensorID:       s.id,
+		sensorIP:       s.ip,
+		sensorHostname: s.hostname,
+		clientFactory:  s.clientFactory,
+		gnmic:          s.gnmic,
+		apiaddr:        s.apiaddr,
+		grpcConnector:  s.grpcConnector,
+		standalone:     s.standalone,
+		credResolver:   s.credResolver,
 		config: &datasourceConfig{
 			name:     name,
 			loglevel: logrus.InfoLevel,
