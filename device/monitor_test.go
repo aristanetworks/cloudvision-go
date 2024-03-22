@@ -191,6 +191,26 @@ func TestDatasourceMonitorMetrics(t *testing.T) {
 		t.Fatal("Incorrect metric data received")
 	}
 
+	// Test case to verify metric value update if it was not initialized.
+	// It checks if the value of the metric in the metric map is updated accordingly.
+	err = dm.CreateMetric("testNew", "test", "testNewDescription")
+	if err != nil {
+		t.Fatal("Failed to create metric")
+	}
+	err = dm.IncMetricInt("testNew", 4)
+	metricObj, ok = dm.metricMap["testNew"]
+	if err != nil || !ok || metricObj.value != int64(4) {
+		t.Fatal("Incorrect metric data received")
+	}
+
+	// Test case to verify successful incrementing of an existing metric with an integer value.
+	// It checks if the value of the metric in the metric map is updated accordingly.
+	err = dm.IncMetricInt("testNew", 4)
+	metricObj, ok = dm.metricMap["testNew"]
+	if err != nil || !ok || metricObj.value != int64(8) {
+		t.Fatal("Incorrect metric data received")
+	}
+
 	// Test case to verify successful updating of an existing metric with a string value.
 	// It attempts to update the value of an existing metric with a
 	// string value, which should fail. The test verifies that the correct error is returned

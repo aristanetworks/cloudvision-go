@@ -27,6 +27,7 @@ type MetricCollector interface {
 	SetMetricString(name string, value string) error
 	SetMetricFloat(name string, value float64) error
 	SetMetricInt(name string, value int64) error
+	IncMetricInt(name string, value int64) error
 	CreateMetric(name string, valueUnit string, description string) error
 }
 

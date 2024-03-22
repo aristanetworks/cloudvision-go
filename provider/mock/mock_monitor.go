@@ -49,6 +49,10 @@ func (m *TestMetricCollector) SetMetricFloat(name string, value float64) error {
 // It returns nil indicating success or an error if the operation fails.
 func (m *TestMetricCollector) SetMetricInt(name string, value int64) error { return nil }
 
+// IncMetricInt increases the metric value by the specified int64 amount.
+// It returns nil indicating success or an error if the operation fails.
+func (m *TestMetricCollector) IncMetricInt(name string, value int64) error { return nil }
+
 // CreateMetric creates a new metric with the specified name, unit, and description.
 func (m *TestMetricCollector) CreateMetric(name string, valueUnit string,
 	description string) error {

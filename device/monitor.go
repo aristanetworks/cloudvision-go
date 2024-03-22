@@ -81,21 +81,28 @@ type metricCollector struct {
 // string value. It delegates the storage of the metric value to the storeMetric method.
 // Returns an error if the storage operation fails.
 func (m *metricCollector) SetMetricString(name string, value string) error {
-	return m.storeMetric(name, value)
+	return m.storeMetric(name, value, false)
 }
 
 // SetMetricFloat sets the value of the metric with the specified name to the provided
 // float64 value. It delegates the storage of the metric value to the storeMetric method.
 // Returns an error if the storage operation fails.
 func (m *metricCollector) SetMetricFloat(name string, value float64) error {
-	return m.storeMetric(name, value)
+	return m.storeMetric(name, value, false)
 }
 
 // SetMetricInt sets the value of the metric with the specified name to the provided int64 value.
 // It delegates the storage of the metric value to the storeMetric method.
 // Returns an error if the storage operation fails.
 func (m *metricCollector) SetMetricInt(name string, value int64) error {
-	return m.storeMetric(name, value)
+	return m.storeMetric(name, value, false)
+}
+
+// IncMetricInt increases the metric value by the specified int64 amount.
+// It delegates the storage of the metric value to the storeMetric method.
+// Returns an error if the storage operation fails.
+func (m *metricCollector) IncMetricInt(name string, value int64) error {
+	return m.storeMetric(name, value, true)
 }
 
 // CreateMetric creates a new metric with the specified name and unit in the datasource.
@@ -121,10 +128,11 @@ func (m *metricCollector) CreateMetric(name string, valueUnit string, descriptio
 // metric map. It takes the metric name and value as parameters, where the value can be of any
 // type (string, float64, int64). The method first checks if the metric exists in the metric map
 // and if it exists then verifies that current metric value type and received metric value type
-// should match else return error.
+// should match else return error. If should increment flag is true then it will increment value
+// of the existing metric by the metric value provided.
 // If the metric does not exist, it returns an error indicating that the metric is not found.
 // Returns nil if the metric value is successfully updated.
-func (m *metricCollector) storeMetric(name string, value any) error {
+func (m *metricCollector) storeMetric(name string, value any, shouldIncrement bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	metricInfoValue, ok := m.metricMap[name]
@@ -132,7 +140,18 @@ func (m *metricCollector) storeMetric(name string, value any) error {
 	if ok {
 		if metricInfoValue.value == nil ||
 			reflect.TypeOf(metricInfoValue.value) == reflect.TypeOf(value) {
-			if metricInfoValue.value != value {
+			if shouldIncrement && metricInfoValue.value != nil {
+				switch val := value.(type) {
+				case int64:
+					metricInfoValue.value = metricInfoValue.value.(int64) + val
+				case float64:
+					metricInfoValue.value = metricInfoValue.value.(float64) + val
+				default:
+					return fmt.Errorf("Error: Cannot increment string metric:%s", name)
+				}
+				metricInfoValue.isChanged = true
+				m.metricMap[name] = metricInfoValue
+			} else if metricInfoValue.value != value {
 				metricInfoValue.value = value
 				metricInfoValue.isChanged = true
 				m.metricMap[name] = metricInfoValue

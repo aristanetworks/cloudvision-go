@@ -49,6 +49,10 @@ func (m *BaseMetricCollector) SetMetricFloat(name string, value float64) error {
 // This method returns nil as there is no default implementation.
 func (m *BaseMetricCollector) SetMetricInt(name string, value int64) error { return nil }
 
+// IncMetricInt increases the metric value by the specified int64 amount.
+// This method returns nil as there is no default implementation.
+func (m *BaseMetricCollector) IncMetricInt(name string, value int64) error { return nil }
+
 // CreateMetric creates a new metric with the specified name, unit, and description.
 func (m *BaseMetricCollector) CreateMetric(name string, valueUnit string,
 	description string) error {
