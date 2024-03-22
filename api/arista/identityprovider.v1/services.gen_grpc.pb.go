@@ -19,10 +19,15 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OAuthConfigServiceClient interface {
 	GetOne(ctx context.Context, in *OAuthConfigRequest, opts ...grpc.CallOption) (*OAuthConfigResponse, error)
+	GetSome(ctx context.Context, in *OAuthConfigSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *OAuthConfigSetRequest, opts ...grpc.CallOption) (*OAuthConfigSetResponse, error)
+	SetSome(ctx context.Context, in *OAuthConfigSetSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *OAuthConfigDeleteRequest, opts ...grpc.CallOption) (*OAuthConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *OAuthConfigDeleteSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *OAuthConfigDeleteAllRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteAllClient, error)
 }
 
@@ -43,8 +48,40 @@ func (c *oAuthConfigServiceClient) GetOne(ctx context.Context, in *OAuthConfigRe
 	return out, nil
 }
 
+func (c *oAuthConfigServiceClient) GetSome(ctx context.Context, in *OAuthConfigSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[0], "/arista.identityprovider.v1.OAuthConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_GetSomeClient interface {
+	Recv() (*OAuthConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceGetSomeClient) Recv() (*OAuthConfigSomeResponse, error) {
+	m := new(OAuthConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *oAuthConfigServiceClient) GetAll(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[0], "/arista.identityprovider.v1.OAuthConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[1], "/arista.identityprovider.v1.OAuthConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +113,7 @@ func (x *oAuthConfigServiceGetAllClient) Recv() (*OAuthConfigStreamResponse, err
 }
 
 func (c *oAuthConfigServiceClient) Subscribe(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[1], "/arista.identityprovider.v1.OAuthConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[2], "/arista.identityprovider.v1.OAuthConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +144,47 @@ func (x *oAuthConfigServiceSubscribeClient) Recv() (*OAuthConfigStreamResponse, 
 	return m, nil
 }
 
+func (c *oAuthConfigServiceClient) GetMeta(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.identityprovider.v1.OAuthConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *oAuthConfigServiceClient) SubscribeMeta(ctx context.Context, in *OAuthConfigStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[3], "/arista.identityprovider.v1.OAuthConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *oAuthConfigServiceClient) Set(ctx context.Context, in *OAuthConfigSetRequest, opts ...grpc.CallOption) (*OAuthConfigSetResponse, error) {
 	out := new(OAuthConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.identityprovider.v1.OAuthConfigService/Set", in, out, opts...)
@@ -114,6 +192,38 @@ func (c *oAuthConfigServiceClient) Set(ctx context.Context, in *OAuthConfigSetRe
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *oAuthConfigServiceClient) SetSome(ctx context.Context, in *OAuthConfigSetSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[4], "/arista.identityprovider.v1.OAuthConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_SetSomeClient interface {
+	Recv() (*OAuthConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceSetSomeClient) Recv() (*OAuthConfigSetSomeResponse, error) {
+	m := new(OAuthConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *oAuthConfigServiceClient) Delete(ctx context.Context, in *OAuthConfigDeleteRequest, opts ...grpc.CallOption) (*OAuthConfigDeleteResponse, error) {
@@ -125,8 +235,40 @@ func (c *oAuthConfigServiceClient) Delete(ctx context.Context, in *OAuthConfigDe
 	return out, nil
 }
 
+func (c *oAuthConfigServiceClient) DeleteSome(ctx context.Context, in *OAuthConfigDeleteSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[5], "/arista.identityprovider.v1.OAuthConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_DeleteSomeClient interface {
+	Recv() (*OAuthConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceDeleteSomeClient) Recv() (*OAuthConfigDeleteSomeResponse, error) {
+	m := new(OAuthConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *oAuthConfigServiceClient) DeleteAll(ctx context.Context, in *OAuthConfigDeleteAllRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[2], "/arista.identityprovider.v1.OAuthConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[6], "/arista.identityprovider.v1.OAuthConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,10 +304,15 @@ func (x *oAuthConfigServiceDeleteAllClient) Recv() (*OAuthConfigDeleteAllRespons
 // for forward compatibility
 type OAuthConfigServiceServer interface {
 	GetOne(context.Context, *OAuthConfigRequest) (*OAuthConfigResponse, error)
+	GetSome(*OAuthConfigSomeRequest, OAuthConfigService_GetSomeServer) error
 	GetAll(*OAuthConfigStreamRequest, OAuthConfigService_GetAllServer) error
 	Subscribe(*OAuthConfigStreamRequest, OAuthConfigService_SubscribeServer) error
+	GetMeta(context.Context, *OAuthConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*OAuthConfigStreamRequest, OAuthConfigService_SubscribeMetaServer) error
 	Set(context.Context, *OAuthConfigSetRequest) (*OAuthConfigSetResponse, error)
+	SetSome(*OAuthConfigSetSomeRequest, OAuthConfigService_SetSomeServer) error
 	Delete(context.Context, *OAuthConfigDeleteRequest) (*OAuthConfigDeleteResponse, error)
+	DeleteSome(*OAuthConfigDeleteSomeRequest, OAuthConfigService_DeleteSomeServer) error
 	DeleteAll(*OAuthConfigDeleteAllRequest, OAuthConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedOAuthConfigServiceServer()
 }
@@ -177,17 +324,32 @@ type UnimplementedOAuthConfigServiceServer struct {
 func (UnimplementedOAuthConfigServiceServer) GetOne(context.Context, *OAuthConfigRequest) (*OAuthConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedOAuthConfigServiceServer) GetSome(*OAuthConfigSomeRequest, OAuthConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedOAuthConfigServiceServer) GetAll(*OAuthConfigStreamRequest, OAuthConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedOAuthConfigServiceServer) Subscribe(*OAuthConfigStreamRequest, OAuthConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedOAuthConfigServiceServer) GetMeta(context.Context, *OAuthConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedOAuthConfigServiceServer) SubscribeMeta(*OAuthConfigStreamRequest, OAuthConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedOAuthConfigServiceServer) Set(context.Context, *OAuthConfigSetRequest) (*OAuthConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedOAuthConfigServiceServer) SetSome(*OAuthConfigSetSomeRequest, OAuthConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedOAuthConfigServiceServer) Delete(context.Context, *OAuthConfigDeleteRequest) (*OAuthConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedOAuthConfigServiceServer) DeleteSome(*OAuthConfigDeleteSomeRequest, OAuthConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedOAuthConfigServiceServer) DeleteAll(*OAuthConfigDeleteAllRequest, OAuthConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -221,6 +383,27 @@ func _OAuthConfigService_GetOne_Handler(srv interface{}, ctx context.Context, de
 		return srv.(OAuthConfigServiceServer).GetOne(ctx, req.(*OAuthConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _OAuthConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).GetSome(m, &oAuthConfigServiceGetSomeServer{stream})
+}
+
+type OAuthConfigService_GetSomeServer interface {
+	Send(*OAuthConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceGetSomeServer) Send(m *OAuthConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _OAuthConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -265,6 +448,45 @@ func (x *oAuthConfigServiceSubscribeServer) Send(m *OAuthConfigStreamResponse) e
 	return x.ServerStream.SendMsg(m)
 }
 
+func _OAuthConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OAuthConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OAuthConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.identityprovider.v1.OAuthConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OAuthConfigServiceServer).GetMeta(ctx, req.(*OAuthConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OAuthConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).SubscribeMeta(m, &oAuthConfigServiceSubscribeMetaServer{stream})
+}
+
+type OAuthConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _OAuthConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OAuthConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -283,6 +505,27 @@ func _OAuthConfigService_Set_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OAuthConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).SetSome(m, &oAuthConfigServiceSetSomeServer{stream})
+}
+
+type OAuthConfigService_SetSomeServer interface {
+	Send(*OAuthConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceSetSomeServer) Send(m *OAuthConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _OAuthConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OAuthConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -299,6 +542,27 @@ func _OAuthConfigService_Delete_Handler(srv interface{}, ctx context.Context, de
 		return srv.(OAuthConfigServiceServer).Delete(ctx, req.(*OAuthConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _OAuthConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).DeleteSome(m, &oAuthConfigServiceDeleteSomeServer{stream})
+}
+
+type OAuthConfigService_DeleteSomeServer interface {
+	Send(*OAuthConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceDeleteSomeServer) Send(m *OAuthConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _OAuthConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -334,6 +598,10 @@ var OAuthConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OAuthConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _OAuthConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _OAuthConfigService_Set_Handler,
 		},
@@ -344,6 +612,11 @@ var OAuthConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetSome",
+			Handler:       _OAuthConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "GetAll",
 			Handler:       _OAuthConfigService_GetAll_Handler,
 			ServerStreams: true,
@@ -351,6 +624,21 @@ var OAuthConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _OAuthConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _OAuthConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _OAuthConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _OAuthConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -367,10 +655,15 @@ var OAuthConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SAMLConfigServiceClient interface {
 	GetOne(ctx context.Context, in *SAMLConfigRequest, opts ...grpc.CallOption) (*SAMLConfigResponse, error)
+	GetSome(ctx context.Context, in *SAMLConfigSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *SAMLConfigSetRequest, opts ...grpc.CallOption) (*SAMLConfigSetResponse, error)
+	SetSome(ctx context.Context, in *SAMLConfigSetSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *SAMLConfigDeleteRequest, opts ...grpc.CallOption) (*SAMLConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *SAMLConfigDeleteSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *SAMLConfigDeleteAllRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteAllClient, error)
 }
 
@@ -391,8 +684,40 @@ func (c *sAMLConfigServiceClient) GetOne(ctx context.Context, in *SAMLConfigRequ
 	return out, nil
 }
 
+func (c *sAMLConfigServiceClient) GetSome(ctx context.Context, in *SAMLConfigSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[0], "/arista.identityprovider.v1.SAMLConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_GetSomeClient interface {
+	Recv() (*SAMLConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceGetSomeClient) Recv() (*SAMLConfigSomeResponse, error) {
+	m := new(SAMLConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *sAMLConfigServiceClient) GetAll(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[0], "/arista.identityprovider.v1.SAMLConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[1], "/arista.identityprovider.v1.SAMLConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +749,7 @@ func (x *sAMLConfigServiceGetAllClient) Recv() (*SAMLConfigStreamResponse, error
 }
 
 func (c *sAMLConfigServiceClient) Subscribe(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[1], "/arista.identityprovider.v1.SAMLConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[2], "/arista.identityprovider.v1.SAMLConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -455,6 +780,47 @@ func (x *sAMLConfigServiceSubscribeClient) Recv() (*SAMLConfigStreamResponse, er
 	return m, nil
 }
 
+func (c *sAMLConfigServiceClient) GetMeta(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.identityprovider.v1.SAMLConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sAMLConfigServiceClient) SubscribeMeta(ctx context.Context, in *SAMLConfigStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[3], "/arista.identityprovider.v1.SAMLConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *sAMLConfigServiceClient) Set(ctx context.Context, in *SAMLConfigSetRequest, opts ...grpc.CallOption) (*SAMLConfigSetResponse, error) {
 	out := new(SAMLConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.identityprovider.v1.SAMLConfigService/Set", in, out, opts...)
@@ -462,6 +828,38 @@ func (c *sAMLConfigServiceClient) Set(ctx context.Context, in *SAMLConfigSetRequ
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *sAMLConfigServiceClient) SetSome(ctx context.Context, in *SAMLConfigSetSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[4], "/arista.identityprovider.v1.SAMLConfigService/SetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_SetSomeClient interface {
+	Recv() (*SAMLConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceSetSomeClient) Recv() (*SAMLConfigSetSomeResponse, error) {
+	m := new(SAMLConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *sAMLConfigServiceClient) Delete(ctx context.Context, in *SAMLConfigDeleteRequest, opts ...grpc.CallOption) (*SAMLConfigDeleteResponse, error) {
@@ -473,8 +871,40 @@ func (c *sAMLConfigServiceClient) Delete(ctx context.Context, in *SAMLConfigDele
 	return out, nil
 }
 
+func (c *sAMLConfigServiceClient) DeleteSome(ctx context.Context, in *SAMLConfigDeleteSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[5], "/arista.identityprovider.v1.SAMLConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_DeleteSomeClient interface {
+	Recv() (*SAMLConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceDeleteSomeClient) Recv() (*SAMLConfigDeleteSomeResponse, error) {
+	m := new(SAMLConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *sAMLConfigServiceClient) DeleteAll(ctx context.Context, in *SAMLConfigDeleteAllRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[2], "/arista.identityprovider.v1.SAMLConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[6], "/arista.identityprovider.v1.SAMLConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -510,10 +940,15 @@ func (x *sAMLConfigServiceDeleteAllClient) Recv() (*SAMLConfigDeleteAllResponse,
 // for forward compatibility
 type SAMLConfigServiceServer interface {
 	GetOne(context.Context, *SAMLConfigRequest) (*SAMLConfigResponse, error)
+	GetSome(*SAMLConfigSomeRequest, SAMLConfigService_GetSomeServer) error
 	GetAll(*SAMLConfigStreamRequest, SAMLConfigService_GetAllServer) error
 	Subscribe(*SAMLConfigStreamRequest, SAMLConfigService_SubscribeServer) error
+	GetMeta(context.Context, *SAMLConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SAMLConfigStreamRequest, SAMLConfigService_SubscribeMetaServer) error
 	Set(context.Context, *SAMLConfigSetRequest) (*SAMLConfigSetResponse, error)
+	SetSome(*SAMLConfigSetSomeRequest, SAMLConfigService_SetSomeServer) error
 	Delete(context.Context, *SAMLConfigDeleteRequest) (*SAMLConfigDeleteResponse, error)
+	DeleteSome(*SAMLConfigDeleteSomeRequest, SAMLConfigService_DeleteSomeServer) error
 	DeleteAll(*SAMLConfigDeleteAllRequest, SAMLConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedSAMLConfigServiceServer()
 }
@@ -525,17 +960,32 @@ type UnimplementedSAMLConfigServiceServer struct {
 func (UnimplementedSAMLConfigServiceServer) GetOne(context.Context, *SAMLConfigRequest) (*SAMLConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSAMLConfigServiceServer) GetSome(*SAMLConfigSomeRequest, SAMLConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSAMLConfigServiceServer) GetAll(*SAMLConfigStreamRequest, SAMLConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSAMLConfigServiceServer) Subscribe(*SAMLConfigStreamRequest, SAMLConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedSAMLConfigServiceServer) GetMeta(context.Context, *SAMLConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSAMLConfigServiceServer) SubscribeMeta(*SAMLConfigStreamRequest, SAMLConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedSAMLConfigServiceServer) Set(context.Context, *SAMLConfigSetRequest) (*SAMLConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
+func (UnimplementedSAMLConfigServiceServer) SetSome(*SAMLConfigSetSomeRequest, SAMLConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
 func (UnimplementedSAMLConfigServiceServer) Delete(context.Context, *SAMLConfigDeleteRequest) (*SAMLConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedSAMLConfigServiceServer) DeleteSome(*SAMLConfigDeleteSomeRequest, SAMLConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedSAMLConfigServiceServer) DeleteAll(*SAMLConfigDeleteAllRequest, SAMLConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -569,6 +1019,27 @@ func _SAMLConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec
 		return srv.(SAMLConfigServiceServer).GetOne(ctx, req.(*SAMLConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SAMLConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).GetSome(m, &sAMLConfigServiceGetSomeServer{stream})
+}
+
+type SAMLConfigService_GetSomeServer interface {
+	Send(*SAMLConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceGetSomeServer) Send(m *SAMLConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SAMLConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -613,6 +1084,45 @@ func (x *sAMLConfigServiceSubscribeServer) Send(m *SAMLConfigStreamResponse) err
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SAMLConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SAMLConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SAMLConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.identityprovider.v1.SAMLConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SAMLConfigServiceServer).GetMeta(ctx, req.(*SAMLConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SAMLConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).SubscribeMeta(m, &sAMLConfigServiceSubscribeMetaServer{stream})
+}
+
+type SAMLConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _SAMLConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SAMLConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -631,6 +1141,27 @@ func _SAMLConfigService_Set_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SAMLConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).SetSome(m, &sAMLConfigServiceSetSomeServer{stream})
+}
+
+type SAMLConfigService_SetSomeServer interface {
+	Send(*SAMLConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceSetSomeServer) Send(m *SAMLConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _SAMLConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SAMLConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -647,6 +1178,27 @@ func _SAMLConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec
 		return srv.(SAMLConfigServiceServer).Delete(ctx, req.(*SAMLConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SAMLConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).DeleteSome(m, &sAMLConfigServiceDeleteSomeServer{stream})
+}
+
+type SAMLConfigService_DeleteSomeServer interface {
+	Send(*SAMLConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceDeleteSomeServer) Send(m *SAMLConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SAMLConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -682,6 +1234,10 @@ var SAMLConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SAMLConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _SAMLConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _SAMLConfigService_Set_Handler,
 		},
@@ -692,6 +1248,11 @@ var SAMLConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetSome",
+			Handler:       _SAMLConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "GetAll",
 			Handler:       _SAMLConfigService_GetAll_Handler,
 			ServerStreams: true,
@@ -699,6 +1260,21 @@ var SAMLConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SAMLConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SAMLConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _SAMLConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _SAMLConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
