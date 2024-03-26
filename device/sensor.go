@@ -40,6 +40,7 @@ const (
 	dsErrUnexpectedStop      = "unexpectedStop"
 	dsErrDeviceNotAlive      = "deviceNotAlive"
 	dsErrBadConfig           = "badConfig"
+	dsErrDeviceUnreachable   = "deviceUnreachable"
 )
 
 func catchPanic(desc string, f func() error) func() error {
@@ -89,28 +90,30 @@ var defaultClockObj ClusterClock = &defaultClock{}
 
 // datasourceConfig holds the configs received from the server.
 type datasourceConfig struct {
-	name       string
-	typ        string
-	enabled    bool
-	option     map[string]string
-	credential map[string]string
-	loglevel   logrus.Level
+	name        string
+	typ         string
+	enabled     bool
+	option      map[string]string
+	credential  map[string]string
+	loglevel    logrus.Level
+	forceupdate int64
 }
 
 func (c datasourceConfig) clone() *datasourceConfig {
 	return &datasourceConfig{
-		name:       c.name,
-		typ:        c.typ,
-		enabled:    c.enabled,
-		option:     cloneMap(c.option),
-		credential: cloneMap(c.credential),
-		loglevel:   c.loglevel,
+		name:        c.name,
+		typ:         c.typ,
+		enabled:     c.enabled,
+		option:      cloneMap(c.option),
+		credential:  cloneMap(c.credential),
+		loglevel:    c.loglevel,
+		forceupdate: c.forceupdate,
 	}
 }
 
 func (c datasourceConfig) String() string {
-	return fmt.Sprintf("name: %s, typ: %s, enabled: %t, option: %v, loglevel: %s",
-		c.name, c.typ, c.enabled, c.option, c.loglevel)
+	return fmt.Sprintf("name: %s, typ: %s, enabled: %t, option: %v, loglevel: %s, forceupdate: %d",
+		c.name, c.typ, c.enabled, c.option, c.loglevel, c.forceupdate)
 }
 
 func (c datasourceConfig) equals(other *datasourceConfig) bool {
@@ -118,7 +121,8 @@ func (c datasourceConfig) equals(other *datasourceConfig) bool {
 		c.typ == other.typ &&
 		c.enabled == other.enabled &&
 		mapEquals(c.option, other.option) &&
-		mapEquals(c.credential, other.credential)
+		mapEquals(c.credential, other.credential) &&
+		c.forceupdate == other.forceupdate
 }
 
 func cloneMap(m map[string]string) map[string]string {
@@ -504,11 +508,11 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 				updates = append(updates, pgnmi.Update(lastErrorKey,
 					agnmi.TypedValue("Device is back alive")))
 			}
-
+			updates = append(updates, pgnmi.Update(pgnmi.Path("unreachable"),
+				agnmi.TypedValue(false)))
 			if streamingStart {
 				updates = append(updates, pgnmi.Update(pgnmi.Path("streaming-start"), ts))
 			}
-
 			if err := d.submitDatasourceUpdates(ctx, updates...); err != nil {
 				d.log.Error("Publish status failed:", err)
 			} else if err == nil {
@@ -526,6 +530,11 @@ func (d *datasource) sendPeriodicUpdates(ctx context.Context) error {
 				msg = fmt.Errorf("Device not alive: %w", err)
 			}
 			d.handleDatasourceError(ctx, msg, dsErrDeviceNotAlive)
+			updates := []*gnmi.Update{pgnmi.Update(pgnmi.Path("unreachable"),
+				agnmi.TypedValue(true))}
+			if err = d.submitDatasourceUpdates(ctx, updates...); err != nil {
+				d.log.Error("Publish status failed:", err)
+			}
 			wasFailing = true
 		}
 		select {
@@ -979,6 +988,8 @@ func (s *Sensor) handleConfigUpdate(ctx context.Context,
 				loglevel = logrus.InfoLevel
 			}
 			dscfg.loglevel = loglevel
+		case "force-update":
+			dscfg.forceupdate = upd.Val.GetIntVal()
 		default:
 			delete(dsUpdated[name], elem.Name)
 		}
@@ -1261,12 +1272,13 @@ func (s *Sensor) subscribe(ctx context.Context, opts *agnmi.SubscribeOptions,
 					}
 
 					s.datasourceConfig[cfg.Name] = &datasourceConfig{
-						name:       cfg.Name,
-						typ:        cfg.Device,
-						enabled:    cfg.Enabled,
-						option:     cfg.Options,
-						credential: cfg.Credentials,
-						loglevel:   loglevel,
+						name:        cfg.Name,
+						typ:         cfg.Device,
+						enabled:     cfg.Enabled,
+						option:      cfg.Options,
+						credential:  cfg.Credentials,
+						loglevel:    loglevel,
+						forceupdate: cfg.ForceUpdate,
 					}
 
 					ds := s.getDatasource(ctx, cfg.Name)

@@ -223,14 +223,26 @@ func (m *mockDevice) Manage(ctx context.Context, inventory Inventory) error {
 
 func newMockDevice(ctx context.Context, opt map[string]string,
 	monitor provider.Monitor) (Device, error) {
+	var isalive bool
 	deviceID, err := GetStringOption("id", opt)
 	if err != nil {
 		return nil, err
 	}
+	alive, ok := opt["Alive"]
+	if ok {
+		if alive == "true" {
+			isalive = true
+		} else {
+			isalive = false
+		}
+	} else {
+		isalive = true
+	}
+
 	return &mockDevice{
 		id:      deviceID,
 		config:  opt,
-		isAlive: true,
+		isAlive: isalive,
 	}, nil
 }
 
@@ -269,6 +281,11 @@ var mockDeviceOptions = map[string]Option{
 	},
 	"sensorMetadata": {
 		Description: "Providers() method return only sensorMetadataProvider for test purposes",
+		Required:    false,
+	},
+	"Alive": {
+		Description: "Sets the device to be unreachable",
+		Default:     "true",
 		Required:    false,
 	},
 }
@@ -624,7 +641,7 @@ func runSensorTest(t *testing.T, tc sensorTestCase) {
 								if len(setReq.Update) == 1 &&
 									pgnmi.PathMatch(sensor.statePrefix, setReq.Prefix) {
 									sensorHeartBeat = true
-								} else if (len(setReq.Update) == 1 || len(setReq.Update) == 2) &&
+								} else if (len(setReq.Update) >= 1 && len(setReq.Update) <= 3) &&
 									setReq.Prefix.Elem[0].Name == "datasource" {
 									datasourceHeartBeat = true
 								}
@@ -721,10 +738,18 @@ func TestSensor(t *testing.T) {
 						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
 					},
 				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
+						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
+					},
+				},
 			},
 			waitForMetadataPostSync: []string{"123|" +
 				"map[id:123 input1:value1 log-level:LOG_LEVEL_INFO]"},
-			ignoreDatasourceHeartbeats: true,
+			ignoreDatasourceHeartbeats: false,
 		},
 		{
 			name: "Update existing datasource",
@@ -1369,6 +1394,7 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 					},
 				},
@@ -1411,6 +1437,7 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 						pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 					},
 				},
@@ -1430,6 +1457,7 @@ func TestSensor(t *testing.T) {
 					Prefix: datasourcePath("state", "abc", "xyz", ""),
 					Update: []*gnmi.Update{
 						pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+						pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 					},
 				},
 			},
@@ -1474,6 +1502,7 @@ func TestSensor(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -1496,7 +1525,9 @@ func TestSensor(t *testing.T) {
 						{
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
-								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43))},
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
+							},
 						},
 					},
 					ignoreDatasourceHeartbeats: false,
@@ -1802,6 +1833,54 @@ func TestSensor(t *testing.T) {
 			},
 			ignoreDatasourceHeartbeats: true,
 		},
+		{
+			name: "Device Unreachable",
+			configSubResps: []*gnmi.SubscribeResponse{
+				{
+					Response: &gnmi.SubscribeResponse_SyncResponse{
+						SyncResponse: true,
+					},
+				},
+				subscribeUpdates(
+					datasourceUpdates("config", "abc", "xyz", "mock",
+						true, map[string]string{
+							"id":    "123",
+							"Alive": "false"}, nil, "LOG_LEVEL_INFO")...),
+			},
+			waitForMetadataPostSync: []string{"123|" +
+				"map[Alive:false id:123 log-level:LOG_LEVEL_INFO]"},
+			expectSet: []*gnmi.SetRequest{
+				initialSetReq("abc", nil),
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(lastErrorKey, agnmi.TypedValue("Datasource started")),
+						pgnmi.Update(pgnmi.Path("type"), agnmi.TypedValue("mock")),
+						pgnmi.Update(pgnmi.Path("enabled"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("source-id"), agnmi.TypedValue("123")),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(true)),
+					},
+				},
+				{
+					Prefix: datasourcePath("state", "abc", "xyz", ""),
+					Update: []*gnmi.Update{
+						pgnmi.Update(
+							pgnmi.Path("last-error"), agnmi.TypedValue("Device not alive")),
+					},
+				},
+			},
+			ignoreDatasourceHeartbeats: false,
+		},
 	}
 
 	// Register mockDevice.
@@ -2075,6 +2154,18 @@ func TestSendPeriodicUpdates(t *testing.T) {
 		}
 	}
 
+	verifyUnreachableMatches := func(expect bool, set *gnmi.SetRequest) {
+		t.Helper()
+		// look for unreachable update
+		for _, u := range set.Update {
+			if pgnmi.PathMatch(u.Path, pgnmi.PathFromString("unreachable")) {
+				if got := u.Val.GetBoolVal(); got != expect {
+					t.Fatalf("Expected %t but got %t", expect, got)
+				}
+			}
+		}
+	}
+
 	expectAll := func(m mocks, calls ...*gomock.Call) {
 		calls = append(calls,
 			// last Alive call will call end() to cancel the context and finish the test
@@ -2103,6 +2194,12 @@ func TestSendPeriodicUpdates(t *testing.T) {
 							verifyLastErrorMatches("Device not alive", set)
 							return nil, nil
 						}),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyUnreachableMatches(true, set)
+							return nil, nil
+						}),
 				)
 			},
 		},
@@ -2115,6 +2212,12 @@ func TestSendPeriodicUpdates(t *testing.T) {
 						func(_ context.Context, set *gnmi.SetRequest,
 							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
 							verifyLastErrorMatches("Device not alive: some reason", set)
+							return nil, nil
+						}),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyUnreachableMatches(true, set)
 							return nil, nil
 						}),
 				)
@@ -2131,11 +2234,19 @@ func TestSendPeriodicUpdates(t *testing.T) {
 							verifyLastErrorMatches("Device not alive", set)
 							return nil, nil
 						}),
+					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
+						func(_ context.Context, set *gnmi.SetRequest,
+							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
+							verifyUnreachableMatches(true, set)
+							return nil, nil
+						}),
 					m.device.EXPECT().Alive(ctx).Return(true, nil),
 					m.gnmic.EXPECT().Set(ctx, gomock.Any()).DoAndReturn(
 						func(_ context.Context, set *gnmi.SetRequest,
 							_ ...grpc.CallOption) (*gnmi.SetResponse, error) {
 							verifyLastErrorMatches("Device is back alive", set)
+							verifyUnreachableMatches(false, set)
+
 							return nil, nil
 						}),
 					m.cvclient.EXPECT().SendHeartbeat(ctx, true),
@@ -2227,6 +2338,7 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -2249,7 +2361,9 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 						{
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
-								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43))},
+								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
+							},
 						},
 					},
 					ignoreDatasourceHeartbeats: false,
@@ -2347,6 +2461,7 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -2404,6 +2519,7 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -2464,6 +2580,7 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -2501,6 +2618,7 @@ func TestSensorWithSkipSubscribe(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device-2", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},
@@ -3009,6 +3127,7 @@ func TestSensorWithLimit(t *testing.T) {
 							Prefix: datasourcePath("state", "abc", "device1", ""),
 							Update: []*gnmi.Update{
 								pgnmi.Update(pgnmi.Path("last-seen"), agnmi.TypedValue(43)),
+								pgnmi.Update(pgnmi.Path("unreachable"), agnmi.TypedValue(false)),
 								pgnmi.Update(pgnmi.Path("streaming-start"), agnmi.TypedValue(42)),
 							},
 						},

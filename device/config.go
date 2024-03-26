@@ -22,6 +22,7 @@ type Config struct {
 
 	Credentials map[string]string `yaml:"Credentials,omitempty"`
 	Enabled     bool              `yaml:"Enabled,omitempty"`
+	ForceUpdate int64             `yaml:"ForceUpdate,omitempty"`
 
 	deleted bool
 	syncEnd bool
@@ -78,7 +79,8 @@ func (c *Config) Equal(o *Config) bool {
 		c.LogLevel == o.LogLevel &&
 		c.Enabled == o.Enabled &&
 		c.deleted == o.deleted &&
-		c.syncEnd == o.syncEnd
+		c.syncEnd == o.syncEnd &&
+		c.ForceUpdate == o.ForceUpdate
 }
 
 // ReadConfigs generates device configs from the config file at the specified path.
