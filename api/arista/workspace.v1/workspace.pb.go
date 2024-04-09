@@ -31,8 +31,8 @@
 package workspace
 
 import (
-	configstatus_v1 "github.com/aristanetworks/cloudvision-go/api/arista/configstatus.v1"
 	imagestatus_v1 "github.com/aristanetworks/cloudvision-go/api/arista/imagestatus.v1"
+	configstatus_v1 "github.com/aristanetworks/cloudvision-go/api/arista/configstatus.v1"
 	fmp "github.com/aristanetworks/cloudvision-go/api/fmp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

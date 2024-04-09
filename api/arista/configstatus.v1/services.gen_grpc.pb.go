@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConfigDiffServiceClient interface {
 	GetOne(ctx context.Context, in *ConfigDiffRequest, opts ...grpc.CallOption) (*ConfigDiffResponse, error)
+	GetSome(ctx context.Context, in *ConfigDiffSomeRequest, opts ...grpc.CallOption) (ConfigDiffService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeMetaClient, error)
 }
 
 type configDiffServiceClient struct {
@@ -40,8 +43,40 @@ func (c *configDiffServiceClient) GetOne(ctx context.Context, in *ConfigDiffRequ
 	return out, nil
 }
 
+func (c *configDiffServiceClient) GetSome(ctx context.Context, in *ConfigDiffSomeRequest, opts ...grpc.CallOption) (ConfigDiffService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[0], "/arista.configstatus.v1.ConfigDiffService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configDiffServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigDiffService_GetSomeClient interface {
+	Recv() (*ConfigDiffSomeResponse, error)
+	grpc.ClientStream
+}
+
+type configDiffServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *configDiffServiceGetSomeClient) Recv() (*ConfigDiffSomeResponse, error) {
+	m := new(ConfigDiffSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *configDiffServiceClient) GetAll(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[0], "/arista.configstatus.v1.ConfigDiffService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[1], "/arista.configstatus.v1.ConfigDiffService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *configDiffServiceGetAllClient) Recv() (*ConfigDiffStreamResponse, error
 }
 
 func (c *configDiffServiceClient) Subscribe(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[1], "/arista.configstatus.v1.ConfigDiffService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[2], "/arista.configstatus.v1.ConfigDiffService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *configDiffServiceSubscribeClient) Recv() (*ConfigDiffStreamResponse, er
 	return m, nil
 }
 
+func (c *configDiffServiceClient) GetMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.ConfigDiffService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configDiffServiceClient) SubscribeMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[3], "/arista.configstatus.v1.ConfigDiffService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configDiffServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigDiffService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type configDiffServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *configDiffServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigDiffServiceServer is the server API for ConfigDiffService service.
 // All implementations must embed UnimplementedConfigDiffServiceServer
 // for forward compatibility
 type ConfigDiffServiceServer interface {
 	GetOne(context.Context, *ConfigDiffRequest) (*ConfigDiffResponse, error)
+	GetSome(*ConfigDiffSomeRequest, ConfigDiffService_GetSomeServer) error
 	GetAll(*ConfigDiffStreamRequest, ConfigDiffService_GetAllServer) error
 	Subscribe(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeServer) error
+	GetMeta(context.Context, *ConfigDiffStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeMetaServer) error
 	mustEmbedUnimplementedConfigDiffServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedConfigDiffServiceServer struct {
 func (UnimplementedConfigDiffServiceServer) GetOne(context.Context, *ConfigDiffRequest) (*ConfigDiffResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedConfigDiffServiceServer) GetSome(*ConfigDiffSomeRequest, ConfigDiffService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedConfigDiffServiceServer) GetAll(*ConfigDiffStreamRequest, ConfigDiffService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedConfigDiffServiceServer) Subscribe(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedConfigDiffServiceServer) GetMeta(context.Context, *ConfigDiffStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedConfigDiffServiceServer) SubscribeMeta(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedConfigDiffServiceServer) mustEmbedUnimplementedConfigDiffServiceServer() {}
 
@@ -156,6 +244,27 @@ func _ConfigDiffService_GetOne_Handler(srv interface{}, ctx context.Context, dec
 		return srv.(ConfigDiffServiceServer).GetOne(ctx, req.(*ConfigDiffRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigDiffService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigDiffSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigDiffServiceServer).GetSome(m, &configDiffServiceGetSomeServer{stream})
+}
+
+type ConfigDiffService_GetSomeServer interface {
+	Send(*ConfigDiffSomeResponse) error
+	grpc.ServerStream
+}
+
+type configDiffServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *configDiffServiceGetSomeServer) Send(m *ConfigDiffSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ConfigDiffService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *configDiffServiceSubscribeServer) Send(m *ConfigDiffStreamResponse) err
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigDiffService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigDiffStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigDiffServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.ConfigDiffService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigDiffServiceServer).GetMeta(ctx, req.(*ConfigDiffStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigDiffService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigDiffStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigDiffServiceServer).SubscribeMeta(m, &configDiffServiceSubscribeMetaServer{stream})
+}
+
+type ConfigDiffService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type configDiffServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *configDiffServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigDiffService_ServiceDesc is the grpc.ServiceDesc for ConfigDiffService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var ConfigDiffService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _ConfigDiffService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ConfigDiffService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ConfigDiffService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _ConfigDiffService_GetAll_Handler,
@@ -221,6 +378,11 @@ var ConfigDiffService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ConfigDiffService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ConfigDiffService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,8 +394,11 @@ var ConfigDiffService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConfigurationServiceClient interface {
 	GetOne(ctx context.Context, in *ConfigurationRequest, opts ...grpc.CallOption) (*ConfigurationResponse, error)
+	GetSome(ctx context.Context, in *ConfigurationSomeRequest, opts ...grpc.CallOption) (ConfigurationService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeMetaClient, error)
 }
 
 type configurationServiceClient struct {
@@ -253,8 +418,40 @@ func (c *configurationServiceClient) GetOne(ctx context.Context, in *Configurati
 	return out, nil
 }
 
+func (c *configurationServiceClient) GetSome(ctx context.Context, in *ConfigurationSomeRequest, opts ...grpc.CallOption) (ConfigurationService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[0], "/arista.configstatus.v1.ConfigurationService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configurationServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigurationService_GetSomeClient interface {
+	Recv() (*ConfigurationSomeResponse, error)
+	grpc.ClientStream
+}
+
+type configurationServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *configurationServiceGetSomeClient) Recv() (*ConfigurationSomeResponse, error) {
+	m := new(ConfigurationSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *configurationServiceClient) GetAll(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[0], "/arista.configstatus.v1.ConfigurationService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[1], "/arista.configstatus.v1.ConfigurationService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +483,7 @@ func (x *configurationServiceGetAllClient) Recv() (*ConfigurationStreamResponse,
 }
 
 func (c *configurationServiceClient) Subscribe(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[1], "/arista.configstatus.v1.ConfigurationService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[2], "/arista.configstatus.v1.ConfigurationService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -317,13 +514,57 @@ func (x *configurationServiceSubscribeClient) Recv() (*ConfigurationStreamRespon
 	return m, nil
 }
 
+func (c *configurationServiceClient) GetMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.ConfigurationService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configurationServiceClient) SubscribeMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[3], "/arista.configstatus.v1.ConfigurationService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configurationServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigurationService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type configurationServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *configurationServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigurationServiceServer is the server API for ConfigurationService service.
 // All implementations must embed UnimplementedConfigurationServiceServer
 // for forward compatibility
 type ConfigurationServiceServer interface {
 	GetOne(context.Context, *ConfigurationRequest) (*ConfigurationResponse, error)
+	GetSome(*ConfigurationSomeRequest, ConfigurationService_GetSomeServer) error
 	GetAll(*ConfigurationStreamRequest, ConfigurationService_GetAllServer) error
 	Subscribe(*ConfigurationStreamRequest, ConfigurationService_SubscribeServer) error
+	GetMeta(context.Context, *ConfigurationStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ConfigurationStreamRequest, ConfigurationService_SubscribeMetaServer) error
 	mustEmbedUnimplementedConfigurationServiceServer()
 }
 
@@ -334,11 +575,20 @@ type UnimplementedConfigurationServiceServer struct {
 func (UnimplementedConfigurationServiceServer) GetOne(context.Context, *ConfigurationRequest) (*ConfigurationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedConfigurationServiceServer) GetSome(*ConfigurationSomeRequest, ConfigurationService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedConfigurationServiceServer) GetAll(*ConfigurationStreamRequest, ConfigurationService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedConfigurationServiceServer) Subscribe(*ConfigurationStreamRequest, ConfigurationService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedConfigurationServiceServer) GetMeta(context.Context, *ConfigurationStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedConfigurationServiceServer) SubscribeMeta(*ConfigurationStreamRequest, ConfigurationService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedConfigurationServiceServer) mustEmbedUnimplementedConfigurationServiceServer() {}
 
@@ -369,6 +619,27 @@ func _ConfigurationService_GetOne_Handler(srv interface{}, ctx context.Context, 
 		return srv.(ConfigurationServiceServer).GetOne(ctx, req.(*ConfigurationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigurationService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigurationSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigurationServiceServer).GetSome(m, &configurationServiceGetSomeServer{stream})
+}
+
+type ConfigurationService_GetSomeServer interface {
+	Send(*ConfigurationSomeResponse) error
+	grpc.ServerStream
+}
+
+type configurationServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *configurationServiceGetSomeServer) Send(m *ConfigurationSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ConfigurationService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -413,6 +684,45 @@ func (x *configurationServiceSubscribeServer) Send(m *ConfigurationStreamRespons
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigurationService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigurationStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigurationServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.ConfigurationService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigurationServiceServer).GetMeta(ctx, req.(*ConfigurationStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigurationService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigurationStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigurationServiceServer).SubscribeMeta(m, &configurationServiceSubscribeMetaServer{stream})
+}
+
+type ConfigurationService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type configurationServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *configurationServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigurationService_ServiceDesc is the grpc.ServiceDesc for ConfigurationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -424,8 +734,17 @@ var ConfigurationService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _ConfigurationService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ConfigurationService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ConfigurationService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _ConfigurationService_GetAll_Handler,
@@ -434,6 +753,11 @@ var ConfigurationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ConfigurationService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ConfigurationService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -445,8 +769,11 @@ var ConfigurationService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecurityProfileServiceClient interface {
 	GetOne(ctx context.Context, in *SecurityProfileRequest, opts ...grpc.CallOption) (*SecurityProfileResponse, error)
+	GetSome(ctx context.Context, in *SecurityProfileSomeRequest, opts ...grpc.CallOption) (SecurityProfileService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeMetaClient, error)
 }
 
 type securityProfileServiceClient struct {
@@ -466,8 +793,40 @@ func (c *securityProfileServiceClient) GetOne(ctx context.Context, in *SecurityP
 	return out, nil
 }
 
+func (c *securityProfileServiceClient) GetSome(ctx context.Context, in *SecurityProfileSomeRequest, opts ...grpc.CallOption) (SecurityProfileService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_GetSomeClient interface {
+	Recv() (*SecurityProfileSomeResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceGetSomeClient) Recv() (*SecurityProfileSomeResponse, error) {
+	m := new(SecurityProfileSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *securityProfileServiceClient) GetAll(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +858,7 @@ func (x *securityProfileServiceGetAllClient) Recv() (*SecurityProfileStreamRespo
 }
 
 func (c *securityProfileServiceClient) Subscribe(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[2], "/arista.configstatus.v1.SecurityProfileService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -530,13 +889,57 @@ func (x *securityProfileServiceSubscribeClient) Recv() (*SecurityProfileStreamRe
 	return m, nil
 }
 
+func (c *securityProfileServiceClient) GetMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileServiceClient) SubscribeMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[3], "/arista.configstatus.v1.SecurityProfileService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileServiceServer is the server API for SecurityProfileService service.
 // All implementations must embed UnimplementedSecurityProfileServiceServer
 // for forward compatibility
 type SecurityProfileServiceServer interface {
 	GetOne(context.Context, *SecurityProfileRequest) (*SecurityProfileResponse, error)
+	GetSome(*SecurityProfileSomeRequest, SecurityProfileService_GetSomeServer) error
 	GetAll(*SecurityProfileStreamRequest, SecurityProfileService_GetAllServer) error
 	Subscribe(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeServer) error
+	GetMeta(context.Context, *SecurityProfileStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeMetaServer) error
 	mustEmbedUnimplementedSecurityProfileServiceServer()
 }
 
@@ -547,11 +950,20 @@ type UnimplementedSecurityProfileServiceServer struct {
 func (UnimplementedSecurityProfileServiceServer) GetOne(context.Context, *SecurityProfileRequest) (*SecurityProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSecurityProfileServiceServer) GetSome(*SecurityProfileSomeRequest, SecurityProfileService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSecurityProfileServiceServer) GetAll(*SecurityProfileStreamRequest, SecurityProfileService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSecurityProfileServiceServer) Subscribe(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) GetMeta(context.Context, *SecurityProfileStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) SubscribeMeta(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedSecurityProfileServiceServer) mustEmbedUnimplementedSecurityProfileServiceServer() {
 }
@@ -583,6 +995,27 @@ func _SecurityProfileService_GetOne_Handler(srv interface{}, ctx context.Context
 		return srv.(SecurityProfileServiceServer).GetOne(ctx, req.(*SecurityProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).GetSome(m, &securityProfileServiceGetSomeServer{stream})
+}
+
+type SecurityProfileService_GetSomeServer interface {
+	Send(*SecurityProfileSomeResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceGetSomeServer) Send(m *SecurityProfileSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SecurityProfileService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -627,6 +1060,45 @@ func (x *securityProfileServiceSubscribeServer) Send(m *SecurityProfileStreamRes
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileServiceServer).GetMeta(ctx, req.(*SecurityProfileStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).SubscribeMeta(m, &securityProfileServiceSubscribeMetaServer{stream})
+}
+
+type SecurityProfileService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -638,8 +1110,17 @@ var SecurityProfileService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SecurityProfileService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SecurityProfileService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SecurityProfileService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SecurityProfileService_GetAll_Handler,
@@ -648,6 +1129,11 @@ var SecurityProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SecurityProfileService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SecurityProfileService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -659,8 +1145,11 @@ var SecurityProfileService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecurityProfileDiffServiceClient interface {
 	GetOne(ctx context.Context, in *SecurityProfileDiffRequest, opts ...grpc.CallOption) (*SecurityProfileDiffResponse, error)
+	GetSome(ctx context.Context, in *SecurityProfileDiffSomeRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeMetaClient, error)
 }
 
 type securityProfileDiffServiceClient struct {
@@ -680,8 +1169,40 @@ func (c *securityProfileDiffServiceClient) GetOne(ctx context.Context, in *Secur
 	return out, nil
 }
 
+func (c *securityProfileDiffServiceClient) GetSome(ctx context.Context, in *SecurityProfileDiffSomeRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_GetSomeClient interface {
+	Recv() (*SecurityProfileDiffSomeResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceGetSomeClient) Recv() (*SecurityProfileDiffSomeResponse, error) {
+	m := new(SecurityProfileDiffSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *securityProfileDiffServiceClient) GetAll(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -713,7 +1234,7 @@ func (x *securityProfileDiffServiceGetAllClient) Recv() (*SecurityProfileDiffStr
 }
 
 func (c *securityProfileDiffServiceClient) Subscribe(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[2], "/arista.configstatus.v1.SecurityProfileDiffService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -744,13 +1265,57 @@ func (x *securityProfileDiffServiceSubscribeClient) Recv() (*SecurityProfileDiff
 	return m, nil
 }
 
+func (c *securityProfileDiffServiceClient) GetMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileDiffService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileDiffServiceClient) SubscribeMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[3], "/arista.configstatus.v1.SecurityProfileDiffService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileDiffServiceServer is the server API for SecurityProfileDiffService service.
 // All implementations must embed UnimplementedSecurityProfileDiffServiceServer
 // for forward compatibility
 type SecurityProfileDiffServiceServer interface {
 	GetOne(context.Context, *SecurityProfileDiffRequest) (*SecurityProfileDiffResponse, error)
+	GetSome(*SecurityProfileDiffSomeRequest, SecurityProfileDiffService_GetSomeServer) error
 	GetAll(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_GetAllServer) error
 	Subscribe(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeServer) error
+	GetMeta(context.Context, *SecurityProfileDiffStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeMetaServer) error
 	mustEmbedUnimplementedSecurityProfileDiffServiceServer()
 }
 
@@ -761,11 +1326,20 @@ type UnimplementedSecurityProfileDiffServiceServer struct {
 func (UnimplementedSecurityProfileDiffServiceServer) GetOne(context.Context, *SecurityProfileDiffRequest) (*SecurityProfileDiffResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSecurityProfileDiffServiceServer) GetSome(*SecurityProfileDiffSomeRequest, SecurityProfileDiffService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSecurityProfileDiffServiceServer) GetAll(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSecurityProfileDiffServiceServer) Subscribe(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) GetMeta(context.Context, *SecurityProfileDiffStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) SubscribeMeta(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedSecurityProfileDiffServiceServer) mustEmbedUnimplementedSecurityProfileDiffServiceServer() {
 }
@@ -797,6 +1371,27 @@ func _SecurityProfileDiffService_GetOne_Handler(srv interface{}, ctx context.Con
 		return srv.(SecurityProfileDiffServiceServer).GetOne(ctx, req.(*SecurityProfileDiffRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).GetSome(m, &securityProfileDiffServiceGetSomeServer{stream})
+}
+
+type SecurityProfileDiffService_GetSomeServer interface {
+	Send(*SecurityProfileDiffSomeResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceGetSomeServer) Send(m *SecurityProfileDiffSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SecurityProfileDiffService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -841,6 +1436,45 @@ func (x *securityProfileDiffServiceSubscribeServer) Send(m *SecurityProfileDiffS
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileDiffService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileDiffStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileDiffServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileDiffService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileDiffServiceServer).GetMeta(ctx, req.(*SecurityProfileDiffStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).SubscribeMeta(m, &securityProfileDiffServiceSubscribeMetaServer{stream})
+}
+
+type SecurityProfileDiffService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileDiffService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -852,8 +1486,17 @@ var SecurityProfileDiffService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SecurityProfileDiffService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SecurityProfileDiffService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SecurityProfileDiffService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SecurityProfileDiffService_GetAll_Handler,
@@ -862,6 +1505,11 @@ var SecurityProfileDiffService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SecurityProfileDiffService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SecurityProfileDiffService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -873,8 +1521,11 @@ var SecurityProfileDiffService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecurityProfileDiffSummaryServiceClient interface {
 	GetOne(ctx context.Context, in *SecurityProfileDiffSummaryRequest, opts ...grpc.CallOption) (*SecurityProfileDiffSummaryResponse, error)
+	GetSome(ctx context.Context, in *SecurityProfileDiffSummarySomeRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeMetaClient, error)
 }
 
 type securityProfileDiffSummaryServiceClient struct {
@@ -894,8 +1545,40 @@ func (c *securityProfileDiffSummaryServiceClient) GetOne(ctx context.Context, in
 	return out, nil
 }
 
+func (c *securityProfileDiffSummaryServiceClient) GetSome(ctx context.Context, in *SecurityProfileDiffSummarySomeRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_GetSomeClient interface {
+	Recv() (*SecurityProfileDiffSummarySomeResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetSomeClient) Recv() (*SecurityProfileDiffSummarySomeResponse, error) {
+	m := new(SecurityProfileDiffSummarySomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *securityProfileDiffSummaryServiceClient) GetAll(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -927,7 +1610,7 @@ func (x *securityProfileDiffSummaryServiceGetAllClient) Recv() (*SecurityProfile
 }
 
 func (c *securityProfileDiffSummaryServiceClient) Subscribe(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[2], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -958,13 +1641,57 @@ func (x *securityProfileDiffSummaryServiceSubscribeClient) Recv() (*SecurityProf
 	return m, nil
 }
 
+func (c *securityProfileDiffSummaryServiceClient) GetMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *securityProfileDiffSummaryServiceClient) SubscribeMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[3], "/arista.configstatus.v1.SecurityProfileDiffSummaryService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileDiffSummaryServiceServer is the server API for SecurityProfileDiffSummaryService service.
 // All implementations must embed UnimplementedSecurityProfileDiffSummaryServiceServer
 // for forward compatibility
 type SecurityProfileDiffSummaryServiceServer interface {
 	GetOne(context.Context, *SecurityProfileDiffSummaryRequest) (*SecurityProfileDiffSummaryResponse, error)
+	GetSome(*SecurityProfileDiffSummarySomeRequest, SecurityProfileDiffSummaryService_GetSomeServer) error
 	GetAll(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_GetAllServer) error
 	Subscribe(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeServer) error
+	GetMeta(context.Context, *SecurityProfileDiffSummaryStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeMetaServer) error
 	mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer()
 }
 
@@ -975,11 +1702,20 @@ type UnimplementedSecurityProfileDiffSummaryServiceServer struct {
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetOne(context.Context, *SecurityProfileDiffSummaryRequest) (*SecurityProfileDiffSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetSome(*SecurityProfileDiffSummarySomeRequest, SecurityProfileDiffSummaryService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetAll(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) Subscribe(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetMeta(context.Context, *SecurityProfileDiffSummaryStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) SubscribeMeta(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer() {
 }
@@ -1011,6 +1747,27 @@ func _SecurityProfileDiffSummaryService_GetOne_Handler(srv interface{}, ctx cont
 		return srv.(SecurityProfileDiffSummaryServiceServer).GetOne(ctx, req.(*SecurityProfileDiffSummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffSummaryService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummarySomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).GetSome(m, &securityProfileDiffSummaryServiceGetSomeServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_GetSomeServer interface {
+	Send(*SecurityProfileDiffSummarySomeResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetSomeServer) Send(m *SecurityProfileDiffSummarySomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SecurityProfileDiffSummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1055,6 +1812,45 @@ func (x *securityProfileDiffSummaryServiceSubscribeServer) Send(m *SecurityProfi
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileDiffSummaryService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecurityProfileDiffSummaryStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityProfileDiffSummaryServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityProfileDiffSummaryServiceServer).GetMeta(ctx, req.(*SecurityProfileDiffSummaryStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecurityProfileDiffSummaryService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).SubscribeMeta(m, &securityProfileDiffSummaryServiceSubscribeMetaServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileDiffSummaryService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffSummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1066,8 +1862,17 @@ var SecurityProfileDiffSummaryService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SecurityProfileDiffSummaryService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SecurityProfileDiffSummaryService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SecurityProfileDiffSummaryService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SecurityProfileDiffSummaryService_GetAll_Handler,
@@ -1076,6 +1881,11 @@ var SecurityProfileDiffSummaryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SecurityProfileDiffSummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SecurityProfileDiffSummaryService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -1087,8 +1897,11 @@ var SecurityProfileDiffSummaryService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SummaryServiceClient interface {
 	GetOne(ctx context.Context, in *SummaryRequest, opts ...grpc.CallOption) (*SummaryResponse, error)
+	GetSome(ctx context.Context, in *SummarySomeRequest, opts ...grpc.CallOption) (SummaryService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeMetaClient, error)
 }
 
 type summaryServiceClient struct {
@@ -1108,8 +1921,40 @@ func (c *summaryServiceClient) GetOne(ctx context.Context, in *SummaryRequest, o
 	return out, nil
 }
 
+func (c *summaryServiceClient) GetSome(ctx context.Context, in *SummarySomeRequest, opts ...grpc.CallOption) (SummaryService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SummaryService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_GetSomeClient interface {
+	Recv() (*SummarySomeResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceGetSomeClient) Recv() (*SummarySomeResponse, error) {
+	m := new(SummarySomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *summaryServiceClient) GetAll(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[0], "/arista.configstatus.v1.SummaryService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SummaryService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1141,7 +1986,7 @@ func (x *summaryServiceGetAllClient) Recv() (*SummaryStreamResponse, error) {
 }
 
 func (c *summaryServiceClient) Subscribe(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[1], "/arista.configstatus.v1.SummaryService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[2], "/arista.configstatus.v1.SummaryService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1172,13 +2017,57 @@ func (x *summaryServiceSubscribeClient) Recv() (*SummaryStreamResponse, error) {
 	return m, nil
 }
 
+func (c *summaryServiceClient) GetMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.configstatus.v1.SummaryService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *summaryServiceClient) SubscribeMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[3], "/arista.configstatus.v1.SummaryService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SummaryServiceServer is the server API for SummaryService service.
 // All implementations must embed UnimplementedSummaryServiceServer
 // for forward compatibility
 type SummaryServiceServer interface {
 	GetOne(context.Context, *SummaryRequest) (*SummaryResponse, error)
+	GetSome(*SummarySomeRequest, SummaryService_GetSomeServer) error
 	GetAll(*SummaryStreamRequest, SummaryService_GetAllServer) error
 	Subscribe(*SummaryStreamRequest, SummaryService_SubscribeServer) error
+	GetMeta(context.Context, *SummaryStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error
 	mustEmbedUnimplementedSummaryServiceServer()
 }
 
@@ -1189,11 +2078,20 @@ type UnimplementedSummaryServiceServer struct {
 func (UnimplementedSummaryServiceServer) GetOne(context.Context, *SummaryRequest) (*SummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSummaryServiceServer) GetSome(*SummarySomeRequest, SummaryService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSummaryServiceServer) GetAll(*SummaryStreamRequest, SummaryService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSummaryServiceServer) Subscribe(*SummaryStreamRequest, SummaryService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSummaryServiceServer) GetMeta(context.Context, *SummaryStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSummaryServiceServer) SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedSummaryServiceServer) mustEmbedUnimplementedSummaryServiceServer() {}
 
@@ -1224,6 +2122,27 @@ func _SummaryService_GetOne_Handler(srv interface{}, ctx context.Context, dec fu
 		return srv.(SummaryServiceServer).GetOne(ctx, req.(*SummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SummaryService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummarySomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).GetSome(m, &summaryServiceGetSomeServer{stream})
+}
+
+type SummaryService_GetSomeServer interface {
+	Send(*SummarySomeResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceGetSomeServer) Send(m *SummarySomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1268,6 +2187,45 @@ func (x *summaryServiceSubscribeServer) Send(m *SummaryStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SummaryService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummaryStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SummaryServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.configstatus.v1.SummaryService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SummaryServiceServer).GetMeta(ctx, req.(*SummaryStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SummaryService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).SubscribeMeta(m, &summaryServiceSubscribeMetaServer{stream})
+}
+
+type SummaryService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SummaryService_ServiceDesc is the grpc.ServiceDesc for SummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1279,8 +2237,17 @@ var SummaryService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SummaryService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SummaryService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SummaryService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SummaryService_GetAll_Handler,
@@ -1289,6 +2256,11 @@ var SummaryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SummaryService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
