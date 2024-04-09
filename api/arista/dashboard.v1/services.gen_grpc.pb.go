@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DashboardServiceClient interface {
 	GetOne(ctx context.Context, in *DashboardRequest, opts ...grpc.CallOption) (*DashboardResponse, error)
+	GetSome(ctx context.Context, in *DashboardSomeRequest, opts ...grpc.CallOption) (DashboardService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_SubscribeMetaClient, error)
 }
 
 type dashboardServiceClient struct {
@@ -40,8 +43,40 @@ func (c *dashboardServiceClient) GetOne(ctx context.Context, in *DashboardReques
 	return out, nil
 }
 
+func (c *dashboardServiceClient) GetSome(ctx context.Context, in *DashboardSomeRequest, opts ...grpc.CallOption) (DashboardService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[0], "/arista.dashboard.v1.DashboardService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardService_GetSomeClient interface {
+	Recv() (*DashboardSomeResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardServiceGetSomeClient) Recv() (*DashboardSomeResponse, error) {
+	m := new(DashboardSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *dashboardServiceClient) GetAll(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[0], "/arista.dashboard.v1.DashboardService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[1], "/arista.dashboard.v1.DashboardService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *dashboardServiceGetAllClient) Recv() (*DashboardStreamResponse, error) 
 }
 
 func (c *dashboardServiceClient) Subscribe(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[1], "/arista.dashboard.v1.DashboardService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *dashboardServiceSubscribeClient) Recv() (*DashboardStreamResponse, erro
 	return m, nil
 }
 
+func (c *dashboardServiceClient) GetMeta(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.dashboard.v1.DashboardService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dashboardServiceClient) SubscribeMeta(ctx context.Context, in *DashboardStreamRequest, opts ...grpc.CallOption) (DashboardService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardService_ServiceDesc.Streams[3], "/arista.dashboard.v1.DashboardService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DashboardServiceServer is the server API for DashboardService service.
 // All implementations must embed UnimplementedDashboardServiceServer
 // for forward compatibility
 type DashboardServiceServer interface {
 	GetOne(context.Context, *DashboardRequest) (*DashboardResponse, error)
+	GetSome(*DashboardSomeRequest, DashboardService_GetSomeServer) error
 	GetAll(*DashboardStreamRequest, DashboardService_GetAllServer) error
 	Subscribe(*DashboardStreamRequest, DashboardService_SubscribeServer) error
+	GetMeta(context.Context, *DashboardStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DashboardStreamRequest, DashboardService_SubscribeMetaServer) error
 	mustEmbedUnimplementedDashboardServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedDashboardServiceServer struct {
 func (UnimplementedDashboardServiceServer) GetOne(context.Context, *DashboardRequest) (*DashboardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDashboardServiceServer) GetSome(*DashboardSomeRequest, DashboardService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDashboardServiceServer) GetAll(*DashboardStreamRequest, DashboardService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDashboardServiceServer) Subscribe(*DashboardStreamRequest, DashboardService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDashboardServiceServer) GetMeta(context.Context, *DashboardStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDashboardServiceServer) SubscribeMeta(*DashboardStreamRequest, DashboardService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedDashboardServiceServer) mustEmbedUnimplementedDashboardServiceServer() {}
 
@@ -156,6 +244,27 @@ func _DashboardService_GetOne_Handler(srv interface{}, ctx context.Context, dec 
 		return srv.(DashboardServiceServer).GetOne(ctx, req.(*DashboardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DashboardService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardServiceServer).GetSome(m, &dashboardServiceGetSomeServer{stream})
+}
+
+type DashboardService_GetSomeServer interface {
+	Send(*DashboardSomeResponse) error
+	grpc.ServerStream
+}
+
+type dashboardServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardServiceGetSomeServer) Send(m *DashboardSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DashboardService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *dashboardServiceSubscribeServer) Send(m *DashboardStreamResponse) error
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DashboardService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DashboardStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DashboardServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.dashboard.v1.DashboardService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DashboardServiceServer).GetMeta(ctx, req.(*DashboardStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DashboardService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardServiceServer).SubscribeMeta(m, &dashboardServiceSubscribeMetaServer{stream})
+}
+
+type DashboardService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type dashboardServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DashboardService_ServiceDesc is the grpc.ServiceDesc for DashboardService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var DashboardService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _DashboardService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _DashboardService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DashboardService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DashboardService_GetAll_Handler,
@@ -221,6 +378,11 @@ var DashboardService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DashboardService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DashboardService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,11 +394,15 @@ var DashboardService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DashboardConfigServiceClient interface {
 	GetOne(ctx context.Context, in *DashboardConfigRequest, opts ...grpc.CallOption) (*DashboardConfigResponse, error)
+	GetSome(ctx context.Context, in *DashboardConfigSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *DashboardConfigSetRequest, opts ...grpc.CallOption) (*DashboardConfigSetResponse, error)
 	SetSome(ctx context.Context, in *DashboardConfigSetSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *DashboardConfigDeleteRequest, opts ...grpc.CallOption) (*DashboardConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *DashboardConfigDeleteSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error)
 }
 
@@ -257,8 +423,40 @@ func (c *dashboardConfigServiceClient) GetOne(ctx context.Context, in *Dashboard
 	return out, nil
 }
 
+func (c *dashboardConfigServiceClient) GetSome(ctx context.Context, in *DashboardConfigSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[0], "/arista.dashboard.v1.DashboardConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardConfigService_GetSomeClient interface {
+	Recv() (*DashboardConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardConfigServiceGetSomeClient) Recv() (*DashboardConfigSomeResponse, error) {
+	m := new(DashboardConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *dashboardConfigServiceClient) GetAll(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[0], "/arista.dashboard.v1.DashboardConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[1], "/arista.dashboard.v1.DashboardConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +488,7 @@ func (x *dashboardConfigServiceGetAllClient) Recv() (*DashboardConfigStreamRespo
 }
 
 func (c *dashboardConfigServiceClient) Subscribe(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[1], "/arista.dashboard.v1.DashboardConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,6 +519,47 @@ func (x *dashboardConfigServiceSubscribeClient) Recv() (*DashboardConfigStreamRe
 	return m, nil
 }
 
+func (c *dashboardConfigServiceClient) GetMeta(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.dashboard.v1.DashboardConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dashboardConfigServiceClient) SubscribeMeta(ctx context.Context, in *DashboardConfigStreamRequest, opts ...grpc.CallOption) (DashboardConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[3], "/arista.dashboard.v1.DashboardConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *dashboardConfigServiceClient) Set(ctx context.Context, in *DashboardConfigSetRequest, opts ...grpc.CallOption) (*DashboardConfigSetResponse, error) {
 	out := new(DashboardConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.dashboard.v1.DashboardConfigService/Set", in, out, opts...)
@@ -331,7 +570,7 @@ func (c *dashboardConfigServiceClient) Set(ctx context.Context, in *DashboardCon
 }
 
 func (c *dashboardConfigServiceClient) SetSome(ctx context.Context, in *DashboardConfigSetSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.DashboardConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[4], "/arista.dashboard.v1.DashboardConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -371,8 +610,40 @@ func (c *dashboardConfigServiceClient) Delete(ctx context.Context, in *Dashboard
 	return out, nil
 }
 
+func (c *dashboardConfigServiceClient) DeleteSome(ctx context.Context, in *DashboardConfigDeleteSomeRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[5], "/arista.dashboard.v1.DashboardConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dashboardConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DashboardConfigService_DeleteSomeClient interface {
+	Recv() (*DashboardConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type dashboardConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *dashboardConfigServiceDeleteSomeClient) Recv() (*DashboardConfigDeleteSomeResponse, error) {
+	m := new(DashboardConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *dashboardConfigServiceClient) DeleteAll(ctx context.Context, in *DashboardConfigDeleteAllRequest, opts ...grpc.CallOption) (DashboardConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[3], "/arista.dashboard.v1.DashboardConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &DashboardConfigService_ServiceDesc.Streams[6], "/arista.dashboard.v1.DashboardConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -408,11 +679,15 @@ func (x *dashboardConfigServiceDeleteAllClient) Recv() (*DashboardConfigDeleteAl
 // for forward compatibility
 type DashboardConfigServiceServer interface {
 	GetOne(context.Context, *DashboardConfigRequest) (*DashboardConfigResponse, error)
+	GetSome(*DashboardConfigSomeRequest, DashboardConfigService_GetSomeServer) error
 	GetAll(*DashboardConfigStreamRequest, DashboardConfigService_GetAllServer) error
 	Subscribe(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeServer) error
+	GetMeta(context.Context, *DashboardConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeMetaServer) error
 	Set(context.Context, *DashboardConfigSetRequest) (*DashboardConfigSetResponse, error)
 	SetSome(*DashboardConfigSetSomeRequest, DashboardConfigService_SetSomeServer) error
 	Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error)
+	DeleteSome(*DashboardConfigDeleteSomeRequest, DashboardConfigService_DeleteSomeServer) error
 	DeleteAll(*DashboardConfigDeleteAllRequest, DashboardConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedDashboardConfigServiceServer()
 }
@@ -424,11 +699,20 @@ type UnimplementedDashboardConfigServiceServer struct {
 func (UnimplementedDashboardConfigServiceServer) GetOne(context.Context, *DashboardConfigRequest) (*DashboardConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDashboardConfigServiceServer) GetSome(*DashboardConfigSomeRequest, DashboardConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDashboardConfigServiceServer) GetAll(*DashboardConfigStreamRequest, DashboardConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDashboardConfigServiceServer) Subscribe(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDashboardConfigServiceServer) GetMeta(context.Context, *DashboardConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDashboardConfigServiceServer) SubscribeMeta(*DashboardConfigStreamRequest, DashboardConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedDashboardConfigServiceServer) Set(context.Context, *DashboardConfigSetRequest) (*DashboardConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -438,6 +722,9 @@ func (UnimplementedDashboardConfigServiceServer) SetSome(*DashboardConfigSetSome
 }
 func (UnimplementedDashboardConfigServiceServer) Delete(context.Context, *DashboardConfigDeleteRequest) (*DashboardConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDashboardConfigServiceServer) DeleteSome(*DashboardConfigDeleteSomeRequest, DashboardConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedDashboardConfigServiceServer) DeleteAll(*DashboardConfigDeleteAllRequest, DashboardConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -472,6 +759,27 @@ func _DashboardConfigService_GetOne_Handler(srv interface{}, ctx context.Context
 		return srv.(DashboardConfigServiceServer).GetOne(ctx, req.(*DashboardConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DashboardConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardConfigServiceServer).GetSome(m, &dashboardConfigServiceGetSomeServer{stream})
+}
+
+type DashboardConfigService_GetSomeServer interface {
+	Send(*DashboardConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type dashboardConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardConfigServiceGetSomeServer) Send(m *DashboardConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DashboardConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -513,6 +821,45 @@ type dashboardConfigServiceSubscribeServer struct {
 }
 
 func (x *dashboardConfigServiceSubscribeServer) Send(m *DashboardConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DashboardConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DashboardConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DashboardConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.dashboard.v1.DashboardConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DashboardConfigServiceServer).GetMeta(ctx, req.(*DashboardConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DashboardConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardConfigServiceServer).SubscribeMeta(m, &dashboardConfigServiceSubscribeMetaServer{stream})
+}
+
+type DashboardConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type dashboardConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -573,6 +920,27 @@ func _DashboardConfigService_Delete_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DashboardConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DashboardConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DashboardConfigServiceServer).DeleteSome(m, &dashboardConfigServiceDeleteSomeServer{stream})
+}
+
+type DashboardConfigService_DeleteSomeServer interface {
+	Send(*DashboardConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type dashboardConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *dashboardConfigServiceDeleteSomeServer) Send(m *DashboardConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DashboardConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(DashboardConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -606,6 +974,10 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DashboardConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _DashboardConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _DashboardConfigService_Set_Handler,
 		},
@@ -615,6 +987,11 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DashboardConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DashboardConfigService_GetAll_Handler,
@@ -626,8 +1003,18 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DashboardConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _DashboardConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _DashboardConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -644,7 +1031,9 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GlobalDashboardConfigServiceClient interface {
 	GetOne(ctx context.Context, in *GlobalDashboardConfigRequest, opts ...grpc.CallOption) (*GlobalDashboardConfigResponse, error)
+	GetAll(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeClient, error)
+	SubscribeMeta(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *GlobalDashboardConfigSetRequest, opts ...grpc.CallOption) (*GlobalDashboardConfigSetResponse, error)
 }
 
@@ -665,8 +1054,40 @@ func (c *globalDashboardConfigServiceClient) GetOne(ctx context.Context, in *Glo
 	return out, nil
 }
 
+func (c *globalDashboardConfigServiceClient) GetAll(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[0], "/arista.dashboard.v1.GlobalDashboardConfigService/GetAll", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &globalDashboardConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type GlobalDashboardConfigService_GetAllClient interface {
+	Recv() (*GlobalDashboardConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type globalDashboardConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *globalDashboardConfigServiceGetAllClient) Recv() (*GlobalDashboardConfigStreamResponse, error) {
+	m := new(GlobalDashboardConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *globalDashboardConfigServiceClient) Subscribe(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[0], "/arista.dashboard.v1.GlobalDashboardConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[1], "/arista.dashboard.v1.GlobalDashboardConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -697,6 +1118,38 @@ func (x *globalDashboardConfigServiceSubscribeClient) Recv() (*GlobalDashboardCo
 	return m, nil
 }
 
+func (c *globalDashboardConfigServiceClient) SubscribeMeta(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[2], "/arista.dashboard.v1.GlobalDashboardConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &globalDashboardConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type GlobalDashboardConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type globalDashboardConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *globalDashboardConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *globalDashboardConfigServiceClient) Set(ctx context.Context, in *GlobalDashboardConfigSetRequest, opts ...grpc.CallOption) (*GlobalDashboardConfigSetResponse, error) {
 	out := new(GlobalDashboardConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.dashboard.v1.GlobalDashboardConfigService/Set", in, out, opts...)
@@ -711,7 +1164,9 @@ func (c *globalDashboardConfigServiceClient) Set(ctx context.Context, in *Global
 // for forward compatibility
 type GlobalDashboardConfigServiceServer interface {
 	GetOne(context.Context, *GlobalDashboardConfigRequest) (*GlobalDashboardConfigResponse, error)
+	GetAll(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_GetAllServer) error
 	Subscribe(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeServer) error
+	SubscribeMeta(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeMetaServer) error
 	Set(context.Context, *GlobalDashboardConfigSetRequest) (*GlobalDashboardConfigSetResponse, error)
 	mustEmbedUnimplementedGlobalDashboardConfigServiceServer()
 }
@@ -723,8 +1178,14 @@ type UnimplementedGlobalDashboardConfigServiceServer struct {
 func (UnimplementedGlobalDashboardConfigServiceServer) GetOne(context.Context, *GlobalDashboardConfigRequest) (*GlobalDashboardConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedGlobalDashboardConfigServiceServer) GetAll(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
 func (UnimplementedGlobalDashboardConfigServiceServer) Subscribe(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedGlobalDashboardConfigServiceServer) SubscribeMeta(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedGlobalDashboardConfigServiceServer) Set(context.Context, *GlobalDashboardConfigSetRequest) (*GlobalDashboardConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -761,6 +1222,27 @@ func _GlobalDashboardConfigService_GetOne_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GlobalDashboardConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GlobalDashboardConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GlobalDashboardConfigServiceServer).GetAll(m, &globalDashboardConfigServiceGetAllServer{stream})
+}
+
+type GlobalDashboardConfigService_GetAllServer interface {
+	Send(*GlobalDashboardConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type globalDashboardConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *globalDashboardConfigServiceGetAllServer) Send(m *GlobalDashboardConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _GlobalDashboardConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(GlobalDashboardConfigStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -779,6 +1261,27 @@ type globalDashboardConfigServiceSubscribeServer struct {
 }
 
 func (x *globalDashboardConfigServiceSubscribeServer) Send(m *GlobalDashboardConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _GlobalDashboardConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GlobalDashboardConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GlobalDashboardConfigServiceServer).SubscribeMeta(m, &globalDashboardConfigServiceSubscribeMetaServer{stream})
+}
+
+type GlobalDashboardConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type globalDashboardConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *globalDashboardConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -818,8 +1321,18 @@ var GlobalDashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "GetAll",
+			Handler:       _GlobalDashboardConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "Subscribe",
 			Handler:       _GlobalDashboardConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _GlobalDashboardConfigService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
