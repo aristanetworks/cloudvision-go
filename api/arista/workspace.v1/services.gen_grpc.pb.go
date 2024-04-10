@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkspaceServiceClient interface {
 	GetOne(ctx context.Context, in *WorkspaceRequest, opts ...grpc.CallOption) (*WorkspaceResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceSomeRequest, opts ...grpc.CallOption) (WorkspaceService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeMetaClient, error)
 }
 
 type workspaceServiceClient struct {
@@ -40,8 +43,40 @@ func (c *workspaceServiceClient) GetOne(ctx context.Context, in *WorkspaceReques
 	return out, nil
 }
 
+func (c *workspaceServiceClient) GetSome(ctx context.Context, in *WorkspaceSomeRequest, opts ...grpc.CallOption) (WorkspaceService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceService_GetSomeClient interface {
+	Recv() (*WorkspaceSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceServiceGetSomeClient) Recv() (*WorkspaceSomeResponse, error) {
+	m := new(WorkspaceSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceServiceClient) GetAll(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *workspaceServiceGetAllClient) Recv() (*WorkspaceStreamResponse, error) 
 }
 
 func (c *workspaceServiceClient) Subscribe(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[2], "/arista.workspace.v1.WorkspaceService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *workspaceServiceSubscribeClient) Recv() (*WorkspaceStreamResponse, erro
 	return m, nil
 }
 
+func (c *workspaceServiceClient) GetMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.workspace.v1.WorkspaceService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[3], "/arista.workspace.v1.WorkspaceService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceServiceServer is the server API for WorkspaceService service.
 // All implementations must embed UnimplementedWorkspaceServiceServer
 // for forward compatibility
 type WorkspaceServiceServer interface {
 	GetOne(context.Context, *WorkspaceRequest) (*WorkspaceResponse, error)
+	GetSome(*WorkspaceSomeRequest, WorkspaceService_GetSomeServer) error
 	GetAll(*WorkspaceStreamRequest, WorkspaceService_GetAllServer) error
 	Subscribe(*WorkspaceStreamRequest, WorkspaceService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceStreamRequest, WorkspaceService_SubscribeMetaServer) error
 	mustEmbedUnimplementedWorkspaceServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedWorkspaceServiceServer struct {
 func (UnimplementedWorkspaceServiceServer) GetOne(context.Context, *WorkspaceRequest) (*WorkspaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedWorkspaceServiceServer) GetSome(*WorkspaceSomeRequest, WorkspaceService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedWorkspaceServiceServer) GetAll(*WorkspaceStreamRequest, WorkspaceService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedWorkspaceServiceServer) Subscribe(*WorkspaceStreamRequest, WorkspaceService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceServiceServer) GetMeta(context.Context, *WorkspaceStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceServiceServer) SubscribeMeta(*WorkspaceStreamRequest, WorkspaceService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedWorkspaceServiceServer) mustEmbedUnimplementedWorkspaceServiceServer() {}
 
@@ -156,6 +244,27 @@ func _WorkspaceService_GetOne_Handler(srv interface{}, ctx context.Context, dec 
 		return srv.(WorkspaceServiceServer).GetOne(ctx, req.(*WorkspaceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServiceServer).GetSome(m, &workspaceServiceGetSomeServer{stream})
+}
+
+type WorkspaceService_GetSomeServer interface {
+	Send(*WorkspaceSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceServiceGetSomeServer) Send(m *WorkspaceSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _WorkspaceService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *workspaceServiceSubscribeServer) Send(m *WorkspaceStreamResponse) error
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.workspace.v1.WorkspaceService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServiceServer).GetMeta(ctx, req.(*WorkspaceStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServiceServer).SubscribeMeta(m, &workspaceServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceService_ServiceDesc is the grpc.ServiceDesc for WorkspaceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _WorkspaceService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _WorkspaceService_GetAll_Handler,
@@ -221,6 +378,11 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _WorkspaceService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,8 +394,11 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkspaceBuildServiceClient interface {
 	GetOne(ctx context.Context, in *WorkspaceBuildRequest, opts ...grpc.CallOption) (*WorkspaceBuildResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceBuildSomeRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeMetaClient, error)
 }
 
 type workspaceBuildServiceClient struct {
@@ -253,8 +418,40 @@ func (c *workspaceBuildServiceClient) GetOne(ctx context.Context, in *WorkspaceB
 	return out, nil
 }
 
+func (c *workspaceBuildServiceClient) GetSome(ctx context.Context, in *WorkspaceBuildSomeRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceBuildService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildService_GetSomeClient interface {
+	Recv() (*WorkspaceBuildSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildServiceGetSomeClient) Recv() (*WorkspaceBuildSomeResponse, error) {
+	m := new(WorkspaceBuildSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceBuildServiceClient) GetAll(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceBuildService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceBuildService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +483,7 @@ func (x *workspaceBuildServiceGetAllClient) Recv() (*WorkspaceBuildStreamRespons
 }
 
 func (c *workspaceBuildServiceClient) Subscribe(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceBuildService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[2], "/arista.workspace.v1.WorkspaceBuildService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -317,13 +514,57 @@ func (x *workspaceBuildServiceSubscribeClient) Recv() (*WorkspaceBuildStreamResp
 	return m, nil
 }
 
+func (c *workspaceBuildServiceClient) GetMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.workspace.v1.WorkspaceBuildService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceBuildServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[3], "/arista.workspace.v1.WorkspaceBuildService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceBuildServiceServer is the server API for WorkspaceBuildService service.
 // All implementations must embed UnimplementedWorkspaceBuildServiceServer
 // for forward compatibility
 type WorkspaceBuildServiceServer interface {
 	GetOne(context.Context, *WorkspaceBuildRequest) (*WorkspaceBuildResponse, error)
+	GetSome(*WorkspaceBuildSomeRequest, WorkspaceBuildService_GetSomeServer) error
 	GetAll(*WorkspaceBuildStreamRequest, WorkspaceBuildService_GetAllServer) error
 	Subscribe(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceBuildStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeMetaServer) error
 	mustEmbedUnimplementedWorkspaceBuildServiceServer()
 }
 
@@ -334,11 +575,20 @@ type UnimplementedWorkspaceBuildServiceServer struct {
 func (UnimplementedWorkspaceBuildServiceServer) GetOne(context.Context, *WorkspaceBuildRequest) (*WorkspaceBuildResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedWorkspaceBuildServiceServer) GetSome(*WorkspaceBuildSomeRequest, WorkspaceBuildService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedWorkspaceBuildServiceServer) GetAll(*WorkspaceBuildStreamRequest, WorkspaceBuildService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedWorkspaceBuildServiceServer) Subscribe(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceBuildServiceServer) GetMeta(context.Context, *WorkspaceBuildStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceBuildServiceServer) SubscribeMeta(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedWorkspaceBuildServiceServer) mustEmbedUnimplementedWorkspaceBuildServiceServer() {}
 
@@ -369,6 +619,27 @@ func _WorkspaceBuildService_GetOne_Handler(srv interface{}, ctx context.Context,
 		return srv.(WorkspaceBuildServiceServer).GetOne(ctx, req.(*WorkspaceBuildRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceBuildService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildServiceServer).GetSome(m, &workspaceBuildServiceGetSomeServer{stream})
+}
+
+type WorkspaceBuildService_GetSomeServer interface {
+	Send(*WorkspaceBuildSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildServiceGetSomeServer) Send(m *WorkspaceBuildSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _WorkspaceBuildService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -413,6 +684,45 @@ func (x *workspaceBuildServiceSubscribeServer) Send(m *WorkspaceBuildStreamRespo
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceBuildService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceBuildStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceBuildServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.workspace.v1.WorkspaceBuildService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceBuildServiceServer).GetMeta(ctx, req.(*WorkspaceBuildStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceBuildService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildServiceServer).SubscribeMeta(m, &workspaceBuildServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceBuildService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceBuildService_ServiceDesc is the grpc.ServiceDesc for WorkspaceBuildService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -424,8 +734,17 @@ var WorkspaceBuildService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _WorkspaceBuildService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceBuildService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceBuildService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _WorkspaceBuildService_GetAll_Handler,
@@ -434,6 +753,11 @@ var WorkspaceBuildService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _WorkspaceBuildService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceBuildService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -445,8 +769,11 @@ var WorkspaceBuildService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkspaceBuildDetailsServiceClient interface {
 	GetOne(ctx context.Context, in *WorkspaceBuildDetailsRequest, opts ...grpc.CallOption) (*WorkspaceBuildDetailsResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceBuildDetailsSomeRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeMetaClient, error)
 }
 
 type workspaceBuildDetailsServiceClient struct {
@@ -466,8 +793,40 @@ func (c *workspaceBuildDetailsServiceClient) GetOne(ctx context.Context, in *Wor
 	return out, nil
 }
 
+func (c *workspaceBuildDetailsServiceClient) GetSome(ctx context.Context, in *WorkspaceBuildDetailsSomeRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceBuildDetailsService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildDetailsServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildDetailsService_GetSomeClient interface {
+	Recv() (*WorkspaceBuildDetailsSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildDetailsServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildDetailsServiceGetSomeClient) Recv() (*WorkspaceBuildDetailsSomeResponse, error) {
+	m := new(WorkspaceBuildDetailsSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceBuildDetailsServiceClient) GetAll(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceBuildDetailsService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceBuildDetailsService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +858,7 @@ func (x *workspaceBuildDetailsServiceGetAllClient) Recv() (*WorkspaceBuildDetail
 }
 
 func (c *workspaceBuildDetailsServiceClient) Subscribe(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceBuildDetailsService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[2], "/arista.workspace.v1.WorkspaceBuildDetailsService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -530,13 +889,57 @@ func (x *workspaceBuildDetailsServiceSubscribeClient) Recv() (*WorkspaceBuildDet
 	return m, nil
 }
 
+func (c *workspaceBuildDetailsServiceClient) GetMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.workspace.v1.WorkspaceBuildDetailsService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceBuildDetailsServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[3], "/arista.workspace.v1.WorkspaceBuildDetailsService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildDetailsServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildDetailsService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildDetailsServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildDetailsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceBuildDetailsServiceServer is the server API for WorkspaceBuildDetailsService service.
 // All implementations must embed UnimplementedWorkspaceBuildDetailsServiceServer
 // for forward compatibility
 type WorkspaceBuildDetailsServiceServer interface {
 	GetOne(context.Context, *WorkspaceBuildDetailsRequest) (*WorkspaceBuildDetailsResponse, error)
+	GetSome(*WorkspaceBuildDetailsSomeRequest, WorkspaceBuildDetailsService_GetSomeServer) error
 	GetAll(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_GetAllServer) error
 	Subscribe(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceBuildDetailsStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeMetaServer) error
 	mustEmbedUnimplementedWorkspaceBuildDetailsServiceServer()
 }
 
@@ -547,11 +950,20 @@ type UnimplementedWorkspaceBuildDetailsServiceServer struct {
 func (UnimplementedWorkspaceBuildDetailsServiceServer) GetOne(context.Context, *WorkspaceBuildDetailsRequest) (*WorkspaceBuildDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedWorkspaceBuildDetailsServiceServer) GetSome(*WorkspaceBuildDetailsSomeRequest, WorkspaceBuildDetailsService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedWorkspaceBuildDetailsServiceServer) GetAll(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedWorkspaceBuildDetailsServiceServer) Subscribe(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceBuildDetailsServiceServer) GetMeta(context.Context, *WorkspaceBuildDetailsStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceBuildDetailsServiceServer) SubscribeMeta(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedWorkspaceBuildDetailsServiceServer) mustEmbedUnimplementedWorkspaceBuildDetailsServiceServer() {
 }
@@ -583,6 +995,27 @@ func _WorkspaceBuildDetailsService_GetOne_Handler(srv interface{}, ctx context.C
 		return srv.(WorkspaceBuildDetailsServiceServer).GetOne(ctx, req.(*WorkspaceBuildDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceBuildDetailsService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildDetailsSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildDetailsServiceServer).GetSome(m, &workspaceBuildDetailsServiceGetSomeServer{stream})
+}
+
+type WorkspaceBuildDetailsService_GetSomeServer interface {
+	Send(*WorkspaceBuildDetailsSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildDetailsServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildDetailsServiceGetSomeServer) Send(m *WorkspaceBuildDetailsSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _WorkspaceBuildDetailsService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -627,6 +1060,45 @@ func (x *workspaceBuildDetailsServiceSubscribeServer) Send(m *WorkspaceBuildDeta
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceBuildDetailsService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceBuildDetailsStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceBuildDetailsServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.workspace.v1.WorkspaceBuildDetailsService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceBuildDetailsServiceServer).GetMeta(ctx, req.(*WorkspaceBuildDetailsStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceBuildDetailsService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildDetailsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildDetailsServiceServer).SubscribeMeta(m, &workspaceBuildDetailsServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceBuildDetailsService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildDetailsServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildDetailsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceBuildDetailsService_ServiceDesc is the grpc.ServiceDesc for WorkspaceBuildDetailsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -638,8 +1110,17 @@ var WorkspaceBuildDetailsService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _WorkspaceBuildDetailsService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceBuildDetailsService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceBuildDetailsService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _WorkspaceBuildDetailsService_GetAll_Handler,
@@ -648,6 +1129,11 @@ var WorkspaceBuildDetailsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _WorkspaceBuildDetailsService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceBuildDetailsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -659,11 +1145,15 @@ var WorkspaceBuildDetailsService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkspaceConfigServiceClient interface {
 	GetOne(ctx context.Context, in *WorkspaceConfigRequest, opts ...grpc.CallOption) (*WorkspaceConfigResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceConfigSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *WorkspaceConfigSetRequest, opts ...grpc.CallOption) (*WorkspaceConfigSetResponse, error)
 	SetSome(ctx context.Context, in *WorkspaceConfigSetSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *WorkspaceConfigDeleteRequest, opts ...grpc.CallOption) (*WorkspaceConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *WorkspaceConfigDeleteSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *WorkspaceConfigDeleteAllRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteAllClient, error)
 }
 
@@ -684,8 +1174,40 @@ func (c *workspaceConfigServiceClient) GetOne(ctx context.Context, in *Workspace
 	return out, nil
 }
 
+func (c *workspaceConfigServiceClient) GetSome(ctx context.Context, in *WorkspaceConfigSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceConfigService_GetSomeClient interface {
+	Recv() (*WorkspaceConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceConfigServiceGetSomeClient) Recv() (*WorkspaceConfigSomeResponse, error) {
+	m := new(WorkspaceConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceConfigServiceClient) GetAll(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[0], "/arista.workspace.v1.WorkspaceConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -717,7 +1239,7 @@ func (x *workspaceConfigServiceGetAllClient) Recv() (*WorkspaceConfigStreamRespo
 }
 
 func (c *workspaceConfigServiceClient) Subscribe(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[1], "/arista.workspace.v1.WorkspaceConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[2], "/arista.workspace.v1.WorkspaceConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -748,6 +1270,47 @@ func (x *workspaceConfigServiceSubscribeClient) Recv() (*WorkspaceConfigStreamRe
 	return m, nil
 }
 
+func (c *workspaceConfigServiceClient) GetMeta(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.workspace.v1.WorkspaceConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceConfigServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[3], "/arista.workspace.v1.WorkspaceConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceConfigServiceClient) Set(ctx context.Context, in *WorkspaceConfigSetRequest, opts ...grpc.CallOption) (*WorkspaceConfigSetResponse, error) {
 	out := new(WorkspaceConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.workspace.v1.WorkspaceConfigService/Set", in, out, opts...)
@@ -758,7 +1321,7 @@ func (c *workspaceConfigServiceClient) Set(ctx context.Context, in *WorkspaceCon
 }
 
 func (c *workspaceConfigServiceClient) SetSome(ctx context.Context, in *WorkspaceConfigSetSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[2], "/arista.workspace.v1.WorkspaceConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[4], "/arista.workspace.v1.WorkspaceConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -798,8 +1361,40 @@ func (c *workspaceConfigServiceClient) Delete(ctx context.Context, in *Workspace
 	return out, nil
 }
 
+func (c *workspaceConfigServiceClient) DeleteSome(ctx context.Context, in *WorkspaceConfigDeleteSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[5], "/arista.workspace.v1.WorkspaceConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceConfigService_DeleteSomeClient interface {
+	Recv() (*WorkspaceConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceConfigServiceDeleteSomeClient) Recv() (*WorkspaceConfigDeleteSomeResponse, error) {
+	m := new(WorkspaceConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *workspaceConfigServiceClient) DeleteAll(ctx context.Context, in *WorkspaceConfigDeleteAllRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[3], "/arista.workspace.v1.WorkspaceConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[6], "/arista.workspace.v1.WorkspaceConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -835,11 +1430,15 @@ func (x *workspaceConfigServiceDeleteAllClient) Recv() (*WorkspaceConfigDeleteAl
 // for forward compatibility
 type WorkspaceConfigServiceServer interface {
 	GetOne(context.Context, *WorkspaceConfigRequest) (*WorkspaceConfigResponse, error)
+	GetSome(*WorkspaceConfigSomeRequest, WorkspaceConfigService_GetSomeServer) error
 	GetAll(*WorkspaceConfigStreamRequest, WorkspaceConfigService_GetAllServer) error
 	Subscribe(*WorkspaceConfigStreamRequest, WorkspaceConfigService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceConfigStreamRequest, WorkspaceConfigService_SubscribeMetaServer) error
 	Set(context.Context, *WorkspaceConfigSetRequest) (*WorkspaceConfigSetResponse, error)
 	SetSome(*WorkspaceConfigSetSomeRequest, WorkspaceConfigService_SetSomeServer) error
 	Delete(context.Context, *WorkspaceConfigDeleteRequest) (*WorkspaceConfigDeleteResponse, error)
+	DeleteSome(*WorkspaceConfigDeleteSomeRequest, WorkspaceConfigService_DeleteSomeServer) error
 	DeleteAll(*WorkspaceConfigDeleteAllRequest, WorkspaceConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedWorkspaceConfigServiceServer()
 }
@@ -851,11 +1450,20 @@ type UnimplementedWorkspaceConfigServiceServer struct {
 func (UnimplementedWorkspaceConfigServiceServer) GetOne(context.Context, *WorkspaceConfigRequest) (*WorkspaceConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedWorkspaceConfigServiceServer) GetSome(*WorkspaceConfigSomeRequest, WorkspaceConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedWorkspaceConfigServiceServer) GetAll(*WorkspaceConfigStreamRequest, WorkspaceConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedWorkspaceConfigServiceServer) Subscribe(*WorkspaceConfigStreamRequest, WorkspaceConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceConfigServiceServer) GetMeta(context.Context, *WorkspaceConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceConfigServiceServer) SubscribeMeta(*WorkspaceConfigStreamRequest, WorkspaceConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedWorkspaceConfigServiceServer) Set(context.Context, *WorkspaceConfigSetRequest) (*WorkspaceConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -865,6 +1473,9 @@ func (UnimplementedWorkspaceConfigServiceServer) SetSome(*WorkspaceConfigSetSome
 }
 func (UnimplementedWorkspaceConfigServiceServer) Delete(context.Context, *WorkspaceConfigDeleteRequest) (*WorkspaceConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedWorkspaceConfigServiceServer) DeleteSome(*WorkspaceConfigDeleteSomeRequest, WorkspaceConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedWorkspaceConfigServiceServer) DeleteAll(*WorkspaceConfigDeleteAllRequest, WorkspaceConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -899,6 +1510,27 @@ func _WorkspaceConfigService_GetOne_Handler(srv interface{}, ctx context.Context
 		return srv.(WorkspaceConfigServiceServer).GetOne(ctx, req.(*WorkspaceConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceConfigServiceServer).GetSome(m, &workspaceConfigServiceGetSomeServer{stream})
+}
+
+type WorkspaceConfigService_GetSomeServer interface {
+	Send(*WorkspaceConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceConfigServiceGetSomeServer) Send(m *WorkspaceConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _WorkspaceConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -940,6 +1572,45 @@ type workspaceConfigServiceSubscribeServer struct {
 }
 
 func (x *workspaceConfigServiceSubscribeServer) Send(m *WorkspaceConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.workspace.v1.WorkspaceConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceConfigServiceServer).GetMeta(ctx, req.(*WorkspaceConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceConfigServiceServer).SubscribeMeta(m, &workspaceConfigServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1000,6 +1671,27 @@ func _WorkspaceConfigService_Delete_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkspaceConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceConfigServiceServer).DeleteSome(m, &workspaceConfigServiceDeleteSomeServer{stream})
+}
+
+type WorkspaceConfigService_DeleteSomeServer interface {
+	Send(*WorkspaceConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceConfigServiceDeleteSomeServer) Send(m *WorkspaceConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _WorkspaceConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(WorkspaceConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1033,6 +1725,10 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _WorkspaceConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _WorkspaceConfigService_Set_Handler,
 		},
@@ -1042,6 +1738,11 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _WorkspaceConfigService_GetAll_Handler,
@@ -1053,8 +1754,18 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _WorkspaceConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _WorkspaceConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
