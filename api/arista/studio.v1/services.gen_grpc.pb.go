@@ -19,8 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AssignedTagsServiceClient interface {
 	GetOne(ctx context.Context, in *AssignedTagsRequest, opts ...grpc.CallOption) (*AssignedTagsResponse, error)
+	GetSome(ctx context.Context, in *AssignedTagsSomeRequest, opts ...grpc.CallOption) (AssignedTagsService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeMetaClient, error)
 }
 
 type assignedTagsServiceClient struct {
@@ -40,8 +43,40 @@ func (c *assignedTagsServiceClient) GetOne(ctx context.Context, in *AssignedTags
 	return out, nil
 }
 
+func (c *assignedTagsServiceClient) GetSome(ctx context.Context, in *AssignedTagsSomeRequest, opts ...grpc.CallOption) (AssignedTagsService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[0], "/arista.studio.v1.AssignedTagsService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsService_GetSomeClient interface {
+	Recv() (*AssignedTagsSomeResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsServiceGetSomeClient) Recv() (*AssignedTagsSomeResponse, error) {
+	m := new(AssignedTagsSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *assignedTagsServiceClient) GetAll(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[0], "/arista.studio.v1.AssignedTagsService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[1], "/arista.studio.v1.AssignedTagsService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +108,7 @@ func (x *assignedTagsServiceGetAllClient) Recv() (*AssignedTagsStreamResponse, e
 }
 
 func (c *assignedTagsServiceClient) Subscribe(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[1], "/arista.studio.v1.AssignedTagsService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[2], "/arista.studio.v1.AssignedTagsService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +139,57 @@ func (x *assignedTagsServiceSubscribeClient) Recv() (*AssignedTagsStreamResponse
 	return m, nil
 }
 
+func (c *assignedTagsServiceClient) GetMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AssignedTagsService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assignedTagsServiceClient) SubscribeMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[3], "/arista.studio.v1.AssignedTagsService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AssignedTagsServiceServer is the server API for AssignedTagsService service.
 // All implementations must embed UnimplementedAssignedTagsServiceServer
 // for forward compatibility
 type AssignedTagsServiceServer interface {
 	GetOne(context.Context, *AssignedTagsRequest) (*AssignedTagsResponse, error)
+	GetSome(*AssignedTagsSomeRequest, AssignedTagsService_GetSomeServer) error
 	GetAll(*AssignedTagsStreamRequest, AssignedTagsService_GetAllServer) error
 	Subscribe(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeServer) error
+	GetMeta(context.Context, *AssignedTagsStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeMetaServer) error
 	mustEmbedUnimplementedAssignedTagsServiceServer()
 }
 
@@ -121,11 +200,20 @@ type UnimplementedAssignedTagsServiceServer struct {
 func (UnimplementedAssignedTagsServiceServer) GetOne(context.Context, *AssignedTagsRequest) (*AssignedTagsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAssignedTagsServiceServer) GetSome(*AssignedTagsSomeRequest, AssignedTagsService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedAssignedTagsServiceServer) GetAll(*AssignedTagsStreamRequest, AssignedTagsService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedAssignedTagsServiceServer) Subscribe(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAssignedTagsServiceServer) GetMeta(context.Context, *AssignedTagsStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAssignedTagsServiceServer) SubscribeMeta(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAssignedTagsServiceServer) mustEmbedUnimplementedAssignedTagsServiceServer() {}
 
@@ -156,6 +244,27 @@ func _AssignedTagsService_GetOne_Handler(srv interface{}, ctx context.Context, d
 		return srv.(AssignedTagsServiceServer).GetOne(ctx, req.(*AssignedTagsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignedTagsService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsServiceServer).GetSome(m, &assignedTagsServiceGetSomeServer{stream})
+}
+
+type AssignedTagsService_GetSomeServer interface {
+	Send(*AssignedTagsSomeResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsServiceGetSomeServer) Send(m *AssignedTagsSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AssignedTagsService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -200,6 +309,45 @@ func (x *assignedTagsServiceSubscribeServer) Send(m *AssignedTagsStreamResponse)
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AssignedTagsService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignedTagsStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssignedTagsServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AssignedTagsService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssignedTagsServiceServer).GetMeta(ctx, req.(*AssignedTagsStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignedTagsService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsServiceServer).SubscribeMeta(m, &assignedTagsServiceSubscribeMetaServer{stream})
+}
+
+type AssignedTagsService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AssignedTagsService_ServiceDesc is the grpc.ServiceDesc for AssignedTagsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,8 +359,17 @@ var AssignedTagsService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _AssignedTagsService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _AssignedTagsService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AssignedTagsService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _AssignedTagsService_GetAll_Handler,
@@ -221,6 +378,11 @@ var AssignedTagsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _AssignedTagsService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AssignedTagsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -232,11 +394,15 @@ var AssignedTagsService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AssignedTagsConfigServiceClient interface {
 	GetOne(ctx context.Context, in *AssignedTagsConfigRequest, opts ...grpc.CallOption) (*AssignedTagsConfigResponse, error)
+	GetSome(ctx context.Context, in *AssignedTagsConfigSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *AssignedTagsConfigSetRequest, opts ...grpc.CallOption) (*AssignedTagsConfigSetResponse, error)
 	SetSome(ctx context.Context, in *AssignedTagsConfigSetSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *AssignedTagsConfigDeleteRequest, opts ...grpc.CallOption) (*AssignedTagsConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *AssignedTagsConfigDeleteSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *AssignedTagsConfigDeleteAllRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteAllClient, error)
 }
 
@@ -257,8 +423,40 @@ func (c *assignedTagsConfigServiceClient) GetOne(ctx context.Context, in *Assign
 	return out, nil
 }
 
+func (c *assignedTagsConfigServiceClient) GetSome(ctx context.Context, in *AssignedTagsConfigSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.AssignedTagsConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_GetSomeClient interface {
+	Recv() (*AssignedTagsConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceGetSomeClient) Recv() (*AssignedTagsConfigSomeResponse, error) {
+	m := new(AssignedTagsConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *assignedTagsConfigServiceClient) GetAll(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.AssignedTagsConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.AssignedTagsConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +488,7 @@ func (x *assignedTagsConfigServiceGetAllClient) Recv() (*AssignedTagsConfigStrea
 }
 
 func (c *assignedTagsConfigServiceClient) Subscribe(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.AssignedTagsConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AssignedTagsConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,6 +519,47 @@ func (x *assignedTagsConfigServiceSubscribeClient) Recv() (*AssignedTagsConfigSt
 	return m, nil
 }
 
+func (c *assignedTagsConfigServiceClient) GetMeta(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AssignedTagsConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assignedTagsConfigServiceClient) SubscribeMeta(ctx context.Context, in *AssignedTagsConfigStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AssignedTagsConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *assignedTagsConfigServiceClient) Set(ctx context.Context, in *AssignedTagsConfigSetRequest, opts ...grpc.CallOption) (*AssignedTagsConfigSetResponse, error) {
 	out := new(AssignedTagsConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.AssignedTagsConfigService/Set", in, out, opts...)
@@ -331,7 +570,7 @@ func (c *assignedTagsConfigServiceClient) Set(ctx context.Context, in *AssignedT
 }
 
 func (c *assignedTagsConfigServiceClient) SetSome(ctx context.Context, in *AssignedTagsConfigSetSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AssignedTagsConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[4], "/arista.studio.v1.AssignedTagsConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -371,8 +610,40 @@ func (c *assignedTagsConfigServiceClient) Delete(ctx context.Context, in *Assign
 	return out, nil
 }
 
+func (c *assignedTagsConfigServiceClient) DeleteSome(ctx context.Context, in *AssignedTagsConfigDeleteSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[5], "/arista.studio.v1.AssignedTagsConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_DeleteSomeClient interface {
+	Recv() (*AssignedTagsConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceDeleteSomeClient) Recv() (*AssignedTagsConfigDeleteSomeResponse, error) {
+	m := new(AssignedTagsConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *assignedTagsConfigServiceClient) DeleteAll(ctx context.Context, in *AssignedTagsConfigDeleteAllRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AssignedTagsConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[6], "/arista.studio.v1.AssignedTagsConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -408,11 +679,15 @@ func (x *assignedTagsConfigServiceDeleteAllClient) Recv() (*AssignedTagsConfigDe
 // for forward compatibility
 type AssignedTagsConfigServiceServer interface {
 	GetOne(context.Context, *AssignedTagsConfigRequest) (*AssignedTagsConfigResponse, error)
+	GetSome(*AssignedTagsConfigSomeRequest, AssignedTagsConfigService_GetSomeServer) error
 	GetAll(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_GetAllServer) error
 	Subscribe(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_SubscribeServer) error
+	GetMeta(context.Context, *AssignedTagsConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_SubscribeMetaServer) error
 	Set(context.Context, *AssignedTagsConfigSetRequest) (*AssignedTagsConfigSetResponse, error)
 	SetSome(*AssignedTagsConfigSetSomeRequest, AssignedTagsConfigService_SetSomeServer) error
 	Delete(context.Context, *AssignedTagsConfigDeleteRequest) (*AssignedTagsConfigDeleteResponse, error)
+	DeleteSome(*AssignedTagsConfigDeleteSomeRequest, AssignedTagsConfigService_DeleteSomeServer) error
 	DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedAssignedTagsConfigServiceServer()
 }
@@ -424,11 +699,20 @@ type UnimplementedAssignedTagsConfigServiceServer struct {
 func (UnimplementedAssignedTagsConfigServiceServer) GetOne(context.Context, *AssignedTagsConfigRequest) (*AssignedTagsConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAssignedTagsConfigServiceServer) GetSome(*AssignedTagsConfigSomeRequest, AssignedTagsConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedAssignedTagsConfigServiceServer) GetAll(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedAssignedTagsConfigServiceServer) Subscribe(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) GetMeta(context.Context, *AssignedTagsConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) SubscribeMeta(*AssignedTagsConfigStreamRequest, AssignedTagsConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAssignedTagsConfigServiceServer) Set(context.Context, *AssignedTagsConfigSetRequest) (*AssignedTagsConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -438,6 +722,9 @@ func (UnimplementedAssignedTagsConfigServiceServer) SetSome(*AssignedTagsConfigS
 }
 func (UnimplementedAssignedTagsConfigServiceServer) Delete(context.Context, *AssignedTagsConfigDeleteRequest) (*AssignedTagsConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) DeleteSome(*AssignedTagsConfigDeleteSomeRequest, AssignedTagsConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedAssignedTagsConfigServiceServer) DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -472,6 +759,27 @@ func _AssignedTagsConfigService_GetOne_Handler(srv interface{}, ctx context.Cont
 		return srv.(AssignedTagsConfigServiceServer).GetOne(ctx, req.(*AssignedTagsConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignedTagsConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).GetSome(m, &assignedTagsConfigServiceGetSomeServer{stream})
+}
+
+type AssignedTagsConfigService_GetSomeServer interface {
+	Send(*AssignedTagsConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceGetSomeServer) Send(m *AssignedTagsConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AssignedTagsConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -513,6 +821,45 @@ type assignedTagsConfigServiceSubscribeServer struct {
 }
 
 func (x *assignedTagsConfigServiceSubscribeServer) Send(m *AssignedTagsConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignedTagsConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignedTagsConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssignedTagsConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AssignedTagsConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssignedTagsConfigServiceServer).GetMeta(ctx, req.(*AssignedTagsConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignedTagsConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).SubscribeMeta(m, &assignedTagsConfigServiceSubscribeMetaServer{stream})
+}
+
+type AssignedTagsConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -573,6 +920,27 @@ func _AssignedTagsConfigService_Delete_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssignedTagsConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).DeleteSome(m, &assignedTagsConfigServiceDeleteSomeServer{stream})
+}
+
+type AssignedTagsConfigService_DeleteSomeServer interface {
+	Send(*AssignedTagsConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceDeleteSomeServer) Send(m *AssignedTagsConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _AssignedTagsConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(AssignedTagsConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -606,6 +974,10 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AssignedTagsConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _AssignedTagsConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _AssignedTagsConfigService_Set_Handler,
 		},
@@ -615,6 +987,11 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AssignedTagsConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _AssignedTagsConfigService_GetAll_Handler,
@@ -626,8 +1003,18 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AssignedTagsConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _AssignedTagsConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _AssignedTagsConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -644,8 +1031,11 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AutofillActionServiceClient interface {
 	GetOne(ctx context.Context, in *AutofillActionRequest, opts ...grpc.CallOption) (*AutofillActionResponse, error)
+	GetSome(ctx context.Context, in *AutofillActionSomeRequest, opts ...grpc.CallOption) (AutofillActionService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeMetaClient, error)
 }
 
 type autofillActionServiceClient struct {
@@ -665,8 +1055,40 @@ func (c *autofillActionServiceClient) GetOne(ctx context.Context, in *AutofillAc
 	return out, nil
 }
 
+func (c *autofillActionServiceClient) GetSome(ctx context.Context, in *AutofillActionSomeRequest, opts ...grpc.CallOption) (AutofillActionService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_GetSomeClient interface {
+	Recv() (*AutofillActionSomeResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceGetSomeClient) Recv() (*AutofillActionSomeResponse, error) {
+	m := new(AutofillActionSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *autofillActionServiceClient) GetAll(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -698,7 +1120,7 @@ func (x *autofillActionServiceGetAllClient) Recv() (*AutofillActionStreamRespons
 }
 
 func (c *autofillActionServiceClient) Subscribe(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[2], "/arista.studio.v1.AutofillActionService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -729,13 +1151,57 @@ func (x *autofillActionServiceSubscribeClient) Recv() (*AutofillActionStreamResp
 	return m, nil
 }
 
+func (c *autofillActionServiceClient) GetMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionServiceClient) SubscribeMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[3], "/arista.studio.v1.AutofillActionService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AutofillActionServiceServer is the server API for AutofillActionService service.
 // All implementations must embed UnimplementedAutofillActionServiceServer
 // for forward compatibility
 type AutofillActionServiceServer interface {
 	GetOne(context.Context, *AutofillActionRequest) (*AutofillActionResponse, error)
+	GetSome(*AutofillActionSomeRequest, AutofillActionService_GetSomeServer) error
 	GetAll(*AutofillActionStreamRequest, AutofillActionService_GetAllServer) error
 	Subscribe(*AutofillActionStreamRequest, AutofillActionService_SubscribeServer) error
+	GetMeta(context.Context, *AutofillActionStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AutofillActionStreamRequest, AutofillActionService_SubscribeMetaServer) error
 	mustEmbedUnimplementedAutofillActionServiceServer()
 }
 
@@ -746,11 +1212,20 @@ type UnimplementedAutofillActionServiceServer struct {
 func (UnimplementedAutofillActionServiceServer) GetOne(context.Context, *AutofillActionRequest) (*AutofillActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAutofillActionServiceServer) GetSome(*AutofillActionSomeRequest, AutofillActionService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedAutofillActionServiceServer) GetAll(*AutofillActionStreamRequest, AutofillActionService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedAutofillActionServiceServer) Subscribe(*AutofillActionStreamRequest, AutofillActionService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) GetMeta(context.Context, *AutofillActionStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) SubscribeMeta(*AutofillActionStreamRequest, AutofillActionService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAutofillActionServiceServer) mustEmbedUnimplementedAutofillActionServiceServer() {}
 
@@ -781,6 +1256,27 @@ func _AutofillActionService_GetOne_Handler(srv interface{}, ctx context.Context,
 		return srv.(AutofillActionServiceServer).GetOne(ctx, req.(*AutofillActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).GetSome(m, &autofillActionServiceGetSomeServer{stream})
+}
+
+type AutofillActionService_GetSomeServer interface {
+	Send(*AutofillActionSomeResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceGetSomeServer) Send(m *AutofillActionSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AutofillActionService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -825,6 +1321,45 @@ func (x *autofillActionServiceSubscribeServer) Send(m *AutofillActionStreamRespo
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AutofillActionService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionServiceServer).GetMeta(ctx, req.(*AutofillActionStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).SubscribeMeta(m, &autofillActionServiceSubscribeMetaServer{stream})
+}
+
+type AutofillActionService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AutofillActionService_ServiceDesc is the grpc.ServiceDesc for AutofillActionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -836,8 +1371,17 @@ var AutofillActionService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _AutofillActionService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _AutofillActionService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AutofillActionService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _AutofillActionService_GetAll_Handler,
@@ -846,6 +1390,11 @@ var AutofillActionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _AutofillActionService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AutofillActionService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -857,11 +1406,15 @@ var AutofillActionService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AutofillActionConfigServiceClient interface {
 	GetOne(ctx context.Context, in *AutofillActionConfigRequest, opts ...grpc.CallOption) (*AutofillActionConfigResponse, error)
+	GetSome(ctx context.Context, in *AutofillActionConfigSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *AutofillActionConfigSetRequest, opts ...grpc.CallOption) (*AutofillActionConfigSetResponse, error)
 	SetSome(ctx context.Context, in *AutofillActionConfigSetSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *AutofillActionConfigDeleteRequest, opts ...grpc.CallOption) (*AutofillActionConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *AutofillActionConfigDeleteSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *AutofillActionConfigDeleteAllRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteAllClient, error)
 }
 
@@ -882,8 +1435,40 @@ func (c *autofillActionConfigServiceClient) GetOne(ctx context.Context, in *Auto
 	return out, nil
 }
 
+func (c *autofillActionConfigServiceClient) GetSome(ctx context.Context, in *AutofillActionConfigSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_GetSomeClient interface {
+	Recv() (*AutofillActionConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceGetSomeClient) Recv() (*AutofillActionConfigSomeResponse, error) {
+	m := new(AutofillActionConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *autofillActionConfigServiceClient) GetAll(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.AutofillActionConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -915,7 +1500,7 @@ func (x *autofillActionConfigServiceGetAllClient) Recv() (*AutofillActionConfigS
 }
 
 func (c *autofillActionConfigServiceClient) Subscribe(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.AutofillActionConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AutofillActionConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -946,6 +1531,47 @@ func (x *autofillActionConfigServiceSubscribeClient) Recv() (*AutofillActionConf
 	return m, nil
 }
 
+func (c *autofillActionConfigServiceClient) GetMeta(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *autofillActionConfigServiceClient) SubscribeMeta(ctx context.Context, in *AutofillActionConfigStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AutofillActionConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *autofillActionConfigServiceClient) Set(ctx context.Context, in *AutofillActionConfigSetRequest, opts ...grpc.CallOption) (*AutofillActionConfigSetResponse, error) {
 	out := new(AutofillActionConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.AutofillActionConfigService/Set", in, out, opts...)
@@ -956,7 +1582,7 @@ func (c *autofillActionConfigServiceClient) Set(ctx context.Context, in *Autofil
 }
 
 func (c *autofillActionConfigServiceClient) SetSome(ctx context.Context, in *AutofillActionConfigSetSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.AutofillActionConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[4], "/arista.studio.v1.AutofillActionConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -996,8 +1622,40 @@ func (c *autofillActionConfigServiceClient) Delete(ctx context.Context, in *Auto
 	return out, nil
 }
 
+func (c *autofillActionConfigServiceClient) DeleteSome(ctx context.Context, in *AutofillActionConfigDeleteSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[5], "/arista.studio.v1.AutofillActionConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_DeleteSomeClient interface {
+	Recv() (*AutofillActionConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceDeleteSomeClient) Recv() (*AutofillActionConfigDeleteSomeResponse, error) {
+	m := new(AutofillActionConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *autofillActionConfigServiceClient) DeleteAll(ctx context.Context, in *AutofillActionConfigDeleteAllRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.AutofillActionConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[6], "/arista.studio.v1.AutofillActionConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1033,11 +1691,15 @@ func (x *autofillActionConfigServiceDeleteAllClient) Recv() (*AutofillActionConf
 // for forward compatibility
 type AutofillActionConfigServiceServer interface {
 	GetOne(context.Context, *AutofillActionConfigRequest) (*AutofillActionConfigResponse, error)
+	GetSome(*AutofillActionConfigSomeRequest, AutofillActionConfigService_GetSomeServer) error
 	GetAll(*AutofillActionConfigStreamRequest, AutofillActionConfigService_GetAllServer) error
 	Subscribe(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeServer) error
+	GetMeta(context.Context, *AutofillActionConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeMetaServer) error
 	Set(context.Context, *AutofillActionConfigSetRequest) (*AutofillActionConfigSetResponse, error)
 	SetSome(*AutofillActionConfigSetSomeRequest, AutofillActionConfigService_SetSomeServer) error
 	Delete(context.Context, *AutofillActionConfigDeleteRequest) (*AutofillActionConfigDeleteResponse, error)
+	DeleteSome(*AutofillActionConfigDeleteSomeRequest, AutofillActionConfigService_DeleteSomeServer) error
 	DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedAutofillActionConfigServiceServer()
 }
@@ -1049,11 +1711,20 @@ type UnimplementedAutofillActionConfigServiceServer struct {
 func (UnimplementedAutofillActionConfigServiceServer) GetOne(context.Context, *AutofillActionConfigRequest) (*AutofillActionConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedAutofillActionConfigServiceServer) GetSome(*AutofillActionConfigSomeRequest, AutofillActionConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedAutofillActionConfigServiceServer) GetAll(*AutofillActionConfigStreamRequest, AutofillActionConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedAutofillActionConfigServiceServer) Subscribe(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) GetMeta(context.Context, *AutofillActionConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) SubscribeMeta(*AutofillActionConfigStreamRequest, AutofillActionConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedAutofillActionConfigServiceServer) Set(context.Context, *AutofillActionConfigSetRequest) (*AutofillActionConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -1063,6 +1734,9 @@ func (UnimplementedAutofillActionConfigServiceServer) SetSome(*AutofillActionCon
 }
 func (UnimplementedAutofillActionConfigServiceServer) Delete(context.Context, *AutofillActionConfigDeleteRequest) (*AutofillActionConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) DeleteSome(*AutofillActionConfigDeleteSomeRequest, AutofillActionConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedAutofillActionConfigServiceServer) DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -1097,6 +1771,27 @@ func _AutofillActionConfigService_GetOne_Handler(srv interface{}, ctx context.Co
 		return srv.(AutofillActionConfigServiceServer).GetOne(ctx, req.(*AutofillActionConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).GetSome(m, &autofillActionConfigServiceGetSomeServer{stream})
+}
+
+type AutofillActionConfigService_GetSomeServer interface {
+	Send(*AutofillActionConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceGetSomeServer) Send(m *AutofillActionConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AutofillActionConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1138,6 +1833,45 @@ type autofillActionConfigServiceSubscribeServer struct {
 }
 
 func (x *autofillActionConfigServiceSubscribeServer) Send(m *AutofillActionConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AutofillActionConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AutofillActionConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.AutofillActionConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AutofillActionConfigServiceServer).GetMeta(ctx, req.(*AutofillActionConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AutofillActionConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).SubscribeMeta(m, &autofillActionConfigServiceSubscribeMetaServer{stream})
+}
+
+type AutofillActionConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1198,6 +1932,27 @@ func _AutofillActionConfigService_Delete_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AutofillActionConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).DeleteSome(m, &autofillActionConfigServiceDeleteSomeServer{stream})
+}
+
+type AutofillActionConfigService_DeleteSomeServer interface {
+	Send(*AutofillActionConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceDeleteSomeServer) Send(m *AutofillActionConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _AutofillActionConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(AutofillActionConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1231,6 +1986,10 @@ var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AutofillActionConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _AutofillActionConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _AutofillActionConfigService_Set_Handler,
 		},
@@ -1240,6 +1999,11 @@ var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AutofillActionConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _AutofillActionConfigService_GetAll_Handler,
@@ -1251,8 +2015,18 @@ var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AutofillActionConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _AutofillActionConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _AutofillActionConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -1269,8 +2043,11 @@ var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InputsServiceClient interface {
 	GetOne(ctx context.Context, in *InputsRequest, opts ...grpc.CallOption) (*InputsResponse, error)
+	GetSome(ctx context.Context, in *InputsSomeRequest, opts ...grpc.CallOption) (InputsService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeMetaClient, error)
 }
 
 type inputsServiceClient struct {
@@ -1290,8 +2067,40 @@ func (c *inputsServiceClient) GetOne(ctx context.Context, in *InputsRequest, opt
 	return out, nil
 }
 
+func (c *inputsServiceClient) GetSome(ctx context.Context, in *InputsSomeRequest, opts ...grpc.CallOption) (InputsService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[0], "/arista.studio.v1.InputsService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsService_GetSomeClient interface {
+	Recv() (*InputsSomeResponse, error)
+	grpc.ClientStream
+}
+
+type inputsServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsServiceGetSomeClient) Recv() (*InputsSomeResponse, error) {
+	m := new(InputsSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *inputsServiceClient) GetAll(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[0], "/arista.studio.v1.InputsService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[1], "/arista.studio.v1.InputsService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1323,7 +2132,7 @@ func (x *inputsServiceGetAllClient) Recv() (*InputsStreamResponse, error) {
 }
 
 func (c *inputsServiceClient) Subscribe(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[1], "/arista.studio.v1.InputsService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[2], "/arista.studio.v1.InputsService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1354,13 +2163,57 @@ func (x *inputsServiceSubscribeClient) Recv() (*InputsStreamResponse, error) {
 	return m, nil
 }
 
+func (c *inputsServiceClient) GetMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.InputsService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inputsServiceClient) SubscribeMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[3], "/arista.studio.v1.InputsService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type inputsServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // InputsServiceServer is the server API for InputsService service.
 // All implementations must embed UnimplementedInputsServiceServer
 // for forward compatibility
 type InputsServiceServer interface {
 	GetOne(context.Context, *InputsRequest) (*InputsResponse, error)
+	GetSome(*InputsSomeRequest, InputsService_GetSomeServer) error
 	GetAll(*InputsStreamRequest, InputsService_GetAllServer) error
 	Subscribe(*InputsStreamRequest, InputsService_SubscribeServer) error
+	GetMeta(context.Context, *InputsStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*InputsStreamRequest, InputsService_SubscribeMetaServer) error
 	mustEmbedUnimplementedInputsServiceServer()
 }
 
@@ -1371,11 +2224,20 @@ type UnimplementedInputsServiceServer struct {
 func (UnimplementedInputsServiceServer) GetOne(context.Context, *InputsRequest) (*InputsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedInputsServiceServer) GetSome(*InputsSomeRequest, InputsService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedInputsServiceServer) GetAll(*InputsStreamRequest, InputsService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedInputsServiceServer) Subscribe(*InputsStreamRequest, InputsService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedInputsServiceServer) GetMeta(context.Context, *InputsStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedInputsServiceServer) SubscribeMeta(*InputsStreamRequest, InputsService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedInputsServiceServer) mustEmbedUnimplementedInputsServiceServer() {}
 
@@ -1406,6 +2268,27 @@ func _InputsService_GetOne_Handler(srv interface{}, ctx context.Context, dec fun
 		return srv.(InputsServiceServer).GetOne(ctx, req.(*InputsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _InputsService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsServiceServer).GetSome(m, &inputsServiceGetSomeServer{stream})
+}
+
+type InputsService_GetSomeServer interface {
+	Send(*InputsSomeResponse) error
+	grpc.ServerStream
+}
+
+type inputsServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsServiceGetSomeServer) Send(m *InputsSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _InputsService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1450,6 +2333,45 @@ func (x *inputsServiceSubscribeServer) Send(m *InputsStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _InputsService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InputsStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InputsServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.InputsService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InputsServiceServer).GetMeta(ctx, req.(*InputsStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InputsService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsServiceServer).SubscribeMeta(m, &inputsServiceSubscribeMetaServer{stream})
+}
+
+type InputsService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type inputsServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // InputsService_ServiceDesc is the grpc.ServiceDesc for InputsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1461,8 +2383,17 @@ var InputsService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _InputsService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _InputsService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _InputsService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _InputsService_GetAll_Handler,
@@ -1471,6 +2402,11 @@ var InputsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _InputsService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _InputsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -1482,11 +2418,15 @@ var InputsService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InputsConfigServiceClient interface {
 	GetOne(ctx context.Context, in *InputsConfigRequest, opts ...grpc.CallOption) (*InputsConfigResponse, error)
+	GetSome(ctx context.Context, in *InputsConfigSomeRequest, opts ...grpc.CallOption) (InputsConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *InputsConfigSetRequest, opts ...grpc.CallOption) (*InputsConfigSetResponse, error)
 	SetSome(ctx context.Context, in *InputsConfigSetSomeRequest, opts ...grpc.CallOption) (InputsConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *InputsConfigDeleteRequest, opts ...grpc.CallOption) (*InputsConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *InputsConfigDeleteSomeRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *InputsConfigDeleteAllRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteAllClient, error)
 }
 
@@ -1507,8 +2447,40 @@ func (c *inputsConfigServiceClient) GetOne(ctx context.Context, in *InputsConfig
 	return out, nil
 }
 
+func (c *inputsConfigServiceClient) GetSome(ctx context.Context, in *InputsConfigSomeRequest, opts ...grpc.CallOption) (InputsConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.InputsConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_GetSomeClient interface {
+	Recv() (*InputsConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceGetSomeClient) Recv() (*InputsConfigSomeResponse, error) {
+	m := new(InputsConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *inputsConfigServiceClient) GetAll(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.InputsConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.InputsConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1540,7 +2512,7 @@ func (x *inputsConfigServiceGetAllClient) Recv() (*InputsConfigStreamResponse, e
 }
 
 func (c *inputsConfigServiceClient) Subscribe(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.InputsConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.InputsConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1571,6 +2543,47 @@ func (x *inputsConfigServiceSubscribeClient) Recv() (*InputsConfigStreamResponse
 	return m, nil
 }
 
+func (c *inputsConfigServiceClient) GetMeta(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.InputsConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inputsConfigServiceClient) SubscribeMeta(ctx context.Context, in *InputsConfigStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.InputsConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *inputsConfigServiceClient) Set(ctx context.Context, in *InputsConfigSetRequest, opts ...grpc.CallOption) (*InputsConfigSetResponse, error) {
 	out := new(InputsConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.InputsConfigService/Set", in, out, opts...)
@@ -1581,7 +2594,7 @@ func (c *inputsConfigServiceClient) Set(ctx context.Context, in *InputsConfigSet
 }
 
 func (c *inputsConfigServiceClient) SetSome(ctx context.Context, in *InputsConfigSetSomeRequest, opts ...grpc.CallOption) (InputsConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.InputsConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[4], "/arista.studio.v1.InputsConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1621,8 +2634,40 @@ func (c *inputsConfigServiceClient) Delete(ctx context.Context, in *InputsConfig
 	return out, nil
 }
 
+func (c *inputsConfigServiceClient) DeleteSome(ctx context.Context, in *InputsConfigDeleteSomeRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[5], "/arista.studio.v1.InputsConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_DeleteSomeClient interface {
+	Recv() (*InputsConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceDeleteSomeClient) Recv() (*InputsConfigDeleteSomeResponse, error) {
+	m := new(InputsConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *inputsConfigServiceClient) DeleteAll(ctx context.Context, in *InputsConfigDeleteAllRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.InputsConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[6], "/arista.studio.v1.InputsConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1658,11 +2703,15 @@ func (x *inputsConfigServiceDeleteAllClient) Recv() (*InputsConfigDeleteAllRespo
 // for forward compatibility
 type InputsConfigServiceServer interface {
 	GetOne(context.Context, *InputsConfigRequest) (*InputsConfigResponse, error)
+	GetSome(*InputsConfigSomeRequest, InputsConfigService_GetSomeServer) error
 	GetAll(*InputsConfigStreamRequest, InputsConfigService_GetAllServer) error
 	Subscribe(*InputsConfigStreamRequest, InputsConfigService_SubscribeServer) error
+	GetMeta(context.Context, *InputsConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*InputsConfigStreamRequest, InputsConfigService_SubscribeMetaServer) error
 	Set(context.Context, *InputsConfigSetRequest) (*InputsConfigSetResponse, error)
 	SetSome(*InputsConfigSetSomeRequest, InputsConfigService_SetSomeServer) error
 	Delete(context.Context, *InputsConfigDeleteRequest) (*InputsConfigDeleteResponse, error)
+	DeleteSome(*InputsConfigDeleteSomeRequest, InputsConfigService_DeleteSomeServer) error
 	DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedInputsConfigServiceServer()
 }
@@ -1674,11 +2723,20 @@ type UnimplementedInputsConfigServiceServer struct {
 func (UnimplementedInputsConfigServiceServer) GetOne(context.Context, *InputsConfigRequest) (*InputsConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedInputsConfigServiceServer) GetSome(*InputsConfigSomeRequest, InputsConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedInputsConfigServiceServer) GetAll(*InputsConfigStreamRequest, InputsConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedInputsConfigServiceServer) Subscribe(*InputsConfigStreamRequest, InputsConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) GetMeta(context.Context, *InputsConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) SubscribeMeta(*InputsConfigStreamRequest, InputsConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedInputsConfigServiceServer) Set(context.Context, *InputsConfigSetRequest) (*InputsConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -1688,6 +2746,9 @@ func (UnimplementedInputsConfigServiceServer) SetSome(*InputsConfigSetSomeReques
 }
 func (UnimplementedInputsConfigServiceServer) Delete(context.Context, *InputsConfigDeleteRequest) (*InputsConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) DeleteSome(*InputsConfigDeleteSomeRequest, InputsConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedInputsConfigServiceServer) DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -1721,6 +2782,27 @@ func _InputsConfigService_GetOne_Handler(srv interface{}, ctx context.Context, d
 		return srv.(InputsConfigServiceServer).GetOne(ctx, req.(*InputsConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _InputsConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).GetSome(m, &inputsConfigServiceGetSomeServer{stream})
+}
+
+type InputsConfigService_GetSomeServer interface {
+	Send(*InputsConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceGetSomeServer) Send(m *InputsConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _InputsConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1762,6 +2844,45 @@ type inputsConfigServiceSubscribeServer struct {
 }
 
 func (x *inputsConfigServiceSubscribeServer) Send(m *InputsConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _InputsConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InputsConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InputsConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.InputsConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InputsConfigServiceServer).GetMeta(ctx, req.(*InputsConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InputsConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).SubscribeMeta(m, &inputsConfigServiceSubscribeMetaServer{stream})
+}
+
+type InputsConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1822,6 +2943,27 @@ func _InputsConfigService_Delete_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InputsConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).DeleteSome(m, &inputsConfigServiceDeleteSomeServer{stream})
+}
+
+type InputsConfigService_DeleteSomeServer interface {
+	Send(*InputsConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceDeleteSomeServer) Send(m *InputsConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _InputsConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(InputsConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1855,6 +2997,10 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _InputsConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _InputsConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _InputsConfigService_Set_Handler,
 		},
@@ -1864,6 +3010,11 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _InputsConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _InputsConfigService_GetAll_Handler,
@@ -1875,8 +3026,18 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _InputsConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _InputsConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _InputsConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -1893,8 +3054,11 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecretInputServiceClient interface {
 	GetOne(ctx context.Context, in *SecretInputRequest, opts ...grpc.CallOption) (*SecretInputResponse, error)
+	GetSome(ctx context.Context, in *SecretInputSomeRequest, opts ...grpc.CallOption) (SecretInputService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeMetaClient, error)
 }
 
 type secretInputServiceClient struct {
@@ -1914,8 +3078,40 @@ func (c *secretInputServiceClient) GetOne(ctx context.Context, in *SecretInputRe
 	return out, nil
 }
 
+func (c *secretInputServiceClient) GetSome(ctx context.Context, in *SecretInputSomeRequest, opts ...grpc.CallOption) (SecretInputService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[0], "/arista.studio.v1.SecretInputService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_GetSomeClient interface {
+	Recv() (*SecretInputSomeResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceGetSomeClient) Recv() (*SecretInputSomeResponse, error) {
+	m := new(SecretInputSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *secretInputServiceClient) GetAll(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[0], "/arista.studio.v1.SecretInputService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[1], "/arista.studio.v1.SecretInputService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1947,7 +3143,7 @@ func (x *secretInputServiceGetAllClient) Recv() (*SecretInputStreamResponse, err
 }
 
 func (c *secretInputServiceClient) Subscribe(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[1], "/arista.studio.v1.SecretInputService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[2], "/arista.studio.v1.SecretInputService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1978,13 +3174,57 @@ func (x *secretInputServiceSubscribeClient) Recv() (*SecretInputStreamResponse, 
 	return m, nil
 }
 
+func (c *secretInputServiceClient) GetMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.SecretInputService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *secretInputServiceClient) SubscribeMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[3], "/arista.studio.v1.SecretInputService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecretInputServiceServer is the server API for SecretInputService service.
 // All implementations must embed UnimplementedSecretInputServiceServer
 // for forward compatibility
 type SecretInputServiceServer interface {
 	GetOne(context.Context, *SecretInputRequest) (*SecretInputResponse, error)
+	GetSome(*SecretInputSomeRequest, SecretInputService_GetSomeServer) error
 	GetAll(*SecretInputStreamRequest, SecretInputService_GetAllServer) error
 	Subscribe(*SecretInputStreamRequest, SecretInputService_SubscribeServer) error
+	GetMeta(context.Context, *SecretInputStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SecretInputStreamRequest, SecretInputService_SubscribeMetaServer) error
 	mustEmbedUnimplementedSecretInputServiceServer()
 }
 
@@ -1995,11 +3235,20 @@ type UnimplementedSecretInputServiceServer struct {
 func (UnimplementedSecretInputServiceServer) GetOne(context.Context, *SecretInputRequest) (*SecretInputResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSecretInputServiceServer) GetSome(*SecretInputSomeRequest, SecretInputService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSecretInputServiceServer) GetAll(*SecretInputStreamRequest, SecretInputService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSecretInputServiceServer) Subscribe(*SecretInputStreamRequest, SecretInputService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSecretInputServiceServer) GetMeta(context.Context, *SecretInputStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSecretInputServiceServer) SubscribeMeta(*SecretInputStreamRequest, SecretInputService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedSecretInputServiceServer) mustEmbedUnimplementedSecretInputServiceServer() {}
 
@@ -2030,6 +3279,27 @@ func _SecretInputService_GetOne_Handler(srv interface{}, ctx context.Context, de
 		return srv.(SecretInputServiceServer).GetOne(ctx, req.(*SecretInputRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretInputService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).GetSome(m, &secretInputServiceGetSomeServer{stream})
+}
+
+type SecretInputService_GetSomeServer interface {
+	Send(*SecretInputSomeResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceGetSomeServer) Send(m *SecretInputSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SecretInputService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -2074,6 +3344,45 @@ func (x *secretInputServiceSubscribeServer) Send(m *SecretInputStreamResponse) e
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecretInputService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecretInputStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecretInputServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.SecretInputService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecretInputServiceServer).GetMeta(ctx, req.(*SecretInputStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SecretInputService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).SubscribeMeta(m, &secretInputServiceSubscribeMetaServer{stream})
+}
+
+type SecretInputService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecretInputService_ServiceDesc is the grpc.ServiceDesc for SecretInputService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2085,8 +3394,17 @@ var SecretInputService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SecretInputService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SecretInputService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SecretInputService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SecretInputService_GetAll_Handler,
@@ -2095,6 +3413,11 @@ var SecretInputService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SecretInputService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SecretInputService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -2106,8 +3429,11 @@ var SecretInputService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StudioServiceClient interface {
 	GetOne(ctx context.Context, in *StudioRequest, opts ...grpc.CallOption) (*StudioResponse, error)
+	GetSome(ctx context.Context, in *StudioSomeRequest, opts ...grpc.CallOption) (StudioService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeMetaClient, error)
 }
 
 type studioServiceClient struct {
@@ -2127,8 +3453,40 @@ func (c *studioServiceClient) GetOne(ctx context.Context, in *StudioRequest, opt
 	return out, nil
 }
 
+func (c *studioServiceClient) GetSome(ctx context.Context, in *StudioSomeRequest, opts ...grpc.CallOption) (StudioService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioService_GetSomeClient interface {
+	Recv() (*StudioSomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioServiceGetSomeClient) Recv() (*StudioSomeResponse, error) {
+	m := new(StudioSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioServiceClient) GetAll(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2160,7 +3518,7 @@ func (x *studioServiceGetAllClient) Recv() (*StudioStreamResponse, error) {
 }
 
 func (c *studioServiceClient) Subscribe(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[2], "/arista.studio.v1.StudioService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2191,13 +3549,57 @@ func (x *studioServiceSubscribeClient) Recv() (*StudioStreamResponse, error) {
 	return m, nil
 }
 
+func (c *studioServiceClient) GetMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioServiceClient) SubscribeMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[3], "/arista.studio.v1.StudioService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type studioServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // StudioServiceServer is the server API for StudioService service.
 // All implementations must embed UnimplementedStudioServiceServer
 // for forward compatibility
 type StudioServiceServer interface {
 	GetOne(context.Context, *StudioRequest) (*StudioResponse, error)
+	GetSome(*StudioSomeRequest, StudioService_GetSomeServer) error
 	GetAll(*StudioStreamRequest, StudioService_GetAllServer) error
 	Subscribe(*StudioStreamRequest, StudioService_SubscribeServer) error
+	GetMeta(context.Context, *StudioStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*StudioStreamRequest, StudioService_SubscribeMetaServer) error
 	mustEmbedUnimplementedStudioServiceServer()
 }
 
@@ -2208,11 +3610,20 @@ type UnimplementedStudioServiceServer struct {
 func (UnimplementedStudioServiceServer) GetOne(context.Context, *StudioRequest) (*StudioResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedStudioServiceServer) GetSome(*StudioSomeRequest, StudioService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedStudioServiceServer) GetAll(*StudioStreamRequest, StudioService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedStudioServiceServer) Subscribe(*StudioStreamRequest, StudioService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedStudioServiceServer) GetMeta(context.Context, *StudioStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedStudioServiceServer) SubscribeMeta(*StudioStreamRequest, StudioService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedStudioServiceServer) mustEmbedUnimplementedStudioServiceServer() {}
 
@@ -2243,6 +3654,27 @@ func _StudioService_GetOne_Handler(srv interface{}, ctx context.Context, dec fun
 		return srv.(StudioServiceServer).GetOne(ctx, req.(*StudioRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioServiceServer).GetSome(m, &studioServiceGetSomeServer{stream})
+}
+
+type StudioService_GetSomeServer interface {
+	Send(*StudioSomeResponse) error
+	grpc.ServerStream
+}
+
+type studioServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioServiceGetSomeServer) Send(m *StudioSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _StudioService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -2287,6 +3719,45 @@ func (x *studioServiceSubscribeServer) Send(m *StudioStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _StudioService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.StudioService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioServiceServer).GetMeta(ctx, req.(*StudioStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioServiceServer).SubscribeMeta(m, &studioServiceSubscribeMetaServer{stream})
+}
+
+type StudioService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type studioServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // StudioService_ServiceDesc is the grpc.ServiceDesc for StudioService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2298,8 +3769,17 @@ var StudioService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _StudioService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _StudioService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _StudioService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _StudioService_GetAll_Handler,
@@ -2308,6 +3788,11 @@ var StudioService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _StudioService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _StudioService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -2319,11 +3804,15 @@ var StudioService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StudioConfigServiceClient interface {
 	GetOne(ctx context.Context, in *StudioConfigRequest, opts ...grpc.CallOption) (*StudioConfigResponse, error)
+	GetSome(ctx context.Context, in *StudioConfigSomeRequest, opts ...grpc.CallOption) (StudioConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *StudioConfigSetRequest, opts ...grpc.CallOption) (*StudioConfigSetResponse, error)
 	SetSome(ctx context.Context, in *StudioConfigSetSomeRequest, opts ...grpc.CallOption) (StudioConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *StudioConfigDeleteRequest, opts ...grpc.CallOption) (*StudioConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *StudioConfigDeleteSomeRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *StudioConfigDeleteAllRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteAllClient, error)
 }
 
@@ -2344,8 +3833,40 @@ func (c *studioConfigServiceClient) GetOne(ctx context.Context, in *StudioConfig
 	return out, nil
 }
 
+func (c *studioConfigServiceClient) GetSome(ctx context.Context, in *StudioConfigSomeRequest, opts ...grpc.CallOption) (StudioConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioConfigService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_GetSomeClient interface {
+	Recv() (*StudioConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceGetSomeClient) Recv() (*StudioConfigSomeResponse, error) {
+	m := new(StudioConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioConfigServiceClient) GetAll(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioConfigService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioConfigService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2377,7 +3898,7 @@ func (x *studioConfigServiceGetAllClient) Recv() (*StudioConfigStreamResponse, e
 }
 
 func (c *studioConfigServiceClient) Subscribe(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioConfigService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.StudioConfigService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2408,6 +3929,47 @@ func (x *studioConfigServiceSubscribeClient) Recv() (*StudioConfigStreamResponse
 	return m, nil
 }
 
+func (c *studioConfigServiceClient) GetMeta(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioConfigService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioConfigServiceClient) SubscribeMeta(ctx context.Context, in *StudioConfigStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.StudioConfigService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioConfigServiceClient) Set(ctx context.Context, in *StudioConfigSetRequest, opts ...grpc.CallOption) (*StudioConfigSetResponse, error) {
 	out := new(StudioConfigSetResponse)
 	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioConfigService/Set", in, out, opts...)
@@ -2418,7 +3980,7 @@ func (c *studioConfigServiceClient) Set(ctx context.Context, in *StudioConfigSet
 }
 
 func (c *studioConfigServiceClient) SetSome(ctx context.Context, in *StudioConfigSetSomeRequest, opts ...grpc.CallOption) (StudioConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.StudioConfigService/SetSome", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[4], "/arista.studio.v1.StudioConfigService/SetSome", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2458,8 +4020,40 @@ func (c *studioConfigServiceClient) Delete(ctx context.Context, in *StudioConfig
 	return out, nil
 }
 
+func (c *studioConfigServiceClient) DeleteSome(ctx context.Context, in *StudioConfigDeleteSomeRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[5], "/arista.studio.v1.StudioConfigService/DeleteSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_DeleteSomeClient interface {
+	Recv() (*StudioConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceDeleteSomeClient) Recv() (*StudioConfigDeleteSomeResponse, error) {
+	m := new(StudioConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioConfigServiceClient) DeleteAll(ctx context.Context, in *StudioConfigDeleteAllRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.StudioConfigService/DeleteAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[6], "/arista.studio.v1.StudioConfigService/DeleteAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2495,11 +4089,15 @@ func (x *studioConfigServiceDeleteAllClient) Recv() (*StudioConfigDeleteAllRespo
 // for forward compatibility
 type StudioConfigServiceServer interface {
 	GetOne(context.Context, *StudioConfigRequest) (*StudioConfigResponse, error)
+	GetSome(*StudioConfigSomeRequest, StudioConfigService_GetSomeServer) error
 	GetAll(*StudioConfigStreamRequest, StudioConfigService_GetAllServer) error
 	Subscribe(*StudioConfigStreamRequest, StudioConfigService_SubscribeServer) error
+	GetMeta(context.Context, *StudioConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*StudioConfigStreamRequest, StudioConfigService_SubscribeMetaServer) error
 	Set(context.Context, *StudioConfigSetRequest) (*StudioConfigSetResponse, error)
 	SetSome(*StudioConfigSetSomeRequest, StudioConfigService_SetSomeServer) error
 	Delete(context.Context, *StudioConfigDeleteRequest) (*StudioConfigDeleteResponse, error)
+	DeleteSome(*StudioConfigDeleteSomeRequest, StudioConfigService_DeleteSomeServer) error
 	DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error
 	mustEmbedUnimplementedStudioConfigServiceServer()
 }
@@ -2511,11 +4109,20 @@ type UnimplementedStudioConfigServiceServer struct {
 func (UnimplementedStudioConfigServiceServer) GetOne(context.Context, *StudioConfigRequest) (*StudioConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedStudioConfigServiceServer) GetSome(*StudioConfigSomeRequest, StudioConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedStudioConfigServiceServer) GetAll(*StudioConfigStreamRequest, StudioConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedStudioConfigServiceServer) Subscribe(*StudioConfigStreamRequest, StudioConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) GetMeta(context.Context, *StudioConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) SubscribeMeta(*StudioConfigStreamRequest, StudioConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedStudioConfigServiceServer) Set(context.Context, *StudioConfigSetRequest) (*StudioConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -2525,6 +4132,9 @@ func (UnimplementedStudioConfigServiceServer) SetSome(*StudioConfigSetSomeReques
 }
 func (UnimplementedStudioConfigServiceServer) Delete(context.Context, *StudioConfigDeleteRequest) (*StudioConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) DeleteSome(*StudioConfigDeleteSomeRequest, StudioConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
 }
 func (UnimplementedStudioConfigServiceServer) DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
@@ -2558,6 +4168,27 @@ func _StudioConfigService_GetOne_Handler(srv interface{}, ctx context.Context, d
 		return srv.(StudioConfigServiceServer).GetOne(ctx, req.(*StudioConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).GetSome(m, &studioConfigServiceGetSomeServer{stream})
+}
+
+type StudioConfigService_GetSomeServer interface {
+	Send(*StudioConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceGetSomeServer) Send(m *StudioConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _StudioConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -2599,6 +4230,45 @@ type studioConfigServiceSubscribeServer struct {
 }
 
 func (x *studioConfigServiceSubscribeServer) Send(m *StudioConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.StudioConfigService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioConfigServiceServer).GetMeta(ctx, req.(*StudioConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).SubscribeMeta(m, &studioConfigServiceSubscribeMetaServer{stream})
+}
+
+type StudioConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -2659,6 +4329,27 @@ func _StudioConfigService_Delete_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StudioConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).DeleteSome(m, &studioConfigServiceDeleteSomeServer{stream})
+}
+
+type StudioConfigService_DeleteSomeServer interface {
+	Send(*StudioConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceDeleteSomeServer) Send(m *StudioConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _StudioConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StudioConfigDeleteAllRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -2692,6 +4383,10 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StudioConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _StudioConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _StudioConfigService_Set_Handler,
 		},
@@ -2701,6 +4396,11 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _StudioConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _StudioConfigService_GetAll_Handler,
@@ -2712,8 +4412,18 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _StudioConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SetSome",
 			Handler:       _StudioConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _StudioConfigService_DeleteSome_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -2730,8 +4440,11 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StudioSummaryServiceClient interface {
 	GetOne(ctx context.Context, in *StudioSummaryRequest, opts ...grpc.CallOption) (*StudioSummaryResponse, error)
+	GetSome(ctx context.Context, in *StudioSummarySomeRequest, opts ...grpc.CallOption) (StudioSummaryService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeMetaClient, error)
 }
 
 type studioSummaryServiceClient struct {
@@ -2751,8 +4464,40 @@ func (c *studioSummaryServiceClient) GetOne(ctx context.Context, in *StudioSumma
 	return out, nil
 }
 
+func (c *studioSummaryServiceClient) GetSome(ctx context.Context, in *StudioSummarySomeRequest, opts ...grpc.CallOption) (StudioSummaryService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioSummaryService/GetSome", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_GetSomeClient interface {
+	Recv() (*StudioSummarySomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceGetSomeClient) Recv() (*StudioSummarySomeResponse, error) {
+	m := new(StudioSummarySomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *studioSummaryServiceClient) GetAll(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[0], "/arista.studio.v1.StudioSummaryService/GetAll", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioSummaryService/GetAll", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2784,7 +4529,7 @@ func (x *studioSummaryServiceGetAllClient) Recv() (*StudioSummaryStreamResponse,
 }
 
 func (c *studioSummaryServiceClient) Subscribe(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[1], "/arista.studio.v1.StudioSummaryService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[2], "/arista.studio.v1.StudioSummaryService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2815,13 +4560,57 @@ func (x *studioSummaryServiceSubscribeClient) Recv() (*StudioSummaryStreamRespon
 	return m, nil
 }
 
+func (c *studioSummaryServiceClient) GetMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, "/arista.studio.v1.StudioSummaryService/GetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioSummaryServiceClient) SubscribeMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[3], "/arista.studio.v1.StudioSummaryService/SubscribeMeta", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // StudioSummaryServiceServer is the server API for StudioSummaryService service.
 // All implementations must embed UnimplementedStudioSummaryServiceServer
 // for forward compatibility
 type StudioSummaryServiceServer interface {
 	GetOne(context.Context, *StudioSummaryRequest) (*StudioSummaryResponse, error)
+	GetSome(*StudioSummarySomeRequest, StudioSummaryService_GetSomeServer) error
 	GetAll(*StudioSummaryStreamRequest, StudioSummaryService_GetAllServer) error
 	Subscribe(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeServer) error
+	GetMeta(context.Context, *StudioSummaryStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeMetaServer) error
 	mustEmbedUnimplementedStudioSummaryServiceServer()
 }
 
@@ -2832,11 +4621,20 @@ type UnimplementedStudioSummaryServiceServer struct {
 func (UnimplementedStudioSummaryServiceServer) GetOne(context.Context, *StudioSummaryRequest) (*StudioSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedStudioSummaryServiceServer) GetSome(*StudioSummarySomeRequest, StudioSummaryService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedStudioSummaryServiceServer) GetAll(*StudioSummaryStreamRequest, StudioSummaryService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedStudioSummaryServiceServer) Subscribe(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) GetMeta(context.Context, *StudioSummaryStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) SubscribeMeta(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
 }
 func (UnimplementedStudioSummaryServiceServer) mustEmbedUnimplementedStudioSummaryServiceServer() {}
 
@@ -2867,6 +4665,27 @@ func _StudioSummaryService_GetOne_Handler(srv interface{}, ctx context.Context, 
 		return srv.(StudioSummaryServiceServer).GetOne(ctx, req.(*StudioSummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioSummaryService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummarySomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).GetSome(m, &studioSummaryServiceGetSomeServer{stream})
+}
+
+type StudioSummaryService_GetSomeServer interface {
+	Send(*StudioSummarySomeResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceGetSomeServer) Send(m *StudioSummarySomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _StudioSummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -2911,6 +4730,45 @@ func (x *studioSummaryServiceSubscribeServer) Send(m *StudioSummaryStreamRespons
 	return x.ServerStream.SendMsg(m)
 }
 
+func _StudioSummaryService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioSummaryStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioSummaryServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/arista.studio.v1.StudioSummaryService/GetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioSummaryServiceServer).GetMeta(ctx, req.(*StudioSummaryStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioSummaryService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).SubscribeMeta(m, &studioSummaryServiceSubscribeMetaServer{stream})
+}
+
+type StudioSummaryService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // StudioSummaryService_ServiceDesc is the grpc.ServiceDesc for StudioSummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2922,8 +4780,17 @@ var StudioSummaryService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _StudioSummaryService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _StudioSummaryService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _StudioSummaryService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _StudioSummaryService_GetAll_Handler,
@@ -2934,1880 +4801,9 @@ var StudioSummaryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _StudioSummaryService_Subscribe_Handler,
 			ServerStreams: true,
 		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyInputServiceClient is the client API for TopologyInputService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyInputServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyInputRequest, opts ...grpc.CallOption) (*TopologyInputResponse, error)
-	GetAll(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_SubscribeClient, error)
-}
-
-type topologyInputServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyInputServiceClient(cc grpc.ClientConnInterface) TopologyInputServiceClient {
-	return &topologyInputServiceClient{cc}
-}
-
-func (c *topologyInputServiceClient) GetOne(ctx context.Context, in *TopologyInputRequest, opts ...grpc.CallOption) (*TopologyInputResponse, error) {
-	out := new(TopologyInputResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyInputServiceClient) GetAll(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyInputService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputService_GetAllClient interface {
-	Recv() (*TopologyInputStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputServiceGetAllClient) Recv() (*TopologyInputStreamResponse, error) {
-	m := new(TopologyInputStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyInputServiceClient) Subscribe(ctx context.Context, in *TopologyInputStreamRequest, opts ...grpc.CallOption) (TopologyInputService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyInputService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputService_SubscribeClient interface {
-	Recv() (*TopologyInputStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputServiceSubscribeClient) Recv() (*TopologyInputStreamResponse, error) {
-	m := new(TopologyInputStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyInputServiceServer is the server API for TopologyInputService service.
-// All implementations must embed UnimplementedTopologyInputServiceServer
-// for forward compatibility
-type TopologyInputServiceServer interface {
-	GetOne(context.Context, *TopologyInputRequest) (*TopologyInputResponse, error)
-	GetAll(*TopologyInputStreamRequest, TopologyInputService_GetAllServer) error
-	Subscribe(*TopologyInputStreamRequest, TopologyInputService_SubscribeServer) error
-	mustEmbedUnimplementedTopologyInputServiceServer()
-}
-
-// UnimplementedTopologyInputServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyInputServiceServer struct {
-}
-
-func (UnimplementedTopologyInputServiceServer) GetOne(context.Context, *TopologyInputRequest) (*TopologyInputResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyInputServiceServer) GetAll(*TopologyInputStreamRequest, TopologyInputService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyInputServiceServer) Subscribe(*TopologyInputStreamRequest, TopologyInputService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyInputServiceServer) mustEmbedUnimplementedTopologyInputServiceServer() {}
-
-// UnsafeTopologyInputServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyInputServiceServer will
-// result in compilation errors.
-type UnsafeTopologyInputServiceServer interface {
-	mustEmbedUnimplementedTopologyInputServiceServer()
-}
-
-func RegisterTopologyInputServiceServer(s grpc.ServiceRegistrar, srv TopologyInputServiceServer) {
-	s.RegisterService(&TopologyInputService_ServiceDesc, srv)
-}
-
-func _TopologyInputService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyInputRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyInputServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyInputService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyInputServiceServer).GetOne(ctx, req.(*TopologyInputRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyInputService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputServiceServer).GetAll(m, &topologyInputServiceGetAllServer{stream})
-}
-
-type TopologyInputService_GetAllServer interface {
-	Send(*TopologyInputStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputServiceGetAllServer) Send(m *TopologyInputStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyInputService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputServiceServer).Subscribe(m, &topologyInputServiceSubscribeServer{stream})
-}
-
-type TopologyInputService_SubscribeServer interface {
-	Send(*TopologyInputStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputServiceSubscribeServer) Send(m *TopologyInputStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyInputService_ServiceDesc is the grpc.ServiceDesc for TopologyInputService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyInputService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyInputService",
-	HandlerType: (*TopologyInputServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetOne",
-			Handler:    _TopologyInputService_GetOne_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyInputService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyInputService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyInputConfigServiceClient is the client API for TopologyInputConfigService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyInputConfigServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyInputConfigRequest, opts ...grpc.CallOption) (*TopologyInputConfigResponse, error)
-	GetAll(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SubscribeClient, error)
-	Set(ctx context.Context, in *TopologyInputConfigSetRequest, opts ...grpc.CallOption) (*TopologyInputConfigSetResponse, error)
-	SetSome(ctx context.Context, in *TopologyInputConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SetSomeClient, error)
-	Delete(ctx context.Context, in *TopologyInputConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyInputConfigDeleteResponse, error)
-	DeleteAll(ctx context.Context, in *TopologyInputConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyInputConfigService_DeleteAllClient, error)
-}
-
-type topologyInputConfigServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyInputConfigServiceClient(cc grpc.ClientConnInterface) TopologyInputConfigServiceClient {
-	return &topologyInputConfigServiceClient{cc}
-}
-
-func (c *topologyInputConfigServiceClient) GetOne(ctx context.Context, in *TopologyInputConfigRequest, opts ...grpc.CallOption) (*TopologyInputConfigResponse, error) {
-	out := new(TopologyInputConfigResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyInputConfigServiceClient) GetAll(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyInputConfigService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputConfigServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputConfigService_GetAllClient interface {
-	Recv() (*TopologyInputConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputConfigServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputConfigServiceGetAllClient) Recv() (*TopologyInputConfigStreamResponse, error) {
-	m := new(TopologyInputConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyInputConfigServiceClient) Subscribe(ctx context.Context, in *TopologyInputConfigStreamRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyInputConfigService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputConfigServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputConfigService_SubscribeClient interface {
-	Recv() (*TopologyInputConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputConfigServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputConfigServiceSubscribeClient) Recv() (*TopologyInputConfigStreamResponse, error) {
-	m := new(TopologyInputConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyInputConfigServiceClient) Set(ctx context.Context, in *TopologyInputConfigSetRequest, opts ...grpc.CallOption) (*TopologyInputConfigSetResponse, error) {
-	out := new(TopologyInputConfigSetResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/Set", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyInputConfigServiceClient) SetSome(ctx context.Context, in *TopologyInputConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyInputConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyInputConfigService/SetSome", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputConfigServiceSetSomeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputConfigService_SetSomeClient interface {
-	Recv() (*TopologyInputConfigSetSomeResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputConfigServiceSetSomeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputConfigServiceSetSomeClient) Recv() (*TopologyInputConfigSetSomeResponse, error) {
-	m := new(TopologyInputConfigSetSomeResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyInputConfigServiceClient) Delete(ctx context.Context, in *TopologyInputConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyInputConfigDeleteResponse, error) {
-	out := new(TopologyInputConfigDeleteResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyInputConfigService/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyInputConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyInputConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyInputConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyInputConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyInputConfigService/DeleteAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyInputConfigServiceDeleteAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyInputConfigService_DeleteAllClient interface {
-	Recv() (*TopologyInputConfigDeleteAllResponse, error)
-	grpc.ClientStream
-}
-
-type topologyInputConfigServiceDeleteAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyInputConfigServiceDeleteAllClient) Recv() (*TopologyInputConfigDeleteAllResponse, error) {
-	m := new(TopologyInputConfigDeleteAllResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyInputConfigServiceServer is the server API for TopologyInputConfigService service.
-// All implementations must embed UnimplementedTopologyInputConfigServiceServer
-// for forward compatibility
-type TopologyInputConfigServiceServer interface {
-	GetOne(context.Context, *TopologyInputConfigRequest) (*TopologyInputConfigResponse, error)
-	GetAll(*TopologyInputConfigStreamRequest, TopologyInputConfigService_GetAllServer) error
-	Subscribe(*TopologyInputConfigStreamRequest, TopologyInputConfigService_SubscribeServer) error
-	Set(context.Context, *TopologyInputConfigSetRequest) (*TopologyInputConfigSetResponse, error)
-	SetSome(*TopologyInputConfigSetSomeRequest, TopologyInputConfigService_SetSomeServer) error
-	Delete(context.Context, *TopologyInputConfigDeleteRequest) (*TopologyInputConfigDeleteResponse, error)
-	DeleteAll(*TopologyInputConfigDeleteAllRequest, TopologyInputConfigService_DeleteAllServer) error
-	mustEmbedUnimplementedTopologyInputConfigServiceServer()
-}
-
-// UnimplementedTopologyInputConfigServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyInputConfigServiceServer struct {
-}
-
-func (UnimplementedTopologyInputConfigServiceServer) GetOne(context.Context, *TopologyInputConfigRequest) (*TopologyInputConfigResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) GetAll(*TopologyInputConfigStreamRequest, TopologyInputConfigService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) Subscribe(*TopologyInputConfigStreamRequest, TopologyInputConfigService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) Set(context.Context, *TopologyInputConfigSetRequest) (*TopologyInputConfigSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) SetSome(*TopologyInputConfigSetSomeRequest, TopologyInputConfigService_SetSomeServer) error {
-	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) Delete(context.Context, *TopologyInputConfigDeleteRequest) (*TopologyInputConfigDeleteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) DeleteAll(*TopologyInputConfigDeleteAllRequest, TopologyInputConfigService_DeleteAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
-}
-func (UnimplementedTopologyInputConfigServiceServer) mustEmbedUnimplementedTopologyInputConfigServiceServer() {
-}
-
-// UnsafeTopologyInputConfigServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyInputConfigServiceServer will
-// result in compilation errors.
-type UnsafeTopologyInputConfigServiceServer interface {
-	mustEmbedUnimplementedTopologyInputConfigServiceServer()
-}
-
-func RegisterTopologyInputConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyInputConfigServiceServer) {
-	s.RegisterService(&TopologyInputConfigService_ServiceDesc, srv)
-}
-
-func _TopologyInputConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyInputConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyInputConfigServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyInputConfigService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyInputConfigServiceServer).GetOne(ctx, req.(*TopologyInputConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyInputConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputConfigServiceServer).GetAll(m, &topologyInputConfigServiceGetAllServer{stream})
-}
-
-type TopologyInputConfigService_GetAllServer interface {
-	Send(*TopologyInputConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputConfigServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputConfigServiceGetAllServer) Send(m *TopologyInputConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyInputConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputConfigServiceServer).Subscribe(m, &topologyInputConfigServiceSubscribeServer{stream})
-}
-
-type TopologyInputConfigService_SubscribeServer interface {
-	Send(*TopologyInputConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputConfigServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputConfigServiceSubscribeServer) Send(m *TopologyInputConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyInputConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyInputConfigSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyInputConfigServiceServer).Set(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyInputConfigService/Set",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyInputConfigServiceServer).Set(ctx, req.(*TopologyInputConfigSetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyInputConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputConfigSetSomeRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputConfigServiceServer).SetSome(m, &topologyInputConfigServiceSetSomeServer{stream})
-}
-
-type TopologyInputConfigService_SetSomeServer interface {
-	Send(*TopologyInputConfigSetSomeResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputConfigServiceSetSomeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputConfigServiceSetSomeServer) Send(m *TopologyInputConfigSetSomeResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyInputConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyInputConfigDeleteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyInputConfigServiceServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyInputConfigService/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyInputConfigServiceServer).Delete(ctx, req.(*TopologyInputConfigDeleteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyInputConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyInputConfigDeleteAllRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyInputConfigServiceServer).DeleteAll(m, &topologyInputConfigServiceDeleteAllServer{stream})
-}
-
-type TopologyInputConfigService_DeleteAllServer interface {
-	Send(*TopologyInputConfigDeleteAllResponse) error
-	grpc.ServerStream
-}
-
-type topologyInputConfigServiceDeleteAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyInputConfigServiceDeleteAllServer) Send(m *TopologyInputConfigDeleteAllResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyInputConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyInputConfigService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyInputConfigService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyInputConfigService",
-	HandlerType: (*TopologyInputConfigServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetOne",
-			Handler:    _TopologyInputConfigService_GetOne_Handler,
-		},
-		{
-			MethodName: "Set",
-			Handler:    _TopologyInputConfigService_Set_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _TopologyInputConfigService_Delete_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyInputConfigService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyInputConfigService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SetSome",
-			Handler:       _TopologyInputConfigService_SetSome_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "DeleteAll",
-			Handler:       _TopologyInputConfigService_DeleteAll_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyUpdateServiceClient is the client API for TopologyUpdateService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyUpdateServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyUpdateRequest, opts ...grpc.CallOption) (*TopologyUpdateResponse, error)
-	GetAll(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_SubscribeClient, error)
-}
-
-type topologyUpdateServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyUpdateServiceClient(cc grpc.ClientConnInterface) TopologyUpdateServiceClient {
-	return &topologyUpdateServiceClient{cc}
-}
-
-func (c *topologyUpdateServiceClient) GetOne(ctx context.Context, in *TopologyUpdateRequest, opts ...grpc.CallOption) (*TopologyUpdateResponse, error) {
-	out := new(TopologyUpdateResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateServiceClient) GetAll(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateService_GetAllClient interface {
-	Recv() (*TopologyUpdateStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateServiceGetAllClient) Recv() (*TopologyUpdateStreamResponse, error) {
-	m := new(TopologyUpdateStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateStreamRequest, opts ...grpc.CallOption) (TopologyUpdateService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateService_SubscribeClient interface {
-	Recv() (*TopologyUpdateStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateServiceSubscribeClient) Recv() (*TopologyUpdateStreamResponse, error) {
-	m := new(TopologyUpdateStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyUpdateServiceServer is the server API for TopologyUpdateService service.
-// All implementations must embed UnimplementedTopologyUpdateServiceServer
-// for forward compatibility
-type TopologyUpdateServiceServer interface {
-	GetOne(context.Context, *TopologyUpdateRequest) (*TopologyUpdateResponse, error)
-	GetAll(*TopologyUpdateStreamRequest, TopologyUpdateService_GetAllServer) error
-	Subscribe(*TopologyUpdateStreamRequest, TopologyUpdateService_SubscribeServer) error
-	mustEmbedUnimplementedTopologyUpdateServiceServer()
-}
-
-// UnimplementedTopologyUpdateServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyUpdateServiceServer struct {
-}
-
-func (UnimplementedTopologyUpdateServiceServer) GetOne(context.Context, *TopologyUpdateRequest) (*TopologyUpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyUpdateServiceServer) GetAll(*TopologyUpdateStreamRequest, TopologyUpdateService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyUpdateServiceServer) Subscribe(*TopologyUpdateStreamRequest, TopologyUpdateService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyUpdateServiceServer) mustEmbedUnimplementedTopologyUpdateServiceServer() {}
-
-// UnsafeTopologyUpdateServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyUpdateServiceServer will
-// result in compilation errors.
-type UnsafeTopologyUpdateServiceServer interface {
-	mustEmbedUnimplementedTopologyUpdateServiceServer()
-}
-
-func RegisterTopologyUpdateServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateServiceServer) {
-	s.RegisterService(&TopologyUpdateService_ServiceDesc, srv)
-}
-
-func _TopologyUpdateService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateServiceServer).GetOne(ctx, req.(*TopologyUpdateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateServiceServer).GetAll(m, &topologyUpdateServiceGetAllServer{stream})
-}
-
-type TopologyUpdateService_GetAllServer interface {
-	Send(*TopologyUpdateStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateServiceGetAllServer) Send(m *TopologyUpdateStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateServiceServer).Subscribe(m, &topologyUpdateServiceSubscribeServer{stream})
-}
-
-type TopologyUpdateService_SubscribeServer interface {
-	Send(*TopologyUpdateStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateServiceSubscribeServer) Send(m *TopologyUpdateStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyUpdateService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyUpdateService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyUpdateService",
-	HandlerType: (*TopologyUpdateServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetOne",
-			Handler:    _TopologyUpdateService_GetOne_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyUpdateService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyUpdateService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyUpdateConfigServiceClient is the client API for TopologyUpdateConfigService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyUpdateConfigServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyUpdateConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigResponse, error)
-	GetAll(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SubscribeClient, error)
-	Set(ctx context.Context, in *TopologyUpdateConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigSetResponse, error)
-	SetSome(ctx context.Context, in *TopologyUpdateConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SetSomeClient, error)
-	Delete(ctx context.Context, in *TopologyUpdateConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigDeleteResponse, error)
-	DeleteAll(ctx context.Context, in *TopologyUpdateConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_DeleteAllClient, error)
-}
-
-type topologyUpdateConfigServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyUpdateConfigServiceClient(cc grpc.ClientConnInterface) TopologyUpdateConfigServiceClient {
-	return &topologyUpdateConfigServiceClient{cc}
-}
-
-func (c *topologyUpdateConfigServiceClient) GetOne(ctx context.Context, in *TopologyUpdateConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigResponse, error) {
-	out := new(TopologyUpdateConfigResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) GetAll(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateConfigService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateConfigServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateConfigService_GetAllClient interface {
-	Recv() (*TopologyUpdateConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateConfigServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateConfigServiceGetAllClient) Recv() (*TopologyUpdateConfigStreamResponse, error) {
-	m := new(TopologyUpdateConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateConfigService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateConfigServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateConfigService_SubscribeClient interface {
-	Recv() (*TopologyUpdateConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateConfigServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateConfigServiceSubscribeClient) Recv() (*TopologyUpdateConfigStreamResponse, error) {
-	m := new(TopologyUpdateConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) Set(ctx context.Context, in *TopologyUpdateConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigSetResponse, error) {
-	out := new(TopologyUpdateConfigSetResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/Set", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) SetSome(ctx context.Context, in *TopologyUpdateConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyUpdateConfigService/SetSome", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateConfigServiceSetSomeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateConfigService_SetSomeClient interface {
-	Recv() (*TopologyUpdateConfigSetSomeResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateConfigServiceSetSomeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateConfigServiceSetSomeClient) Recv() (*TopologyUpdateConfigSetSomeResponse, error) {
-	m := new(TopologyUpdateConfigSetSomeResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) Delete(ctx context.Context, in *TopologyUpdateConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateConfigDeleteResponse, error) {
-	out := new(TopologyUpdateConfigDeleteResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateConfigService/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyUpdateConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyUpdateConfigService/DeleteAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateConfigServiceDeleteAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateConfigService_DeleteAllClient interface {
-	Recv() (*TopologyUpdateConfigDeleteAllResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateConfigServiceDeleteAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateConfigServiceDeleteAllClient) Recv() (*TopologyUpdateConfigDeleteAllResponse, error) {
-	m := new(TopologyUpdateConfigDeleteAllResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyUpdateConfigServiceServer is the server API for TopologyUpdateConfigService service.
-// All implementations must embed UnimplementedTopologyUpdateConfigServiceServer
-// for forward compatibility
-type TopologyUpdateConfigServiceServer interface {
-	GetOne(context.Context, *TopologyUpdateConfigRequest) (*TopologyUpdateConfigResponse, error)
-	GetAll(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_GetAllServer) error
-	Subscribe(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_SubscribeServer) error
-	Set(context.Context, *TopologyUpdateConfigSetRequest) (*TopologyUpdateConfigSetResponse, error)
-	SetSome(*TopologyUpdateConfigSetSomeRequest, TopologyUpdateConfigService_SetSomeServer) error
-	Delete(context.Context, *TopologyUpdateConfigDeleteRequest) (*TopologyUpdateConfigDeleteResponse, error)
-	DeleteAll(*TopologyUpdateConfigDeleteAllRequest, TopologyUpdateConfigService_DeleteAllServer) error
-	mustEmbedUnimplementedTopologyUpdateConfigServiceServer()
-}
-
-// UnimplementedTopologyUpdateConfigServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyUpdateConfigServiceServer struct {
-}
-
-func (UnimplementedTopologyUpdateConfigServiceServer) GetOne(context.Context, *TopologyUpdateConfigRequest) (*TopologyUpdateConfigResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) GetAll(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) Subscribe(*TopologyUpdateConfigStreamRequest, TopologyUpdateConfigService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) Set(context.Context, *TopologyUpdateConfigSetRequest) (*TopologyUpdateConfigSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) SetSome(*TopologyUpdateConfigSetSomeRequest, TopologyUpdateConfigService_SetSomeServer) error {
-	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) Delete(context.Context, *TopologyUpdateConfigDeleteRequest) (*TopologyUpdateConfigDeleteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) DeleteAll(*TopologyUpdateConfigDeleteAllRequest, TopologyUpdateConfigService_DeleteAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
-}
-func (UnimplementedTopologyUpdateConfigServiceServer) mustEmbedUnimplementedTopologyUpdateConfigServiceServer() {
-}
-
-// UnsafeTopologyUpdateConfigServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyUpdateConfigServiceServer will
-// result in compilation errors.
-type UnsafeTopologyUpdateConfigServiceServer interface {
-	mustEmbedUnimplementedTopologyUpdateConfigServiceServer()
-}
-
-func RegisterTopologyUpdateConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateConfigServiceServer) {
-	s.RegisterService(&TopologyUpdateConfigService_ServiceDesc, srv)
-}
-
-func _TopologyUpdateConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateConfigServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateConfigServiceServer).GetOne(ctx, req.(*TopologyUpdateConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateConfigServiceServer).GetAll(m, &topologyUpdateConfigServiceGetAllServer{stream})
-}
-
-type TopologyUpdateConfigService_GetAllServer interface {
-	Send(*TopologyUpdateConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateConfigServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateConfigServiceGetAllServer) Send(m *TopologyUpdateConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateConfigServiceServer).Subscribe(m, &topologyUpdateConfigServiceSubscribeServer{stream})
-}
-
-type TopologyUpdateConfigService_SubscribeServer interface {
-	Send(*TopologyUpdateConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateConfigServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateConfigServiceSubscribeServer) Send(m *TopologyUpdateConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateConfigSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateConfigServiceServer).Set(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/Set",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateConfigServiceServer).Set(ctx, req.(*TopologyUpdateConfigSetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateConfigSetSomeRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateConfigServiceServer).SetSome(m, &topologyUpdateConfigServiceSetSomeServer{stream})
-}
-
-type TopologyUpdateConfigService_SetSomeServer interface {
-	Send(*TopologyUpdateConfigSetSomeResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateConfigServiceSetSomeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateConfigServiceSetSomeServer) Send(m *TopologyUpdateConfigSetSomeResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateConfigDeleteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateConfigServiceServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateConfigService/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateConfigServiceServer).Delete(ctx, req.(*TopologyUpdateConfigDeleteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateConfigDeleteAllRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateConfigServiceServer).DeleteAll(m, &topologyUpdateConfigServiceDeleteAllServer{stream})
-}
-
-type TopologyUpdateConfigService_DeleteAllServer interface {
-	Send(*TopologyUpdateConfigDeleteAllResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateConfigServiceDeleteAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateConfigServiceDeleteAllServer) Send(m *TopologyUpdateConfigDeleteAllResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyUpdateConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateConfigService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyUpdateConfigService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyUpdateConfigService",
-	HandlerType: (*TopologyUpdateConfigServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetOne",
-			Handler:    _TopologyUpdateConfigService_GetOne_Handler,
-		},
-		{
-			MethodName: "Set",
-			Handler:    _TopologyUpdateConfigService_Set_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _TopologyUpdateConfigService_Delete_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyUpdateConfigService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyUpdateConfigService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SetSome",
-			Handler:       _TopologyUpdateConfigService_SetSome_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "DeleteAll",
-			Handler:       _TopologyUpdateConfigService_DeleteAll_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyUpdateSyncServiceClient is the client API for TopologyUpdateSyncService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyUpdateSyncServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyUpdateSyncRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncResponse, error)
-	GetAll(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_SubscribeClient, error)
-}
-
-type topologyUpdateSyncServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyUpdateSyncServiceClient(cc grpc.ClientConnInterface) TopologyUpdateSyncServiceClient {
-	return &topologyUpdateSyncServiceClient{cc}
-}
-
-func (c *topologyUpdateSyncServiceClient) GetOne(ctx context.Context, in *TopologyUpdateSyncRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncResponse, error) {
-	out := new(TopologyUpdateSyncResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateSyncServiceClient) GetAll(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateSyncService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncService_GetAllClient interface {
-	Recv() (*TopologyUpdateSyncStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncServiceGetAllClient) Recv() (*TopologyUpdateSyncStreamResponse, error) {
-	m := new(TopologyUpdateSyncStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateSyncServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateSyncStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateSyncService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncService_SubscribeClient interface {
-	Recv() (*TopologyUpdateSyncStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncServiceSubscribeClient) Recv() (*TopologyUpdateSyncStreamResponse, error) {
-	m := new(TopologyUpdateSyncStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyUpdateSyncServiceServer is the server API for TopologyUpdateSyncService service.
-// All implementations must embed UnimplementedTopologyUpdateSyncServiceServer
-// for forward compatibility
-type TopologyUpdateSyncServiceServer interface {
-	GetOne(context.Context, *TopologyUpdateSyncRequest) (*TopologyUpdateSyncResponse, error)
-	GetAll(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_GetAllServer) error
-	Subscribe(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_SubscribeServer) error
-	mustEmbedUnimplementedTopologyUpdateSyncServiceServer()
-}
-
-// UnimplementedTopologyUpdateSyncServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyUpdateSyncServiceServer struct {
-}
-
-func (UnimplementedTopologyUpdateSyncServiceServer) GetOne(context.Context, *TopologyUpdateSyncRequest) (*TopologyUpdateSyncResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyUpdateSyncServiceServer) GetAll(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyUpdateSyncServiceServer) Subscribe(*TopologyUpdateSyncStreamRequest, TopologyUpdateSyncService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyUpdateSyncServiceServer) mustEmbedUnimplementedTopologyUpdateSyncServiceServer() {
-}
-
-// UnsafeTopologyUpdateSyncServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyUpdateSyncServiceServer will
-// result in compilation errors.
-type UnsafeTopologyUpdateSyncServiceServer interface {
-	mustEmbedUnimplementedTopologyUpdateSyncServiceServer()
-}
-
-func RegisterTopologyUpdateSyncServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateSyncServiceServer) {
-	s.RegisterService(&TopologyUpdateSyncService_ServiceDesc, srv)
-}
-
-func _TopologyUpdateSyncService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateSyncRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateSyncServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateSyncService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateSyncServiceServer).GetOne(ctx, req.(*TopologyUpdateSyncRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateSyncService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncServiceServer).GetAll(m, &topologyUpdateSyncServiceGetAllServer{stream})
-}
-
-type TopologyUpdateSyncService_GetAllServer interface {
-	Send(*TopologyUpdateSyncStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncServiceGetAllServer) Send(m *TopologyUpdateSyncStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateSyncService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncServiceServer).Subscribe(m, &topologyUpdateSyncServiceSubscribeServer{stream})
-}
-
-type TopologyUpdateSyncService_SubscribeServer interface {
-	Send(*TopologyUpdateSyncStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncServiceSubscribeServer) Send(m *TopologyUpdateSyncStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyUpdateSyncService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateSyncService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyUpdateSyncService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyUpdateSyncService",
-	HandlerType: (*TopologyUpdateSyncServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetOne",
-			Handler:    _TopologyUpdateSyncService_GetOne_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyUpdateSyncService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyUpdateSyncService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "arista/studio.v1/services.gen.proto",
-}
-
-// TopologyUpdateSyncConfigServiceClient is the client API for TopologyUpdateSyncConfigService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TopologyUpdateSyncConfigServiceClient interface {
-	GetOne(ctx context.Context, in *TopologyUpdateSyncConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigResponse, error)
-	GetAll(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_GetAllClient, error)
-	Subscribe(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SubscribeClient, error)
-	Set(ctx context.Context, in *TopologyUpdateSyncConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigSetResponse, error)
-	SetSome(ctx context.Context, in *TopologyUpdateSyncConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SetSomeClient, error)
-	Delete(ctx context.Context, in *TopologyUpdateSyncConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigDeleteResponse, error)
-	DeleteAll(ctx context.Context, in *TopologyUpdateSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_DeleteAllClient, error)
-}
-
-type topologyUpdateSyncConfigServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewTopologyUpdateSyncConfigServiceClient(cc grpc.ClientConnInterface) TopologyUpdateSyncConfigServiceClient {
-	return &topologyUpdateSyncConfigServiceClient{cc}
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) GetOne(ctx context.Context, in *TopologyUpdateSyncConfigRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigResponse, error) {
-	out := new(TopologyUpdateSyncConfigResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/GetOne", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) GetAll(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[0], "/arista.studio.v1.TopologyUpdateSyncConfigService/GetAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncConfigServiceGetAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncConfigService_GetAllClient interface {
-	Recv() (*TopologyUpdateSyncConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncConfigServiceGetAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncConfigServiceGetAllClient) Recv() (*TopologyUpdateSyncConfigStreamResponse, error) {
-	m := new(TopologyUpdateSyncConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) Subscribe(ctx context.Context, in *TopologyUpdateSyncConfigStreamRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[1], "/arista.studio.v1.TopologyUpdateSyncConfigService/Subscribe", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncConfigServiceSubscribeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncConfigService_SubscribeClient interface {
-	Recv() (*TopologyUpdateSyncConfigStreamResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncConfigServiceSubscribeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncConfigServiceSubscribeClient) Recv() (*TopologyUpdateSyncConfigStreamResponse, error) {
-	m := new(TopologyUpdateSyncConfigStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) Set(ctx context.Context, in *TopologyUpdateSyncConfigSetRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigSetResponse, error) {
-	out := new(TopologyUpdateSyncConfigSetResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/Set", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) SetSome(ctx context.Context, in *TopologyUpdateSyncConfigSetSomeRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_SetSomeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[2], "/arista.studio.v1.TopologyUpdateSyncConfigService/SetSome", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncConfigServiceSetSomeClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncConfigService_SetSomeClient interface {
-	Recv() (*TopologyUpdateSyncConfigSetSomeResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncConfigServiceSetSomeClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncConfigServiceSetSomeClient) Recv() (*TopologyUpdateSyncConfigSetSomeResponse, error) {
-	m := new(TopologyUpdateSyncConfigSetSomeResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) Delete(ctx context.Context, in *TopologyUpdateSyncConfigDeleteRequest, opts ...grpc.CallOption) (*TopologyUpdateSyncConfigDeleteResponse, error) {
-	out := new(TopologyUpdateSyncConfigDeleteResponse)
-	err := c.cc.Invoke(ctx, "/arista.studio.v1.TopologyUpdateSyncConfigService/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *topologyUpdateSyncConfigServiceClient) DeleteAll(ctx context.Context, in *TopologyUpdateSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (TopologyUpdateSyncConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TopologyUpdateSyncConfigService_ServiceDesc.Streams[3], "/arista.studio.v1.TopologyUpdateSyncConfigService/DeleteAll", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &topologyUpdateSyncConfigServiceDeleteAllClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type TopologyUpdateSyncConfigService_DeleteAllClient interface {
-	Recv() (*TopologyUpdateSyncConfigDeleteAllResponse, error)
-	grpc.ClientStream
-}
-
-type topologyUpdateSyncConfigServiceDeleteAllClient struct {
-	grpc.ClientStream
-}
-
-func (x *topologyUpdateSyncConfigServiceDeleteAllClient) Recv() (*TopologyUpdateSyncConfigDeleteAllResponse, error) {
-	m := new(TopologyUpdateSyncConfigDeleteAllResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// TopologyUpdateSyncConfigServiceServer is the server API for TopologyUpdateSyncConfigService service.
-// All implementations must embed UnimplementedTopologyUpdateSyncConfigServiceServer
-// for forward compatibility
-type TopologyUpdateSyncConfigServiceServer interface {
-	GetOne(context.Context, *TopologyUpdateSyncConfigRequest) (*TopologyUpdateSyncConfigResponse, error)
-	GetAll(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_GetAllServer) error
-	Subscribe(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_SubscribeServer) error
-	Set(context.Context, *TopologyUpdateSyncConfigSetRequest) (*TopologyUpdateSyncConfigSetResponse, error)
-	SetSome(*TopologyUpdateSyncConfigSetSomeRequest, TopologyUpdateSyncConfigService_SetSomeServer) error
-	Delete(context.Context, *TopologyUpdateSyncConfigDeleteRequest) (*TopologyUpdateSyncConfigDeleteResponse, error)
-	DeleteAll(*TopologyUpdateSyncConfigDeleteAllRequest, TopologyUpdateSyncConfigService_DeleteAllServer) error
-	mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer()
-}
-
-// UnimplementedTopologyUpdateSyncConfigServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedTopologyUpdateSyncConfigServiceServer struct {
-}
-
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) GetOne(context.Context, *TopologyUpdateSyncConfigRequest) (*TopologyUpdateSyncConfigResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) GetAll(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_GetAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) Subscribe(*TopologyUpdateSyncConfigStreamRequest, TopologyUpdateSyncConfigService_SubscribeServer) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) Set(context.Context, *TopologyUpdateSyncConfigSetRequest) (*TopologyUpdateSyncConfigSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) SetSome(*TopologyUpdateSyncConfigSetSomeRequest, TopologyUpdateSyncConfigService_SetSomeServer) error {
-	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) Delete(context.Context, *TopologyUpdateSyncConfigDeleteRequest) (*TopologyUpdateSyncConfigDeleteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) DeleteAll(*TopologyUpdateSyncConfigDeleteAllRequest, TopologyUpdateSyncConfigService_DeleteAllServer) error {
-	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
-}
-func (UnimplementedTopologyUpdateSyncConfigServiceServer) mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer() {
-}
-
-// UnsafeTopologyUpdateSyncConfigServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TopologyUpdateSyncConfigServiceServer will
-// result in compilation errors.
-type UnsafeTopologyUpdateSyncConfigServiceServer interface {
-	mustEmbedUnimplementedTopologyUpdateSyncConfigServiceServer()
-}
-
-func RegisterTopologyUpdateSyncConfigServiceServer(s grpc.ServiceRegistrar, srv TopologyUpdateSyncConfigServiceServer) {
-	s.RegisterService(&TopologyUpdateSyncConfigService_ServiceDesc, srv)
-}
-
-func _TopologyUpdateSyncConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateSyncConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateSyncConfigServiceServer).GetOne(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/GetOne",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateSyncConfigServiceServer).GetOne(ctx, req.(*TopologyUpdateSyncConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateSyncConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncConfigServiceServer).GetAll(m, &topologyUpdateSyncConfigServiceGetAllServer{stream})
-}
-
-type TopologyUpdateSyncConfigService_GetAllServer interface {
-	Send(*TopologyUpdateSyncConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncConfigServiceGetAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncConfigServiceGetAllServer) Send(m *TopologyUpdateSyncConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateSyncConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncConfigStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncConfigServiceServer).Subscribe(m, &topologyUpdateSyncConfigServiceSubscribeServer{stream})
-}
-
-type TopologyUpdateSyncConfigService_SubscribeServer interface {
-	Send(*TopologyUpdateSyncConfigStreamResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncConfigServiceSubscribeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncConfigServiceSubscribeServer) Send(m *TopologyUpdateSyncConfigStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateSyncConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateSyncConfigSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateSyncConfigServiceServer).Set(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/Set",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateSyncConfigServiceServer).Set(ctx, req.(*TopologyUpdateSyncConfigSetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateSyncConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncConfigSetSomeRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncConfigServiceServer).SetSome(m, &topologyUpdateSyncConfigServiceSetSomeServer{stream})
-}
-
-type TopologyUpdateSyncConfigService_SetSomeServer interface {
-	Send(*TopologyUpdateSyncConfigSetSomeResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncConfigServiceSetSomeServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncConfigServiceSetSomeServer) Send(m *TopologyUpdateSyncConfigSetSomeResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _TopologyUpdateSyncConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TopologyUpdateSyncConfigDeleteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TopologyUpdateSyncConfigServiceServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/arista.studio.v1.TopologyUpdateSyncConfigService/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TopologyUpdateSyncConfigServiceServer).Delete(ctx, req.(*TopologyUpdateSyncConfigDeleteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TopologyUpdateSyncConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(TopologyUpdateSyncConfigDeleteAllRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(TopologyUpdateSyncConfigServiceServer).DeleteAll(m, &topologyUpdateSyncConfigServiceDeleteAllServer{stream})
-}
-
-type TopologyUpdateSyncConfigService_DeleteAllServer interface {
-	Send(*TopologyUpdateSyncConfigDeleteAllResponse) error
-	grpc.ServerStream
-}
-
-type topologyUpdateSyncConfigServiceDeleteAllServer struct {
-	grpc.ServerStream
-}
-
-func (x *topologyUpdateSyncConfigServiceDeleteAllServer) Send(m *TopologyUpdateSyncConfigDeleteAllResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-// TopologyUpdateSyncConfigService_ServiceDesc is the grpc.ServiceDesc for TopologyUpdateSyncConfigService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TopologyUpdateSyncConfigService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arista.studio.v1.TopologyUpdateSyncConfigService",
-	HandlerType: (*TopologyUpdateSyncConfigServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetOne",
-			Handler:    _TopologyUpdateSyncConfigService_GetOne_Handler,
-		},
-		{
-			MethodName: "Set",
-			Handler:    _TopologyUpdateSyncConfigService_Set_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _TopologyUpdateSyncConfigService_Delete_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetAll",
-			Handler:       _TopologyUpdateSyncConfigService_GetAll_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _TopologyUpdateSyncConfigService_Subscribe_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SetSome",
-			Handler:       _TopologyUpdateSyncConfigService_SetSome_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "DeleteAll",
-			Handler:       _TopologyUpdateSyncConfigService_DeleteAll_Handler,
+			StreamName:    "SubscribeMeta",
+			Handler:       _StudioSummaryService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
 	},
