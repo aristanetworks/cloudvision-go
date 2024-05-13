@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	TagService_GetOne_FullMethodName        = "/arista.tag.v2.TagService/GetOne"
-	TagService_GetSome_FullMethodName       = "/arista.tag.v2.TagService/GetSome"
-	TagService_GetAll_FullMethodName        = "/arista.tag.v2.TagService/GetAll"
-	TagService_Subscribe_FullMethodName     = "/arista.tag.v2.TagService/Subscribe"
-	TagService_GetMeta_FullMethodName       = "/arista.tag.v2.TagService/GetMeta"
-	TagService_SubscribeMeta_FullMethodName = "/arista.tag.v2.TagService/SubscribeMeta"
+	TagService_GetOne_FullMethodName           = "/arista.tag.v2.TagService/GetOne"
+	TagService_GetSome_FullMethodName          = "/arista.tag.v2.TagService/GetSome"
+	TagService_GetAll_FullMethodName           = "/arista.tag.v2.TagService/GetAll"
+	TagService_Subscribe_FullMethodName        = "/arista.tag.v2.TagService/Subscribe"
+	TagService_GetMeta_FullMethodName          = "/arista.tag.v2.TagService/GetMeta"
+	TagService_SubscribeMeta_FullMethodName    = "/arista.tag.v2.TagService/SubscribeMeta"
+	TagService_GetAllBatched_FullMethodName    = "/arista.tag.v2.TagService/GetAllBatched"
+	TagService_SubscribeBatched_FullMethodName = "/arista.tag.v2.TagService/SubscribeBatched"
 )
 
 // TagServiceClient is the client API for TagService service.
@@ -45,6 +47,8 @@ type TagServiceClient interface {
 	Subscribe(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *TagStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *TagBatchedStreamRequest, opts ...grpc.CallOption) (TagService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *TagBatchedStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeBatchedClient, error)
 }
 
 type tagServiceClient struct {
@@ -201,6 +205,70 @@ func (x *tagServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *tagServiceClient) GetAllBatched(ctx context.Context, in *TagBatchedStreamRequest, opts ...grpc.CallOption) (TagService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[4], TagService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagService_GetAllBatchedClient interface {
+	Recv() (*TagBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagServiceGetAllBatchedClient) Recv() (*TagBatchedStreamResponse, error) {
+	m := new(TagBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tagServiceClient) SubscribeBatched(ctx context.Context, in *TagBatchedStreamRequest, opts ...grpc.CallOption) (TagService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagService_ServiceDesc.Streams[5], TagService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagService_SubscribeBatchedClient interface {
+	Recv() (*TagBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagServiceSubscribeBatchedClient) Recv() (*TagBatchedStreamResponse, error) {
+	m := new(TagBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagServiceServer is the server API for TagService service.
 // All implementations must embed UnimplementedTagServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type TagServiceServer interface {
 	Subscribe(*TagStreamRequest, TagService_SubscribeServer) error
 	GetMeta(context.Context, *TagStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*TagStreamRequest, TagService_SubscribeMetaServer) error
+	GetAllBatched(*TagBatchedStreamRequest, TagService_GetAllBatchedServer) error
+	SubscribeBatched(*TagBatchedStreamRequest, TagService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedTagServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedTagServiceServer) GetMeta(context.Context, *TagStreamRequest)
 }
 func (UnimplementedTagServiceServer) SubscribeMeta(*TagStreamRequest, TagService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedTagServiceServer) GetAllBatched(*TagBatchedStreamRequest, TagService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedTagServiceServer) SubscribeBatched(*TagBatchedStreamRequest, TagService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedTagServiceServer) mustEmbedUnimplementedTagServiceServer() {}
 
@@ -369,6 +445,48 @@ func (x *tagServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagServiceServer).GetAllBatched(m, &tagServiceGetAllBatchedServer{stream})
+}
+
+type TagService_GetAllBatchedServer interface {
+	Send(*TagBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagServiceGetAllBatchedServer) Send(m *TagBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagServiceServer).SubscribeBatched(m, &tagServiceSubscribeBatchedServer{stream})
+}
+
+type TagService_SubscribeBatchedServer interface {
+	Send(*TagBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagServiceSubscribeBatchedServer) Send(m *TagBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagService_ServiceDesc is the grpc.ServiceDesc for TagService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -406,17 +524,29 @@ var TagService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _TagService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _TagService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _TagService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/tag.v2/services.gen.proto",
 }
 
 const (
-	TagAssignmentService_GetOne_FullMethodName        = "/arista.tag.v2.TagAssignmentService/GetOne"
-	TagAssignmentService_GetSome_FullMethodName       = "/arista.tag.v2.TagAssignmentService/GetSome"
-	TagAssignmentService_GetAll_FullMethodName        = "/arista.tag.v2.TagAssignmentService/GetAll"
-	TagAssignmentService_Subscribe_FullMethodName     = "/arista.tag.v2.TagAssignmentService/Subscribe"
-	TagAssignmentService_GetMeta_FullMethodName       = "/arista.tag.v2.TagAssignmentService/GetMeta"
-	TagAssignmentService_SubscribeMeta_FullMethodName = "/arista.tag.v2.TagAssignmentService/SubscribeMeta"
+	TagAssignmentService_GetOne_FullMethodName           = "/arista.tag.v2.TagAssignmentService/GetOne"
+	TagAssignmentService_GetSome_FullMethodName          = "/arista.tag.v2.TagAssignmentService/GetSome"
+	TagAssignmentService_GetAll_FullMethodName           = "/arista.tag.v2.TagAssignmentService/GetAll"
+	TagAssignmentService_Subscribe_FullMethodName        = "/arista.tag.v2.TagAssignmentService/Subscribe"
+	TagAssignmentService_GetMeta_FullMethodName          = "/arista.tag.v2.TagAssignmentService/GetMeta"
+	TagAssignmentService_SubscribeMeta_FullMethodName    = "/arista.tag.v2.TagAssignmentService/SubscribeMeta"
+	TagAssignmentService_GetAllBatched_FullMethodName    = "/arista.tag.v2.TagAssignmentService/GetAllBatched"
+	TagAssignmentService_SubscribeBatched_FullMethodName = "/arista.tag.v2.TagAssignmentService/SubscribeBatched"
 )
 
 // TagAssignmentServiceClient is the client API for TagAssignmentService service.
@@ -429,6 +559,8 @@ type TagAssignmentServiceClient interface {
 	Subscribe(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *TagAssignmentStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *TagAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *TagAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeBatchedClient, error)
 }
 
 type tagAssignmentServiceClient struct {
@@ -585,6 +717,70 @@ func (x *tagAssignmentServiceSubscribeMetaClient) Recv() (*MetaResponse, error) 
 	return m, nil
 }
 
+func (c *tagAssignmentServiceClient) GetAllBatched(ctx context.Context, in *TagAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[4], TagAssignmentService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentService_GetAllBatchedClient interface {
+	Recv() (*TagAssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentServiceGetAllBatchedClient) Recv() (*TagAssignmentBatchedStreamResponse, error) {
+	m := new(TagAssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tagAssignmentServiceClient) SubscribeBatched(ctx context.Context, in *TagAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentService_ServiceDesc.Streams[5], TagAssignmentService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentService_SubscribeBatchedClient interface {
+	Recv() (*TagAssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentServiceSubscribeBatchedClient) Recv() (*TagAssignmentBatchedStreamResponse, error) {
+	m := new(TagAssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagAssignmentServiceServer is the server API for TagAssignmentService service.
 // All implementations must embed UnimplementedTagAssignmentServiceServer
 // for forward compatibility
@@ -595,6 +791,8 @@ type TagAssignmentServiceServer interface {
 	Subscribe(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeServer) error
 	GetMeta(context.Context, *TagAssignmentStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeMetaServer) error
+	GetAllBatched(*TagAssignmentBatchedStreamRequest, TagAssignmentService_GetAllBatchedServer) error
+	SubscribeBatched(*TagAssignmentBatchedStreamRequest, TagAssignmentService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedTagAssignmentServiceServer()
 }
 
@@ -619,6 +817,12 @@ func (UnimplementedTagAssignmentServiceServer) GetMeta(context.Context, *TagAssi
 }
 func (UnimplementedTagAssignmentServiceServer) SubscribeMeta(*TagAssignmentStreamRequest, TagAssignmentService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedTagAssignmentServiceServer) GetAllBatched(*TagAssignmentBatchedStreamRequest, TagAssignmentService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedTagAssignmentServiceServer) SubscribeBatched(*TagAssignmentBatchedStreamRequest, TagAssignmentService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedTagAssignmentServiceServer) mustEmbedUnimplementedTagAssignmentServiceServer() {}
 
@@ -753,6 +957,48 @@ func (x *tagAssignmentServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagAssignmentService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentServiceServer).GetAllBatched(m, &tagAssignmentServiceGetAllBatchedServer{stream})
+}
+
+type TagAssignmentService_GetAllBatchedServer interface {
+	Send(*TagAssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentServiceGetAllBatchedServer) Send(m *TagAssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagAssignmentService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentServiceServer).SubscribeBatched(m, &tagAssignmentServiceSubscribeBatchedServer{stream})
+}
+
+type TagAssignmentService_SubscribeBatchedServer interface {
+	Send(*TagAssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentServiceSubscribeBatchedServer) Send(m *TagAssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagAssignmentService_ServiceDesc is the grpc.ServiceDesc for TagAssignmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -790,22 +1036,34 @@ var TagAssignmentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _TagAssignmentService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _TagAssignmentService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _TagAssignmentService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/tag.v2/services.gen.proto",
 }
 
 const (
-	TagAssignmentConfigService_GetOne_FullMethodName        = "/arista.tag.v2.TagAssignmentConfigService/GetOne"
-	TagAssignmentConfigService_GetSome_FullMethodName       = "/arista.tag.v2.TagAssignmentConfigService/GetSome"
-	TagAssignmentConfigService_GetAll_FullMethodName        = "/arista.tag.v2.TagAssignmentConfigService/GetAll"
-	TagAssignmentConfigService_Subscribe_FullMethodName     = "/arista.tag.v2.TagAssignmentConfigService/Subscribe"
-	TagAssignmentConfigService_GetMeta_FullMethodName       = "/arista.tag.v2.TagAssignmentConfigService/GetMeta"
-	TagAssignmentConfigService_SubscribeMeta_FullMethodName = "/arista.tag.v2.TagAssignmentConfigService/SubscribeMeta"
-	TagAssignmentConfigService_Set_FullMethodName           = "/arista.tag.v2.TagAssignmentConfigService/Set"
-	TagAssignmentConfigService_SetSome_FullMethodName       = "/arista.tag.v2.TagAssignmentConfigService/SetSome"
-	TagAssignmentConfigService_Delete_FullMethodName        = "/arista.tag.v2.TagAssignmentConfigService/Delete"
-	TagAssignmentConfigService_DeleteSome_FullMethodName    = "/arista.tag.v2.TagAssignmentConfigService/DeleteSome"
-	TagAssignmentConfigService_DeleteAll_FullMethodName     = "/arista.tag.v2.TagAssignmentConfigService/DeleteAll"
+	TagAssignmentConfigService_GetOne_FullMethodName           = "/arista.tag.v2.TagAssignmentConfigService/GetOne"
+	TagAssignmentConfigService_GetSome_FullMethodName          = "/arista.tag.v2.TagAssignmentConfigService/GetSome"
+	TagAssignmentConfigService_GetAll_FullMethodName           = "/arista.tag.v2.TagAssignmentConfigService/GetAll"
+	TagAssignmentConfigService_Subscribe_FullMethodName        = "/arista.tag.v2.TagAssignmentConfigService/Subscribe"
+	TagAssignmentConfigService_GetMeta_FullMethodName          = "/arista.tag.v2.TagAssignmentConfigService/GetMeta"
+	TagAssignmentConfigService_SubscribeMeta_FullMethodName    = "/arista.tag.v2.TagAssignmentConfigService/SubscribeMeta"
+	TagAssignmentConfigService_Set_FullMethodName              = "/arista.tag.v2.TagAssignmentConfigService/Set"
+	TagAssignmentConfigService_SetSome_FullMethodName          = "/arista.tag.v2.TagAssignmentConfigService/SetSome"
+	TagAssignmentConfigService_Delete_FullMethodName           = "/arista.tag.v2.TagAssignmentConfigService/Delete"
+	TagAssignmentConfigService_DeleteSome_FullMethodName       = "/arista.tag.v2.TagAssignmentConfigService/DeleteSome"
+	TagAssignmentConfigService_DeleteAll_FullMethodName        = "/arista.tag.v2.TagAssignmentConfigService/DeleteAll"
+	TagAssignmentConfigService_GetAllBatched_FullMethodName    = "/arista.tag.v2.TagAssignmentConfigService/GetAllBatched"
+	TagAssignmentConfigService_SubscribeBatched_FullMethodName = "/arista.tag.v2.TagAssignmentConfigService/SubscribeBatched"
 )
 
 // TagAssignmentConfigServiceClient is the client API for TagAssignmentConfigService service.
@@ -823,6 +1081,8 @@ type TagAssignmentConfigServiceClient interface {
 	Delete(ctx context.Context, in *TagAssignmentConfigDeleteRequest, opts ...grpc.CallOption) (*TagAssignmentConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *TagAssignmentConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *TagAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *TagAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *TagAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeBatchedClient, error)
 }
 
 type tagAssignmentConfigServiceClient struct {
@@ -1093,6 +1353,70 @@ func (x *tagAssignmentConfigServiceDeleteAllClient) Recv() (*TagAssignmentConfig
 	return m, nil
 }
 
+func (c *tagAssignmentConfigServiceClient) GetAllBatched(ctx context.Context, in *TagAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[7], TagAssignmentConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_GetAllBatchedClient interface {
+	Recv() (*TagAssignmentConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceGetAllBatchedClient) Recv() (*TagAssignmentConfigBatchedStreamResponse, error) {
+	m := new(TagAssignmentConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tagAssignmentConfigServiceClient) SubscribeBatched(ctx context.Context, in *TagAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagAssignmentConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagAssignmentConfigService_ServiceDesc.Streams[8], TagAssignmentConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagAssignmentConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagAssignmentConfigService_SubscribeBatchedClient interface {
+	Recv() (*TagAssignmentConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagAssignmentConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagAssignmentConfigServiceSubscribeBatchedClient) Recv() (*TagAssignmentConfigBatchedStreamResponse, error) {
+	m := new(TagAssignmentConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagAssignmentConfigServiceServer is the server API for TagAssignmentConfigService service.
 // All implementations must embed UnimplementedTagAssignmentConfigServiceServer
 // for forward compatibility
@@ -1108,6 +1432,8 @@ type TagAssignmentConfigServiceServer interface {
 	Delete(context.Context, *TagAssignmentConfigDeleteRequest) (*TagAssignmentConfigDeleteResponse, error)
 	DeleteSome(*TagAssignmentConfigDeleteSomeRequest, TagAssignmentConfigService_DeleteSomeServer) error
 	DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error
+	GetAllBatched(*TagAssignmentConfigBatchedStreamRequest, TagAssignmentConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*TagAssignmentConfigBatchedStreamRequest, TagAssignmentConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedTagAssignmentConfigServiceServer()
 }
 
@@ -1147,6 +1473,12 @@ func (UnimplementedTagAssignmentConfigServiceServer) DeleteSome(*TagAssignmentCo
 }
 func (UnimplementedTagAssignmentConfigServiceServer) DeleteAll(*TagAssignmentConfigDeleteAllRequest, TagAssignmentConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) GetAllBatched(*TagAssignmentConfigBatchedStreamRequest, TagAssignmentConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedTagAssignmentConfigServiceServer) SubscribeBatched(*TagAssignmentConfigBatchedStreamRequest, TagAssignmentConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedTagAssignmentConfigServiceServer) mustEmbedUnimplementedTagAssignmentConfigServiceServer() {
 }
@@ -1381,6 +1713,48 @@ func (x *tagAssignmentConfigServiceDeleteAllServer) Send(m *TagAssignmentConfigD
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagAssignmentConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).GetAllBatched(m, &tagAssignmentConfigServiceGetAllBatchedServer{stream})
+}
+
+type TagAssignmentConfigService_GetAllBatchedServer interface {
+	Send(*TagAssignmentConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceGetAllBatchedServer) Send(m *TagAssignmentConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagAssignmentConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagAssignmentConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagAssignmentConfigServiceServer).SubscribeBatched(m, &tagAssignmentConfigServiceSubscribeBatchedServer{stream})
+}
+
+type TagAssignmentConfigService_SubscribeBatchedServer interface {
+	Send(*TagAssignmentConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagAssignmentConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagAssignmentConfigServiceSubscribeBatchedServer) Send(m *TagAssignmentConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagAssignmentConfigService_ServiceDesc is the grpc.ServiceDesc for TagAssignmentConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1441,22 +1815,34 @@ var TagAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _TagAssignmentConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _TagAssignmentConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _TagAssignmentConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/tag.v2/services.gen.proto",
 }
 
 const (
-	TagConfigService_GetOne_FullMethodName        = "/arista.tag.v2.TagConfigService/GetOne"
-	TagConfigService_GetSome_FullMethodName       = "/arista.tag.v2.TagConfigService/GetSome"
-	TagConfigService_GetAll_FullMethodName        = "/arista.tag.v2.TagConfigService/GetAll"
-	TagConfigService_Subscribe_FullMethodName     = "/arista.tag.v2.TagConfigService/Subscribe"
-	TagConfigService_GetMeta_FullMethodName       = "/arista.tag.v2.TagConfigService/GetMeta"
-	TagConfigService_SubscribeMeta_FullMethodName = "/arista.tag.v2.TagConfigService/SubscribeMeta"
-	TagConfigService_Set_FullMethodName           = "/arista.tag.v2.TagConfigService/Set"
-	TagConfigService_SetSome_FullMethodName       = "/arista.tag.v2.TagConfigService/SetSome"
-	TagConfigService_Delete_FullMethodName        = "/arista.tag.v2.TagConfigService/Delete"
-	TagConfigService_DeleteSome_FullMethodName    = "/arista.tag.v2.TagConfigService/DeleteSome"
-	TagConfigService_DeleteAll_FullMethodName     = "/arista.tag.v2.TagConfigService/DeleteAll"
+	TagConfigService_GetOne_FullMethodName           = "/arista.tag.v2.TagConfigService/GetOne"
+	TagConfigService_GetSome_FullMethodName          = "/arista.tag.v2.TagConfigService/GetSome"
+	TagConfigService_GetAll_FullMethodName           = "/arista.tag.v2.TagConfigService/GetAll"
+	TagConfigService_Subscribe_FullMethodName        = "/arista.tag.v2.TagConfigService/Subscribe"
+	TagConfigService_GetMeta_FullMethodName          = "/arista.tag.v2.TagConfigService/GetMeta"
+	TagConfigService_SubscribeMeta_FullMethodName    = "/arista.tag.v2.TagConfigService/SubscribeMeta"
+	TagConfigService_Set_FullMethodName              = "/arista.tag.v2.TagConfigService/Set"
+	TagConfigService_SetSome_FullMethodName          = "/arista.tag.v2.TagConfigService/SetSome"
+	TagConfigService_Delete_FullMethodName           = "/arista.tag.v2.TagConfigService/Delete"
+	TagConfigService_DeleteSome_FullMethodName       = "/arista.tag.v2.TagConfigService/DeleteSome"
+	TagConfigService_DeleteAll_FullMethodName        = "/arista.tag.v2.TagConfigService/DeleteAll"
+	TagConfigService_GetAllBatched_FullMethodName    = "/arista.tag.v2.TagConfigService/GetAllBatched"
+	TagConfigService_SubscribeBatched_FullMethodName = "/arista.tag.v2.TagConfigService/SubscribeBatched"
 )
 
 // TagConfigServiceClient is the client API for TagConfigService service.
@@ -1474,6 +1860,8 @@ type TagConfigServiceClient interface {
 	Delete(ctx context.Context, in *TagConfigDeleteRequest, opts ...grpc.CallOption) (*TagConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *TagConfigDeleteSomeRequest, opts ...grpc.CallOption) (TagConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *TagConfigDeleteAllRequest, opts ...grpc.CallOption) (TagConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *TagConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *TagConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeBatchedClient, error)
 }
 
 type tagConfigServiceClient struct {
@@ -1744,6 +2132,70 @@ func (x *tagConfigServiceDeleteAllClient) Recv() (*TagConfigDeleteAllResponse, e
 	return m, nil
 }
 
+func (c *tagConfigServiceClient) GetAllBatched(ctx context.Context, in *TagConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[7], TagConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_GetAllBatchedClient interface {
+	Recv() (*TagConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceGetAllBatchedClient) Recv() (*TagConfigBatchedStreamResponse, error) {
+	m := new(TagConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tagConfigServiceClient) SubscribeBatched(ctx context.Context, in *TagConfigBatchedStreamRequest, opts ...grpc.CallOption) (TagConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TagConfigService_ServiceDesc.Streams[8], TagConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tagConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TagConfigService_SubscribeBatchedClient interface {
+	Recv() (*TagConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tagConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *tagConfigServiceSubscribeBatchedClient) Recv() (*TagConfigBatchedStreamResponse, error) {
+	m := new(TagConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TagConfigServiceServer is the server API for TagConfigService service.
 // All implementations must embed UnimplementedTagConfigServiceServer
 // for forward compatibility
@@ -1759,6 +2211,8 @@ type TagConfigServiceServer interface {
 	Delete(context.Context, *TagConfigDeleteRequest) (*TagConfigDeleteResponse, error)
 	DeleteSome(*TagConfigDeleteSomeRequest, TagConfigService_DeleteSomeServer) error
 	DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error
+	GetAllBatched(*TagConfigBatchedStreamRequest, TagConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*TagConfigBatchedStreamRequest, TagConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedTagConfigServiceServer()
 }
 
@@ -1798,6 +2252,12 @@ func (UnimplementedTagConfigServiceServer) DeleteSome(*TagConfigDeleteSomeReques
 }
 func (UnimplementedTagConfigServiceServer) DeleteAll(*TagConfigDeleteAllRequest, TagConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedTagConfigServiceServer) GetAllBatched(*TagConfigBatchedStreamRequest, TagConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedTagConfigServiceServer) SubscribeBatched(*TagConfigBatchedStreamRequest, TagConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedTagConfigServiceServer) mustEmbedUnimplementedTagConfigServiceServer() {}
 
@@ -2031,6 +2491,48 @@ func (x *tagConfigServiceDeleteAllServer) Send(m *TagConfigDeleteAllResponse) er
 	return x.ServerStream.SendMsg(m)
 }
 
+func _TagConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).GetAllBatched(m, &tagConfigServiceGetAllBatchedServer{stream})
+}
+
+type TagConfigService_GetAllBatchedServer interface {
+	Send(*TagConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceGetAllBatchedServer) Send(m *TagConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TagConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TagConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TagConfigServiceServer).SubscribeBatched(m, &tagConfigServiceSubscribeBatchedServer{stream})
+}
+
+type TagConfigService_SubscribeBatchedServer interface {
+	Send(*TagConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type tagConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *tagConfigServiceSubscribeBatchedServer) Send(m *TagConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TagConfigService_ServiceDesc is the grpc.ServiceDesc for TagConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2089,6 +2591,16 @@ var TagConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DeleteAll",
 			Handler:       _TagConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _TagConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _TagConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
