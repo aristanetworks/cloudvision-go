@@ -47,12 +47,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	WorkspaceService_GetOne_FullMethodName        = "/arista.workspace.v1.WorkspaceService/GetOne"
-	WorkspaceService_GetSome_FullMethodName       = "/arista.workspace.v1.WorkspaceService/GetSome"
-	WorkspaceService_GetAll_FullMethodName        = "/arista.workspace.v1.WorkspaceService/GetAll"
-	WorkspaceService_Subscribe_FullMethodName     = "/arista.workspace.v1.WorkspaceService/Subscribe"
-	WorkspaceService_GetMeta_FullMethodName       = "/arista.workspace.v1.WorkspaceService/GetMeta"
-	WorkspaceService_SubscribeMeta_FullMethodName = "/arista.workspace.v1.WorkspaceService/SubscribeMeta"
+	WorkspaceService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceService/GetOne"
+	WorkspaceService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceService/GetSome"
+	WorkspaceService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceService/GetAll"
+	WorkspaceService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceService/Subscribe"
+	WorkspaceService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceService/GetMeta"
+	WorkspaceService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceService/SubscribeMeta"
+	WorkspaceService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceService/GetAllBatched"
+	WorkspaceService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceService/SubscribeBatched"
 )
 
 // WorkspaceServiceClient is the client API for WorkspaceService service.
@@ -65,6 +67,8 @@ type WorkspaceServiceClient interface {
 	Subscribe(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *WorkspaceStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeBatchedClient, error)
 }
 
 type workspaceServiceClient struct {
@@ -221,6 +225,70 @@ func (x *workspaceServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *workspaceServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[4], WorkspaceService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceServiceGetAllBatchedClient) Recv() (*WorkspaceBatchedStreamResponse, error) {
+	m := new(WorkspaceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceService_ServiceDesc.Streams[5], WorkspaceService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceServiceSubscribeBatchedClient) Recv() (*WorkspaceBatchedStreamResponse, error) {
+	m := new(WorkspaceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceServiceServer is the server API for WorkspaceService service.
 // All implementations must embed UnimplementedWorkspaceServiceServer
 // for forward compatibility
@@ -231,6 +299,8 @@ type WorkspaceServiceServer interface {
 	Subscribe(*WorkspaceStreamRequest, WorkspaceService_SubscribeServer) error
 	GetMeta(context.Context, *WorkspaceStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*WorkspaceStreamRequest, WorkspaceService_SubscribeMetaServer) error
+	GetAllBatched(*WorkspaceBatchedStreamRequest, WorkspaceService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceBatchedStreamRequest, WorkspaceService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedWorkspaceServiceServer()
 }
 
@@ -255,6 +325,12 @@ func (UnimplementedWorkspaceServiceServer) GetMeta(context.Context, *WorkspaceSt
 }
 func (UnimplementedWorkspaceServiceServer) SubscribeMeta(*WorkspaceStreamRequest, WorkspaceService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedWorkspaceServiceServer) GetAllBatched(*WorkspaceBatchedStreamRequest, WorkspaceService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceServiceServer) SubscribeBatched(*WorkspaceBatchedStreamRequest, WorkspaceService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedWorkspaceServiceServer) mustEmbedUnimplementedWorkspaceServiceServer() {}
 
@@ -389,6 +465,48 @@ func (x *workspaceServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServiceServer).GetAllBatched(m, &workspaceServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceService_GetAllBatchedServer interface {
+	Send(*WorkspaceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceServiceGetAllBatchedServer) Send(m *WorkspaceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceServiceServer).SubscribeBatched(m, &workspaceServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceService_SubscribeBatchedServer interface {
+	Send(*WorkspaceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceServiceSubscribeBatchedServer) Send(m *WorkspaceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceService_ServiceDesc is the grpc.ServiceDesc for WorkspaceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -426,17 +544,29 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _WorkspaceService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/workspace.v1/services.gen.proto",
 }
 
 const (
-	WorkspaceBuildService_GetOne_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildService/GetOne"
-	WorkspaceBuildService_GetSome_FullMethodName       = "/arista.workspace.v1.WorkspaceBuildService/GetSome"
-	WorkspaceBuildService_GetAll_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildService/GetAll"
-	WorkspaceBuildService_Subscribe_FullMethodName     = "/arista.workspace.v1.WorkspaceBuildService/Subscribe"
-	WorkspaceBuildService_GetMeta_FullMethodName       = "/arista.workspace.v1.WorkspaceBuildService/GetMeta"
-	WorkspaceBuildService_SubscribeMeta_FullMethodName = "/arista.workspace.v1.WorkspaceBuildService/SubscribeMeta"
+	WorkspaceBuildService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceBuildService/GetOne"
+	WorkspaceBuildService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceBuildService/GetSome"
+	WorkspaceBuildService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceBuildService/GetAll"
+	WorkspaceBuildService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildService/Subscribe"
+	WorkspaceBuildService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceBuildService/GetMeta"
+	WorkspaceBuildService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceBuildService/SubscribeMeta"
+	WorkspaceBuildService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceBuildService/GetAllBatched"
+	WorkspaceBuildService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceBuildService/SubscribeBatched"
 )
 
 // WorkspaceBuildServiceClient is the client API for WorkspaceBuildService service.
@@ -449,6 +579,8 @@ type WorkspaceBuildServiceClient interface {
 	Subscribe(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *WorkspaceBuildStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceBuildBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceBuildBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeBatchedClient, error)
 }
 
 type workspaceBuildServiceClient struct {
@@ -605,6 +737,70 @@ func (x *workspaceBuildServiceSubscribeMetaClient) Recv() (*MetaResponse, error)
 	return m, nil
 }
 
+func (c *workspaceBuildServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceBuildBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[4], WorkspaceBuildService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceBuildBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildServiceGetAllBatchedClient) Recv() (*WorkspaceBuildBatchedStreamResponse, error) {
+	m := new(WorkspaceBuildBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceBuildServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceBuildBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildService_ServiceDesc.Streams[5], WorkspaceBuildService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceBuildBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildServiceSubscribeBatchedClient) Recv() (*WorkspaceBuildBatchedStreamResponse, error) {
+	m := new(WorkspaceBuildBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceBuildServiceServer is the server API for WorkspaceBuildService service.
 // All implementations must embed UnimplementedWorkspaceBuildServiceServer
 // for forward compatibility
@@ -615,6 +811,8 @@ type WorkspaceBuildServiceServer interface {
 	Subscribe(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeServer) error
 	GetMeta(context.Context, *WorkspaceBuildStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeMetaServer) error
+	GetAllBatched(*WorkspaceBuildBatchedStreamRequest, WorkspaceBuildService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceBuildBatchedStreamRequest, WorkspaceBuildService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedWorkspaceBuildServiceServer()
 }
 
@@ -639,6 +837,12 @@ func (UnimplementedWorkspaceBuildServiceServer) GetMeta(context.Context, *Worksp
 }
 func (UnimplementedWorkspaceBuildServiceServer) SubscribeMeta(*WorkspaceBuildStreamRequest, WorkspaceBuildService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedWorkspaceBuildServiceServer) GetAllBatched(*WorkspaceBuildBatchedStreamRequest, WorkspaceBuildService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceBuildServiceServer) SubscribeBatched(*WorkspaceBuildBatchedStreamRequest, WorkspaceBuildService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedWorkspaceBuildServiceServer) mustEmbedUnimplementedWorkspaceBuildServiceServer() {}
 
@@ -773,6 +977,48 @@ func (x *workspaceBuildServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceBuildService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildServiceServer).GetAllBatched(m, &workspaceBuildServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceBuildService_GetAllBatchedServer interface {
+	Send(*WorkspaceBuildBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildServiceGetAllBatchedServer) Send(m *WorkspaceBuildBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceBuildService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildServiceServer).SubscribeBatched(m, &workspaceBuildServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceBuildService_SubscribeBatchedServer interface {
+	Send(*WorkspaceBuildBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildServiceSubscribeBatchedServer) Send(m *WorkspaceBuildBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceBuildService_ServiceDesc is the grpc.ServiceDesc for WorkspaceBuildService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -810,17 +1056,29 @@ var WorkspaceBuildService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _WorkspaceBuildService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceBuildService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceBuildService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/workspace.v1/services.gen.proto",
 }
 
 const (
-	WorkspaceBuildDetailsService_GetOne_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetOne"
-	WorkspaceBuildDetailsService_GetSome_FullMethodName       = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetSome"
-	WorkspaceBuildDetailsService_GetAll_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetAll"
-	WorkspaceBuildDetailsService_Subscribe_FullMethodName     = "/arista.workspace.v1.WorkspaceBuildDetailsService/Subscribe"
-	WorkspaceBuildDetailsService_GetMeta_FullMethodName       = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetMeta"
-	WorkspaceBuildDetailsService_SubscribeMeta_FullMethodName = "/arista.workspace.v1.WorkspaceBuildDetailsService/SubscribeMeta"
+	WorkspaceBuildDetailsService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetOne"
+	WorkspaceBuildDetailsService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetSome"
+	WorkspaceBuildDetailsService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetAll"
+	WorkspaceBuildDetailsService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceBuildDetailsService/Subscribe"
+	WorkspaceBuildDetailsService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetMeta"
+	WorkspaceBuildDetailsService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceBuildDetailsService/SubscribeMeta"
+	WorkspaceBuildDetailsService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceBuildDetailsService/GetAllBatched"
+	WorkspaceBuildDetailsService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceBuildDetailsService/SubscribeBatched"
 )
 
 // WorkspaceBuildDetailsServiceClient is the client API for WorkspaceBuildDetailsService service.
@@ -833,6 +1091,8 @@ type WorkspaceBuildDetailsServiceClient interface {
 	Subscribe(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *WorkspaceBuildDetailsStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceBuildDetailsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceBuildDetailsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeBatchedClient, error)
 }
 
 type workspaceBuildDetailsServiceClient struct {
@@ -989,6 +1249,70 @@ func (x *workspaceBuildDetailsServiceSubscribeMetaClient) Recv() (*MetaResponse,
 	return m, nil
 }
 
+func (c *workspaceBuildDetailsServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceBuildDetailsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[4], WorkspaceBuildDetailsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildDetailsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildDetailsService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceBuildDetailsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildDetailsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildDetailsServiceGetAllBatchedClient) Recv() (*WorkspaceBuildDetailsBatchedStreamResponse, error) {
+	m := new(WorkspaceBuildDetailsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceBuildDetailsServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceBuildDetailsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceBuildDetailsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceBuildDetailsService_ServiceDesc.Streams[5], WorkspaceBuildDetailsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceBuildDetailsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceBuildDetailsService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceBuildDetailsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceBuildDetailsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceBuildDetailsServiceSubscribeBatchedClient) Recv() (*WorkspaceBuildDetailsBatchedStreamResponse, error) {
+	m := new(WorkspaceBuildDetailsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceBuildDetailsServiceServer is the server API for WorkspaceBuildDetailsService service.
 // All implementations must embed UnimplementedWorkspaceBuildDetailsServiceServer
 // for forward compatibility
@@ -999,6 +1323,8 @@ type WorkspaceBuildDetailsServiceServer interface {
 	Subscribe(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeServer) error
 	GetMeta(context.Context, *WorkspaceBuildDetailsStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeMetaServer) error
+	GetAllBatched(*WorkspaceBuildDetailsBatchedStreamRequest, WorkspaceBuildDetailsService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceBuildDetailsBatchedStreamRequest, WorkspaceBuildDetailsService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedWorkspaceBuildDetailsServiceServer()
 }
 
@@ -1023,6 +1349,12 @@ func (UnimplementedWorkspaceBuildDetailsServiceServer) GetMeta(context.Context, 
 }
 func (UnimplementedWorkspaceBuildDetailsServiceServer) SubscribeMeta(*WorkspaceBuildDetailsStreamRequest, WorkspaceBuildDetailsService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedWorkspaceBuildDetailsServiceServer) GetAllBatched(*WorkspaceBuildDetailsBatchedStreamRequest, WorkspaceBuildDetailsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceBuildDetailsServiceServer) SubscribeBatched(*WorkspaceBuildDetailsBatchedStreamRequest, WorkspaceBuildDetailsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedWorkspaceBuildDetailsServiceServer) mustEmbedUnimplementedWorkspaceBuildDetailsServiceServer() {
 }
@@ -1158,6 +1490,48 @@ func (x *workspaceBuildDetailsServiceSubscribeMetaServer) Send(m *MetaResponse) 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceBuildDetailsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildDetailsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildDetailsServiceServer).GetAllBatched(m, &workspaceBuildDetailsServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceBuildDetailsService_GetAllBatchedServer interface {
+	Send(*WorkspaceBuildDetailsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildDetailsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildDetailsServiceGetAllBatchedServer) Send(m *WorkspaceBuildDetailsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceBuildDetailsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceBuildDetailsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceBuildDetailsServiceServer).SubscribeBatched(m, &workspaceBuildDetailsServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceBuildDetailsService_SubscribeBatchedServer interface {
+	Send(*WorkspaceBuildDetailsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceBuildDetailsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceBuildDetailsServiceSubscribeBatchedServer) Send(m *WorkspaceBuildDetailsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceBuildDetailsService_ServiceDesc is the grpc.ServiceDesc for WorkspaceBuildDetailsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1195,22 +1569,34 @@ var WorkspaceBuildDetailsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _WorkspaceBuildDetailsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceBuildDetailsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceBuildDetailsService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/workspace.v1/services.gen.proto",
 }
 
 const (
-	WorkspaceConfigService_GetOne_FullMethodName        = "/arista.workspace.v1.WorkspaceConfigService/GetOne"
-	WorkspaceConfigService_GetSome_FullMethodName       = "/arista.workspace.v1.WorkspaceConfigService/GetSome"
-	WorkspaceConfigService_GetAll_FullMethodName        = "/arista.workspace.v1.WorkspaceConfigService/GetAll"
-	WorkspaceConfigService_Subscribe_FullMethodName     = "/arista.workspace.v1.WorkspaceConfigService/Subscribe"
-	WorkspaceConfigService_GetMeta_FullMethodName       = "/arista.workspace.v1.WorkspaceConfigService/GetMeta"
-	WorkspaceConfigService_SubscribeMeta_FullMethodName = "/arista.workspace.v1.WorkspaceConfigService/SubscribeMeta"
-	WorkspaceConfigService_Set_FullMethodName           = "/arista.workspace.v1.WorkspaceConfigService/Set"
-	WorkspaceConfigService_SetSome_FullMethodName       = "/arista.workspace.v1.WorkspaceConfigService/SetSome"
-	WorkspaceConfigService_Delete_FullMethodName        = "/arista.workspace.v1.WorkspaceConfigService/Delete"
-	WorkspaceConfigService_DeleteSome_FullMethodName    = "/arista.workspace.v1.WorkspaceConfigService/DeleteSome"
-	WorkspaceConfigService_DeleteAll_FullMethodName     = "/arista.workspace.v1.WorkspaceConfigService/DeleteAll"
+	WorkspaceConfigService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceConfigService/GetOne"
+	WorkspaceConfigService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceConfigService/GetSome"
+	WorkspaceConfigService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceConfigService/GetAll"
+	WorkspaceConfigService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceConfigService/Subscribe"
+	WorkspaceConfigService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceConfigService/GetMeta"
+	WorkspaceConfigService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceConfigService/SubscribeMeta"
+	WorkspaceConfigService_Set_FullMethodName              = "/arista.workspace.v1.WorkspaceConfigService/Set"
+	WorkspaceConfigService_SetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceConfigService/SetSome"
+	WorkspaceConfigService_Delete_FullMethodName           = "/arista.workspace.v1.WorkspaceConfigService/Delete"
+	WorkspaceConfigService_DeleteSome_FullMethodName       = "/arista.workspace.v1.WorkspaceConfigService/DeleteSome"
+	WorkspaceConfigService_DeleteAll_FullMethodName        = "/arista.workspace.v1.WorkspaceConfigService/DeleteAll"
+	WorkspaceConfigService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceConfigService/GetAllBatched"
+	WorkspaceConfigService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceConfigService/SubscribeBatched"
 )
 
 // WorkspaceConfigServiceClient is the client API for WorkspaceConfigService service.
@@ -1228,6 +1614,8 @@ type WorkspaceConfigServiceClient interface {
 	Delete(ctx context.Context, in *WorkspaceConfigDeleteRequest, opts ...grpc.CallOption) (*WorkspaceConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *WorkspaceConfigDeleteSomeRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *WorkspaceConfigDeleteAllRequest, opts ...grpc.CallOption) (WorkspaceConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeBatchedClient, error)
 }
 
 type workspaceConfigServiceClient struct {
@@ -1498,6 +1886,70 @@ func (x *workspaceConfigServiceDeleteAllClient) Recv() (*WorkspaceConfigDeleteAl
 	return m, nil
 }
 
+func (c *workspaceConfigServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[7], WorkspaceConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceConfigService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceConfigServiceGetAllBatchedClient) Recv() (*WorkspaceConfigBatchedStreamResponse, error) {
+	m := new(WorkspaceConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceConfigServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceConfigService_ServiceDesc.Streams[8], WorkspaceConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceConfigService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceConfigServiceSubscribeBatchedClient) Recv() (*WorkspaceConfigBatchedStreamResponse, error) {
+	m := new(WorkspaceConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // WorkspaceConfigServiceServer is the server API for WorkspaceConfigService service.
 // All implementations must embed UnimplementedWorkspaceConfigServiceServer
 // for forward compatibility
@@ -1513,6 +1965,8 @@ type WorkspaceConfigServiceServer interface {
 	Delete(context.Context, *WorkspaceConfigDeleteRequest) (*WorkspaceConfigDeleteResponse, error)
 	DeleteSome(*WorkspaceConfigDeleteSomeRequest, WorkspaceConfigService_DeleteSomeServer) error
 	DeleteAll(*WorkspaceConfigDeleteAllRequest, WorkspaceConfigService_DeleteAllServer) error
+	GetAllBatched(*WorkspaceConfigBatchedStreamRequest, WorkspaceConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceConfigBatchedStreamRequest, WorkspaceConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedWorkspaceConfigServiceServer()
 }
 
@@ -1552,6 +2006,12 @@ func (UnimplementedWorkspaceConfigServiceServer) DeleteSome(*WorkspaceConfigDele
 }
 func (UnimplementedWorkspaceConfigServiceServer) DeleteAll(*WorkspaceConfigDeleteAllRequest, WorkspaceConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedWorkspaceConfigServiceServer) GetAllBatched(*WorkspaceConfigBatchedStreamRequest, WorkspaceConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceConfigServiceServer) SubscribeBatched(*WorkspaceConfigBatchedStreamRequest, WorkspaceConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedWorkspaceConfigServiceServer) mustEmbedUnimplementedWorkspaceConfigServiceServer() {
 }
@@ -1786,6 +2246,48 @@ func (x *workspaceConfigServiceDeleteAllServer) Send(m *WorkspaceConfigDeleteAll
 	return x.ServerStream.SendMsg(m)
 }
 
+func _WorkspaceConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceConfigServiceServer).GetAllBatched(m, &workspaceConfigServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceConfigService_GetAllBatchedServer interface {
+	Send(*WorkspaceConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceConfigServiceGetAllBatchedServer) Send(m *WorkspaceConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceConfigServiceServer).SubscribeBatched(m, &workspaceConfigServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceConfigService_SubscribeBatchedServer interface {
+	Send(*WorkspaceConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceConfigServiceSubscribeBatchedServer) Send(m *WorkspaceConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // WorkspaceConfigService_ServiceDesc is the grpc.ServiceDesc for WorkspaceConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1844,6 +2346,16 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DeleteAll",
 			Handler:       _WorkspaceConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
