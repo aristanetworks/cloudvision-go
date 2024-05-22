@@ -27,9 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	SummaryService_GetOne_FullMethodName    = "/arista.imagestatus.v1.SummaryService/GetOne"
-	SummaryService_GetAll_FullMethodName    = "/arista.imagestatus.v1.SummaryService/GetAll"
-	SummaryService_Subscribe_FullMethodName = "/arista.imagestatus.v1.SummaryService/Subscribe"
+	SummaryService_GetOne_FullMethodName           = "/arista.imagestatus.v1.SummaryService/GetOne"
+	SummaryService_GetSome_FullMethodName          = "/arista.imagestatus.v1.SummaryService/GetSome"
+	SummaryService_GetAll_FullMethodName           = "/arista.imagestatus.v1.SummaryService/GetAll"
+	SummaryService_Subscribe_FullMethodName        = "/arista.imagestatus.v1.SummaryService/Subscribe"
+	SummaryService_GetMeta_FullMethodName          = "/arista.imagestatus.v1.SummaryService/GetMeta"
+	SummaryService_SubscribeMeta_FullMethodName    = "/arista.imagestatus.v1.SummaryService/SubscribeMeta"
+	SummaryService_GetAllBatched_FullMethodName    = "/arista.imagestatus.v1.SummaryService/GetAllBatched"
+	SummaryService_SubscribeBatched_FullMethodName = "/arista.imagestatus.v1.SummaryService/SubscribeBatched"
 )
 
 // SummaryServiceClient is the client API for SummaryService service.
@@ -37,8 +42,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SummaryServiceClient interface {
 	GetOne(ctx context.Context, in *SummaryRequest, opts ...grpc.CallOption) (*SummaryResponse, error)
+	GetSome(ctx context.Context, in *SummarySomeRequest, opts ...grpc.CallOption) (SummaryService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeBatchedClient, error)
 }
 
 type summaryServiceClient struct {
@@ -58,8 +68,40 @@ func (c *summaryServiceClient) GetOne(ctx context.Context, in *SummaryRequest, o
 	return out, nil
 }
 
+func (c *summaryServiceClient) GetSome(ctx context.Context, in *SummarySomeRequest, opts ...grpc.CallOption) (SummaryService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[0], SummaryService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_GetSomeClient interface {
+	Recv() (*SummarySomeResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceGetSomeClient) Recv() (*SummarySomeResponse, error) {
+	m := new(SummarySomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *summaryServiceClient) GetAll(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[0], SummaryService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[1], SummaryService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +133,7 @@ func (x *summaryServiceGetAllClient) Recv() (*SummaryStreamResponse, error) {
 }
 
 func (c *summaryServiceClient) Subscribe(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[1], SummaryService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[2], SummaryService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +164,123 @@ func (x *summaryServiceSubscribeClient) Recv() (*SummaryStreamResponse, error) {
 	return m, nil
 }
 
+func (c *summaryServiceClient) GetMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, SummaryService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *summaryServiceClient) SubscribeMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[3], SummaryService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *summaryServiceClient) GetAllBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[4], SummaryService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_GetAllBatchedClient interface {
+	Recv() (*SummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceGetAllBatchedClient) Recv() (*SummaryBatchedStreamResponse, error) {
+	m := new(SummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *summaryServiceClient) SubscribeBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[5], SummaryService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_SubscribeBatchedClient interface {
+	Recv() (*SummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceSubscribeBatchedClient) Recv() (*SummaryBatchedStreamResponse, error) {
+	m := new(SummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SummaryServiceServer is the server API for SummaryService service.
 // All implementations must embed UnimplementedSummaryServiceServer
 // for forward compatibility
 type SummaryServiceServer interface {
 	GetOne(context.Context, *SummaryRequest) (*SummaryResponse, error)
+	GetSome(*SummarySomeRequest, SummaryService_GetSomeServer) error
 	GetAll(*SummaryStreamRequest, SummaryService_GetAllServer) error
 	Subscribe(*SummaryStreamRequest, SummaryService_SubscribeServer) error
+	GetMeta(context.Context, *SummaryStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error
+	GetAllBatched(*SummaryBatchedStreamRequest, SummaryService_GetAllBatchedServer) error
+	SubscribeBatched(*SummaryBatchedStreamRequest, SummaryService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSummaryServiceServer()
 }
 
@@ -139,11 +291,26 @@ type UnimplementedSummaryServiceServer struct {
 func (UnimplementedSummaryServiceServer) GetOne(context.Context, *SummaryRequest) (*SummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedSummaryServiceServer) GetSome(*SummarySomeRequest, SummaryService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedSummaryServiceServer) GetAll(*SummaryStreamRequest, SummaryService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSummaryServiceServer) Subscribe(*SummaryStreamRequest, SummaryService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSummaryServiceServer) GetMeta(context.Context, *SummaryStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSummaryServiceServer) SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSummaryServiceServer) GetAllBatched(*SummaryBatchedStreamRequest, SummaryService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSummaryServiceServer) SubscribeBatched(*SummaryBatchedStreamRequest, SummaryService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSummaryServiceServer) mustEmbedUnimplementedSummaryServiceServer() {}
 
@@ -174,6 +341,27 @@ func _SummaryService_GetOne_Handler(srv interface{}, ctx context.Context, dec fu
 		return srv.(SummaryServiceServer).GetOne(ctx, req.(*SummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SummaryService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummarySomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).GetSome(m, &summaryServiceGetSomeServer{stream})
+}
+
+type SummaryService_GetSomeServer interface {
+	Send(*SummarySomeResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceGetSomeServer) Send(m *SummarySomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -218,6 +406,87 @@ func (x *summaryServiceSubscribeServer) Send(m *SummaryStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SummaryService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummaryStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SummaryServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SummaryService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SummaryServiceServer).GetMeta(ctx, req.(*SummaryStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SummaryService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).SubscribeMeta(m, &summaryServiceSubscribeMetaServer{stream})
+}
+
+type SummaryService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SummaryService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).GetAllBatched(m, &summaryServiceGetAllBatchedServer{stream})
+}
+
+type SummaryService_GetAllBatchedServer interface {
+	Send(*SummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceGetAllBatchedServer) Send(m *SummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SummaryService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).SubscribeBatched(m, &summaryServiceSubscribeBatchedServer{stream})
+}
+
+type SummaryService_SubscribeBatchedServer interface {
+	Send(*SummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceSubscribeBatchedServer) Send(m *SummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SummaryService_ServiceDesc is the grpc.ServiceDesc for SummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,8 +498,17 @@ var SummaryService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _SummaryService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SummaryService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SummaryService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _SummaryService_GetAll_Handler,
@@ -239,6 +517,21 @@ var SummaryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _SummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SummaryService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SummaryService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SummaryService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
