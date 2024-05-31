@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ProbeService_GetOne_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeService/GetOne"
-	ProbeService_GetSome_FullMethodName       = "/arista.connectivitymonitor.v1.ProbeService/GetSome"
-	ProbeService_GetAll_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeService/GetAll"
-	ProbeService_Subscribe_FullMethodName     = "/arista.connectivitymonitor.v1.ProbeService/Subscribe"
-	ProbeService_GetMeta_FullMethodName       = "/arista.connectivitymonitor.v1.ProbeService/GetMeta"
-	ProbeService_SubscribeMeta_FullMethodName = "/arista.connectivitymonitor.v1.ProbeService/SubscribeMeta"
+	ProbeService_GetOne_FullMethodName           = "/arista.connectivitymonitor.v1.ProbeService/GetOne"
+	ProbeService_GetSome_FullMethodName          = "/arista.connectivitymonitor.v1.ProbeService/GetSome"
+	ProbeService_GetAll_FullMethodName           = "/arista.connectivitymonitor.v1.ProbeService/GetAll"
+	ProbeService_Subscribe_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeService/Subscribe"
+	ProbeService_GetMeta_FullMethodName          = "/arista.connectivitymonitor.v1.ProbeService/GetMeta"
+	ProbeService_SubscribeMeta_FullMethodName    = "/arista.connectivitymonitor.v1.ProbeService/SubscribeMeta"
+	ProbeService_GetAllBatched_FullMethodName    = "/arista.connectivitymonitor.v1.ProbeService/GetAllBatched"
+	ProbeService_SubscribeBatched_FullMethodName = "/arista.connectivitymonitor.v1.ProbeService/SubscribeBatched"
 )
 
 // ProbeServiceClient is the client API for ProbeService service.
@@ -45,6 +47,8 @@ type ProbeServiceClient interface {
 	Subscribe(ctx context.Context, in *ProbeStreamRequest, opts ...grpc.CallOption) (ProbeService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ProbeStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ProbeStreamRequest, opts ...grpc.CallOption) (ProbeService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ProbeBatchedStreamRequest, opts ...grpc.CallOption) (ProbeService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ProbeBatchedStreamRequest, opts ...grpc.CallOption) (ProbeService_SubscribeBatchedClient, error)
 }
 
 type probeServiceClient struct {
@@ -201,6 +205,70 @@ func (x *probeServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *probeServiceClient) GetAllBatched(ctx context.Context, in *ProbeBatchedStreamRequest, opts ...grpc.CallOption) (ProbeService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProbeService_ServiceDesc.Streams[4], ProbeService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &probeServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProbeService_GetAllBatchedClient interface {
+	Recv() (*ProbeBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type probeServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *probeServiceGetAllBatchedClient) Recv() (*ProbeBatchedStreamResponse, error) {
+	m := new(ProbeBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *probeServiceClient) SubscribeBatched(ctx context.Context, in *ProbeBatchedStreamRequest, opts ...grpc.CallOption) (ProbeService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProbeService_ServiceDesc.Streams[5], ProbeService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &probeServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProbeService_SubscribeBatchedClient interface {
+	Recv() (*ProbeBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type probeServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *probeServiceSubscribeBatchedClient) Recv() (*ProbeBatchedStreamResponse, error) {
+	m := new(ProbeBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProbeServiceServer is the server API for ProbeService service.
 // All implementations must embed UnimplementedProbeServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type ProbeServiceServer interface {
 	Subscribe(*ProbeStreamRequest, ProbeService_SubscribeServer) error
 	GetMeta(context.Context, *ProbeStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ProbeStreamRequest, ProbeService_SubscribeMetaServer) error
+	GetAllBatched(*ProbeBatchedStreamRequest, ProbeService_GetAllBatchedServer) error
+	SubscribeBatched(*ProbeBatchedStreamRequest, ProbeService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedProbeServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedProbeServiceServer) GetMeta(context.Context, *ProbeStreamRequ
 }
 func (UnimplementedProbeServiceServer) SubscribeMeta(*ProbeStreamRequest, ProbeService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedProbeServiceServer) GetAllBatched(*ProbeBatchedStreamRequest, ProbeService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedProbeServiceServer) SubscribeBatched(*ProbeBatchedStreamRequest, ProbeService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedProbeServiceServer) mustEmbedUnimplementedProbeServiceServer() {}
 
@@ -369,6 +445,48 @@ func (x *probeServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProbeService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProbeBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProbeServiceServer).GetAllBatched(m, &probeServiceGetAllBatchedServer{stream})
+}
+
+type ProbeService_GetAllBatchedServer interface {
+	Send(*ProbeBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type probeServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *probeServiceGetAllBatchedServer) Send(m *ProbeBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ProbeService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProbeBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProbeServiceServer).SubscribeBatched(m, &probeServiceSubscribeBatchedServer{stream})
+}
+
+type ProbeService_SubscribeBatchedServer interface {
+	Send(*ProbeBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type probeServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *probeServiceSubscribeBatchedServer) Send(m *ProbeBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ProbeService_ServiceDesc is the grpc.ServiceDesc for ProbeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -406,17 +524,29 @@ var ProbeService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ProbeService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ProbeService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ProbeService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/connectivitymonitor.v1/services.gen.proto",
 }
 
 const (
-	ProbeStatsService_GetOne_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeStatsService/GetOne"
-	ProbeStatsService_GetSome_FullMethodName       = "/arista.connectivitymonitor.v1.ProbeStatsService/GetSome"
-	ProbeStatsService_GetAll_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeStatsService/GetAll"
-	ProbeStatsService_Subscribe_FullMethodName     = "/arista.connectivitymonitor.v1.ProbeStatsService/Subscribe"
-	ProbeStatsService_GetMeta_FullMethodName       = "/arista.connectivitymonitor.v1.ProbeStatsService/GetMeta"
-	ProbeStatsService_SubscribeMeta_FullMethodName = "/arista.connectivitymonitor.v1.ProbeStatsService/SubscribeMeta"
+	ProbeStatsService_GetOne_FullMethodName           = "/arista.connectivitymonitor.v1.ProbeStatsService/GetOne"
+	ProbeStatsService_GetSome_FullMethodName          = "/arista.connectivitymonitor.v1.ProbeStatsService/GetSome"
+	ProbeStatsService_GetAll_FullMethodName           = "/arista.connectivitymonitor.v1.ProbeStatsService/GetAll"
+	ProbeStatsService_Subscribe_FullMethodName        = "/arista.connectivitymonitor.v1.ProbeStatsService/Subscribe"
+	ProbeStatsService_GetMeta_FullMethodName          = "/arista.connectivitymonitor.v1.ProbeStatsService/GetMeta"
+	ProbeStatsService_SubscribeMeta_FullMethodName    = "/arista.connectivitymonitor.v1.ProbeStatsService/SubscribeMeta"
+	ProbeStatsService_GetAllBatched_FullMethodName    = "/arista.connectivitymonitor.v1.ProbeStatsService/GetAllBatched"
+	ProbeStatsService_SubscribeBatched_FullMethodName = "/arista.connectivitymonitor.v1.ProbeStatsService/SubscribeBatched"
 )
 
 // ProbeStatsServiceClient is the client API for ProbeStatsService service.
@@ -429,6 +559,8 @@ type ProbeStatsServiceClient interface {
 	Subscribe(ctx context.Context, in *ProbeStatsStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ProbeStatsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ProbeStatsStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ProbeStatsBatchedStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ProbeStatsBatchedStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_SubscribeBatchedClient, error)
 }
 
 type probeStatsServiceClient struct {
@@ -585,6 +717,70 @@ func (x *probeStatsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *probeStatsServiceClient) GetAllBatched(ctx context.Context, in *ProbeStatsBatchedStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProbeStatsService_ServiceDesc.Streams[4], ProbeStatsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &probeStatsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProbeStatsService_GetAllBatchedClient interface {
+	Recv() (*ProbeStatsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type probeStatsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *probeStatsServiceGetAllBatchedClient) Recv() (*ProbeStatsBatchedStreamResponse, error) {
+	m := new(ProbeStatsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *probeStatsServiceClient) SubscribeBatched(ctx context.Context, in *ProbeStatsBatchedStreamRequest, opts ...grpc.CallOption) (ProbeStatsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProbeStatsService_ServiceDesc.Streams[5], ProbeStatsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &probeStatsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProbeStatsService_SubscribeBatchedClient interface {
+	Recv() (*ProbeStatsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type probeStatsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *probeStatsServiceSubscribeBatchedClient) Recv() (*ProbeStatsBatchedStreamResponse, error) {
+	m := new(ProbeStatsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProbeStatsServiceServer is the server API for ProbeStatsService service.
 // All implementations must embed UnimplementedProbeStatsServiceServer
 // for forward compatibility
@@ -595,6 +791,8 @@ type ProbeStatsServiceServer interface {
 	Subscribe(*ProbeStatsStreamRequest, ProbeStatsService_SubscribeServer) error
 	GetMeta(context.Context, *ProbeStatsStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ProbeStatsStreamRequest, ProbeStatsService_SubscribeMetaServer) error
+	GetAllBatched(*ProbeStatsBatchedStreamRequest, ProbeStatsService_GetAllBatchedServer) error
+	SubscribeBatched(*ProbeStatsBatchedStreamRequest, ProbeStatsService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedProbeStatsServiceServer()
 }
 
@@ -619,6 +817,12 @@ func (UnimplementedProbeStatsServiceServer) GetMeta(context.Context, *ProbeStats
 }
 func (UnimplementedProbeStatsServiceServer) SubscribeMeta(*ProbeStatsStreamRequest, ProbeStatsService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedProbeStatsServiceServer) GetAllBatched(*ProbeStatsBatchedStreamRequest, ProbeStatsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedProbeStatsServiceServer) SubscribeBatched(*ProbeStatsBatchedStreamRequest, ProbeStatsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedProbeStatsServiceServer) mustEmbedUnimplementedProbeStatsServiceServer() {}
 
@@ -753,6 +957,48 @@ func (x *probeStatsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProbeStatsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProbeStatsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProbeStatsServiceServer).GetAllBatched(m, &probeStatsServiceGetAllBatchedServer{stream})
+}
+
+type ProbeStatsService_GetAllBatchedServer interface {
+	Send(*ProbeStatsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type probeStatsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *probeStatsServiceGetAllBatchedServer) Send(m *ProbeStatsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ProbeStatsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProbeStatsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProbeStatsServiceServer).SubscribeBatched(m, &probeStatsServiceSubscribeBatchedServer{stream})
+}
+
+type ProbeStatsService_SubscribeBatchedServer interface {
+	Send(*ProbeStatsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type probeStatsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *probeStatsServiceSubscribeBatchedServer) Send(m *ProbeStatsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ProbeStatsService_ServiceDesc is the grpc.ServiceDesc for ProbeStatsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -788,6 +1034,16 @@ var ProbeStatsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _ProbeStatsService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ProbeStatsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ProbeStatsService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

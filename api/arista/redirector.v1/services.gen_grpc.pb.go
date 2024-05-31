@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AssignmentService_GetOne_FullMethodName        = "/arista.redirector.v1.AssignmentService/GetOne"
-	AssignmentService_GetSome_FullMethodName       = "/arista.redirector.v1.AssignmentService/GetSome"
-	AssignmentService_GetAll_FullMethodName        = "/arista.redirector.v1.AssignmentService/GetAll"
-	AssignmentService_Subscribe_FullMethodName     = "/arista.redirector.v1.AssignmentService/Subscribe"
-	AssignmentService_GetMeta_FullMethodName       = "/arista.redirector.v1.AssignmentService/GetMeta"
-	AssignmentService_SubscribeMeta_FullMethodName = "/arista.redirector.v1.AssignmentService/SubscribeMeta"
+	AssignmentService_GetOne_FullMethodName           = "/arista.redirector.v1.AssignmentService/GetOne"
+	AssignmentService_GetSome_FullMethodName          = "/arista.redirector.v1.AssignmentService/GetSome"
+	AssignmentService_GetAll_FullMethodName           = "/arista.redirector.v1.AssignmentService/GetAll"
+	AssignmentService_Subscribe_FullMethodName        = "/arista.redirector.v1.AssignmentService/Subscribe"
+	AssignmentService_GetMeta_FullMethodName          = "/arista.redirector.v1.AssignmentService/GetMeta"
+	AssignmentService_SubscribeMeta_FullMethodName    = "/arista.redirector.v1.AssignmentService/SubscribeMeta"
+	AssignmentService_GetAllBatched_FullMethodName    = "/arista.redirector.v1.AssignmentService/GetAllBatched"
+	AssignmentService_SubscribeBatched_FullMethodName = "/arista.redirector.v1.AssignmentService/SubscribeBatched"
 )
 
 // AssignmentServiceClient is the client API for AssignmentService service.
@@ -45,6 +47,8 @@ type AssignmentServiceClient interface {
 	Subscribe(ctx context.Context, in *AssignmentStreamRequest, opts ...grpc.CallOption) (AssignmentService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *AssignmentStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *AssignmentStreamRequest, opts ...grpc.CallOption) (AssignmentService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *AssignmentBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AssignmentBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentService_SubscribeBatchedClient, error)
 }
 
 type assignmentServiceClient struct {
@@ -201,6 +205,70 @@ func (x *assignmentServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *assignmentServiceClient) GetAllBatched(ctx context.Context, in *AssignmentBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentService_ServiceDesc.Streams[4], AssignmentService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentService_GetAllBatchedClient interface {
+	Recv() (*AssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentServiceGetAllBatchedClient) Recv() (*AssignmentBatchedStreamResponse, error) {
+	m := new(AssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentServiceClient) SubscribeBatched(ctx context.Context, in *AssignmentBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentService_ServiceDesc.Streams[5], AssignmentService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentService_SubscribeBatchedClient interface {
+	Recv() (*AssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentServiceSubscribeBatchedClient) Recv() (*AssignmentBatchedStreamResponse, error) {
+	m := new(AssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AssignmentServiceServer is the server API for AssignmentService service.
 // All implementations must embed UnimplementedAssignmentServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type AssignmentServiceServer interface {
 	Subscribe(*AssignmentStreamRequest, AssignmentService_SubscribeServer) error
 	GetMeta(context.Context, *AssignmentStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*AssignmentStreamRequest, AssignmentService_SubscribeMetaServer) error
+	GetAllBatched(*AssignmentBatchedStreamRequest, AssignmentService_GetAllBatchedServer) error
+	SubscribeBatched(*AssignmentBatchedStreamRequest, AssignmentService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAssignmentServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedAssignmentServiceServer) GetMeta(context.Context, *Assignment
 }
 func (UnimplementedAssignmentServiceServer) SubscribeMeta(*AssignmentStreamRequest, AssignmentService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedAssignmentServiceServer) GetAllBatched(*AssignmentBatchedStreamRequest, AssignmentService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAssignmentServiceServer) SubscribeBatched(*AssignmentBatchedStreamRequest, AssignmentService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAssignmentServiceServer) mustEmbedUnimplementedAssignmentServiceServer() {}
 
@@ -369,6 +445,48 @@ func (x *assignmentServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AssignmentService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentServiceServer).GetAllBatched(m, &assignmentServiceGetAllBatchedServer{stream})
+}
+
+type AssignmentService_GetAllBatchedServer interface {
+	Send(*AssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentServiceGetAllBatchedServer) Send(m *AssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentServiceServer).SubscribeBatched(m, &assignmentServiceSubscribeBatchedServer{stream})
+}
+
+type AssignmentService_SubscribeBatchedServer interface {
+	Send(*AssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentServiceSubscribeBatchedServer) Send(m *AssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AssignmentService_ServiceDesc is the grpc.ServiceDesc for AssignmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -404,6 +522,16 @@ var AssignmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _AssignmentService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AssignmentService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AssignmentService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

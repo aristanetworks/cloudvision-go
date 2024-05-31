@@ -27,9 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	DeviceService_GetOne_FullMethodName    = "/arista.inventory.v1.DeviceService/GetOne"
-	DeviceService_GetAll_FullMethodName    = "/arista.inventory.v1.DeviceService/GetAll"
-	DeviceService_Subscribe_FullMethodName = "/arista.inventory.v1.DeviceService/Subscribe"
+	DeviceService_GetOne_FullMethodName           = "/arista.inventory.v1.DeviceService/GetOne"
+	DeviceService_GetSome_FullMethodName          = "/arista.inventory.v1.DeviceService/GetSome"
+	DeviceService_GetAll_FullMethodName           = "/arista.inventory.v1.DeviceService/GetAll"
+	DeviceService_Subscribe_FullMethodName        = "/arista.inventory.v1.DeviceService/Subscribe"
+	DeviceService_GetMeta_FullMethodName          = "/arista.inventory.v1.DeviceService/GetMeta"
+	DeviceService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.DeviceService/SubscribeMeta"
+	DeviceService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.DeviceService/GetAllBatched"
+	DeviceService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.DeviceService/SubscribeBatched"
 )
 
 // DeviceServiceClient is the client API for DeviceService service.
@@ -37,8 +42,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceServiceClient interface {
 	GetOne(ctx context.Context, in *DeviceRequest, opts ...grpc.CallOption) (*DeviceResponse, error)
+	GetSome(ctx context.Context, in *DeviceSomeRequest, opts ...grpc.CallOption) (DeviceService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *DeviceBatchedStreamRequest, opts ...grpc.CallOption) (DeviceService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *DeviceBatchedStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeBatchedClient, error)
 }
 
 type deviceServiceClient struct {
@@ -58,8 +68,40 @@ func (c *deviceServiceClient) GetOne(ctx context.Context, in *DeviceRequest, opt
 	return out, nil
 }
 
+func (c *deviceServiceClient) GetSome(ctx context.Context, in *DeviceSomeRequest, opts ...grpc.CallOption) (DeviceService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[0], DeviceService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceService_GetSomeClient interface {
+	Recv() (*DeviceSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceServiceGetSomeClient) Recv() (*DeviceSomeResponse, error) {
+	m := new(DeviceSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceServiceClient) GetAll(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[0], DeviceService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[1], DeviceService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +133,7 @@ func (x *deviceServiceGetAllClient) Recv() (*DeviceStreamResponse, error) {
 }
 
 func (c *deviceServiceClient) Subscribe(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[1], DeviceService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[2], DeviceService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +164,123 @@ func (x *deviceServiceSubscribeClient) Recv() (*DeviceStreamResponse, error) {
 	return m, nil
 }
 
+func (c *deviceServiceClient) GetMeta(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, DeviceService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceServiceClient) SubscribeMeta(ctx context.Context, in *DeviceStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[3], DeviceService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type deviceServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceServiceClient) GetAllBatched(ctx context.Context, in *DeviceBatchedStreamRequest, opts ...grpc.CallOption) (DeviceService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[4], DeviceService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceService_GetAllBatchedClient interface {
+	Recv() (*DeviceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceServiceGetAllBatchedClient) Recv() (*DeviceBatchedStreamResponse, error) {
+	m := new(DeviceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceServiceClient) SubscribeBatched(ctx context.Context, in *DeviceBatchedStreamRequest, opts ...grpc.CallOption) (DeviceService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceService_ServiceDesc.Streams[5], DeviceService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceService_SubscribeBatchedClient interface {
+	Recv() (*DeviceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceServiceSubscribeBatchedClient) Recv() (*DeviceBatchedStreamResponse, error) {
+	m := new(DeviceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceServiceServer is the server API for DeviceService service.
 // All implementations must embed UnimplementedDeviceServiceServer
 // for forward compatibility
 type DeviceServiceServer interface {
 	GetOne(context.Context, *DeviceRequest) (*DeviceResponse, error)
+	GetSome(*DeviceSomeRequest, DeviceService_GetSomeServer) error
 	GetAll(*DeviceStreamRequest, DeviceService_GetAllServer) error
 	Subscribe(*DeviceStreamRequest, DeviceService_SubscribeServer) error
+	GetMeta(context.Context, *DeviceStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DeviceStreamRequest, DeviceService_SubscribeMetaServer) error
+	GetAllBatched(*DeviceBatchedStreamRequest, DeviceService_GetAllBatchedServer) error
+	SubscribeBatched(*DeviceBatchedStreamRequest, DeviceService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedDeviceServiceServer()
 }
 
@@ -139,11 +291,26 @@ type UnimplementedDeviceServiceServer struct {
 func (UnimplementedDeviceServiceServer) GetOne(context.Context, *DeviceRequest) (*DeviceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDeviceServiceServer) GetSome(*DeviceSomeRequest, DeviceService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDeviceServiceServer) GetAll(*DeviceStreamRequest, DeviceService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDeviceServiceServer) Subscribe(*DeviceStreamRequest, DeviceService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDeviceServiceServer) GetMeta(context.Context, *DeviceStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDeviceServiceServer) SubscribeMeta(*DeviceStreamRequest, DeviceService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedDeviceServiceServer) GetAllBatched(*DeviceBatchedStreamRequest, DeviceService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedDeviceServiceServer) SubscribeBatched(*DeviceBatchedStreamRequest, DeviceService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedDeviceServiceServer) mustEmbedUnimplementedDeviceServiceServer() {}
 
@@ -174,6 +341,27 @@ func _DeviceService_GetOne_Handler(srv interface{}, ctx context.Context, dec fun
 		return srv.(DeviceServiceServer).GetOne(ctx, req.(*DeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceServiceServer).GetSome(m, &deviceServiceGetSomeServer{stream})
+}
+
+type DeviceService_GetSomeServer interface {
+	Send(*DeviceSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceServiceGetSomeServer) Send(m *DeviceSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -218,6 +406,87 @@ func (x *deviceServiceSubscribeServer) Send(m *DeviceStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServiceServer).GetMeta(ctx, req.(*DeviceStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceServiceServer).SubscribeMeta(m, &deviceServiceSubscribeMetaServer{stream})
+}
+
+type DeviceService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type deviceServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceServiceServer).GetAllBatched(m, &deviceServiceGetAllBatchedServer{stream})
+}
+
+type DeviceService_GetAllBatchedServer interface {
+	Send(*DeviceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceServiceGetAllBatchedServer) Send(m *DeviceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceServiceServer).SubscribeBatched(m, &deviceServiceSubscribeBatchedServer{stream})
+}
+
+type DeviceService_SubscribeBatchedServer interface {
+	Send(*DeviceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceServiceSubscribeBatchedServer) Send(m *DeviceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceService_ServiceDesc is the grpc.ServiceDesc for DeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,8 +498,17 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _DeviceService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _DeviceService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DeviceService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DeviceService_GetAll_Handler,
@@ -241,14 +519,34 @@ var DeviceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _DeviceService_Subscribe_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DeviceService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _DeviceService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _DeviceService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/inventory.v1/services.gen.proto",
 }
 
 const (
-	DeviceDecommissioningService_GetOne_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningService/GetOne"
-	DeviceDecommissioningService_GetAll_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningService/GetAll"
-	DeviceDecommissioningService_Subscribe_FullMethodName = "/arista.inventory.v1.DeviceDecommissioningService/Subscribe"
+	DeviceDecommissioningService_GetOne_FullMethodName           = "/arista.inventory.v1.DeviceDecommissioningService/GetOne"
+	DeviceDecommissioningService_GetSome_FullMethodName          = "/arista.inventory.v1.DeviceDecommissioningService/GetSome"
+	DeviceDecommissioningService_GetAll_FullMethodName           = "/arista.inventory.v1.DeviceDecommissioningService/GetAll"
+	DeviceDecommissioningService_Subscribe_FullMethodName        = "/arista.inventory.v1.DeviceDecommissioningService/Subscribe"
+	DeviceDecommissioningService_GetMeta_FullMethodName          = "/arista.inventory.v1.DeviceDecommissioningService/GetMeta"
+	DeviceDecommissioningService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningService/SubscribeMeta"
+	DeviceDecommissioningService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningService/GetAllBatched"
+	DeviceDecommissioningService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.DeviceDecommissioningService/SubscribeBatched"
 )
 
 // DeviceDecommissioningServiceClient is the client API for DeviceDecommissioningService service.
@@ -256,8 +554,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceDecommissioningServiceClient interface {
 	GetOne(ctx context.Context, in *DeviceDecommissioningRequest, opts ...grpc.CallOption) (*DeviceDecommissioningResponse, error)
+	GetSome(ctx context.Context, in *DeviceDecommissioningSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *DeviceDecommissioningBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *DeviceDecommissioningBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeBatchedClient, error)
 }
 
 type deviceDecommissioningServiceClient struct {
@@ -277,8 +580,40 @@ func (c *deviceDecommissioningServiceClient) GetOne(ctx context.Context, in *Dev
 	return out, nil
 }
 
+func (c *deviceDecommissioningServiceClient) GetSome(ctx context.Context, in *DeviceDecommissioningSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[0], DeviceDecommissioningService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningService_GetSomeClient interface {
+	Recv() (*DeviceDecommissioningSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningServiceGetSomeClient) Recv() (*DeviceDecommissioningSomeResponse, error) {
+	m := new(DeviceDecommissioningSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceDecommissioningServiceClient) GetAll(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[0], DeviceDecommissioningService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[1], DeviceDecommissioningService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +645,7 @@ func (x *deviceDecommissioningServiceGetAllClient) Recv() (*DeviceDecommissionin
 }
 
 func (c *deviceDecommissioningServiceClient) Subscribe(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[1], DeviceDecommissioningService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[2], DeviceDecommissioningService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -341,13 +676,123 @@ func (x *deviceDecommissioningServiceSubscribeClient) Recv() (*DeviceDecommissio
 	return m, nil
 }
 
+func (c *deviceDecommissioningServiceClient) GetMeta(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, DeviceDecommissioningService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceDecommissioningServiceClient) SubscribeMeta(ctx context.Context, in *DeviceDecommissioningStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[3], DeviceDecommissioningService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceDecommissioningServiceClient) GetAllBatched(ctx context.Context, in *DeviceDecommissioningBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[4], DeviceDecommissioningService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningService_GetAllBatchedClient interface {
+	Recv() (*DeviceDecommissioningBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningServiceGetAllBatchedClient) Recv() (*DeviceDecommissioningBatchedStreamResponse, error) {
+	m := new(DeviceDecommissioningBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceDecommissioningServiceClient) SubscribeBatched(ctx context.Context, in *DeviceDecommissioningBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningService_ServiceDesc.Streams[5], DeviceDecommissioningService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningService_SubscribeBatchedClient interface {
+	Recv() (*DeviceDecommissioningBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningServiceSubscribeBatchedClient) Recv() (*DeviceDecommissioningBatchedStreamResponse, error) {
+	m := new(DeviceDecommissioningBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceDecommissioningServiceServer is the server API for DeviceDecommissioningService service.
 // All implementations must embed UnimplementedDeviceDecommissioningServiceServer
 // for forward compatibility
 type DeviceDecommissioningServiceServer interface {
 	GetOne(context.Context, *DeviceDecommissioningRequest) (*DeviceDecommissioningResponse, error)
+	GetSome(*DeviceDecommissioningSomeRequest, DeviceDecommissioningService_GetSomeServer) error
 	GetAll(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_GetAllServer) error
 	Subscribe(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_SubscribeServer) error
+	GetMeta(context.Context, *DeviceDecommissioningStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_SubscribeMetaServer) error
+	GetAllBatched(*DeviceDecommissioningBatchedStreamRequest, DeviceDecommissioningService_GetAllBatchedServer) error
+	SubscribeBatched(*DeviceDecommissioningBatchedStreamRequest, DeviceDecommissioningService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedDeviceDecommissioningServiceServer()
 }
 
@@ -358,11 +803,26 @@ type UnimplementedDeviceDecommissioningServiceServer struct {
 func (UnimplementedDeviceDecommissioningServiceServer) GetOne(context.Context, *DeviceDecommissioningRequest) (*DeviceDecommissioningResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDeviceDecommissioningServiceServer) GetSome(*DeviceDecommissioningSomeRequest, DeviceDecommissioningService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDeviceDecommissioningServiceServer) GetAll(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDeviceDecommissioningServiceServer) Subscribe(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDeviceDecommissioningServiceServer) GetMeta(context.Context, *DeviceDecommissioningStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDeviceDecommissioningServiceServer) SubscribeMeta(*DeviceDecommissioningStreamRequest, DeviceDecommissioningService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedDeviceDecommissioningServiceServer) GetAllBatched(*DeviceDecommissioningBatchedStreamRequest, DeviceDecommissioningService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedDeviceDecommissioningServiceServer) SubscribeBatched(*DeviceDecommissioningBatchedStreamRequest, DeviceDecommissioningService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedDeviceDecommissioningServiceServer) mustEmbedUnimplementedDeviceDecommissioningServiceServer() {
 }
@@ -394,6 +854,27 @@ func _DeviceDecommissioningService_GetOne_Handler(srv interface{}, ctx context.C
 		return srv.(DeviceDecommissioningServiceServer).GetOne(ctx, req.(*DeviceDecommissioningRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceDecommissioningService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningServiceServer).GetSome(m, &deviceDecommissioningServiceGetSomeServer{stream})
+}
+
+type DeviceDecommissioningService_GetSomeServer interface {
+	Send(*DeviceDecommissioningSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningServiceGetSomeServer) Send(m *DeviceDecommissioningSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceDecommissioningService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -438,6 +919,87 @@ func (x *deviceDecommissioningServiceSubscribeServer) Send(m *DeviceDecommission
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceDecommissioningService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceDecommissioningStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceDecommissioningServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceDecommissioningService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceDecommissioningServiceServer).GetMeta(ctx, req.(*DeviceDecommissioningStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceDecommissioningService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningServiceServer).SubscribeMeta(m, &deviceDecommissioningServiceSubscribeMetaServer{stream})
+}
+
+type DeviceDecommissioningService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceDecommissioningService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningServiceServer).GetAllBatched(m, &deviceDecommissioningServiceGetAllBatchedServer{stream})
+}
+
+type DeviceDecommissioningService_GetAllBatchedServer interface {
+	Send(*DeviceDecommissioningBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningServiceGetAllBatchedServer) Send(m *DeviceDecommissioningBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceDecommissioningService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningServiceServer).SubscribeBatched(m, &deviceDecommissioningServiceSubscribeBatchedServer{stream})
+}
+
+type DeviceDecommissioningService_SubscribeBatchedServer interface {
+	Send(*DeviceDecommissioningBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningServiceSubscribeBatchedServer) Send(m *DeviceDecommissioningBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceDecommissioningService_ServiceDesc is the grpc.ServiceDesc for DeviceDecommissioningService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -449,8 +1011,17 @@ var DeviceDecommissioningService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _DeviceDecommissioningService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _DeviceDecommissioningService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DeviceDecommissioningService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DeviceDecommissioningService_GetAll_Handler,
@@ -461,17 +1032,39 @@ var DeviceDecommissioningService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _DeviceDecommissioningService_Subscribe_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DeviceDecommissioningService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _DeviceDecommissioningService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _DeviceDecommissioningService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/inventory.v1/services.gen.proto",
 }
 
 const (
-	DeviceDecommissioningConfigService_GetOne_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetOne"
-	DeviceDecommissioningConfigService_GetAll_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetAll"
-	DeviceDecommissioningConfigService_Subscribe_FullMethodName = "/arista.inventory.v1.DeviceDecommissioningConfigService/Subscribe"
-	DeviceDecommissioningConfigService_Set_FullMethodName       = "/arista.inventory.v1.DeviceDecommissioningConfigService/Set"
-	DeviceDecommissioningConfigService_Delete_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningConfigService/Delete"
-	DeviceDecommissioningConfigService_DeleteAll_FullMethodName = "/arista.inventory.v1.DeviceDecommissioningConfigService/DeleteAll"
+	DeviceDecommissioningConfigService_GetOne_FullMethodName           = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetOne"
+	DeviceDecommissioningConfigService_GetSome_FullMethodName          = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetSome"
+	DeviceDecommissioningConfigService_GetAll_FullMethodName           = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetAll"
+	DeviceDecommissioningConfigService_Subscribe_FullMethodName        = "/arista.inventory.v1.DeviceDecommissioningConfigService/Subscribe"
+	DeviceDecommissioningConfigService_GetMeta_FullMethodName          = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetMeta"
+	DeviceDecommissioningConfigService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningConfigService/SubscribeMeta"
+	DeviceDecommissioningConfigService_Set_FullMethodName              = "/arista.inventory.v1.DeviceDecommissioningConfigService/Set"
+	DeviceDecommissioningConfigService_SetSome_FullMethodName          = "/arista.inventory.v1.DeviceDecommissioningConfigService/SetSome"
+	DeviceDecommissioningConfigService_Delete_FullMethodName           = "/arista.inventory.v1.DeviceDecommissioningConfigService/Delete"
+	DeviceDecommissioningConfigService_DeleteSome_FullMethodName       = "/arista.inventory.v1.DeviceDecommissioningConfigService/DeleteSome"
+	DeviceDecommissioningConfigService_DeleteAll_FullMethodName        = "/arista.inventory.v1.DeviceDecommissioningConfigService/DeleteAll"
+	DeviceDecommissioningConfigService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.DeviceDecommissioningConfigService/GetAllBatched"
+	DeviceDecommissioningConfigService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.DeviceDecommissioningConfigService/SubscribeBatched"
 )
 
 // DeviceDecommissioningConfigServiceClient is the client API for DeviceDecommissioningConfigService service.
@@ -479,11 +1072,18 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceDecommissioningConfigServiceClient interface {
 	GetOne(ctx context.Context, in *DeviceDecommissioningConfigRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigResponse, error)
+	GetSome(ctx context.Context, in *DeviceDecommissioningConfigSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *DeviceDecommissioningConfigSetRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigSetResponse, error)
+	SetSome(ctx context.Context, in *DeviceDecommissioningConfigSetSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *DeviceDecommissioningConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *DeviceDecommissioningConfigDeleteSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *DeviceDecommissioningConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *DeviceDecommissioningConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *DeviceDecommissioningConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeBatchedClient, error)
 }
 
 type deviceDecommissioningConfigServiceClient struct {
@@ -503,8 +1103,40 @@ func (c *deviceDecommissioningConfigServiceClient) GetOne(ctx context.Context, i
 	return out, nil
 }
 
+func (c *deviceDecommissioningConfigServiceClient) GetSome(ctx context.Context, in *DeviceDecommissioningConfigSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[0], DeviceDecommissioningConfigService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_GetSomeClient interface {
+	Recv() (*DeviceDecommissioningConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceGetSomeClient) Recv() (*DeviceDecommissioningConfigSomeResponse, error) {
+	m := new(DeviceDecommissioningConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceDecommissioningConfigServiceClient) GetAll(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[0], DeviceDecommissioningConfigService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[1], DeviceDecommissioningConfigService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -536,7 +1168,7 @@ func (x *deviceDecommissioningConfigServiceGetAllClient) Recv() (*DeviceDecommis
 }
 
 func (c *deviceDecommissioningConfigServiceClient) Subscribe(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[1], DeviceDecommissioningConfigService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[2], DeviceDecommissioningConfigService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -567,6 +1199,47 @@ func (x *deviceDecommissioningConfigServiceSubscribeClient) Recv() (*DeviceDecom
 	return m, nil
 }
 
+func (c *deviceDecommissioningConfigServiceClient) GetMeta(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, DeviceDecommissioningConfigService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceDecommissioningConfigServiceClient) SubscribeMeta(ctx context.Context, in *DeviceDecommissioningConfigStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[3], DeviceDecommissioningConfigService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceDecommissioningConfigServiceClient) Set(ctx context.Context, in *DeviceDecommissioningConfigSetRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigSetResponse, error) {
 	out := new(DeviceDecommissioningConfigSetResponse)
 	err := c.cc.Invoke(ctx, DeviceDecommissioningConfigService_Set_FullMethodName, in, out, opts...)
@@ -574,6 +1247,38 @@ func (c *deviceDecommissioningConfigServiceClient) Set(ctx context.Context, in *
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *deviceDecommissioningConfigServiceClient) SetSome(ctx context.Context, in *DeviceDecommissioningConfigSetSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[4], DeviceDecommissioningConfigService_SetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_SetSomeClient interface {
+	Recv() (*DeviceDecommissioningConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceSetSomeClient) Recv() (*DeviceDecommissioningConfigSetSomeResponse, error) {
+	m := new(DeviceDecommissioningConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *deviceDecommissioningConfigServiceClient) Delete(ctx context.Context, in *DeviceDecommissioningConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceDecommissioningConfigDeleteResponse, error) {
@@ -585,8 +1290,40 @@ func (c *deviceDecommissioningConfigServiceClient) Delete(ctx context.Context, i
 	return out, nil
 }
 
+func (c *deviceDecommissioningConfigServiceClient) DeleteSome(ctx context.Context, in *DeviceDecommissioningConfigDeleteSomeRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[5], DeviceDecommissioningConfigService_DeleteSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_DeleteSomeClient interface {
+	Recv() (*DeviceDecommissioningConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceDeleteSomeClient) Recv() (*DeviceDecommissioningConfigDeleteSomeResponse, error) {
+	m := new(DeviceDecommissioningConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceDecommissioningConfigServiceClient) DeleteAll(ctx context.Context, in *DeviceDecommissioningConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[2], DeviceDecommissioningConfigService_DeleteAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[6], DeviceDecommissioningConfigService_DeleteAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -617,16 +1354,87 @@ func (x *deviceDecommissioningConfigServiceDeleteAllClient) Recv() (*DeviceDecom
 	return m, nil
 }
 
+func (c *deviceDecommissioningConfigServiceClient) GetAllBatched(ctx context.Context, in *DeviceDecommissioningConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[7], DeviceDecommissioningConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_GetAllBatchedClient interface {
+	Recv() (*DeviceDecommissioningConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceGetAllBatchedClient) Recv() (*DeviceDecommissioningConfigBatchedStreamResponse, error) {
+	m := new(DeviceDecommissioningConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceDecommissioningConfigServiceClient) SubscribeBatched(ctx context.Context, in *DeviceDecommissioningConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceDecommissioningConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceDecommissioningConfigService_ServiceDesc.Streams[8], DeviceDecommissioningConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceDecommissioningConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceDecommissioningConfigService_SubscribeBatchedClient interface {
+	Recv() (*DeviceDecommissioningConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceDecommissioningConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceDecommissioningConfigServiceSubscribeBatchedClient) Recv() (*DeviceDecommissioningConfigBatchedStreamResponse, error) {
+	m := new(DeviceDecommissioningConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceDecommissioningConfigServiceServer is the server API for DeviceDecommissioningConfigService service.
 // All implementations must embed UnimplementedDeviceDecommissioningConfigServiceServer
 // for forward compatibility
 type DeviceDecommissioningConfigServiceServer interface {
 	GetOne(context.Context, *DeviceDecommissioningConfigRequest) (*DeviceDecommissioningConfigResponse, error)
+	GetSome(*DeviceDecommissioningConfigSomeRequest, DeviceDecommissioningConfigService_GetSomeServer) error
 	GetAll(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_GetAllServer) error
 	Subscribe(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_SubscribeServer) error
+	GetMeta(context.Context, *DeviceDecommissioningConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_SubscribeMetaServer) error
 	Set(context.Context, *DeviceDecommissioningConfigSetRequest) (*DeviceDecommissioningConfigSetResponse, error)
+	SetSome(*DeviceDecommissioningConfigSetSomeRequest, DeviceDecommissioningConfigService_SetSomeServer) error
 	Delete(context.Context, *DeviceDecommissioningConfigDeleteRequest) (*DeviceDecommissioningConfigDeleteResponse, error)
+	DeleteSome(*DeviceDecommissioningConfigDeleteSomeRequest, DeviceDecommissioningConfigService_DeleteSomeServer) error
 	DeleteAll(*DeviceDecommissioningConfigDeleteAllRequest, DeviceDecommissioningConfigService_DeleteAllServer) error
+	GetAllBatched(*DeviceDecommissioningConfigBatchedStreamRequest, DeviceDecommissioningConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*DeviceDecommissioningConfigBatchedStreamRequest, DeviceDecommissioningConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedDeviceDecommissioningConfigServiceServer()
 }
 
@@ -637,20 +1445,41 @@ type UnimplementedDeviceDecommissioningConfigServiceServer struct {
 func (UnimplementedDeviceDecommissioningConfigServiceServer) GetOne(context.Context, *DeviceDecommissioningConfigRequest) (*DeviceDecommissioningConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDeviceDecommissioningConfigServiceServer) GetSome(*DeviceDecommissioningConfigSomeRequest, DeviceDecommissioningConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDeviceDecommissioningConfigServiceServer) GetAll(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDeviceDecommissioningConfigServiceServer) Subscribe(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedDeviceDecommissioningConfigServiceServer) GetMeta(context.Context, *DeviceDecommissioningConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDeviceDecommissioningConfigServiceServer) SubscribeMeta(*DeviceDecommissioningConfigStreamRequest, DeviceDecommissioningConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedDeviceDecommissioningConfigServiceServer) Set(context.Context, *DeviceDecommissioningConfigSetRequest) (*DeviceDecommissioningConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedDeviceDecommissioningConfigServiceServer) SetSome(*DeviceDecommissioningConfigSetSomeRequest, DeviceDecommissioningConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
 }
 func (UnimplementedDeviceDecommissioningConfigServiceServer) Delete(context.Context, *DeviceDecommissioningConfigDeleteRequest) (*DeviceDecommissioningConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
+func (UnimplementedDeviceDecommissioningConfigServiceServer) DeleteSome(*DeviceDecommissioningConfigDeleteSomeRequest, DeviceDecommissioningConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
 func (UnimplementedDeviceDecommissioningConfigServiceServer) DeleteAll(*DeviceDecommissioningConfigDeleteAllRequest, DeviceDecommissioningConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedDeviceDecommissioningConfigServiceServer) GetAllBatched(*DeviceDecommissioningConfigBatchedStreamRequest, DeviceDecommissioningConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedDeviceDecommissioningConfigServiceServer) SubscribeBatched(*DeviceDecommissioningConfigBatchedStreamRequest, DeviceDecommissioningConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedDeviceDecommissioningConfigServiceServer) mustEmbedUnimplementedDeviceDecommissioningConfigServiceServer() {
 }
@@ -682,6 +1511,27 @@ func _DeviceDecommissioningConfigService_GetOne_Handler(srv interface{}, ctx con
 		return srv.(DeviceDecommissioningConfigServiceServer).GetOne(ctx, req.(*DeviceDecommissioningConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceDecommissioningConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).GetSome(m, &deviceDecommissioningConfigServiceGetSomeServer{stream})
+}
+
+type DeviceDecommissioningConfigService_GetSomeServer interface {
+	Send(*DeviceDecommissioningConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceGetSomeServer) Send(m *DeviceDecommissioningConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceDecommissioningConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -726,6 +1576,45 @@ func (x *deviceDecommissioningConfigServiceSubscribeServer) Send(m *DeviceDecomm
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceDecommissioningConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceDecommissioningConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceDecommissioningConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceDecommissioningConfigService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceDecommissioningConfigServiceServer).GetMeta(ctx, req.(*DeviceDecommissioningConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceDecommissioningConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).SubscribeMeta(m, &deviceDecommissioningConfigServiceSubscribeMetaServer{stream})
+}
+
+type DeviceDecommissioningConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DeviceDecommissioningConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceDecommissioningConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -744,6 +1633,27 @@ func _DeviceDecommissioningConfigService_Set_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceDecommissioningConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).SetSome(m, &deviceDecommissioningConfigServiceSetSomeServer{stream})
+}
+
+type DeviceDecommissioningConfigService_SetSomeServer interface {
+	Send(*DeviceDecommissioningConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceSetSomeServer) Send(m *DeviceDecommissioningConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DeviceDecommissioningConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceDecommissioningConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -760,6 +1670,27 @@ func _DeviceDecommissioningConfigService_Delete_Handler(srv interface{}, ctx con
 		return srv.(DeviceDecommissioningConfigServiceServer).Delete(ctx, req.(*DeviceDecommissioningConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceDecommissioningConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).DeleteSome(m, &deviceDecommissioningConfigServiceDeleteSomeServer{stream})
+}
+
+type DeviceDecommissioningConfigService_DeleteSomeServer interface {
+	Send(*DeviceDecommissioningConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceDeleteSomeServer) Send(m *DeviceDecommissioningConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceDecommissioningConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -783,6 +1714,48 @@ func (x *deviceDecommissioningConfigServiceDeleteAllServer) Send(m *DeviceDecomm
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceDecommissioningConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).GetAllBatched(m, &deviceDecommissioningConfigServiceGetAllBatchedServer{stream})
+}
+
+type DeviceDecommissioningConfigService_GetAllBatchedServer interface {
+	Send(*DeviceDecommissioningConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceGetAllBatchedServer) Send(m *DeviceDecommissioningConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceDecommissioningConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceDecommissioningConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceDecommissioningConfigServiceServer).SubscribeBatched(m, &deviceDecommissioningConfigServiceSubscribeBatchedServer{stream})
+}
+
+type DeviceDecommissioningConfigService_SubscribeBatchedServer interface {
+	Send(*DeviceDecommissioningConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceDecommissioningConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceDecommissioningConfigServiceSubscribeBatchedServer) Send(m *DeviceDecommissioningConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceDecommissioningConfigService_ServiceDesc is the grpc.ServiceDesc for DeviceDecommissioningConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -795,6 +1768,10 @@ var DeviceDecommissioningConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DeviceDecommissioningConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _DeviceDecommissioningConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _DeviceDecommissioningConfigService_Set_Handler,
 		},
@@ -804,6 +1781,11 @@ var DeviceDecommissioningConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DeviceDecommissioningConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DeviceDecommissioningConfigService_GetAll_Handler,
@@ -815,8 +1797,33 @@ var DeviceDecommissioningConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DeviceDecommissioningConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _DeviceDecommissioningConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _DeviceDecommissioningConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "DeleteAll",
 			Handler:       _DeviceDecommissioningConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _DeviceDecommissioningConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _DeviceDecommissioningConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -824,9 +1831,14 @@ var DeviceDecommissioningConfigService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	DeviceOnboardingService_GetOne_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingService/GetOne"
-	DeviceOnboardingService_GetAll_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingService/GetAll"
-	DeviceOnboardingService_Subscribe_FullMethodName = "/arista.inventory.v1.DeviceOnboardingService/Subscribe"
+	DeviceOnboardingService_GetOne_FullMethodName           = "/arista.inventory.v1.DeviceOnboardingService/GetOne"
+	DeviceOnboardingService_GetSome_FullMethodName          = "/arista.inventory.v1.DeviceOnboardingService/GetSome"
+	DeviceOnboardingService_GetAll_FullMethodName           = "/arista.inventory.v1.DeviceOnboardingService/GetAll"
+	DeviceOnboardingService_Subscribe_FullMethodName        = "/arista.inventory.v1.DeviceOnboardingService/Subscribe"
+	DeviceOnboardingService_GetMeta_FullMethodName          = "/arista.inventory.v1.DeviceOnboardingService/GetMeta"
+	DeviceOnboardingService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingService/SubscribeMeta"
+	DeviceOnboardingService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingService/GetAllBatched"
+	DeviceOnboardingService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.DeviceOnboardingService/SubscribeBatched"
 )
 
 // DeviceOnboardingServiceClient is the client API for DeviceOnboardingService service.
@@ -834,8 +1846,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceOnboardingServiceClient interface {
 	GetOne(ctx context.Context, in *DeviceOnboardingRequest, opts ...grpc.CallOption) (*DeviceOnboardingResponse, error)
+	GetSome(ctx context.Context, in *DeviceOnboardingSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *DeviceOnboardingBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *DeviceOnboardingBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeBatchedClient, error)
 }
 
 type deviceOnboardingServiceClient struct {
@@ -855,8 +1872,40 @@ func (c *deviceOnboardingServiceClient) GetOne(ctx context.Context, in *DeviceOn
 	return out, nil
 }
 
+func (c *deviceOnboardingServiceClient) GetSome(ctx context.Context, in *DeviceOnboardingSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[0], DeviceOnboardingService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingService_GetSomeClient interface {
+	Recv() (*DeviceOnboardingSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingServiceGetSomeClient) Recv() (*DeviceOnboardingSomeResponse, error) {
+	m := new(DeviceOnboardingSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceOnboardingServiceClient) GetAll(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[0], DeviceOnboardingService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[1], DeviceOnboardingService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -888,7 +1937,7 @@ func (x *deviceOnboardingServiceGetAllClient) Recv() (*DeviceOnboardingStreamRes
 }
 
 func (c *deviceOnboardingServiceClient) Subscribe(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[1], DeviceOnboardingService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[2], DeviceOnboardingService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -919,13 +1968,123 @@ func (x *deviceOnboardingServiceSubscribeClient) Recv() (*DeviceOnboardingStream
 	return m, nil
 }
 
+func (c *deviceOnboardingServiceClient) GetMeta(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, DeviceOnboardingService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceOnboardingServiceClient) SubscribeMeta(ctx context.Context, in *DeviceOnboardingStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[3], DeviceOnboardingService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceOnboardingServiceClient) GetAllBatched(ctx context.Context, in *DeviceOnboardingBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[4], DeviceOnboardingService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingService_GetAllBatchedClient interface {
+	Recv() (*DeviceOnboardingBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingServiceGetAllBatchedClient) Recv() (*DeviceOnboardingBatchedStreamResponse, error) {
+	m := new(DeviceOnboardingBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceOnboardingServiceClient) SubscribeBatched(ctx context.Context, in *DeviceOnboardingBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingService_ServiceDesc.Streams[5], DeviceOnboardingService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingService_SubscribeBatchedClient interface {
+	Recv() (*DeviceOnboardingBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingServiceSubscribeBatchedClient) Recv() (*DeviceOnboardingBatchedStreamResponse, error) {
+	m := new(DeviceOnboardingBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceOnboardingServiceServer is the server API for DeviceOnboardingService service.
 // All implementations must embed UnimplementedDeviceOnboardingServiceServer
 // for forward compatibility
 type DeviceOnboardingServiceServer interface {
 	GetOne(context.Context, *DeviceOnboardingRequest) (*DeviceOnboardingResponse, error)
+	GetSome(*DeviceOnboardingSomeRequest, DeviceOnboardingService_GetSomeServer) error
 	GetAll(*DeviceOnboardingStreamRequest, DeviceOnboardingService_GetAllServer) error
 	Subscribe(*DeviceOnboardingStreamRequest, DeviceOnboardingService_SubscribeServer) error
+	GetMeta(context.Context, *DeviceOnboardingStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DeviceOnboardingStreamRequest, DeviceOnboardingService_SubscribeMetaServer) error
+	GetAllBatched(*DeviceOnboardingBatchedStreamRequest, DeviceOnboardingService_GetAllBatchedServer) error
+	SubscribeBatched(*DeviceOnboardingBatchedStreamRequest, DeviceOnboardingService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedDeviceOnboardingServiceServer()
 }
 
@@ -936,11 +2095,26 @@ type UnimplementedDeviceOnboardingServiceServer struct {
 func (UnimplementedDeviceOnboardingServiceServer) GetOne(context.Context, *DeviceOnboardingRequest) (*DeviceOnboardingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDeviceOnboardingServiceServer) GetSome(*DeviceOnboardingSomeRequest, DeviceOnboardingService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDeviceOnboardingServiceServer) GetAll(*DeviceOnboardingStreamRequest, DeviceOnboardingService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDeviceOnboardingServiceServer) Subscribe(*DeviceOnboardingStreamRequest, DeviceOnboardingService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedDeviceOnboardingServiceServer) GetMeta(context.Context, *DeviceOnboardingStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDeviceOnboardingServiceServer) SubscribeMeta(*DeviceOnboardingStreamRequest, DeviceOnboardingService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedDeviceOnboardingServiceServer) GetAllBatched(*DeviceOnboardingBatchedStreamRequest, DeviceOnboardingService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedDeviceOnboardingServiceServer) SubscribeBatched(*DeviceOnboardingBatchedStreamRequest, DeviceOnboardingService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedDeviceOnboardingServiceServer) mustEmbedUnimplementedDeviceOnboardingServiceServer() {
 }
@@ -972,6 +2146,27 @@ func _DeviceOnboardingService_GetOne_Handler(srv interface{}, ctx context.Contex
 		return srv.(DeviceOnboardingServiceServer).GetOne(ctx, req.(*DeviceOnboardingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceOnboardingService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingServiceServer).GetSome(m, &deviceOnboardingServiceGetSomeServer{stream})
+}
+
+type DeviceOnboardingService_GetSomeServer interface {
+	Send(*DeviceOnboardingSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingServiceGetSomeServer) Send(m *DeviceOnboardingSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceOnboardingService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1016,6 +2211,87 @@ func (x *deviceOnboardingServiceSubscribeServer) Send(m *DeviceOnboardingStreamR
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceOnboardingService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceOnboardingStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceOnboardingServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceOnboardingService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceOnboardingServiceServer).GetMeta(ctx, req.(*DeviceOnboardingStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceOnboardingService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingServiceServer).SubscribeMeta(m, &deviceOnboardingServiceSubscribeMetaServer{stream})
+}
+
+type DeviceOnboardingService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceOnboardingService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingServiceServer).GetAllBatched(m, &deviceOnboardingServiceGetAllBatchedServer{stream})
+}
+
+type DeviceOnboardingService_GetAllBatchedServer interface {
+	Send(*DeviceOnboardingBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingServiceGetAllBatchedServer) Send(m *DeviceOnboardingBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceOnboardingService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingServiceServer).SubscribeBatched(m, &deviceOnboardingServiceSubscribeBatchedServer{stream})
+}
+
+type DeviceOnboardingService_SubscribeBatchedServer interface {
+	Send(*DeviceOnboardingBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingServiceSubscribeBatchedServer) Send(m *DeviceOnboardingBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceOnboardingService_ServiceDesc is the grpc.ServiceDesc for DeviceOnboardingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1027,8 +2303,17 @@ var DeviceOnboardingService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _DeviceOnboardingService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _DeviceOnboardingService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DeviceOnboardingService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DeviceOnboardingService_GetAll_Handler,
@@ -1039,17 +2324,39 @@ var DeviceOnboardingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _DeviceOnboardingService_Subscribe_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DeviceOnboardingService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _DeviceOnboardingService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _DeviceOnboardingService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/inventory.v1/services.gen.proto",
 }
 
 const (
-	DeviceOnboardingConfigService_GetOne_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingConfigService/GetOne"
-	DeviceOnboardingConfigService_GetAll_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingConfigService/GetAll"
-	DeviceOnboardingConfigService_Subscribe_FullMethodName = "/arista.inventory.v1.DeviceOnboardingConfigService/Subscribe"
-	DeviceOnboardingConfigService_Set_FullMethodName       = "/arista.inventory.v1.DeviceOnboardingConfigService/Set"
-	DeviceOnboardingConfigService_Delete_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingConfigService/Delete"
-	DeviceOnboardingConfigService_DeleteAll_FullMethodName = "/arista.inventory.v1.DeviceOnboardingConfigService/DeleteAll"
+	DeviceOnboardingConfigService_GetOne_FullMethodName           = "/arista.inventory.v1.DeviceOnboardingConfigService/GetOne"
+	DeviceOnboardingConfigService_GetSome_FullMethodName          = "/arista.inventory.v1.DeviceOnboardingConfigService/GetSome"
+	DeviceOnboardingConfigService_GetAll_FullMethodName           = "/arista.inventory.v1.DeviceOnboardingConfigService/GetAll"
+	DeviceOnboardingConfigService_Subscribe_FullMethodName        = "/arista.inventory.v1.DeviceOnboardingConfigService/Subscribe"
+	DeviceOnboardingConfigService_GetMeta_FullMethodName          = "/arista.inventory.v1.DeviceOnboardingConfigService/GetMeta"
+	DeviceOnboardingConfigService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingConfigService/SubscribeMeta"
+	DeviceOnboardingConfigService_Set_FullMethodName              = "/arista.inventory.v1.DeviceOnboardingConfigService/Set"
+	DeviceOnboardingConfigService_SetSome_FullMethodName          = "/arista.inventory.v1.DeviceOnboardingConfigService/SetSome"
+	DeviceOnboardingConfigService_Delete_FullMethodName           = "/arista.inventory.v1.DeviceOnboardingConfigService/Delete"
+	DeviceOnboardingConfigService_DeleteSome_FullMethodName       = "/arista.inventory.v1.DeviceOnboardingConfigService/DeleteSome"
+	DeviceOnboardingConfigService_DeleteAll_FullMethodName        = "/arista.inventory.v1.DeviceOnboardingConfigService/DeleteAll"
+	DeviceOnboardingConfigService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.DeviceOnboardingConfigService/GetAllBatched"
+	DeviceOnboardingConfigService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.DeviceOnboardingConfigService/SubscribeBatched"
 )
 
 // DeviceOnboardingConfigServiceClient is the client API for DeviceOnboardingConfigService service.
@@ -1057,11 +2364,18 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceOnboardingConfigServiceClient interface {
 	GetOne(ctx context.Context, in *DeviceOnboardingConfigRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigResponse, error)
+	GetSome(ctx context.Context, in *DeviceOnboardingConfigSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *DeviceOnboardingConfigSetRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigSetResponse, error)
+	SetSome(ctx context.Context, in *DeviceOnboardingConfigSetSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SetSomeClient, error)
 	Delete(ctx context.Context, in *DeviceOnboardingConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *DeviceOnboardingConfigDeleteSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *DeviceOnboardingConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *DeviceOnboardingConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *DeviceOnboardingConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeBatchedClient, error)
 }
 
 type deviceOnboardingConfigServiceClient struct {
@@ -1081,8 +2395,40 @@ func (c *deviceOnboardingConfigServiceClient) GetOne(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *deviceOnboardingConfigServiceClient) GetSome(ctx context.Context, in *DeviceOnboardingConfigSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[0], DeviceOnboardingConfigService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_GetSomeClient interface {
+	Recv() (*DeviceOnboardingConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceGetSomeClient) Recv() (*DeviceOnboardingConfigSomeResponse, error) {
+	m := new(DeviceOnboardingConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceOnboardingConfigServiceClient) GetAll(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[0], DeviceOnboardingConfigService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[1], DeviceOnboardingConfigService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1114,7 +2460,7 @@ func (x *deviceOnboardingConfigServiceGetAllClient) Recv() (*DeviceOnboardingCon
 }
 
 func (c *deviceOnboardingConfigServiceClient) Subscribe(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[1], DeviceOnboardingConfigService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[2], DeviceOnboardingConfigService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1145,6 +2491,47 @@ func (x *deviceOnboardingConfigServiceSubscribeClient) Recv() (*DeviceOnboarding
 	return m, nil
 }
 
+func (c *deviceOnboardingConfigServiceClient) GetMeta(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, DeviceOnboardingConfigService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceOnboardingConfigServiceClient) SubscribeMeta(ctx context.Context, in *DeviceOnboardingConfigStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[3], DeviceOnboardingConfigService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceOnboardingConfigServiceClient) Set(ctx context.Context, in *DeviceOnboardingConfigSetRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigSetResponse, error) {
 	out := new(DeviceOnboardingConfigSetResponse)
 	err := c.cc.Invoke(ctx, DeviceOnboardingConfigService_Set_FullMethodName, in, out, opts...)
@@ -1152,6 +2539,38 @@ func (c *deviceOnboardingConfigServiceClient) Set(ctx context.Context, in *Devic
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *deviceOnboardingConfigServiceClient) SetSome(ctx context.Context, in *DeviceOnboardingConfigSetSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[4], DeviceOnboardingConfigService_SetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_SetSomeClient interface {
+	Recv() (*DeviceOnboardingConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceSetSomeClient) Recv() (*DeviceOnboardingConfigSetSomeResponse, error) {
+	m := new(DeviceOnboardingConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *deviceOnboardingConfigServiceClient) Delete(ctx context.Context, in *DeviceOnboardingConfigDeleteRequest, opts ...grpc.CallOption) (*DeviceOnboardingConfigDeleteResponse, error) {
@@ -1163,8 +2582,40 @@ func (c *deviceOnboardingConfigServiceClient) Delete(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *deviceOnboardingConfigServiceClient) DeleteSome(ctx context.Context, in *DeviceOnboardingConfigDeleteSomeRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[5], DeviceOnboardingConfigService_DeleteSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_DeleteSomeClient interface {
+	Recv() (*DeviceOnboardingConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceDeleteSomeClient) Recv() (*DeviceOnboardingConfigDeleteSomeResponse, error) {
+	m := new(DeviceOnboardingConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *deviceOnboardingConfigServiceClient) DeleteAll(ctx context.Context, in *DeviceOnboardingConfigDeleteAllRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_DeleteAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[2], DeviceOnboardingConfigService_DeleteAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[6], DeviceOnboardingConfigService_DeleteAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1195,16 +2646,87 @@ func (x *deviceOnboardingConfigServiceDeleteAllClient) Recv() (*DeviceOnboarding
 	return m, nil
 }
 
+func (c *deviceOnboardingConfigServiceClient) GetAllBatched(ctx context.Context, in *DeviceOnboardingConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[7], DeviceOnboardingConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_GetAllBatchedClient interface {
+	Recv() (*DeviceOnboardingConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceGetAllBatchedClient) Recv() (*DeviceOnboardingConfigBatchedStreamResponse, error) {
+	m := new(DeviceOnboardingConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *deviceOnboardingConfigServiceClient) SubscribeBatched(ctx context.Context, in *DeviceOnboardingConfigBatchedStreamRequest, opts ...grpc.CallOption) (DeviceOnboardingConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DeviceOnboardingConfigService_ServiceDesc.Streams[8], DeviceOnboardingConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &deviceOnboardingConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DeviceOnboardingConfigService_SubscribeBatchedClient interface {
+	Recv() (*DeviceOnboardingConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type deviceOnboardingConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *deviceOnboardingConfigServiceSubscribeBatchedClient) Recv() (*DeviceOnboardingConfigBatchedStreamResponse, error) {
+	m := new(DeviceOnboardingConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DeviceOnboardingConfigServiceServer is the server API for DeviceOnboardingConfigService service.
 // All implementations must embed UnimplementedDeviceOnboardingConfigServiceServer
 // for forward compatibility
 type DeviceOnboardingConfigServiceServer interface {
 	GetOne(context.Context, *DeviceOnboardingConfigRequest) (*DeviceOnboardingConfigResponse, error)
+	GetSome(*DeviceOnboardingConfigSomeRequest, DeviceOnboardingConfigService_GetSomeServer) error
 	GetAll(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_GetAllServer) error
 	Subscribe(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_SubscribeServer) error
+	GetMeta(context.Context, *DeviceOnboardingConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_SubscribeMetaServer) error
 	Set(context.Context, *DeviceOnboardingConfigSetRequest) (*DeviceOnboardingConfigSetResponse, error)
+	SetSome(*DeviceOnboardingConfigSetSomeRequest, DeviceOnboardingConfigService_SetSomeServer) error
 	Delete(context.Context, *DeviceOnboardingConfigDeleteRequest) (*DeviceOnboardingConfigDeleteResponse, error)
+	DeleteSome(*DeviceOnboardingConfigDeleteSomeRequest, DeviceOnboardingConfigService_DeleteSomeServer) error
 	DeleteAll(*DeviceOnboardingConfigDeleteAllRequest, DeviceOnboardingConfigService_DeleteAllServer) error
+	GetAllBatched(*DeviceOnboardingConfigBatchedStreamRequest, DeviceOnboardingConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*DeviceOnboardingConfigBatchedStreamRequest, DeviceOnboardingConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedDeviceOnboardingConfigServiceServer()
 }
 
@@ -1215,20 +2737,41 @@ type UnimplementedDeviceOnboardingConfigServiceServer struct {
 func (UnimplementedDeviceOnboardingConfigServiceServer) GetOne(context.Context, *DeviceOnboardingConfigRequest) (*DeviceOnboardingConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedDeviceOnboardingConfigServiceServer) GetSome(*DeviceOnboardingConfigSomeRequest, DeviceOnboardingConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedDeviceOnboardingConfigServiceServer) GetAll(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedDeviceOnboardingConfigServiceServer) Subscribe(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedDeviceOnboardingConfigServiceServer) GetMeta(context.Context, *DeviceOnboardingConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedDeviceOnboardingConfigServiceServer) SubscribeMeta(*DeviceOnboardingConfigStreamRequest, DeviceOnboardingConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
 func (UnimplementedDeviceOnboardingConfigServiceServer) Set(context.Context, *DeviceOnboardingConfigSetRequest) (*DeviceOnboardingConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedDeviceOnboardingConfigServiceServer) SetSome(*DeviceOnboardingConfigSetSomeRequest, DeviceOnboardingConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
 }
 func (UnimplementedDeviceOnboardingConfigServiceServer) Delete(context.Context, *DeviceOnboardingConfigDeleteRequest) (*DeviceOnboardingConfigDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
+func (UnimplementedDeviceOnboardingConfigServiceServer) DeleteSome(*DeviceOnboardingConfigDeleteSomeRequest, DeviceOnboardingConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
 func (UnimplementedDeviceOnboardingConfigServiceServer) DeleteAll(*DeviceOnboardingConfigDeleteAllRequest, DeviceOnboardingConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedDeviceOnboardingConfigServiceServer) GetAllBatched(*DeviceOnboardingConfigBatchedStreamRequest, DeviceOnboardingConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedDeviceOnboardingConfigServiceServer) SubscribeBatched(*DeviceOnboardingConfigBatchedStreamRequest, DeviceOnboardingConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedDeviceOnboardingConfigServiceServer) mustEmbedUnimplementedDeviceOnboardingConfigServiceServer() {
 }
@@ -1260,6 +2803,27 @@ func _DeviceOnboardingConfigService_GetOne_Handler(srv interface{}, ctx context.
 		return srv.(DeviceOnboardingConfigServiceServer).GetOne(ctx, req.(*DeviceOnboardingConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceOnboardingConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).GetSome(m, &deviceOnboardingConfigServiceGetSomeServer{stream})
+}
+
+type DeviceOnboardingConfigService_GetSomeServer interface {
+	Send(*DeviceOnboardingConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceGetSomeServer) Send(m *DeviceOnboardingConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceOnboardingConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1304,6 +2868,45 @@ func (x *deviceOnboardingConfigServiceSubscribeServer) Send(m *DeviceOnboardingC
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceOnboardingConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceOnboardingConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceOnboardingConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceOnboardingConfigService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceOnboardingConfigServiceServer).GetMeta(ctx, req.(*DeviceOnboardingConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceOnboardingConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).SubscribeMeta(m, &deviceOnboardingConfigServiceSubscribeMetaServer{stream})
+}
+
+type DeviceOnboardingConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DeviceOnboardingConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceOnboardingConfigSetRequest)
 	if err := dec(in); err != nil {
@@ -1322,6 +2925,27 @@ func _DeviceOnboardingConfigService_Set_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeviceOnboardingConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).SetSome(m, &deviceOnboardingConfigServiceSetSomeServer{stream})
+}
+
+type DeviceOnboardingConfigService_SetSomeServer interface {
+	Send(*DeviceOnboardingConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceSetSomeServer) Send(m *DeviceOnboardingConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _DeviceOnboardingConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceOnboardingConfigDeleteRequest)
 	if err := dec(in); err != nil {
@@ -1338,6 +2962,27 @@ func _DeviceOnboardingConfigService_Delete_Handler(srv interface{}, ctx context.
 		return srv.(DeviceOnboardingConfigServiceServer).Delete(ctx, req.(*DeviceOnboardingConfigDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceOnboardingConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).DeleteSome(m, &deviceOnboardingConfigServiceDeleteSomeServer{stream})
+}
+
+type DeviceOnboardingConfigService_DeleteSomeServer interface {
+	Send(*DeviceOnboardingConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceDeleteSomeServer) Send(m *DeviceOnboardingConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _DeviceOnboardingConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1361,6 +3006,48 @@ func (x *deviceOnboardingConfigServiceDeleteAllServer) Send(m *DeviceOnboardingC
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DeviceOnboardingConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).GetAllBatched(m, &deviceOnboardingConfigServiceGetAllBatchedServer{stream})
+}
+
+type DeviceOnboardingConfigService_GetAllBatchedServer interface {
+	Send(*DeviceOnboardingConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceGetAllBatchedServer) Send(m *DeviceOnboardingConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DeviceOnboardingConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DeviceOnboardingConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DeviceOnboardingConfigServiceServer).SubscribeBatched(m, &deviceOnboardingConfigServiceSubscribeBatchedServer{stream})
+}
+
+type DeviceOnboardingConfigService_SubscribeBatchedServer interface {
+	Send(*DeviceOnboardingConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type deviceOnboardingConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *deviceOnboardingConfigServiceSubscribeBatchedServer) Send(m *DeviceOnboardingConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DeviceOnboardingConfigService_ServiceDesc is the grpc.ServiceDesc for DeviceOnboardingConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1373,6 +3060,10 @@ var DeviceOnboardingConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DeviceOnboardingConfigService_GetOne_Handler,
 		},
 		{
+			MethodName: "GetMeta",
+			Handler:    _DeviceOnboardingConfigService_GetMeta_Handler,
+		},
+		{
 			MethodName: "Set",
 			Handler:    _DeviceOnboardingConfigService_Set_Handler,
 		},
@@ -1382,6 +3073,11 @@ var DeviceOnboardingConfigService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _DeviceOnboardingConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _DeviceOnboardingConfigService_GetAll_Handler,
@@ -1393,8 +3089,33 @@ var DeviceOnboardingConfigService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _DeviceOnboardingConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _DeviceOnboardingConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _DeviceOnboardingConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "DeleteAll",
 			Handler:       _DeviceOnboardingConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _DeviceOnboardingConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _DeviceOnboardingConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -1402,9 +3123,14 @@ var DeviceOnboardingConfigService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	ProvisionedDeviceService_GetOne_FullMethodName    = "/arista.inventory.v1.ProvisionedDeviceService/GetOne"
-	ProvisionedDeviceService_GetAll_FullMethodName    = "/arista.inventory.v1.ProvisionedDeviceService/GetAll"
-	ProvisionedDeviceService_Subscribe_FullMethodName = "/arista.inventory.v1.ProvisionedDeviceService/Subscribe"
+	ProvisionedDeviceService_GetOne_FullMethodName           = "/arista.inventory.v1.ProvisionedDeviceService/GetOne"
+	ProvisionedDeviceService_GetSome_FullMethodName          = "/arista.inventory.v1.ProvisionedDeviceService/GetSome"
+	ProvisionedDeviceService_GetAll_FullMethodName           = "/arista.inventory.v1.ProvisionedDeviceService/GetAll"
+	ProvisionedDeviceService_Subscribe_FullMethodName        = "/arista.inventory.v1.ProvisionedDeviceService/Subscribe"
+	ProvisionedDeviceService_GetMeta_FullMethodName          = "/arista.inventory.v1.ProvisionedDeviceService/GetMeta"
+	ProvisionedDeviceService_SubscribeMeta_FullMethodName    = "/arista.inventory.v1.ProvisionedDeviceService/SubscribeMeta"
+	ProvisionedDeviceService_GetAllBatched_FullMethodName    = "/arista.inventory.v1.ProvisionedDeviceService/GetAllBatched"
+	ProvisionedDeviceService_SubscribeBatched_FullMethodName = "/arista.inventory.v1.ProvisionedDeviceService/SubscribeBatched"
 )
 
 // ProvisionedDeviceServiceClient is the client API for ProvisionedDeviceService service.
@@ -1412,8 +3138,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProvisionedDeviceServiceClient interface {
 	GetOne(ctx context.Context, in *ProvisionedDeviceRequest, opts ...grpc.CallOption) (*ProvisionedDeviceResponse, error)
+	GetSome(ctx context.Context, in *ProvisionedDeviceSomeRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetSomeClient, error)
 	GetAll(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ProvisionedDeviceBatchedStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ProvisionedDeviceBatchedStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeBatchedClient, error)
 }
 
 type provisionedDeviceServiceClient struct {
@@ -1433,8 +3164,40 @@ func (c *provisionedDeviceServiceClient) GetOne(ctx context.Context, in *Provisi
 	return out, nil
 }
 
+func (c *provisionedDeviceServiceClient) GetSome(ctx context.Context, in *ProvisionedDeviceSomeRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[0], ProvisionedDeviceService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &provisionedDeviceServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProvisionedDeviceService_GetSomeClient interface {
+	Recv() (*ProvisionedDeviceSomeResponse, error)
+	grpc.ClientStream
+}
+
+type provisionedDeviceServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *provisionedDeviceServiceGetSomeClient) Recv() (*ProvisionedDeviceSomeResponse, error) {
+	m := new(ProvisionedDeviceSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *provisionedDeviceServiceClient) GetAll(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetAllClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[0], ProvisionedDeviceService_GetAll_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[1], ProvisionedDeviceService_GetAll_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1466,7 +3229,7 @@ func (x *provisionedDeviceServiceGetAllClient) Recv() (*ProvisionedDeviceStreamR
 }
 
 func (c *provisionedDeviceServiceClient) Subscribe(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[1], ProvisionedDeviceService_Subscribe_FullMethodName, opts...)
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[2], ProvisionedDeviceService_Subscribe_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1497,13 +3260,123 @@ func (x *provisionedDeviceServiceSubscribeClient) Recv() (*ProvisionedDeviceStre
 	return m, nil
 }
 
+func (c *provisionedDeviceServiceClient) GetMeta(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, ProvisionedDeviceService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *provisionedDeviceServiceClient) SubscribeMeta(ctx context.Context, in *ProvisionedDeviceStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[3], ProvisionedDeviceService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &provisionedDeviceServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProvisionedDeviceService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type provisionedDeviceServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *provisionedDeviceServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *provisionedDeviceServiceClient) GetAllBatched(ctx context.Context, in *ProvisionedDeviceBatchedStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[4], ProvisionedDeviceService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &provisionedDeviceServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProvisionedDeviceService_GetAllBatchedClient interface {
+	Recv() (*ProvisionedDeviceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type provisionedDeviceServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *provisionedDeviceServiceGetAllBatchedClient) Recv() (*ProvisionedDeviceBatchedStreamResponse, error) {
+	m := new(ProvisionedDeviceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *provisionedDeviceServiceClient) SubscribeBatched(ctx context.Context, in *ProvisionedDeviceBatchedStreamRequest, opts ...grpc.CallOption) (ProvisionedDeviceService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProvisionedDeviceService_ServiceDesc.Streams[5], ProvisionedDeviceService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &provisionedDeviceServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ProvisionedDeviceService_SubscribeBatchedClient interface {
+	Recv() (*ProvisionedDeviceBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type provisionedDeviceServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *provisionedDeviceServiceSubscribeBatchedClient) Recv() (*ProvisionedDeviceBatchedStreamResponse, error) {
+	m := new(ProvisionedDeviceBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProvisionedDeviceServiceServer is the server API for ProvisionedDeviceService service.
 // All implementations must embed UnimplementedProvisionedDeviceServiceServer
 // for forward compatibility
 type ProvisionedDeviceServiceServer interface {
 	GetOne(context.Context, *ProvisionedDeviceRequest) (*ProvisionedDeviceResponse, error)
+	GetSome(*ProvisionedDeviceSomeRequest, ProvisionedDeviceService_GetSomeServer) error
 	GetAll(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_GetAllServer) error
 	Subscribe(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_SubscribeServer) error
+	GetMeta(context.Context, *ProvisionedDeviceStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_SubscribeMetaServer) error
+	GetAllBatched(*ProvisionedDeviceBatchedStreamRequest, ProvisionedDeviceService_GetAllBatchedServer) error
+	SubscribeBatched(*ProvisionedDeviceBatchedStreamRequest, ProvisionedDeviceService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedProvisionedDeviceServiceServer()
 }
 
@@ -1514,11 +3387,26 @@ type UnimplementedProvisionedDeviceServiceServer struct {
 func (UnimplementedProvisionedDeviceServiceServer) GetOne(context.Context, *ProvisionedDeviceRequest) (*ProvisionedDeviceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
 }
+func (UnimplementedProvisionedDeviceServiceServer) GetSome(*ProvisionedDeviceSomeRequest, ProvisionedDeviceService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
 func (UnimplementedProvisionedDeviceServiceServer) GetAll(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedProvisionedDeviceServiceServer) Subscribe(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedProvisionedDeviceServiceServer) GetMeta(context.Context, *ProvisionedDeviceStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedProvisionedDeviceServiceServer) SubscribeMeta(*ProvisionedDeviceStreamRequest, ProvisionedDeviceService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedProvisionedDeviceServiceServer) GetAllBatched(*ProvisionedDeviceBatchedStreamRequest, ProvisionedDeviceService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedProvisionedDeviceServiceServer) SubscribeBatched(*ProvisionedDeviceBatchedStreamRequest, ProvisionedDeviceService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedProvisionedDeviceServiceServer) mustEmbedUnimplementedProvisionedDeviceServiceServer() {
 }
@@ -1550,6 +3438,27 @@ func _ProvisionedDeviceService_GetOne_Handler(srv interface{}, ctx context.Conte
 		return srv.(ProvisionedDeviceServiceServer).GetOne(ctx, req.(*ProvisionedDeviceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ProvisionedDeviceService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProvisionedDeviceSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProvisionedDeviceServiceServer).GetSome(m, &provisionedDeviceServiceGetSomeServer{stream})
+}
+
+type ProvisionedDeviceService_GetSomeServer interface {
+	Send(*ProvisionedDeviceSomeResponse) error
+	grpc.ServerStream
+}
+
+type provisionedDeviceServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *provisionedDeviceServiceGetSomeServer) Send(m *ProvisionedDeviceSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ProvisionedDeviceService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1594,6 +3503,87 @@ func (x *provisionedDeviceServiceSubscribeServer) Send(m *ProvisionedDeviceStrea
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProvisionedDeviceService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProvisionedDeviceStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProvisionedDeviceServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProvisionedDeviceService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProvisionedDeviceServiceServer).GetMeta(ctx, req.(*ProvisionedDeviceStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProvisionedDeviceService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProvisionedDeviceStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProvisionedDeviceServiceServer).SubscribeMeta(m, &provisionedDeviceServiceSubscribeMetaServer{stream})
+}
+
+type ProvisionedDeviceService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type provisionedDeviceServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *provisionedDeviceServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ProvisionedDeviceService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProvisionedDeviceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProvisionedDeviceServiceServer).GetAllBatched(m, &provisionedDeviceServiceGetAllBatchedServer{stream})
+}
+
+type ProvisionedDeviceService_GetAllBatchedServer interface {
+	Send(*ProvisionedDeviceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type provisionedDeviceServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *provisionedDeviceServiceGetAllBatchedServer) Send(m *ProvisionedDeviceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ProvisionedDeviceService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProvisionedDeviceBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProvisionedDeviceServiceServer).SubscribeBatched(m, &provisionedDeviceServiceSubscribeBatchedServer{stream})
+}
+
+type ProvisionedDeviceService_SubscribeBatchedServer interface {
+	Send(*ProvisionedDeviceBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type provisionedDeviceServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *provisionedDeviceServiceSubscribeBatchedServer) Send(m *ProvisionedDeviceBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ProvisionedDeviceService_ServiceDesc is the grpc.ServiceDesc for ProvisionedDeviceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1605,8 +3595,17 @@ var ProvisionedDeviceService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetOne",
 			Handler:    _ProvisionedDeviceService_GetOne_Handler,
 		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ProvisionedDeviceService_GetMeta_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ProvisionedDeviceService_GetSome_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "GetAll",
 			Handler:       _ProvisionedDeviceService_GetAll_Handler,
@@ -1615,6 +3614,21 @@ var ProvisionedDeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _ProvisionedDeviceService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ProvisionedDeviceService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ProvisionedDeviceService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ProvisionedDeviceService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

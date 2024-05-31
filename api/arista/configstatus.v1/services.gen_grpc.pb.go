@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ConfigDiffService_GetOne_FullMethodName        = "/arista.configstatus.v1.ConfigDiffService/GetOne"
-	ConfigDiffService_GetSome_FullMethodName       = "/arista.configstatus.v1.ConfigDiffService/GetSome"
-	ConfigDiffService_GetAll_FullMethodName        = "/arista.configstatus.v1.ConfigDiffService/GetAll"
-	ConfigDiffService_Subscribe_FullMethodName     = "/arista.configstatus.v1.ConfigDiffService/Subscribe"
-	ConfigDiffService_GetMeta_FullMethodName       = "/arista.configstatus.v1.ConfigDiffService/GetMeta"
-	ConfigDiffService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.ConfigDiffService/SubscribeMeta"
+	ConfigDiffService_GetOne_FullMethodName           = "/arista.configstatus.v1.ConfigDiffService/GetOne"
+	ConfigDiffService_GetSome_FullMethodName          = "/arista.configstatus.v1.ConfigDiffService/GetSome"
+	ConfigDiffService_GetAll_FullMethodName           = "/arista.configstatus.v1.ConfigDiffService/GetAll"
+	ConfigDiffService_Subscribe_FullMethodName        = "/arista.configstatus.v1.ConfigDiffService/Subscribe"
+	ConfigDiffService_GetMeta_FullMethodName          = "/arista.configstatus.v1.ConfigDiffService/GetMeta"
+	ConfigDiffService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.ConfigDiffService/SubscribeMeta"
+	ConfigDiffService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.ConfigDiffService/GetAllBatched"
+	ConfigDiffService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.ConfigDiffService/SubscribeBatched"
 )
 
 // ConfigDiffServiceClient is the client API for ConfigDiffService service.
@@ -45,6 +47,8 @@ type ConfigDiffServiceClient interface {
 	Subscribe(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ConfigDiffStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigDiffBatchedStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigDiffBatchedStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeBatchedClient, error)
 }
 
 type configDiffServiceClient struct {
@@ -201,6 +205,70 @@ func (x *configDiffServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *configDiffServiceClient) GetAllBatched(ctx context.Context, in *ConfigDiffBatchedStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[4], ConfigDiffService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configDiffServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigDiffService_GetAllBatchedClient interface {
+	Recv() (*ConfigDiffBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configDiffServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configDiffServiceGetAllBatchedClient) Recv() (*ConfigDiffBatchedStreamResponse, error) {
+	m := new(ConfigDiffBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configDiffServiceClient) SubscribeBatched(ctx context.Context, in *ConfigDiffBatchedStreamRequest, opts ...grpc.CallOption) (ConfigDiffService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigDiffService_ServiceDesc.Streams[5], ConfigDiffService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configDiffServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigDiffService_SubscribeBatchedClient interface {
+	Recv() (*ConfigDiffBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configDiffServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configDiffServiceSubscribeBatchedClient) Recv() (*ConfigDiffBatchedStreamResponse, error) {
+	m := new(ConfigDiffBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigDiffServiceServer is the server API for ConfigDiffService service.
 // All implementations must embed UnimplementedConfigDiffServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type ConfigDiffServiceServer interface {
 	Subscribe(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeServer) error
 	GetMeta(context.Context, *ConfigDiffStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeMetaServer) error
+	GetAllBatched(*ConfigDiffBatchedStreamRequest, ConfigDiffService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigDiffBatchedStreamRequest, ConfigDiffService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigDiffServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedConfigDiffServiceServer) GetMeta(context.Context, *ConfigDiff
 }
 func (UnimplementedConfigDiffServiceServer) SubscribeMeta(*ConfigDiffStreamRequest, ConfigDiffService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedConfigDiffServiceServer) GetAllBatched(*ConfigDiffBatchedStreamRequest, ConfigDiffService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigDiffServiceServer) SubscribeBatched(*ConfigDiffBatchedStreamRequest, ConfigDiffService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigDiffServiceServer) mustEmbedUnimplementedConfigDiffServiceServer() {}
 
@@ -369,6 +445,48 @@ func (x *configDiffServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigDiffService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigDiffBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigDiffServiceServer).GetAllBatched(m, &configDiffServiceGetAllBatchedServer{stream})
+}
+
+type ConfigDiffService_GetAllBatchedServer interface {
+	Send(*ConfigDiffBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configDiffServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configDiffServiceGetAllBatchedServer) Send(m *ConfigDiffBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigDiffService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigDiffBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigDiffServiceServer).SubscribeBatched(m, &configDiffServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigDiffService_SubscribeBatchedServer interface {
+	Send(*ConfigDiffBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configDiffServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configDiffServiceSubscribeBatchedServer) Send(m *ConfigDiffBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigDiffService_ServiceDesc is the grpc.ServiceDesc for ConfigDiffService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -406,17 +524,29 @@ var ConfigDiffService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ConfigDiffService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigDiffService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigDiffService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
 const (
-	ConfigurationService_GetOne_FullMethodName        = "/arista.configstatus.v1.ConfigurationService/GetOne"
-	ConfigurationService_GetSome_FullMethodName       = "/arista.configstatus.v1.ConfigurationService/GetSome"
-	ConfigurationService_GetAll_FullMethodName        = "/arista.configstatus.v1.ConfigurationService/GetAll"
-	ConfigurationService_Subscribe_FullMethodName     = "/arista.configstatus.v1.ConfigurationService/Subscribe"
-	ConfigurationService_GetMeta_FullMethodName       = "/arista.configstatus.v1.ConfigurationService/GetMeta"
-	ConfigurationService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.ConfigurationService/SubscribeMeta"
+	ConfigurationService_GetOne_FullMethodName           = "/arista.configstatus.v1.ConfigurationService/GetOne"
+	ConfigurationService_GetSome_FullMethodName          = "/arista.configstatus.v1.ConfigurationService/GetSome"
+	ConfigurationService_GetAll_FullMethodName           = "/arista.configstatus.v1.ConfigurationService/GetAll"
+	ConfigurationService_Subscribe_FullMethodName        = "/arista.configstatus.v1.ConfigurationService/Subscribe"
+	ConfigurationService_GetMeta_FullMethodName          = "/arista.configstatus.v1.ConfigurationService/GetMeta"
+	ConfigurationService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.ConfigurationService/SubscribeMeta"
+	ConfigurationService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.ConfigurationService/GetAllBatched"
+	ConfigurationService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.ConfigurationService/SubscribeBatched"
 )
 
 // ConfigurationServiceClient is the client API for ConfigurationService service.
@@ -429,6 +559,8 @@ type ConfigurationServiceClient interface {
 	Subscribe(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ConfigurationStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (ConfigurationService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeBatchedClient, error)
 }
 
 type configurationServiceClient struct {
@@ -585,6 +717,70 @@ func (x *configurationServiceSubscribeMetaClient) Recv() (*MetaResponse, error) 
 	return m, nil
 }
 
+func (c *configurationServiceClient) GetAllBatched(ctx context.Context, in *ConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (ConfigurationService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[4], ConfigurationService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configurationServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigurationService_GetAllBatchedClient interface {
+	Recv() (*ConfigurationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configurationServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configurationServiceGetAllBatchedClient) Recv() (*ConfigurationBatchedStreamResponse, error) {
+	m := new(ConfigurationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configurationServiceClient) SubscribeBatched(ctx context.Context, in *ConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (ConfigurationService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigurationService_ServiceDesc.Streams[5], ConfigurationService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configurationServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigurationService_SubscribeBatchedClient interface {
+	Recv() (*ConfigurationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configurationServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configurationServiceSubscribeBatchedClient) Recv() (*ConfigurationBatchedStreamResponse, error) {
+	m := new(ConfigurationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigurationServiceServer is the server API for ConfigurationService service.
 // All implementations must embed UnimplementedConfigurationServiceServer
 // for forward compatibility
@@ -595,6 +791,8 @@ type ConfigurationServiceServer interface {
 	Subscribe(*ConfigurationStreamRequest, ConfigurationService_SubscribeServer) error
 	GetMeta(context.Context, *ConfigurationStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ConfigurationStreamRequest, ConfigurationService_SubscribeMetaServer) error
+	GetAllBatched(*ConfigurationBatchedStreamRequest, ConfigurationService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigurationBatchedStreamRequest, ConfigurationService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigurationServiceServer()
 }
 
@@ -619,6 +817,12 @@ func (UnimplementedConfigurationServiceServer) GetMeta(context.Context, *Configu
 }
 func (UnimplementedConfigurationServiceServer) SubscribeMeta(*ConfigurationStreamRequest, ConfigurationService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedConfigurationServiceServer) GetAllBatched(*ConfigurationBatchedStreamRequest, ConfigurationService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigurationServiceServer) SubscribeBatched(*ConfigurationBatchedStreamRequest, ConfigurationService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigurationServiceServer) mustEmbedUnimplementedConfigurationServiceServer() {}
 
@@ -753,6 +957,48 @@ func (x *configurationServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigurationService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigurationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigurationServiceServer).GetAllBatched(m, &configurationServiceGetAllBatchedServer{stream})
+}
+
+type ConfigurationService_GetAllBatchedServer interface {
+	Send(*ConfigurationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configurationServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configurationServiceGetAllBatchedServer) Send(m *ConfigurationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigurationService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigurationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigurationServiceServer).SubscribeBatched(m, &configurationServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigurationService_SubscribeBatchedServer interface {
+	Send(*ConfigurationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configurationServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configurationServiceSubscribeBatchedServer) Send(m *ConfigurationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigurationService_ServiceDesc is the grpc.ServiceDesc for ConfigurationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -790,17 +1036,29 @@ var ConfigurationService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ConfigurationService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigurationService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigurationService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
 const (
-	SecurityProfileService_GetOne_FullMethodName        = "/arista.configstatus.v1.SecurityProfileService/GetOne"
-	SecurityProfileService_GetSome_FullMethodName       = "/arista.configstatus.v1.SecurityProfileService/GetSome"
-	SecurityProfileService_GetAll_FullMethodName        = "/arista.configstatus.v1.SecurityProfileService/GetAll"
-	SecurityProfileService_Subscribe_FullMethodName     = "/arista.configstatus.v1.SecurityProfileService/Subscribe"
-	SecurityProfileService_GetMeta_FullMethodName       = "/arista.configstatus.v1.SecurityProfileService/GetMeta"
-	SecurityProfileService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.SecurityProfileService/SubscribeMeta"
+	SecurityProfileService_GetOne_FullMethodName           = "/arista.configstatus.v1.SecurityProfileService/GetOne"
+	SecurityProfileService_GetSome_FullMethodName          = "/arista.configstatus.v1.SecurityProfileService/GetSome"
+	SecurityProfileService_GetAll_FullMethodName           = "/arista.configstatus.v1.SecurityProfileService/GetAll"
+	SecurityProfileService_Subscribe_FullMethodName        = "/arista.configstatus.v1.SecurityProfileService/Subscribe"
+	SecurityProfileService_GetMeta_FullMethodName          = "/arista.configstatus.v1.SecurityProfileService/GetMeta"
+	SecurityProfileService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.SecurityProfileService/SubscribeMeta"
+	SecurityProfileService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.SecurityProfileService/GetAllBatched"
+	SecurityProfileService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.SecurityProfileService/SubscribeBatched"
 )
 
 // SecurityProfileServiceClient is the client API for SecurityProfileService service.
@@ -813,6 +1071,8 @@ type SecurityProfileServiceClient interface {
 	Subscribe(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *SecurityProfileStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SecurityProfileBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SecurityProfileBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeBatchedClient, error)
 }
 
 type securityProfileServiceClient struct {
@@ -969,6 +1229,70 @@ func (x *securityProfileServiceSubscribeMetaClient) Recv() (*MetaResponse, error
 	return m, nil
 }
 
+func (c *securityProfileServiceClient) GetAllBatched(ctx context.Context, in *SecurityProfileBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[4], SecurityProfileService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_GetAllBatchedClient interface {
+	Recv() (*SecurityProfileBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceGetAllBatchedClient) Recv() (*SecurityProfileBatchedStreamResponse, error) {
+	m := new(SecurityProfileBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileServiceClient) SubscribeBatched(ctx context.Context, in *SecurityProfileBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileService_ServiceDesc.Streams[5], SecurityProfileService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileService_SubscribeBatchedClient interface {
+	Recv() (*SecurityProfileBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileServiceSubscribeBatchedClient) Recv() (*SecurityProfileBatchedStreamResponse, error) {
+	m := new(SecurityProfileBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileServiceServer is the server API for SecurityProfileService service.
 // All implementations must embed UnimplementedSecurityProfileServiceServer
 // for forward compatibility
@@ -979,6 +1303,8 @@ type SecurityProfileServiceServer interface {
 	Subscribe(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeServer) error
 	GetMeta(context.Context, *SecurityProfileStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeMetaServer) error
+	GetAllBatched(*SecurityProfileBatchedStreamRequest, SecurityProfileService_GetAllBatchedServer) error
+	SubscribeBatched(*SecurityProfileBatchedStreamRequest, SecurityProfileService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSecurityProfileServiceServer()
 }
 
@@ -1003,6 +1329,12 @@ func (UnimplementedSecurityProfileServiceServer) GetMeta(context.Context, *Secur
 }
 func (UnimplementedSecurityProfileServiceServer) SubscribeMeta(*SecurityProfileStreamRequest, SecurityProfileService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) GetAllBatched(*SecurityProfileBatchedStreamRequest, SecurityProfileService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSecurityProfileServiceServer) SubscribeBatched(*SecurityProfileBatchedStreamRequest, SecurityProfileService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSecurityProfileServiceServer) mustEmbedUnimplementedSecurityProfileServiceServer() {
 }
@@ -1138,6 +1470,48 @@ func (x *securityProfileServiceSubscribeMetaServer) Send(m *MetaResponse) error 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).GetAllBatched(m, &securityProfileServiceGetAllBatchedServer{stream})
+}
+
+type SecurityProfileService_GetAllBatchedServer interface {
+	Send(*SecurityProfileBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceGetAllBatchedServer) Send(m *SecurityProfileBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileServiceServer).SubscribeBatched(m, &securityProfileServiceSubscribeBatchedServer{stream})
+}
+
+type SecurityProfileService_SubscribeBatchedServer interface {
+	Send(*SecurityProfileBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileServiceSubscribeBatchedServer) Send(m *SecurityProfileBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1175,17 +1549,29 @@ var SecurityProfileService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _SecurityProfileService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SecurityProfileService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SecurityProfileService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
 const (
-	SecurityProfileDiffService_GetOne_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffService/GetOne"
-	SecurityProfileDiffService_GetSome_FullMethodName       = "/arista.configstatus.v1.SecurityProfileDiffService/GetSome"
-	SecurityProfileDiffService_GetAll_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffService/GetAll"
-	SecurityProfileDiffService_Subscribe_FullMethodName     = "/arista.configstatus.v1.SecurityProfileDiffService/Subscribe"
-	SecurityProfileDiffService_GetMeta_FullMethodName       = "/arista.configstatus.v1.SecurityProfileDiffService/GetMeta"
-	SecurityProfileDiffService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.SecurityProfileDiffService/SubscribeMeta"
+	SecurityProfileDiffService_GetOne_FullMethodName           = "/arista.configstatus.v1.SecurityProfileDiffService/GetOne"
+	SecurityProfileDiffService_GetSome_FullMethodName          = "/arista.configstatus.v1.SecurityProfileDiffService/GetSome"
+	SecurityProfileDiffService_GetAll_FullMethodName           = "/arista.configstatus.v1.SecurityProfileDiffService/GetAll"
+	SecurityProfileDiffService_Subscribe_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffService/Subscribe"
+	SecurityProfileDiffService_GetMeta_FullMethodName          = "/arista.configstatus.v1.SecurityProfileDiffService/GetMeta"
+	SecurityProfileDiffService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.SecurityProfileDiffService/SubscribeMeta"
+	SecurityProfileDiffService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.SecurityProfileDiffService/GetAllBatched"
+	SecurityProfileDiffService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.SecurityProfileDiffService/SubscribeBatched"
 )
 
 // SecurityProfileDiffServiceClient is the client API for SecurityProfileDiffService service.
@@ -1198,6 +1584,8 @@ type SecurityProfileDiffServiceClient interface {
 	Subscribe(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *SecurityProfileDiffStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SecurityProfileDiffBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SecurityProfileDiffBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeBatchedClient, error)
 }
 
 type securityProfileDiffServiceClient struct {
@@ -1354,6 +1742,70 @@ func (x *securityProfileDiffServiceSubscribeMetaClient) Recv() (*MetaResponse, e
 	return m, nil
 }
 
+func (c *securityProfileDiffServiceClient) GetAllBatched(ctx context.Context, in *SecurityProfileDiffBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[4], SecurityProfileDiffService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_GetAllBatchedClient interface {
+	Recv() (*SecurityProfileDiffBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceGetAllBatchedClient) Recv() (*SecurityProfileDiffBatchedStreamResponse, error) {
+	m := new(SecurityProfileDiffBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileDiffServiceClient) SubscribeBatched(ctx context.Context, in *SecurityProfileDiffBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffService_ServiceDesc.Streams[5], SecurityProfileDiffService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffService_SubscribeBatchedClient interface {
+	Recv() (*SecurityProfileDiffBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffServiceSubscribeBatchedClient) Recv() (*SecurityProfileDiffBatchedStreamResponse, error) {
+	m := new(SecurityProfileDiffBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileDiffServiceServer is the server API for SecurityProfileDiffService service.
 // All implementations must embed UnimplementedSecurityProfileDiffServiceServer
 // for forward compatibility
@@ -1364,6 +1816,8 @@ type SecurityProfileDiffServiceServer interface {
 	Subscribe(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeServer) error
 	GetMeta(context.Context, *SecurityProfileDiffStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeMetaServer) error
+	GetAllBatched(*SecurityProfileDiffBatchedStreamRequest, SecurityProfileDiffService_GetAllBatchedServer) error
+	SubscribeBatched(*SecurityProfileDiffBatchedStreamRequest, SecurityProfileDiffService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSecurityProfileDiffServiceServer()
 }
 
@@ -1388,6 +1842,12 @@ func (UnimplementedSecurityProfileDiffServiceServer) GetMeta(context.Context, *S
 }
 func (UnimplementedSecurityProfileDiffServiceServer) SubscribeMeta(*SecurityProfileDiffStreamRequest, SecurityProfileDiffService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) GetAllBatched(*SecurityProfileDiffBatchedStreamRequest, SecurityProfileDiffService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSecurityProfileDiffServiceServer) SubscribeBatched(*SecurityProfileDiffBatchedStreamRequest, SecurityProfileDiffService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSecurityProfileDiffServiceServer) mustEmbedUnimplementedSecurityProfileDiffServiceServer() {
 }
@@ -1523,6 +1983,48 @@ func (x *securityProfileDiffServiceSubscribeMetaServer) Send(m *MetaResponse) er
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileDiffService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).GetAllBatched(m, &securityProfileDiffServiceGetAllBatchedServer{stream})
+}
+
+type SecurityProfileDiffService_GetAllBatchedServer interface {
+	Send(*SecurityProfileDiffBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceGetAllBatchedServer) Send(m *SecurityProfileDiffBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileDiffService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffServiceServer).SubscribeBatched(m, &securityProfileDiffServiceSubscribeBatchedServer{stream})
+}
+
+type SecurityProfileDiffService_SubscribeBatchedServer interface {
+	Send(*SecurityProfileDiffBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffServiceSubscribeBatchedServer) Send(m *SecurityProfileDiffBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileDiffService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1560,17 +2062,29 @@ var SecurityProfileDiffService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _SecurityProfileDiffService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SecurityProfileDiffService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SecurityProfileDiffService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
 const (
-	SecurityProfileDiffSummaryService_GetOne_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetOne"
-	SecurityProfileDiffSummaryService_GetSome_FullMethodName       = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetSome"
-	SecurityProfileDiffSummaryService_GetAll_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAll"
-	SecurityProfileDiffSummaryService_Subscribe_FullMethodName     = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/Subscribe"
-	SecurityProfileDiffSummaryService_GetMeta_FullMethodName       = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetMeta"
-	SecurityProfileDiffSummaryService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/SubscribeMeta"
+	SecurityProfileDiffSummaryService_GetOne_FullMethodName           = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetOne"
+	SecurityProfileDiffSummaryService_GetSome_FullMethodName          = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetSome"
+	SecurityProfileDiffSummaryService_GetAll_FullMethodName           = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAll"
+	SecurityProfileDiffSummaryService_Subscribe_FullMethodName        = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/Subscribe"
+	SecurityProfileDiffSummaryService_GetMeta_FullMethodName          = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetMeta"
+	SecurityProfileDiffSummaryService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/SubscribeMeta"
+	SecurityProfileDiffSummaryService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/GetAllBatched"
+	SecurityProfileDiffSummaryService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.SecurityProfileDiffSummaryService/SubscribeBatched"
 )
 
 // SecurityProfileDiffSummaryServiceClient is the client API for SecurityProfileDiffSummaryService service.
@@ -1583,6 +2097,8 @@ type SecurityProfileDiffSummaryServiceClient interface {
 	Subscribe(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *SecurityProfileDiffSummaryStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SecurityProfileDiffSummaryBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SecurityProfileDiffSummaryBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeBatchedClient, error)
 }
 
 type securityProfileDiffSummaryServiceClient struct {
@@ -1739,6 +2255,70 @@ func (x *securityProfileDiffSummaryServiceSubscribeMetaClient) Recv() (*MetaResp
 	return m, nil
 }
 
+func (c *securityProfileDiffSummaryServiceClient) GetAllBatched(ctx context.Context, in *SecurityProfileDiffSummaryBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[4], SecurityProfileDiffSummaryService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_GetAllBatchedClient interface {
+	Recv() (*SecurityProfileDiffSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetAllBatchedClient) Recv() (*SecurityProfileDiffSummaryBatchedStreamResponse, error) {
+	m := new(SecurityProfileDiffSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *securityProfileDiffSummaryServiceClient) SubscribeBatched(ctx context.Context, in *SecurityProfileDiffSummaryBatchedStreamRequest, opts ...grpc.CallOption) (SecurityProfileDiffSummaryService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecurityProfileDiffSummaryService_ServiceDesc.Streams[5], SecurityProfileDiffSummaryService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &securityProfileDiffSummaryServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecurityProfileDiffSummaryService_SubscribeBatchedClient interface {
+	Recv() (*SecurityProfileDiffSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeBatchedClient) Recv() (*SecurityProfileDiffSummaryBatchedStreamResponse, error) {
+	m := new(SecurityProfileDiffSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecurityProfileDiffSummaryServiceServer is the server API for SecurityProfileDiffSummaryService service.
 // All implementations must embed UnimplementedSecurityProfileDiffSummaryServiceServer
 // for forward compatibility
@@ -1749,6 +2329,8 @@ type SecurityProfileDiffSummaryServiceServer interface {
 	Subscribe(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeServer) error
 	GetMeta(context.Context, *SecurityProfileDiffSummaryStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeMetaServer) error
+	GetAllBatched(*SecurityProfileDiffSummaryBatchedStreamRequest, SecurityProfileDiffSummaryService_GetAllBatchedServer) error
+	SubscribeBatched(*SecurityProfileDiffSummaryBatchedStreamRequest, SecurityProfileDiffSummaryService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer()
 }
 
@@ -1773,6 +2355,12 @@ func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetMeta(context.Cont
 }
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) SubscribeMeta(*SecurityProfileDiffSummaryStreamRequest, SecurityProfileDiffSummaryService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) GetAllBatched(*SecurityProfileDiffSummaryBatchedStreamRequest, SecurityProfileDiffSummaryService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSecurityProfileDiffSummaryServiceServer) SubscribeBatched(*SecurityProfileDiffSummaryBatchedStreamRequest, SecurityProfileDiffSummaryService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSecurityProfileDiffSummaryServiceServer) mustEmbedUnimplementedSecurityProfileDiffSummaryServiceServer() {
 }
@@ -1908,6 +2496,48 @@ func (x *securityProfileDiffSummaryServiceSubscribeMetaServer) Send(m *MetaRespo
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecurityProfileDiffSummaryService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).GetAllBatched(m, &securityProfileDiffSummaryServiceGetAllBatchedServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_GetAllBatchedServer interface {
+	Send(*SecurityProfileDiffSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceGetAllBatchedServer) Send(m *SecurityProfileDiffSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecurityProfileDiffSummaryService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecurityProfileDiffSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecurityProfileDiffSummaryServiceServer).SubscribeBatched(m, &securityProfileDiffSummaryServiceSubscribeBatchedServer{stream})
+}
+
+type SecurityProfileDiffSummaryService_SubscribeBatchedServer interface {
+	Send(*SecurityProfileDiffSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type securityProfileDiffSummaryServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *securityProfileDiffSummaryServiceSubscribeBatchedServer) Send(m *SecurityProfileDiffSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecurityProfileDiffSummaryService_ServiceDesc is the grpc.ServiceDesc for SecurityProfileDiffSummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1945,17 +2575,29 @@ var SecurityProfileDiffSummaryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _SecurityProfileDiffSummaryService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SecurityProfileDiffSummaryService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SecurityProfileDiffSummaryService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configstatus.v1/services.gen.proto",
 }
 
 const (
-	SummaryService_GetOne_FullMethodName        = "/arista.configstatus.v1.SummaryService/GetOne"
-	SummaryService_GetSome_FullMethodName       = "/arista.configstatus.v1.SummaryService/GetSome"
-	SummaryService_GetAll_FullMethodName        = "/arista.configstatus.v1.SummaryService/GetAll"
-	SummaryService_Subscribe_FullMethodName     = "/arista.configstatus.v1.SummaryService/Subscribe"
-	SummaryService_GetMeta_FullMethodName       = "/arista.configstatus.v1.SummaryService/GetMeta"
-	SummaryService_SubscribeMeta_FullMethodName = "/arista.configstatus.v1.SummaryService/SubscribeMeta"
+	SummaryService_GetOne_FullMethodName           = "/arista.configstatus.v1.SummaryService/GetOne"
+	SummaryService_GetSome_FullMethodName          = "/arista.configstatus.v1.SummaryService/GetSome"
+	SummaryService_GetAll_FullMethodName           = "/arista.configstatus.v1.SummaryService/GetAll"
+	SummaryService_Subscribe_FullMethodName        = "/arista.configstatus.v1.SummaryService/Subscribe"
+	SummaryService_GetMeta_FullMethodName          = "/arista.configstatus.v1.SummaryService/GetMeta"
+	SummaryService_SubscribeMeta_FullMethodName    = "/arista.configstatus.v1.SummaryService/SubscribeMeta"
+	SummaryService_GetAllBatched_FullMethodName    = "/arista.configstatus.v1.SummaryService/GetAllBatched"
+	SummaryService_SubscribeBatched_FullMethodName = "/arista.configstatus.v1.SummaryService/SubscribeBatched"
 )
 
 // SummaryServiceClient is the client API for SummaryService service.
@@ -1968,6 +2610,8 @@ type SummaryServiceClient interface {
 	Subscribe(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *SummaryStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeBatchedClient, error)
 }
 
 type summaryServiceClient struct {
@@ -2124,6 +2768,70 @@ func (x *summaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *summaryServiceClient) GetAllBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[4], SummaryService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_GetAllBatchedClient interface {
+	Recv() (*SummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceGetAllBatchedClient) Recv() (*SummaryBatchedStreamResponse, error) {
+	m := new(SummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *summaryServiceClient) SubscribeBatched(ctx context.Context, in *SummaryBatchedStreamRequest, opts ...grpc.CallOption) (SummaryService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SummaryService_ServiceDesc.Streams[5], SummaryService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &summaryServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SummaryService_SubscribeBatchedClient interface {
+	Recv() (*SummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type summaryServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *summaryServiceSubscribeBatchedClient) Recv() (*SummaryBatchedStreamResponse, error) {
+	m := new(SummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SummaryServiceServer is the server API for SummaryService service.
 // All implementations must embed UnimplementedSummaryServiceServer
 // for forward compatibility
@@ -2134,6 +2842,8 @@ type SummaryServiceServer interface {
 	Subscribe(*SummaryStreamRequest, SummaryService_SubscribeServer) error
 	GetMeta(context.Context, *SummaryStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error
+	GetAllBatched(*SummaryBatchedStreamRequest, SummaryService_GetAllBatchedServer) error
+	SubscribeBatched(*SummaryBatchedStreamRequest, SummaryService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSummaryServiceServer()
 }
 
@@ -2158,6 +2868,12 @@ func (UnimplementedSummaryServiceServer) GetMeta(context.Context, *SummaryStream
 }
 func (UnimplementedSummaryServiceServer) SubscribeMeta(*SummaryStreamRequest, SummaryService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSummaryServiceServer) GetAllBatched(*SummaryBatchedStreamRequest, SummaryService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSummaryServiceServer) SubscribeBatched(*SummaryBatchedStreamRequest, SummaryService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSummaryServiceServer) mustEmbedUnimplementedSummaryServiceServer() {}
 
@@ -2292,6 +3008,48 @@ func (x *summaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SummaryService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).GetAllBatched(m, &summaryServiceGetAllBatchedServer{stream})
+}
+
+type SummaryService_GetAllBatchedServer interface {
+	Send(*SummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceGetAllBatchedServer) Send(m *SummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SummaryService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SummaryServiceServer).SubscribeBatched(m, &summaryServiceSubscribeBatchedServer{stream})
+}
+
+type SummaryService_SubscribeBatchedServer interface {
+	Send(*SummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type summaryServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *summaryServiceSubscribeBatchedServer) Send(m *SummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SummaryService_ServiceDesc is the grpc.ServiceDesc for SummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2327,6 +3085,16 @@ var SummaryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _SummaryService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SummaryService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SummaryService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

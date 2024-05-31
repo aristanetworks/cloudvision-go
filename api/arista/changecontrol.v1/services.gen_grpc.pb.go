@@ -27,17 +27,19 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ApproveConfigService_GetOne_FullMethodName        = "/arista.changecontrol.v1.ApproveConfigService/GetOne"
-	ApproveConfigService_GetSome_FullMethodName       = "/arista.changecontrol.v1.ApproveConfigService/GetSome"
-	ApproveConfigService_GetAll_FullMethodName        = "/arista.changecontrol.v1.ApproveConfigService/GetAll"
-	ApproveConfigService_Subscribe_FullMethodName     = "/arista.changecontrol.v1.ApproveConfigService/Subscribe"
-	ApproveConfigService_GetMeta_FullMethodName       = "/arista.changecontrol.v1.ApproveConfigService/GetMeta"
-	ApproveConfigService_SubscribeMeta_FullMethodName = "/arista.changecontrol.v1.ApproveConfigService/SubscribeMeta"
-	ApproveConfigService_Set_FullMethodName           = "/arista.changecontrol.v1.ApproveConfigService/Set"
-	ApproveConfigService_SetSome_FullMethodName       = "/arista.changecontrol.v1.ApproveConfigService/SetSome"
-	ApproveConfigService_Delete_FullMethodName        = "/arista.changecontrol.v1.ApproveConfigService/Delete"
-	ApproveConfigService_DeleteSome_FullMethodName    = "/arista.changecontrol.v1.ApproveConfigService/DeleteSome"
-	ApproveConfigService_DeleteAll_FullMethodName     = "/arista.changecontrol.v1.ApproveConfigService/DeleteAll"
+	ApproveConfigService_GetOne_FullMethodName           = "/arista.changecontrol.v1.ApproveConfigService/GetOne"
+	ApproveConfigService_GetSome_FullMethodName          = "/arista.changecontrol.v1.ApproveConfigService/GetSome"
+	ApproveConfigService_GetAll_FullMethodName           = "/arista.changecontrol.v1.ApproveConfigService/GetAll"
+	ApproveConfigService_Subscribe_FullMethodName        = "/arista.changecontrol.v1.ApproveConfigService/Subscribe"
+	ApproveConfigService_GetMeta_FullMethodName          = "/arista.changecontrol.v1.ApproveConfigService/GetMeta"
+	ApproveConfigService_SubscribeMeta_FullMethodName    = "/arista.changecontrol.v1.ApproveConfigService/SubscribeMeta"
+	ApproveConfigService_Set_FullMethodName              = "/arista.changecontrol.v1.ApproveConfigService/Set"
+	ApproveConfigService_SetSome_FullMethodName          = "/arista.changecontrol.v1.ApproveConfigService/SetSome"
+	ApproveConfigService_Delete_FullMethodName           = "/arista.changecontrol.v1.ApproveConfigService/Delete"
+	ApproveConfigService_DeleteSome_FullMethodName       = "/arista.changecontrol.v1.ApproveConfigService/DeleteSome"
+	ApproveConfigService_DeleteAll_FullMethodName        = "/arista.changecontrol.v1.ApproveConfigService/DeleteAll"
+	ApproveConfigService_GetAllBatched_FullMethodName    = "/arista.changecontrol.v1.ApproveConfigService/GetAllBatched"
+	ApproveConfigService_SubscribeBatched_FullMethodName = "/arista.changecontrol.v1.ApproveConfigService/SubscribeBatched"
 )
 
 // ApproveConfigServiceClient is the client API for ApproveConfigService service.
@@ -55,6 +57,8 @@ type ApproveConfigServiceClient interface {
 	Delete(ctx context.Context, in *ApproveConfigDeleteRequest, opts ...grpc.CallOption) (*ApproveConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *ApproveConfigDeleteSomeRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *ApproveConfigDeleteAllRequest, opts ...grpc.CallOption) (ApproveConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *ApproveConfigBatchedStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ApproveConfigBatchedStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeBatchedClient, error)
 }
 
 type approveConfigServiceClient struct {
@@ -325,6 +329,70 @@ func (x *approveConfigServiceDeleteAllClient) Recv() (*ApproveConfigDeleteAllRes
 	return m, nil
 }
 
+func (c *approveConfigServiceClient) GetAllBatched(ctx context.Context, in *ApproveConfigBatchedStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[7], ApproveConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_GetAllBatchedClient interface {
+	Recv() (*ApproveConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceGetAllBatchedClient) Recv() (*ApproveConfigBatchedStreamResponse, error) {
+	m := new(ApproveConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *approveConfigServiceClient) SubscribeBatched(ctx context.Context, in *ApproveConfigBatchedStreamRequest, opts ...grpc.CallOption) (ApproveConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ApproveConfigService_ServiceDesc.Streams[8], ApproveConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &approveConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApproveConfigService_SubscribeBatchedClient interface {
+	Recv() (*ApproveConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type approveConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *approveConfigServiceSubscribeBatchedClient) Recv() (*ApproveConfigBatchedStreamResponse, error) {
+	m := new(ApproveConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ApproveConfigServiceServer is the server API for ApproveConfigService service.
 // All implementations must embed UnimplementedApproveConfigServiceServer
 // for forward compatibility
@@ -340,6 +408,8 @@ type ApproveConfigServiceServer interface {
 	Delete(context.Context, *ApproveConfigDeleteRequest) (*ApproveConfigDeleteResponse, error)
 	DeleteSome(*ApproveConfigDeleteSomeRequest, ApproveConfigService_DeleteSomeServer) error
 	DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error
+	GetAllBatched(*ApproveConfigBatchedStreamRequest, ApproveConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*ApproveConfigBatchedStreamRequest, ApproveConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedApproveConfigServiceServer()
 }
 
@@ -379,6 +449,12 @@ func (UnimplementedApproveConfigServiceServer) DeleteSome(*ApproveConfigDeleteSo
 }
 func (UnimplementedApproveConfigServiceServer) DeleteAll(*ApproveConfigDeleteAllRequest, ApproveConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) GetAllBatched(*ApproveConfigBatchedStreamRequest, ApproveConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedApproveConfigServiceServer) SubscribeBatched(*ApproveConfigBatchedStreamRequest, ApproveConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedApproveConfigServiceServer) mustEmbedUnimplementedApproveConfigServiceServer() {}
 
@@ -612,6 +688,48 @@ func (x *approveConfigServiceDeleteAllServer) Send(m *ApproveConfigDeleteAllResp
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ApproveConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).GetAllBatched(m, &approveConfigServiceGetAllBatchedServer{stream})
+}
+
+type ApproveConfigService_GetAllBatchedServer interface {
+	Send(*ApproveConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceGetAllBatchedServer) Send(m *ApproveConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ApproveConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ApproveConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApproveConfigServiceServer).SubscribeBatched(m, &approveConfigServiceSubscribeBatchedServer{stream})
+}
+
+type ApproveConfigService_SubscribeBatchedServer interface {
+	Send(*ApproveConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type approveConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *approveConfigServiceSubscribeBatchedServer) Send(m *ApproveConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ApproveConfigService_ServiceDesc is the grpc.ServiceDesc for ApproveConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -672,17 +790,29 @@ var ApproveConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ApproveConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ApproveConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ApproveConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/changecontrol.v1/services.gen.proto",
 }
 
 const (
-	ChangeControlService_GetOne_FullMethodName        = "/arista.changecontrol.v1.ChangeControlService/GetOne"
-	ChangeControlService_GetSome_FullMethodName       = "/arista.changecontrol.v1.ChangeControlService/GetSome"
-	ChangeControlService_GetAll_FullMethodName        = "/arista.changecontrol.v1.ChangeControlService/GetAll"
-	ChangeControlService_Subscribe_FullMethodName     = "/arista.changecontrol.v1.ChangeControlService/Subscribe"
-	ChangeControlService_GetMeta_FullMethodName       = "/arista.changecontrol.v1.ChangeControlService/GetMeta"
-	ChangeControlService_SubscribeMeta_FullMethodName = "/arista.changecontrol.v1.ChangeControlService/SubscribeMeta"
+	ChangeControlService_GetOne_FullMethodName           = "/arista.changecontrol.v1.ChangeControlService/GetOne"
+	ChangeControlService_GetSome_FullMethodName          = "/arista.changecontrol.v1.ChangeControlService/GetSome"
+	ChangeControlService_GetAll_FullMethodName           = "/arista.changecontrol.v1.ChangeControlService/GetAll"
+	ChangeControlService_Subscribe_FullMethodName        = "/arista.changecontrol.v1.ChangeControlService/Subscribe"
+	ChangeControlService_GetMeta_FullMethodName          = "/arista.changecontrol.v1.ChangeControlService/GetMeta"
+	ChangeControlService_SubscribeMeta_FullMethodName    = "/arista.changecontrol.v1.ChangeControlService/SubscribeMeta"
+	ChangeControlService_GetAllBatched_FullMethodName    = "/arista.changecontrol.v1.ChangeControlService/GetAllBatched"
+	ChangeControlService_SubscribeBatched_FullMethodName = "/arista.changecontrol.v1.ChangeControlService/SubscribeBatched"
 )
 
 // ChangeControlServiceClient is the client API for ChangeControlService service.
@@ -695,6 +825,8 @@ type ChangeControlServiceClient interface {
 	Subscribe(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ChangeControlStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ChangeControlBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ChangeControlBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeBatchedClient, error)
 }
 
 type changeControlServiceClient struct {
@@ -851,6 +983,70 @@ func (x *changeControlServiceSubscribeMetaClient) Recv() (*MetaResponse, error) 
 	return m, nil
 }
 
+func (c *changeControlServiceClient) GetAllBatched(ctx context.Context, in *ChangeControlBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[4], ChangeControlService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlService_GetAllBatchedClient interface {
+	Recv() (*ChangeControlBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlServiceGetAllBatchedClient) Recv() (*ChangeControlBatchedStreamResponse, error) {
+	m := new(ChangeControlBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlServiceClient) SubscribeBatched(ctx context.Context, in *ChangeControlBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlService_ServiceDesc.Streams[5], ChangeControlService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlService_SubscribeBatchedClient interface {
+	Recv() (*ChangeControlBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlServiceSubscribeBatchedClient) Recv() (*ChangeControlBatchedStreamResponse, error) {
+	m := new(ChangeControlBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChangeControlServiceServer is the server API for ChangeControlService service.
 // All implementations must embed UnimplementedChangeControlServiceServer
 // for forward compatibility
@@ -861,6 +1057,8 @@ type ChangeControlServiceServer interface {
 	Subscribe(*ChangeControlStreamRequest, ChangeControlService_SubscribeServer) error
 	GetMeta(context.Context, *ChangeControlStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ChangeControlStreamRequest, ChangeControlService_SubscribeMetaServer) error
+	GetAllBatched(*ChangeControlBatchedStreamRequest, ChangeControlService_GetAllBatchedServer) error
+	SubscribeBatched(*ChangeControlBatchedStreamRequest, ChangeControlService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedChangeControlServiceServer()
 }
 
@@ -885,6 +1083,12 @@ func (UnimplementedChangeControlServiceServer) GetMeta(context.Context, *ChangeC
 }
 func (UnimplementedChangeControlServiceServer) SubscribeMeta(*ChangeControlStreamRequest, ChangeControlService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedChangeControlServiceServer) GetAllBatched(*ChangeControlBatchedStreamRequest, ChangeControlService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedChangeControlServiceServer) SubscribeBatched(*ChangeControlBatchedStreamRequest, ChangeControlService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedChangeControlServiceServer) mustEmbedUnimplementedChangeControlServiceServer() {}
 
@@ -1019,6 +1223,48 @@ func (x *changeControlServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ChangeControlService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlServiceServer).GetAllBatched(m, &changeControlServiceGetAllBatchedServer{stream})
+}
+
+type ChangeControlService_GetAllBatchedServer interface {
+	Send(*ChangeControlBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlServiceGetAllBatchedServer) Send(m *ChangeControlBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlServiceServer).SubscribeBatched(m, &changeControlServiceSubscribeBatchedServer{stream})
+}
+
+type ChangeControlService_SubscribeBatchedServer interface {
+	Send(*ChangeControlBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlServiceSubscribeBatchedServer) Send(m *ChangeControlBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChangeControlService_ServiceDesc is the grpc.ServiceDesc for ChangeControlService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1056,22 +1302,34 @@ var ChangeControlService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ChangeControlService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ChangeControlService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ChangeControlService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/changecontrol.v1/services.gen.proto",
 }
 
 const (
-	ChangeControlConfigService_GetOne_FullMethodName        = "/arista.changecontrol.v1.ChangeControlConfigService/GetOne"
-	ChangeControlConfigService_GetSome_FullMethodName       = "/arista.changecontrol.v1.ChangeControlConfigService/GetSome"
-	ChangeControlConfigService_GetAll_FullMethodName        = "/arista.changecontrol.v1.ChangeControlConfigService/GetAll"
-	ChangeControlConfigService_Subscribe_FullMethodName     = "/arista.changecontrol.v1.ChangeControlConfigService/Subscribe"
-	ChangeControlConfigService_GetMeta_FullMethodName       = "/arista.changecontrol.v1.ChangeControlConfigService/GetMeta"
-	ChangeControlConfigService_SubscribeMeta_FullMethodName = "/arista.changecontrol.v1.ChangeControlConfigService/SubscribeMeta"
-	ChangeControlConfigService_Set_FullMethodName           = "/arista.changecontrol.v1.ChangeControlConfigService/Set"
-	ChangeControlConfigService_SetSome_FullMethodName       = "/arista.changecontrol.v1.ChangeControlConfigService/SetSome"
-	ChangeControlConfigService_Delete_FullMethodName        = "/arista.changecontrol.v1.ChangeControlConfigService/Delete"
-	ChangeControlConfigService_DeleteSome_FullMethodName    = "/arista.changecontrol.v1.ChangeControlConfigService/DeleteSome"
-	ChangeControlConfigService_DeleteAll_FullMethodName     = "/arista.changecontrol.v1.ChangeControlConfigService/DeleteAll"
+	ChangeControlConfigService_GetOne_FullMethodName           = "/arista.changecontrol.v1.ChangeControlConfigService/GetOne"
+	ChangeControlConfigService_GetSome_FullMethodName          = "/arista.changecontrol.v1.ChangeControlConfigService/GetSome"
+	ChangeControlConfigService_GetAll_FullMethodName           = "/arista.changecontrol.v1.ChangeControlConfigService/GetAll"
+	ChangeControlConfigService_Subscribe_FullMethodName        = "/arista.changecontrol.v1.ChangeControlConfigService/Subscribe"
+	ChangeControlConfigService_GetMeta_FullMethodName          = "/arista.changecontrol.v1.ChangeControlConfigService/GetMeta"
+	ChangeControlConfigService_SubscribeMeta_FullMethodName    = "/arista.changecontrol.v1.ChangeControlConfigService/SubscribeMeta"
+	ChangeControlConfigService_Set_FullMethodName              = "/arista.changecontrol.v1.ChangeControlConfigService/Set"
+	ChangeControlConfigService_SetSome_FullMethodName          = "/arista.changecontrol.v1.ChangeControlConfigService/SetSome"
+	ChangeControlConfigService_Delete_FullMethodName           = "/arista.changecontrol.v1.ChangeControlConfigService/Delete"
+	ChangeControlConfigService_DeleteSome_FullMethodName       = "/arista.changecontrol.v1.ChangeControlConfigService/DeleteSome"
+	ChangeControlConfigService_DeleteAll_FullMethodName        = "/arista.changecontrol.v1.ChangeControlConfigService/DeleteAll"
+	ChangeControlConfigService_GetAllBatched_FullMethodName    = "/arista.changecontrol.v1.ChangeControlConfigService/GetAllBatched"
+	ChangeControlConfigService_SubscribeBatched_FullMethodName = "/arista.changecontrol.v1.ChangeControlConfigService/SubscribeBatched"
 )
 
 // ChangeControlConfigServiceClient is the client API for ChangeControlConfigService service.
@@ -1089,6 +1347,8 @@ type ChangeControlConfigServiceClient interface {
 	Delete(ctx context.Context, in *ChangeControlConfigDeleteRequest, opts ...grpc.CallOption) (*ChangeControlConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *ChangeControlConfigDeleteSomeRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *ChangeControlConfigDeleteAllRequest, opts ...grpc.CallOption) (ChangeControlConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *ChangeControlConfigBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ChangeControlConfigBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeBatchedClient, error)
 }
 
 type changeControlConfigServiceClient struct {
@@ -1359,6 +1619,70 @@ func (x *changeControlConfigServiceDeleteAllClient) Recv() (*ChangeControlConfig
 	return m, nil
 }
 
+func (c *changeControlConfigServiceClient) GetAllBatched(ctx context.Context, in *ChangeControlConfigBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[7], ChangeControlConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_GetAllBatchedClient interface {
+	Recv() (*ChangeControlConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceGetAllBatchedClient) Recv() (*ChangeControlConfigBatchedStreamResponse, error) {
+	m := new(ChangeControlConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlConfigServiceClient) SubscribeBatched(ctx context.Context, in *ChangeControlConfigBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlConfigService_ServiceDesc.Streams[8], ChangeControlConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlConfigService_SubscribeBatchedClient interface {
+	Recv() (*ChangeControlConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlConfigServiceSubscribeBatchedClient) Recv() (*ChangeControlConfigBatchedStreamResponse, error) {
+	m := new(ChangeControlConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChangeControlConfigServiceServer is the server API for ChangeControlConfigService service.
 // All implementations must embed UnimplementedChangeControlConfigServiceServer
 // for forward compatibility
@@ -1374,6 +1698,8 @@ type ChangeControlConfigServiceServer interface {
 	Delete(context.Context, *ChangeControlConfigDeleteRequest) (*ChangeControlConfigDeleteResponse, error)
 	DeleteSome(*ChangeControlConfigDeleteSomeRequest, ChangeControlConfigService_DeleteSomeServer) error
 	DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error
+	GetAllBatched(*ChangeControlConfigBatchedStreamRequest, ChangeControlConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*ChangeControlConfigBatchedStreamRequest, ChangeControlConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedChangeControlConfigServiceServer()
 }
 
@@ -1413,6 +1739,12 @@ func (UnimplementedChangeControlConfigServiceServer) DeleteSome(*ChangeControlCo
 }
 func (UnimplementedChangeControlConfigServiceServer) DeleteAll(*ChangeControlConfigDeleteAllRequest, ChangeControlConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) GetAllBatched(*ChangeControlConfigBatchedStreamRequest, ChangeControlConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedChangeControlConfigServiceServer) SubscribeBatched(*ChangeControlConfigBatchedStreamRequest, ChangeControlConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedChangeControlConfigServiceServer) mustEmbedUnimplementedChangeControlConfigServiceServer() {
 }
@@ -1647,6 +1979,48 @@ func (x *changeControlConfigServiceDeleteAllServer) Send(m *ChangeControlConfigD
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ChangeControlConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).GetAllBatched(m, &changeControlConfigServiceGetAllBatchedServer{stream})
+}
+
+type ChangeControlConfigService_GetAllBatchedServer interface {
+	Send(*ChangeControlConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceGetAllBatchedServer) Send(m *ChangeControlConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlConfigServiceServer).SubscribeBatched(m, &changeControlConfigServiceSubscribeBatchedServer{stream})
+}
+
+type ChangeControlConfigService_SubscribeBatchedServer interface {
+	Send(*ChangeControlConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlConfigServiceSubscribeBatchedServer) Send(m *ChangeControlConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChangeControlConfigService_ServiceDesc is the grpc.ServiceDesc for ChangeControlConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1705,6 +2079,16 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DeleteAll",
 			Handler:       _ChangeControlConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ChangeControlConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ChangeControlConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

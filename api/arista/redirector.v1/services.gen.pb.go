@@ -493,6 +493,143 @@ func (x *AssignmentStreamResponse) GetType() subscriptions.Operation {
 	return subscriptions.Operation(0)
 }
 
+type AssignmentBatchedStreamRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// PartialEqFilter provides a way to server-side filter a GetAll/Subscribe.
+	// This requires all provided fields to be equal to the response.
+	//
+	// While transparent to users, this field also allows services to optimize internal
+	// subscriptions if filter(s) are sufficiently specific.
+	PartialEqFilter []*Assignment `protobuf:"bytes,1,rep,name=partial_eq_filter,json=partialEqFilter,proto3" json:"partial_eq_filter,omitempty"`
+	// TimeRange allows limiting response data to within a specified time window.
+	// If this field is populated, at least one of the two time fields are required.
+	//
+	// For GetAll, the fields start and end can be used as follows:
+	//
+	//   - end: Returns the state of each Assignment at end.
+	//   - Each Assignment response is fully-specified (all fields set).
+	//   - start: Returns the state of each Assignment at start, followed by updates until now.
+	//   - Each Assignment response at start is fully-specified, but updates may be partial.
+	//   - start and end: Returns the state of each Assignment at start, followed by updates
+	//     until end.
+	//   - Each Assignment response at start is fully-specified, but updates until end may
+	//     be partial.
+	//
+	// This field is not allowed in the Subscribe RPC.
+	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// MaxMessages limits the maximum number of messages that can be contained in one batch.
+	// MaxMessages is required to be at least 1.
+	// The maximum number of messages in a batch is min(max_messages, INTERNAL_BATCH_LIMIT)
+	// INTERNAL_BATCH_LIMIT is set based on the maximum message size.
+	MaxMessages *wrapperspb.UInt32Value `protobuf:"bytes,4,opt,name=max_messages,json=maxMessages,proto3" json:"max_messages,omitempty"`
+}
+
+func (x *AssignmentBatchedStreamRequest) Reset() {
+	*x = AssignmentBatchedStreamRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_redirector_v1_services_gen_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AssignmentBatchedStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignmentBatchedStreamRequest) ProtoMessage() {}
+
+func (x *AssignmentBatchedStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_redirector_v1_services_gen_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignmentBatchedStreamRequest.ProtoReflect.Descriptor instead.
+func (*AssignmentBatchedStreamRequest) Descriptor() ([]byte, []int) {
+	return file_arista_redirector_v1_services_gen_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AssignmentBatchedStreamRequest) GetPartialEqFilter() []*Assignment {
+	if x != nil {
+		return x.PartialEqFilter
+	}
+	return nil
+}
+
+func (x *AssignmentBatchedStreamRequest) GetTime() *time.TimeBounds {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *AssignmentBatchedStreamRequest) GetMaxMessages() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.MaxMessages
+	}
+	return nil
+}
+
+type AssignmentBatchedStreamResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Values are the values deemed relevant to the initiating request.
+	// The length of this structure is guaranteed to be between (inclusive) 1 and
+	// min(req.max_messages, INTERNAL_BATCH_LIMIT).
+	Responses []*AssignmentStreamResponse `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses,omitempty"`
+}
+
+func (x *AssignmentBatchedStreamResponse) Reset() {
+	*x = AssignmentBatchedStreamResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_redirector_v1_services_gen_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AssignmentBatchedStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignmentBatchedStreamResponse) ProtoMessage() {}
+
+func (x *AssignmentBatchedStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_redirector_v1_services_gen_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignmentBatchedStreamResponse.ProtoReflect.Descriptor instead.
+func (*AssignmentBatchedStreamResponse) Descriptor() ([]byte, []int) {
+	return file_arista_redirector_v1_services_gen_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AssignmentBatchedStreamResponse) GetResponses() []*AssignmentStreamResponse {
+	if x != nil {
+		return x.Responses
+	}
+	return nil
+}
+
 var File_arista_redirector_v1_services_gen_proto protoreflect.FileDescriptor
 
 var file_arista_redirector_v1_services_gen_proto_rawDesc = []byte{
@@ -577,7 +714,28 @@ var file_arista_redirector_v1_services_gen_proto_rawDesc = []byte{
 	0x69, 0x6d, 0x65, 0x12, 0x33, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
 	0x0e, 0x32, 0x1f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x73, 0x75, 0x62, 0x73, 0x63,
 	0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x32, 0xf5, 0x04, 0x0a, 0x11, 0x41, 0x73, 0x73,
+	0x6f, 0x6e, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0xdc, 0x01, 0x0a, 0x1e, 0x41, 0x73, 0x73,
+	0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x4c, 0x0a, 0x11, 0x70,
+	0x61, 0x72, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x65, 0x71, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x73,
+	0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x0f, 0x70, 0x61, 0x72, 0x74, 0x69, 0x61,
+	0x6c, 0x45, 0x71, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x2b, 0x0a, 0x04, 0x74, 0x69, 0x6d,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x42, 0x6f, 0x75, 0x6e, 0x64, 0x73,
+	0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x3f, 0x0a, 0x0c, 0x6d, 0x61, 0x78, 0x5f, 0x6d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x55,
+	0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x0b, 0x6d, 0x61, 0x78, 0x4d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x22, 0x6f, 0x0a, 0x1f, 0x41, 0x73, 0x73, 0x69, 0x67,
+	0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4c, 0x0a, 0x09, 0x72, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2e, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f,
+	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x09, 0x72,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73, 0x32, 0xf9, 0x06, 0x0a, 0x11, 0x41, 0x73, 0x73,
 	0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x5b,
 	0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e, 0x65, 0x12, 0x27, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
 	0x61, 0x2e, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x2e,
@@ -617,12 +775,28 @@ var file_arista_redirector_v1_services_gen_proto_rawDesc = []byte{
 	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x61, 0x72, 0x69,
 	0x73, 0x74, 0x61, 0x2e, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76,
 	0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01,
-	0x42, 0x4e, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c,
-	0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74,
-	0x6f, 0x72, 0x2e, 0x76, 0x31, 0x3b, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x12, 0x7e, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x64, 0x12, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x72, 0x65, 0x64, 0x69, 0x72,
+	0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d,
+	0x65, 0x6e, 0x74, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41,
+	0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
+	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01,
+	0x12, 0x81, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61,
+	0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x72,
+	0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x73, 0x73,
+	0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x61, 0x72,
+	0x69, 0x73, 0x74, 0x61, 0x2e, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x41, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x30, 0x01, 0x42, 0x4e, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x72, 0x65, 0x64, 0x69,
+	0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x2e, 0x76, 0x31, 0x3b, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65,
+	0x63, 0x74, 0x6f, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -637,58 +811,68 @@ func file_arista_redirector_v1_services_gen_proto_rawDescGZIP() []byte {
 	return file_arista_redirector_v1_services_gen_proto_rawDescData
 }
 
-var file_arista_redirector_v1_services_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_arista_redirector_v1_services_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_arista_redirector_v1_services_gen_proto_goTypes = []interface{}{
-	(*MetaResponse)(nil),             // 0: arista.redirector.v1.MetaResponse
-	(*AssignmentRequest)(nil),        // 1: arista.redirector.v1.AssignmentRequest
-	(*AssignmentResponse)(nil),       // 2: arista.redirector.v1.AssignmentResponse
-	(*AssignmentSomeRequest)(nil),    // 3: arista.redirector.v1.AssignmentSomeRequest
-	(*AssignmentSomeResponse)(nil),   // 4: arista.redirector.v1.AssignmentSomeResponse
-	(*AssignmentStreamRequest)(nil),  // 5: arista.redirector.v1.AssignmentStreamRequest
-	(*AssignmentStreamResponse)(nil), // 6: arista.redirector.v1.AssignmentStreamResponse
-	(*timestamppb.Timestamp)(nil),    // 7: google.protobuf.Timestamp
-	(subscriptions.Operation)(0),     // 8: arista.subscriptions.Operation
-	(*wrapperspb.UInt32Value)(nil),   // 9: google.protobuf.UInt32Value
-	(*AssignmentKey)(nil),            // 10: arista.redirector.v1.AssignmentKey
-	(*Assignment)(nil),               // 11: arista.redirector.v1.Assignment
-	(*wrapperspb.StringValue)(nil),   // 12: google.protobuf.StringValue
-	(*time.TimeBounds)(nil),          // 13: arista.time.TimeBounds
+	(*MetaResponse)(nil),                    // 0: arista.redirector.v1.MetaResponse
+	(*AssignmentRequest)(nil),               // 1: arista.redirector.v1.AssignmentRequest
+	(*AssignmentResponse)(nil),              // 2: arista.redirector.v1.AssignmentResponse
+	(*AssignmentSomeRequest)(nil),           // 3: arista.redirector.v1.AssignmentSomeRequest
+	(*AssignmentSomeResponse)(nil),          // 4: arista.redirector.v1.AssignmentSomeResponse
+	(*AssignmentStreamRequest)(nil),         // 5: arista.redirector.v1.AssignmentStreamRequest
+	(*AssignmentStreamResponse)(nil),        // 6: arista.redirector.v1.AssignmentStreamResponse
+	(*AssignmentBatchedStreamRequest)(nil),  // 7: arista.redirector.v1.AssignmentBatchedStreamRequest
+	(*AssignmentBatchedStreamResponse)(nil), // 8: arista.redirector.v1.AssignmentBatchedStreamResponse
+	(*timestamppb.Timestamp)(nil),           // 9: google.protobuf.Timestamp
+	(subscriptions.Operation)(0),            // 10: arista.subscriptions.Operation
+	(*wrapperspb.UInt32Value)(nil),          // 11: google.protobuf.UInt32Value
+	(*AssignmentKey)(nil),                   // 12: arista.redirector.v1.AssignmentKey
+	(*Assignment)(nil),                      // 13: arista.redirector.v1.Assignment
+	(*wrapperspb.StringValue)(nil),          // 14: google.protobuf.StringValue
+	(*time.TimeBounds)(nil),                 // 15: arista.time.TimeBounds
 }
 var file_arista_redirector_v1_services_gen_proto_depIdxs = []int32{
-	7,  // 0: arista.redirector.v1.MetaResponse.time:type_name -> google.protobuf.Timestamp
-	8,  // 1: arista.redirector.v1.MetaResponse.type:type_name -> arista.subscriptions.Operation
-	9,  // 2: arista.redirector.v1.MetaResponse.count:type_name -> google.protobuf.UInt32Value
-	10, // 3: arista.redirector.v1.AssignmentRequest.key:type_name -> arista.redirector.v1.AssignmentKey
-	7,  // 4: arista.redirector.v1.AssignmentRequest.time:type_name -> google.protobuf.Timestamp
-	11, // 5: arista.redirector.v1.AssignmentResponse.value:type_name -> arista.redirector.v1.Assignment
-	7,  // 6: arista.redirector.v1.AssignmentResponse.time:type_name -> google.protobuf.Timestamp
-	10, // 7: arista.redirector.v1.AssignmentSomeRequest.keys:type_name -> arista.redirector.v1.AssignmentKey
-	7,  // 8: arista.redirector.v1.AssignmentSomeRequest.time:type_name -> google.protobuf.Timestamp
-	11, // 9: arista.redirector.v1.AssignmentSomeResponse.value:type_name -> arista.redirector.v1.Assignment
-	12, // 10: arista.redirector.v1.AssignmentSomeResponse.error:type_name -> google.protobuf.StringValue
-	7,  // 11: arista.redirector.v1.AssignmentSomeResponse.time:type_name -> google.protobuf.Timestamp
-	11, // 12: arista.redirector.v1.AssignmentStreamRequest.partial_eq_filter:type_name -> arista.redirector.v1.Assignment
-	13, // 13: arista.redirector.v1.AssignmentStreamRequest.time:type_name -> arista.time.TimeBounds
-	11, // 14: arista.redirector.v1.AssignmentStreamResponse.value:type_name -> arista.redirector.v1.Assignment
-	7,  // 15: arista.redirector.v1.AssignmentStreamResponse.time:type_name -> google.protobuf.Timestamp
-	8,  // 16: arista.redirector.v1.AssignmentStreamResponse.type:type_name -> arista.subscriptions.Operation
-	1,  // 17: arista.redirector.v1.AssignmentService.GetOne:input_type -> arista.redirector.v1.AssignmentRequest
-	3,  // 18: arista.redirector.v1.AssignmentService.GetSome:input_type -> arista.redirector.v1.AssignmentSomeRequest
-	5,  // 19: arista.redirector.v1.AssignmentService.GetAll:input_type -> arista.redirector.v1.AssignmentStreamRequest
-	5,  // 20: arista.redirector.v1.AssignmentService.Subscribe:input_type -> arista.redirector.v1.AssignmentStreamRequest
-	5,  // 21: arista.redirector.v1.AssignmentService.GetMeta:input_type -> arista.redirector.v1.AssignmentStreamRequest
-	5,  // 22: arista.redirector.v1.AssignmentService.SubscribeMeta:input_type -> arista.redirector.v1.AssignmentStreamRequest
-	2,  // 23: arista.redirector.v1.AssignmentService.GetOne:output_type -> arista.redirector.v1.AssignmentResponse
-	4,  // 24: arista.redirector.v1.AssignmentService.GetSome:output_type -> arista.redirector.v1.AssignmentSomeResponse
-	6,  // 25: arista.redirector.v1.AssignmentService.GetAll:output_type -> arista.redirector.v1.AssignmentStreamResponse
-	6,  // 26: arista.redirector.v1.AssignmentService.Subscribe:output_type -> arista.redirector.v1.AssignmentStreamResponse
-	0,  // 27: arista.redirector.v1.AssignmentService.GetMeta:output_type -> arista.redirector.v1.MetaResponse
-	0,  // 28: arista.redirector.v1.AssignmentService.SubscribeMeta:output_type -> arista.redirector.v1.MetaResponse
-	23, // [23:29] is the sub-list for method output_type
-	17, // [17:23] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	9,  // 0: arista.redirector.v1.MetaResponse.time:type_name -> google.protobuf.Timestamp
+	10, // 1: arista.redirector.v1.MetaResponse.type:type_name -> arista.subscriptions.Operation
+	11, // 2: arista.redirector.v1.MetaResponse.count:type_name -> google.protobuf.UInt32Value
+	12, // 3: arista.redirector.v1.AssignmentRequest.key:type_name -> arista.redirector.v1.AssignmentKey
+	9,  // 4: arista.redirector.v1.AssignmentRequest.time:type_name -> google.protobuf.Timestamp
+	13, // 5: arista.redirector.v1.AssignmentResponse.value:type_name -> arista.redirector.v1.Assignment
+	9,  // 6: arista.redirector.v1.AssignmentResponse.time:type_name -> google.protobuf.Timestamp
+	12, // 7: arista.redirector.v1.AssignmentSomeRequest.keys:type_name -> arista.redirector.v1.AssignmentKey
+	9,  // 8: arista.redirector.v1.AssignmentSomeRequest.time:type_name -> google.protobuf.Timestamp
+	13, // 9: arista.redirector.v1.AssignmentSomeResponse.value:type_name -> arista.redirector.v1.Assignment
+	14, // 10: arista.redirector.v1.AssignmentSomeResponse.error:type_name -> google.protobuf.StringValue
+	9,  // 11: arista.redirector.v1.AssignmentSomeResponse.time:type_name -> google.protobuf.Timestamp
+	13, // 12: arista.redirector.v1.AssignmentStreamRequest.partial_eq_filter:type_name -> arista.redirector.v1.Assignment
+	15, // 13: arista.redirector.v1.AssignmentStreamRequest.time:type_name -> arista.time.TimeBounds
+	13, // 14: arista.redirector.v1.AssignmentStreamResponse.value:type_name -> arista.redirector.v1.Assignment
+	9,  // 15: arista.redirector.v1.AssignmentStreamResponse.time:type_name -> google.protobuf.Timestamp
+	10, // 16: arista.redirector.v1.AssignmentStreamResponse.type:type_name -> arista.subscriptions.Operation
+	13, // 17: arista.redirector.v1.AssignmentBatchedStreamRequest.partial_eq_filter:type_name -> arista.redirector.v1.Assignment
+	15, // 18: arista.redirector.v1.AssignmentBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	11, // 19: arista.redirector.v1.AssignmentBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	6,  // 20: arista.redirector.v1.AssignmentBatchedStreamResponse.responses:type_name -> arista.redirector.v1.AssignmentStreamResponse
+	1,  // 21: arista.redirector.v1.AssignmentService.GetOne:input_type -> arista.redirector.v1.AssignmentRequest
+	3,  // 22: arista.redirector.v1.AssignmentService.GetSome:input_type -> arista.redirector.v1.AssignmentSomeRequest
+	5,  // 23: arista.redirector.v1.AssignmentService.GetAll:input_type -> arista.redirector.v1.AssignmentStreamRequest
+	5,  // 24: arista.redirector.v1.AssignmentService.Subscribe:input_type -> arista.redirector.v1.AssignmentStreamRequest
+	5,  // 25: arista.redirector.v1.AssignmentService.GetMeta:input_type -> arista.redirector.v1.AssignmentStreamRequest
+	5,  // 26: arista.redirector.v1.AssignmentService.SubscribeMeta:input_type -> arista.redirector.v1.AssignmentStreamRequest
+	7,  // 27: arista.redirector.v1.AssignmentService.GetAllBatched:input_type -> arista.redirector.v1.AssignmentBatchedStreamRequest
+	7,  // 28: arista.redirector.v1.AssignmentService.SubscribeBatched:input_type -> arista.redirector.v1.AssignmentBatchedStreamRequest
+	2,  // 29: arista.redirector.v1.AssignmentService.GetOne:output_type -> arista.redirector.v1.AssignmentResponse
+	4,  // 30: arista.redirector.v1.AssignmentService.GetSome:output_type -> arista.redirector.v1.AssignmentSomeResponse
+	6,  // 31: arista.redirector.v1.AssignmentService.GetAll:output_type -> arista.redirector.v1.AssignmentStreamResponse
+	6,  // 32: arista.redirector.v1.AssignmentService.Subscribe:output_type -> arista.redirector.v1.AssignmentStreamResponse
+	0,  // 33: arista.redirector.v1.AssignmentService.GetMeta:output_type -> arista.redirector.v1.MetaResponse
+	0,  // 34: arista.redirector.v1.AssignmentService.SubscribeMeta:output_type -> arista.redirector.v1.MetaResponse
+	8,  // 35: arista.redirector.v1.AssignmentService.GetAllBatched:output_type -> arista.redirector.v1.AssignmentBatchedStreamResponse
+	8,  // 36: arista.redirector.v1.AssignmentService.SubscribeBatched:output_type -> arista.redirector.v1.AssignmentBatchedStreamResponse
+	29, // [29:37] is the sub-list for method output_type
+	21, // [21:29] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_arista_redirector_v1_services_gen_proto_init() }
@@ -782,6 +966,30 @@ func file_arista_redirector_v1_services_gen_proto_init() {
 				return nil
 			}
 		}
+		file_arista_redirector_v1_services_gen_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AssignmentBatchedStreamRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_redirector_v1_services_gen_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AssignmentBatchedStreamResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -789,7 +997,7 @@ func file_arista_redirector_v1_services_gen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_arista_redirector_v1_services_gen_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

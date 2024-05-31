@@ -30,12 +30,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AssignedTagsService_GetOne_FullMethodName        = "/arista.studio.v1.AssignedTagsService/GetOne"
-	AssignedTagsService_GetSome_FullMethodName       = "/arista.studio.v1.AssignedTagsService/GetSome"
-	AssignedTagsService_GetAll_FullMethodName        = "/arista.studio.v1.AssignedTagsService/GetAll"
-	AssignedTagsService_Subscribe_FullMethodName     = "/arista.studio.v1.AssignedTagsService/Subscribe"
-	AssignedTagsService_GetMeta_FullMethodName       = "/arista.studio.v1.AssignedTagsService/GetMeta"
-	AssignedTagsService_SubscribeMeta_FullMethodName = "/arista.studio.v1.AssignedTagsService/SubscribeMeta"
+	AssignedTagsService_GetOne_FullMethodName           = "/arista.studio.v1.AssignedTagsService/GetOne"
+	AssignedTagsService_GetSome_FullMethodName          = "/arista.studio.v1.AssignedTagsService/GetSome"
+	AssignedTagsService_GetAll_FullMethodName           = "/arista.studio.v1.AssignedTagsService/GetAll"
+	AssignedTagsService_Subscribe_FullMethodName        = "/arista.studio.v1.AssignedTagsService/Subscribe"
+	AssignedTagsService_GetMeta_FullMethodName          = "/arista.studio.v1.AssignedTagsService/GetMeta"
+	AssignedTagsService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.AssignedTagsService/SubscribeMeta"
+	AssignedTagsService_GetAllBatched_FullMethodName    = "/arista.studio.v1.AssignedTagsService/GetAllBatched"
+	AssignedTagsService_SubscribeBatched_FullMethodName = "/arista.studio.v1.AssignedTagsService/SubscribeBatched"
 )
 
 // AssignedTagsServiceClient is the client API for AssignedTagsService service.
@@ -48,6 +50,8 @@ type AssignedTagsServiceClient interface {
 	Subscribe(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *AssignedTagsStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *AssignedTagsBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AssignedTagsBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeBatchedClient, error)
 }
 
 type assignedTagsServiceClient struct {
@@ -204,6 +208,70 @@ func (x *assignedTagsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *assignedTagsServiceClient) GetAllBatched(ctx context.Context, in *AssignedTagsBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[4], AssignedTagsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsService_GetAllBatchedClient interface {
+	Recv() (*AssignedTagsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsServiceGetAllBatchedClient) Recv() (*AssignedTagsBatchedStreamResponse, error) {
+	m := new(AssignedTagsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignedTagsServiceClient) SubscribeBatched(ctx context.Context, in *AssignedTagsBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsService_ServiceDesc.Streams[5], AssignedTagsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsService_SubscribeBatchedClient interface {
+	Recv() (*AssignedTagsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsServiceSubscribeBatchedClient) Recv() (*AssignedTagsBatchedStreamResponse, error) {
+	m := new(AssignedTagsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AssignedTagsServiceServer is the server API for AssignedTagsService service.
 // All implementations must embed UnimplementedAssignedTagsServiceServer
 // for forward compatibility
@@ -214,6 +282,8 @@ type AssignedTagsServiceServer interface {
 	Subscribe(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeServer) error
 	GetMeta(context.Context, *AssignedTagsStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeMetaServer) error
+	GetAllBatched(*AssignedTagsBatchedStreamRequest, AssignedTagsService_GetAllBatchedServer) error
+	SubscribeBatched(*AssignedTagsBatchedStreamRequest, AssignedTagsService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAssignedTagsServiceServer()
 }
 
@@ -238,6 +308,12 @@ func (UnimplementedAssignedTagsServiceServer) GetMeta(context.Context, *Assigned
 }
 func (UnimplementedAssignedTagsServiceServer) SubscribeMeta(*AssignedTagsStreamRequest, AssignedTagsService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedAssignedTagsServiceServer) GetAllBatched(*AssignedTagsBatchedStreamRequest, AssignedTagsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAssignedTagsServiceServer) SubscribeBatched(*AssignedTagsBatchedStreamRequest, AssignedTagsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAssignedTagsServiceServer) mustEmbedUnimplementedAssignedTagsServiceServer() {}
 
@@ -372,6 +448,48 @@ func (x *assignedTagsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AssignedTagsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsServiceServer).GetAllBatched(m, &assignedTagsServiceGetAllBatchedServer{stream})
+}
+
+type AssignedTagsService_GetAllBatchedServer interface {
+	Send(*AssignedTagsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsServiceGetAllBatchedServer) Send(m *AssignedTagsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignedTagsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsServiceServer).SubscribeBatched(m, &assignedTagsServiceSubscribeBatchedServer{stream})
+}
+
+type AssignedTagsService_SubscribeBatchedServer interface {
+	Send(*AssignedTagsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsServiceSubscribeBatchedServer) Send(m *AssignedTagsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AssignedTagsService_ServiceDesc is the grpc.ServiceDesc for AssignedTagsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -409,22 +527,34 @@ var AssignedTagsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AssignedTagsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AssignedTagsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AssignedTagsService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	AssignedTagsConfigService_GetOne_FullMethodName        = "/arista.studio.v1.AssignedTagsConfigService/GetOne"
-	AssignedTagsConfigService_GetSome_FullMethodName       = "/arista.studio.v1.AssignedTagsConfigService/GetSome"
-	AssignedTagsConfigService_GetAll_FullMethodName        = "/arista.studio.v1.AssignedTagsConfigService/GetAll"
-	AssignedTagsConfigService_Subscribe_FullMethodName     = "/arista.studio.v1.AssignedTagsConfigService/Subscribe"
-	AssignedTagsConfigService_GetMeta_FullMethodName       = "/arista.studio.v1.AssignedTagsConfigService/GetMeta"
-	AssignedTagsConfigService_SubscribeMeta_FullMethodName = "/arista.studio.v1.AssignedTagsConfigService/SubscribeMeta"
-	AssignedTagsConfigService_Set_FullMethodName           = "/arista.studio.v1.AssignedTagsConfigService/Set"
-	AssignedTagsConfigService_SetSome_FullMethodName       = "/arista.studio.v1.AssignedTagsConfigService/SetSome"
-	AssignedTagsConfigService_Delete_FullMethodName        = "/arista.studio.v1.AssignedTagsConfigService/Delete"
-	AssignedTagsConfigService_DeleteSome_FullMethodName    = "/arista.studio.v1.AssignedTagsConfigService/DeleteSome"
-	AssignedTagsConfigService_DeleteAll_FullMethodName     = "/arista.studio.v1.AssignedTagsConfigService/DeleteAll"
+	AssignedTagsConfigService_GetOne_FullMethodName           = "/arista.studio.v1.AssignedTagsConfigService/GetOne"
+	AssignedTagsConfigService_GetSome_FullMethodName          = "/arista.studio.v1.AssignedTagsConfigService/GetSome"
+	AssignedTagsConfigService_GetAll_FullMethodName           = "/arista.studio.v1.AssignedTagsConfigService/GetAll"
+	AssignedTagsConfigService_Subscribe_FullMethodName        = "/arista.studio.v1.AssignedTagsConfigService/Subscribe"
+	AssignedTagsConfigService_GetMeta_FullMethodName          = "/arista.studio.v1.AssignedTagsConfigService/GetMeta"
+	AssignedTagsConfigService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.AssignedTagsConfigService/SubscribeMeta"
+	AssignedTagsConfigService_Set_FullMethodName              = "/arista.studio.v1.AssignedTagsConfigService/Set"
+	AssignedTagsConfigService_SetSome_FullMethodName          = "/arista.studio.v1.AssignedTagsConfigService/SetSome"
+	AssignedTagsConfigService_Delete_FullMethodName           = "/arista.studio.v1.AssignedTagsConfigService/Delete"
+	AssignedTagsConfigService_DeleteSome_FullMethodName       = "/arista.studio.v1.AssignedTagsConfigService/DeleteSome"
+	AssignedTagsConfigService_DeleteAll_FullMethodName        = "/arista.studio.v1.AssignedTagsConfigService/DeleteAll"
+	AssignedTagsConfigService_GetAllBatched_FullMethodName    = "/arista.studio.v1.AssignedTagsConfigService/GetAllBatched"
+	AssignedTagsConfigService_SubscribeBatched_FullMethodName = "/arista.studio.v1.AssignedTagsConfigService/SubscribeBatched"
 )
 
 // AssignedTagsConfigServiceClient is the client API for AssignedTagsConfigService service.
@@ -442,6 +572,8 @@ type AssignedTagsConfigServiceClient interface {
 	Delete(ctx context.Context, in *AssignedTagsConfigDeleteRequest, opts ...grpc.CallOption) (*AssignedTagsConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *AssignedTagsConfigDeleteSomeRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *AssignedTagsConfigDeleteAllRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *AssignedTagsConfigBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AssignedTagsConfigBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeBatchedClient, error)
 }
 
 type assignedTagsConfigServiceClient struct {
@@ -712,6 +844,70 @@ func (x *assignedTagsConfigServiceDeleteAllClient) Recv() (*AssignedTagsConfigDe
 	return m, nil
 }
 
+func (c *assignedTagsConfigServiceClient) GetAllBatched(ctx context.Context, in *AssignedTagsConfigBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[7], AssignedTagsConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_GetAllBatchedClient interface {
+	Recv() (*AssignedTagsConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceGetAllBatchedClient) Recv() (*AssignedTagsConfigBatchedStreamResponse, error) {
+	m := new(AssignedTagsConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignedTagsConfigServiceClient) SubscribeBatched(ctx context.Context, in *AssignedTagsConfigBatchedStreamRequest, opts ...grpc.CallOption) (AssignedTagsConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignedTagsConfigService_ServiceDesc.Streams[8], AssignedTagsConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignedTagsConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignedTagsConfigService_SubscribeBatchedClient interface {
+	Recv() (*AssignedTagsConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignedTagsConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignedTagsConfigServiceSubscribeBatchedClient) Recv() (*AssignedTagsConfigBatchedStreamResponse, error) {
+	m := new(AssignedTagsConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AssignedTagsConfigServiceServer is the server API for AssignedTagsConfigService service.
 // All implementations must embed UnimplementedAssignedTagsConfigServiceServer
 // for forward compatibility
@@ -727,6 +923,8 @@ type AssignedTagsConfigServiceServer interface {
 	Delete(context.Context, *AssignedTagsConfigDeleteRequest) (*AssignedTagsConfigDeleteResponse, error)
 	DeleteSome(*AssignedTagsConfigDeleteSomeRequest, AssignedTagsConfigService_DeleteSomeServer) error
 	DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error
+	GetAllBatched(*AssignedTagsConfigBatchedStreamRequest, AssignedTagsConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*AssignedTagsConfigBatchedStreamRequest, AssignedTagsConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAssignedTagsConfigServiceServer()
 }
 
@@ -766,6 +964,12 @@ func (UnimplementedAssignedTagsConfigServiceServer) DeleteSome(*AssignedTagsConf
 }
 func (UnimplementedAssignedTagsConfigServiceServer) DeleteAll(*AssignedTagsConfigDeleteAllRequest, AssignedTagsConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) GetAllBatched(*AssignedTagsConfigBatchedStreamRequest, AssignedTagsConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAssignedTagsConfigServiceServer) SubscribeBatched(*AssignedTagsConfigBatchedStreamRequest, AssignedTagsConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAssignedTagsConfigServiceServer) mustEmbedUnimplementedAssignedTagsConfigServiceServer() {
 }
@@ -1000,6 +1204,48 @@ func (x *assignedTagsConfigServiceDeleteAllServer) Send(m *AssignedTagsConfigDel
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AssignedTagsConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).GetAllBatched(m, &assignedTagsConfigServiceGetAllBatchedServer{stream})
+}
+
+type AssignedTagsConfigService_GetAllBatchedServer interface {
+	Send(*AssignedTagsConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceGetAllBatchedServer) Send(m *AssignedTagsConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignedTagsConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignedTagsConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignedTagsConfigServiceServer).SubscribeBatched(m, &assignedTagsConfigServiceSubscribeBatchedServer{stream})
+}
+
+type AssignedTagsConfigService_SubscribeBatchedServer interface {
+	Send(*AssignedTagsConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignedTagsConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignedTagsConfigServiceSubscribeBatchedServer) Send(m *AssignedTagsConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AssignedTagsConfigService_ServiceDesc is the grpc.ServiceDesc for AssignedTagsConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1060,17 +1306,29 @@ var AssignedTagsConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AssignedTagsConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AssignedTagsConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AssignedTagsConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	AutofillActionService_GetOne_FullMethodName        = "/arista.studio.v1.AutofillActionService/GetOne"
-	AutofillActionService_GetSome_FullMethodName       = "/arista.studio.v1.AutofillActionService/GetSome"
-	AutofillActionService_GetAll_FullMethodName        = "/arista.studio.v1.AutofillActionService/GetAll"
-	AutofillActionService_Subscribe_FullMethodName     = "/arista.studio.v1.AutofillActionService/Subscribe"
-	AutofillActionService_GetMeta_FullMethodName       = "/arista.studio.v1.AutofillActionService/GetMeta"
-	AutofillActionService_SubscribeMeta_FullMethodName = "/arista.studio.v1.AutofillActionService/SubscribeMeta"
+	AutofillActionService_GetOne_FullMethodName           = "/arista.studio.v1.AutofillActionService/GetOne"
+	AutofillActionService_GetSome_FullMethodName          = "/arista.studio.v1.AutofillActionService/GetSome"
+	AutofillActionService_GetAll_FullMethodName           = "/arista.studio.v1.AutofillActionService/GetAll"
+	AutofillActionService_Subscribe_FullMethodName        = "/arista.studio.v1.AutofillActionService/Subscribe"
+	AutofillActionService_GetMeta_FullMethodName          = "/arista.studio.v1.AutofillActionService/GetMeta"
+	AutofillActionService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.AutofillActionService/SubscribeMeta"
+	AutofillActionService_GetAllBatched_FullMethodName    = "/arista.studio.v1.AutofillActionService/GetAllBatched"
+	AutofillActionService_SubscribeBatched_FullMethodName = "/arista.studio.v1.AutofillActionService/SubscribeBatched"
 )
 
 // AutofillActionServiceClient is the client API for AutofillActionService service.
@@ -1083,6 +1341,8 @@ type AutofillActionServiceClient interface {
 	Subscribe(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *AutofillActionStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *AutofillActionBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AutofillActionBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeBatchedClient, error)
 }
 
 type autofillActionServiceClient struct {
@@ -1239,6 +1499,70 @@ func (x *autofillActionServiceSubscribeMetaClient) Recv() (*MetaResponse, error)
 	return m, nil
 }
 
+func (c *autofillActionServiceClient) GetAllBatched(ctx context.Context, in *AutofillActionBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[4], AutofillActionService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_GetAllBatchedClient interface {
+	Recv() (*AutofillActionBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceGetAllBatchedClient) Recv() (*AutofillActionBatchedStreamResponse, error) {
+	m := new(AutofillActionBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionServiceClient) SubscribeBatched(ctx context.Context, in *AutofillActionBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionService_ServiceDesc.Streams[5], AutofillActionService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionService_SubscribeBatchedClient interface {
+	Recv() (*AutofillActionBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionServiceSubscribeBatchedClient) Recv() (*AutofillActionBatchedStreamResponse, error) {
+	m := new(AutofillActionBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AutofillActionServiceServer is the server API for AutofillActionService service.
 // All implementations must embed UnimplementedAutofillActionServiceServer
 // for forward compatibility
@@ -1249,6 +1573,8 @@ type AutofillActionServiceServer interface {
 	Subscribe(*AutofillActionStreamRequest, AutofillActionService_SubscribeServer) error
 	GetMeta(context.Context, *AutofillActionStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*AutofillActionStreamRequest, AutofillActionService_SubscribeMetaServer) error
+	GetAllBatched(*AutofillActionBatchedStreamRequest, AutofillActionService_GetAllBatchedServer) error
+	SubscribeBatched(*AutofillActionBatchedStreamRequest, AutofillActionService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAutofillActionServiceServer()
 }
 
@@ -1273,6 +1599,12 @@ func (UnimplementedAutofillActionServiceServer) GetMeta(context.Context, *Autofi
 }
 func (UnimplementedAutofillActionServiceServer) SubscribeMeta(*AutofillActionStreamRequest, AutofillActionService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) GetAllBatched(*AutofillActionBatchedStreamRequest, AutofillActionService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAutofillActionServiceServer) SubscribeBatched(*AutofillActionBatchedStreamRequest, AutofillActionService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAutofillActionServiceServer) mustEmbedUnimplementedAutofillActionServiceServer() {}
 
@@ -1407,6 +1739,48 @@ func (x *autofillActionServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AutofillActionService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).GetAllBatched(m, &autofillActionServiceGetAllBatchedServer{stream})
+}
+
+type AutofillActionService_GetAllBatchedServer interface {
+	Send(*AutofillActionBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceGetAllBatchedServer) Send(m *AutofillActionBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionServiceServer).SubscribeBatched(m, &autofillActionServiceSubscribeBatchedServer{stream})
+}
+
+type AutofillActionService_SubscribeBatchedServer interface {
+	Send(*AutofillActionBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionServiceSubscribeBatchedServer) Send(m *AutofillActionBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AutofillActionService_ServiceDesc is the grpc.ServiceDesc for AutofillActionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1444,22 +1818,34 @@ var AutofillActionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AutofillActionService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AutofillActionService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AutofillActionService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	AutofillActionConfigService_GetOne_FullMethodName        = "/arista.studio.v1.AutofillActionConfigService/GetOne"
-	AutofillActionConfigService_GetSome_FullMethodName       = "/arista.studio.v1.AutofillActionConfigService/GetSome"
-	AutofillActionConfigService_GetAll_FullMethodName        = "/arista.studio.v1.AutofillActionConfigService/GetAll"
-	AutofillActionConfigService_Subscribe_FullMethodName     = "/arista.studio.v1.AutofillActionConfigService/Subscribe"
-	AutofillActionConfigService_GetMeta_FullMethodName       = "/arista.studio.v1.AutofillActionConfigService/GetMeta"
-	AutofillActionConfigService_SubscribeMeta_FullMethodName = "/arista.studio.v1.AutofillActionConfigService/SubscribeMeta"
-	AutofillActionConfigService_Set_FullMethodName           = "/arista.studio.v1.AutofillActionConfigService/Set"
-	AutofillActionConfigService_SetSome_FullMethodName       = "/arista.studio.v1.AutofillActionConfigService/SetSome"
-	AutofillActionConfigService_Delete_FullMethodName        = "/arista.studio.v1.AutofillActionConfigService/Delete"
-	AutofillActionConfigService_DeleteSome_FullMethodName    = "/arista.studio.v1.AutofillActionConfigService/DeleteSome"
-	AutofillActionConfigService_DeleteAll_FullMethodName     = "/arista.studio.v1.AutofillActionConfigService/DeleteAll"
+	AutofillActionConfigService_GetOne_FullMethodName           = "/arista.studio.v1.AutofillActionConfigService/GetOne"
+	AutofillActionConfigService_GetSome_FullMethodName          = "/arista.studio.v1.AutofillActionConfigService/GetSome"
+	AutofillActionConfigService_GetAll_FullMethodName           = "/arista.studio.v1.AutofillActionConfigService/GetAll"
+	AutofillActionConfigService_Subscribe_FullMethodName        = "/arista.studio.v1.AutofillActionConfigService/Subscribe"
+	AutofillActionConfigService_GetMeta_FullMethodName          = "/arista.studio.v1.AutofillActionConfigService/GetMeta"
+	AutofillActionConfigService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.AutofillActionConfigService/SubscribeMeta"
+	AutofillActionConfigService_Set_FullMethodName              = "/arista.studio.v1.AutofillActionConfigService/Set"
+	AutofillActionConfigService_SetSome_FullMethodName          = "/arista.studio.v1.AutofillActionConfigService/SetSome"
+	AutofillActionConfigService_Delete_FullMethodName           = "/arista.studio.v1.AutofillActionConfigService/Delete"
+	AutofillActionConfigService_DeleteSome_FullMethodName       = "/arista.studio.v1.AutofillActionConfigService/DeleteSome"
+	AutofillActionConfigService_DeleteAll_FullMethodName        = "/arista.studio.v1.AutofillActionConfigService/DeleteAll"
+	AutofillActionConfigService_GetAllBatched_FullMethodName    = "/arista.studio.v1.AutofillActionConfigService/GetAllBatched"
+	AutofillActionConfigService_SubscribeBatched_FullMethodName = "/arista.studio.v1.AutofillActionConfigService/SubscribeBatched"
 )
 
 // AutofillActionConfigServiceClient is the client API for AutofillActionConfigService service.
@@ -1477,6 +1863,8 @@ type AutofillActionConfigServiceClient interface {
 	Delete(ctx context.Context, in *AutofillActionConfigDeleteRequest, opts ...grpc.CallOption) (*AutofillActionConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *AutofillActionConfigDeleteSomeRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *AutofillActionConfigDeleteAllRequest, opts ...grpc.CallOption) (AutofillActionConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *AutofillActionConfigBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AutofillActionConfigBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeBatchedClient, error)
 }
 
 type autofillActionConfigServiceClient struct {
@@ -1747,6 +2135,70 @@ func (x *autofillActionConfigServiceDeleteAllClient) Recv() (*AutofillActionConf
 	return m, nil
 }
 
+func (c *autofillActionConfigServiceClient) GetAllBatched(ctx context.Context, in *AutofillActionConfigBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[7], AutofillActionConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_GetAllBatchedClient interface {
+	Recv() (*AutofillActionConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceGetAllBatchedClient) Recv() (*AutofillActionConfigBatchedStreamResponse, error) {
+	m := new(AutofillActionConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *autofillActionConfigServiceClient) SubscribeBatched(ctx context.Context, in *AutofillActionConfigBatchedStreamRequest, opts ...grpc.CallOption) (AutofillActionConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AutofillActionConfigService_ServiceDesc.Streams[8], AutofillActionConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &autofillActionConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AutofillActionConfigService_SubscribeBatchedClient interface {
+	Recv() (*AutofillActionConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type autofillActionConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *autofillActionConfigServiceSubscribeBatchedClient) Recv() (*AutofillActionConfigBatchedStreamResponse, error) {
+	m := new(AutofillActionConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AutofillActionConfigServiceServer is the server API for AutofillActionConfigService service.
 // All implementations must embed UnimplementedAutofillActionConfigServiceServer
 // for forward compatibility
@@ -1762,6 +2214,8 @@ type AutofillActionConfigServiceServer interface {
 	Delete(context.Context, *AutofillActionConfigDeleteRequest) (*AutofillActionConfigDeleteResponse, error)
 	DeleteSome(*AutofillActionConfigDeleteSomeRequest, AutofillActionConfigService_DeleteSomeServer) error
 	DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error
+	GetAllBatched(*AutofillActionConfigBatchedStreamRequest, AutofillActionConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*AutofillActionConfigBatchedStreamRequest, AutofillActionConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAutofillActionConfigServiceServer()
 }
 
@@ -1801,6 +2255,12 @@ func (UnimplementedAutofillActionConfigServiceServer) DeleteSome(*AutofillAction
 }
 func (UnimplementedAutofillActionConfigServiceServer) DeleteAll(*AutofillActionConfigDeleteAllRequest, AutofillActionConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) GetAllBatched(*AutofillActionConfigBatchedStreamRequest, AutofillActionConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAutofillActionConfigServiceServer) SubscribeBatched(*AutofillActionConfigBatchedStreamRequest, AutofillActionConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAutofillActionConfigServiceServer) mustEmbedUnimplementedAutofillActionConfigServiceServer() {
 }
@@ -2035,6 +2495,48 @@ func (x *autofillActionConfigServiceDeleteAllServer) Send(m *AutofillActionConfi
 	return x.ServerStream.SendMsg(m)
 }
 
+func _AutofillActionConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).GetAllBatched(m, &autofillActionConfigServiceGetAllBatchedServer{stream})
+}
+
+type AutofillActionConfigService_GetAllBatchedServer interface {
+	Send(*AutofillActionConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceGetAllBatchedServer) Send(m *AutofillActionConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AutofillActionConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AutofillActionConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AutofillActionConfigServiceServer).SubscribeBatched(m, &autofillActionConfigServiceSubscribeBatchedServer{stream})
+}
+
+type AutofillActionConfigService_SubscribeBatchedServer interface {
+	Send(*AutofillActionConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type autofillActionConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *autofillActionConfigServiceSubscribeBatchedServer) Send(m *AutofillActionConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AutofillActionConfigService_ServiceDesc is the grpc.ServiceDesc for AutofillActionConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2095,17 +2597,29 @@ var AutofillActionConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AutofillActionConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AutofillActionConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AutofillActionConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	InputsService_GetOne_FullMethodName        = "/arista.studio.v1.InputsService/GetOne"
-	InputsService_GetSome_FullMethodName       = "/arista.studio.v1.InputsService/GetSome"
-	InputsService_GetAll_FullMethodName        = "/arista.studio.v1.InputsService/GetAll"
-	InputsService_Subscribe_FullMethodName     = "/arista.studio.v1.InputsService/Subscribe"
-	InputsService_GetMeta_FullMethodName       = "/arista.studio.v1.InputsService/GetMeta"
-	InputsService_SubscribeMeta_FullMethodName = "/arista.studio.v1.InputsService/SubscribeMeta"
+	InputsService_GetOne_FullMethodName           = "/arista.studio.v1.InputsService/GetOne"
+	InputsService_GetSome_FullMethodName          = "/arista.studio.v1.InputsService/GetSome"
+	InputsService_GetAll_FullMethodName           = "/arista.studio.v1.InputsService/GetAll"
+	InputsService_Subscribe_FullMethodName        = "/arista.studio.v1.InputsService/Subscribe"
+	InputsService_GetMeta_FullMethodName          = "/arista.studio.v1.InputsService/GetMeta"
+	InputsService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.InputsService/SubscribeMeta"
+	InputsService_GetAllBatched_FullMethodName    = "/arista.studio.v1.InputsService/GetAllBatched"
+	InputsService_SubscribeBatched_FullMethodName = "/arista.studio.v1.InputsService/SubscribeBatched"
 )
 
 // InputsServiceClient is the client API for InputsService service.
@@ -2118,6 +2632,8 @@ type InputsServiceClient interface {
 	Subscribe(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *InputsStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *InputsBatchedStreamRequest, opts ...grpc.CallOption) (InputsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *InputsBatchedStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeBatchedClient, error)
 }
 
 type inputsServiceClient struct {
@@ -2274,6 +2790,70 @@ func (x *inputsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *inputsServiceClient) GetAllBatched(ctx context.Context, in *InputsBatchedStreamRequest, opts ...grpc.CallOption) (InputsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[4], InputsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsService_GetAllBatchedClient interface {
+	Recv() (*InputsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type inputsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsServiceGetAllBatchedClient) Recv() (*InputsBatchedStreamResponse, error) {
+	m := new(InputsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *inputsServiceClient) SubscribeBatched(ctx context.Context, in *InputsBatchedStreamRequest, opts ...grpc.CallOption) (InputsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsService_ServiceDesc.Streams[5], InputsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsService_SubscribeBatchedClient interface {
+	Recv() (*InputsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type inputsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsServiceSubscribeBatchedClient) Recv() (*InputsBatchedStreamResponse, error) {
+	m := new(InputsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // InputsServiceServer is the server API for InputsService service.
 // All implementations must embed UnimplementedInputsServiceServer
 // for forward compatibility
@@ -2284,6 +2864,8 @@ type InputsServiceServer interface {
 	Subscribe(*InputsStreamRequest, InputsService_SubscribeServer) error
 	GetMeta(context.Context, *InputsStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*InputsStreamRequest, InputsService_SubscribeMetaServer) error
+	GetAllBatched(*InputsBatchedStreamRequest, InputsService_GetAllBatchedServer) error
+	SubscribeBatched(*InputsBatchedStreamRequest, InputsService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedInputsServiceServer()
 }
 
@@ -2308,6 +2890,12 @@ func (UnimplementedInputsServiceServer) GetMeta(context.Context, *InputsStreamRe
 }
 func (UnimplementedInputsServiceServer) SubscribeMeta(*InputsStreamRequest, InputsService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedInputsServiceServer) GetAllBatched(*InputsBatchedStreamRequest, InputsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedInputsServiceServer) SubscribeBatched(*InputsBatchedStreamRequest, InputsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedInputsServiceServer) mustEmbedUnimplementedInputsServiceServer() {}
 
@@ -2442,6 +3030,48 @@ func (x *inputsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _InputsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsServiceServer).GetAllBatched(m, &inputsServiceGetAllBatchedServer{stream})
+}
+
+type InputsService_GetAllBatchedServer interface {
+	Send(*InputsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type inputsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsServiceGetAllBatchedServer) Send(m *InputsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _InputsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsServiceServer).SubscribeBatched(m, &inputsServiceSubscribeBatchedServer{stream})
+}
+
+type InputsService_SubscribeBatchedServer interface {
+	Send(*InputsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type inputsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsServiceSubscribeBatchedServer) Send(m *InputsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // InputsService_ServiceDesc is the grpc.ServiceDesc for InputsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2479,22 +3109,34 @@ var InputsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _InputsService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _InputsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _InputsService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	InputsConfigService_GetOne_FullMethodName        = "/arista.studio.v1.InputsConfigService/GetOne"
-	InputsConfigService_GetSome_FullMethodName       = "/arista.studio.v1.InputsConfigService/GetSome"
-	InputsConfigService_GetAll_FullMethodName        = "/arista.studio.v1.InputsConfigService/GetAll"
-	InputsConfigService_Subscribe_FullMethodName     = "/arista.studio.v1.InputsConfigService/Subscribe"
-	InputsConfigService_GetMeta_FullMethodName       = "/arista.studio.v1.InputsConfigService/GetMeta"
-	InputsConfigService_SubscribeMeta_FullMethodName = "/arista.studio.v1.InputsConfigService/SubscribeMeta"
-	InputsConfigService_Set_FullMethodName           = "/arista.studio.v1.InputsConfigService/Set"
-	InputsConfigService_SetSome_FullMethodName       = "/arista.studio.v1.InputsConfigService/SetSome"
-	InputsConfigService_Delete_FullMethodName        = "/arista.studio.v1.InputsConfigService/Delete"
-	InputsConfigService_DeleteSome_FullMethodName    = "/arista.studio.v1.InputsConfigService/DeleteSome"
-	InputsConfigService_DeleteAll_FullMethodName     = "/arista.studio.v1.InputsConfigService/DeleteAll"
+	InputsConfigService_GetOne_FullMethodName           = "/arista.studio.v1.InputsConfigService/GetOne"
+	InputsConfigService_GetSome_FullMethodName          = "/arista.studio.v1.InputsConfigService/GetSome"
+	InputsConfigService_GetAll_FullMethodName           = "/arista.studio.v1.InputsConfigService/GetAll"
+	InputsConfigService_Subscribe_FullMethodName        = "/arista.studio.v1.InputsConfigService/Subscribe"
+	InputsConfigService_GetMeta_FullMethodName          = "/arista.studio.v1.InputsConfigService/GetMeta"
+	InputsConfigService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.InputsConfigService/SubscribeMeta"
+	InputsConfigService_Set_FullMethodName              = "/arista.studio.v1.InputsConfigService/Set"
+	InputsConfigService_SetSome_FullMethodName          = "/arista.studio.v1.InputsConfigService/SetSome"
+	InputsConfigService_Delete_FullMethodName           = "/arista.studio.v1.InputsConfigService/Delete"
+	InputsConfigService_DeleteSome_FullMethodName       = "/arista.studio.v1.InputsConfigService/DeleteSome"
+	InputsConfigService_DeleteAll_FullMethodName        = "/arista.studio.v1.InputsConfigService/DeleteAll"
+	InputsConfigService_GetAllBatched_FullMethodName    = "/arista.studio.v1.InputsConfigService/GetAllBatched"
+	InputsConfigService_SubscribeBatched_FullMethodName = "/arista.studio.v1.InputsConfigService/SubscribeBatched"
 )
 
 // InputsConfigServiceClient is the client API for InputsConfigService service.
@@ -2512,6 +3154,8 @@ type InputsConfigServiceClient interface {
 	Delete(ctx context.Context, in *InputsConfigDeleteRequest, opts ...grpc.CallOption) (*InputsConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *InputsConfigDeleteSomeRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *InputsConfigDeleteAllRequest, opts ...grpc.CallOption) (InputsConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *InputsConfigBatchedStreamRequest, opts ...grpc.CallOption) (InputsConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *InputsConfigBatchedStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeBatchedClient, error)
 }
 
 type inputsConfigServiceClient struct {
@@ -2782,6 +3426,70 @@ func (x *inputsConfigServiceDeleteAllClient) Recv() (*InputsConfigDeleteAllRespo
 	return m, nil
 }
 
+func (c *inputsConfigServiceClient) GetAllBatched(ctx context.Context, in *InputsConfigBatchedStreamRequest, opts ...grpc.CallOption) (InputsConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[7], InputsConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_GetAllBatchedClient interface {
+	Recv() (*InputsConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceGetAllBatchedClient) Recv() (*InputsConfigBatchedStreamResponse, error) {
+	m := new(InputsConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *inputsConfigServiceClient) SubscribeBatched(ctx context.Context, in *InputsConfigBatchedStreamRequest, opts ...grpc.CallOption) (InputsConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &InputsConfigService_ServiceDesc.Streams[8], InputsConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &inputsConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type InputsConfigService_SubscribeBatchedClient interface {
+	Recv() (*InputsConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type inputsConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *inputsConfigServiceSubscribeBatchedClient) Recv() (*InputsConfigBatchedStreamResponse, error) {
+	m := new(InputsConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // InputsConfigServiceServer is the server API for InputsConfigService service.
 // All implementations must embed UnimplementedInputsConfigServiceServer
 // for forward compatibility
@@ -2797,6 +3505,8 @@ type InputsConfigServiceServer interface {
 	Delete(context.Context, *InputsConfigDeleteRequest) (*InputsConfigDeleteResponse, error)
 	DeleteSome(*InputsConfigDeleteSomeRequest, InputsConfigService_DeleteSomeServer) error
 	DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error
+	GetAllBatched(*InputsConfigBatchedStreamRequest, InputsConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*InputsConfigBatchedStreamRequest, InputsConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedInputsConfigServiceServer()
 }
 
@@ -2836,6 +3546,12 @@ func (UnimplementedInputsConfigServiceServer) DeleteSome(*InputsConfigDeleteSome
 }
 func (UnimplementedInputsConfigServiceServer) DeleteAll(*InputsConfigDeleteAllRequest, InputsConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) GetAllBatched(*InputsConfigBatchedStreamRequest, InputsConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedInputsConfigServiceServer) SubscribeBatched(*InputsConfigBatchedStreamRequest, InputsConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedInputsConfigServiceServer) mustEmbedUnimplementedInputsConfigServiceServer() {}
 
@@ -3069,6 +3785,48 @@ func (x *inputsConfigServiceDeleteAllServer) Send(m *InputsConfigDeleteAllRespon
 	return x.ServerStream.SendMsg(m)
 }
 
+func _InputsConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).GetAllBatched(m, &inputsConfigServiceGetAllBatchedServer{stream})
+}
+
+type InputsConfigService_GetAllBatchedServer interface {
+	Send(*InputsConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceGetAllBatchedServer) Send(m *InputsConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _InputsConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(InputsConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InputsConfigServiceServer).SubscribeBatched(m, &inputsConfigServiceSubscribeBatchedServer{stream})
+}
+
+type InputsConfigService_SubscribeBatchedServer interface {
+	Send(*InputsConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type inputsConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *inputsConfigServiceSubscribeBatchedServer) Send(m *InputsConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // InputsConfigService_ServiceDesc is the grpc.ServiceDesc for InputsConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3129,17 +3887,29 @@ var InputsConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _InputsConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _InputsConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _InputsConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	SecretInputService_GetOne_FullMethodName        = "/arista.studio.v1.SecretInputService/GetOne"
-	SecretInputService_GetSome_FullMethodName       = "/arista.studio.v1.SecretInputService/GetSome"
-	SecretInputService_GetAll_FullMethodName        = "/arista.studio.v1.SecretInputService/GetAll"
-	SecretInputService_Subscribe_FullMethodName     = "/arista.studio.v1.SecretInputService/Subscribe"
-	SecretInputService_GetMeta_FullMethodName       = "/arista.studio.v1.SecretInputService/GetMeta"
-	SecretInputService_SubscribeMeta_FullMethodName = "/arista.studio.v1.SecretInputService/SubscribeMeta"
+	SecretInputService_GetOne_FullMethodName           = "/arista.studio.v1.SecretInputService/GetOne"
+	SecretInputService_GetSome_FullMethodName          = "/arista.studio.v1.SecretInputService/GetSome"
+	SecretInputService_GetAll_FullMethodName           = "/arista.studio.v1.SecretInputService/GetAll"
+	SecretInputService_Subscribe_FullMethodName        = "/arista.studio.v1.SecretInputService/Subscribe"
+	SecretInputService_GetMeta_FullMethodName          = "/arista.studio.v1.SecretInputService/GetMeta"
+	SecretInputService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.SecretInputService/SubscribeMeta"
+	SecretInputService_GetAllBatched_FullMethodName    = "/arista.studio.v1.SecretInputService/GetAllBatched"
+	SecretInputService_SubscribeBatched_FullMethodName = "/arista.studio.v1.SecretInputService/SubscribeBatched"
 )
 
 // SecretInputServiceClient is the client API for SecretInputService service.
@@ -3152,6 +3922,8 @@ type SecretInputServiceClient interface {
 	Subscribe(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *SecretInputStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SecretInputBatchedStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SecretInputBatchedStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeBatchedClient, error)
 }
 
 type secretInputServiceClient struct {
@@ -3308,6 +4080,70 @@ func (x *secretInputServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *secretInputServiceClient) GetAllBatched(ctx context.Context, in *SecretInputBatchedStreamRequest, opts ...grpc.CallOption) (SecretInputService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[4], SecretInputService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_GetAllBatchedClient interface {
+	Recv() (*SecretInputBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceGetAllBatchedClient) Recv() (*SecretInputBatchedStreamResponse, error) {
+	m := new(SecretInputBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *secretInputServiceClient) SubscribeBatched(ctx context.Context, in *SecretInputBatchedStreamRequest, opts ...grpc.CallOption) (SecretInputService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SecretInputService_ServiceDesc.Streams[5], SecretInputService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &secretInputServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SecretInputService_SubscribeBatchedClient interface {
+	Recv() (*SecretInputBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type secretInputServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *secretInputServiceSubscribeBatchedClient) Recv() (*SecretInputBatchedStreamResponse, error) {
+	m := new(SecretInputBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SecretInputServiceServer is the server API for SecretInputService service.
 // All implementations must embed UnimplementedSecretInputServiceServer
 // for forward compatibility
@@ -3318,6 +4154,8 @@ type SecretInputServiceServer interface {
 	Subscribe(*SecretInputStreamRequest, SecretInputService_SubscribeServer) error
 	GetMeta(context.Context, *SecretInputStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*SecretInputStreamRequest, SecretInputService_SubscribeMetaServer) error
+	GetAllBatched(*SecretInputBatchedStreamRequest, SecretInputService_GetAllBatchedServer) error
+	SubscribeBatched(*SecretInputBatchedStreamRequest, SecretInputService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSecretInputServiceServer()
 }
 
@@ -3342,6 +4180,12 @@ func (UnimplementedSecretInputServiceServer) GetMeta(context.Context, *SecretInp
 }
 func (UnimplementedSecretInputServiceServer) SubscribeMeta(*SecretInputStreamRequest, SecretInputService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSecretInputServiceServer) GetAllBatched(*SecretInputBatchedStreamRequest, SecretInputService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSecretInputServiceServer) SubscribeBatched(*SecretInputBatchedStreamRequest, SecretInputService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSecretInputServiceServer) mustEmbedUnimplementedSecretInputServiceServer() {}
 
@@ -3476,6 +4320,48 @@ func (x *secretInputServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SecretInputService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).GetAllBatched(m, &secretInputServiceGetAllBatchedServer{stream})
+}
+
+type SecretInputService_GetAllBatchedServer interface {
+	Send(*SecretInputBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceGetAllBatchedServer) Send(m *SecretInputBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SecretInputService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SecretInputBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SecretInputServiceServer).SubscribeBatched(m, &secretInputServiceSubscribeBatchedServer{stream})
+}
+
+type SecretInputService_SubscribeBatchedServer interface {
+	Send(*SecretInputBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type secretInputServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *secretInputServiceSubscribeBatchedServer) Send(m *SecretInputBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SecretInputService_ServiceDesc is the grpc.ServiceDesc for SecretInputService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3513,17 +4399,29 @@ var SecretInputService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _SecretInputService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SecretInputService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SecretInputService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	StudioService_GetOne_FullMethodName        = "/arista.studio.v1.StudioService/GetOne"
-	StudioService_GetSome_FullMethodName       = "/arista.studio.v1.StudioService/GetSome"
-	StudioService_GetAll_FullMethodName        = "/arista.studio.v1.StudioService/GetAll"
-	StudioService_Subscribe_FullMethodName     = "/arista.studio.v1.StudioService/Subscribe"
-	StudioService_GetMeta_FullMethodName       = "/arista.studio.v1.StudioService/GetMeta"
-	StudioService_SubscribeMeta_FullMethodName = "/arista.studio.v1.StudioService/SubscribeMeta"
+	StudioService_GetOne_FullMethodName           = "/arista.studio.v1.StudioService/GetOne"
+	StudioService_GetSome_FullMethodName          = "/arista.studio.v1.StudioService/GetSome"
+	StudioService_GetAll_FullMethodName           = "/arista.studio.v1.StudioService/GetAll"
+	StudioService_Subscribe_FullMethodName        = "/arista.studio.v1.StudioService/Subscribe"
+	StudioService_GetMeta_FullMethodName          = "/arista.studio.v1.StudioService/GetMeta"
+	StudioService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.StudioService/SubscribeMeta"
+	StudioService_GetAllBatched_FullMethodName    = "/arista.studio.v1.StudioService/GetAllBatched"
+	StudioService_SubscribeBatched_FullMethodName = "/arista.studio.v1.StudioService/SubscribeBatched"
 )
 
 // StudioServiceClient is the client API for StudioService service.
@@ -3536,6 +4434,8 @@ type StudioServiceClient interface {
 	Subscribe(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *StudioStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *StudioBatchedStreamRequest, opts ...grpc.CallOption) (StudioService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *StudioBatchedStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeBatchedClient, error)
 }
 
 type studioServiceClient struct {
@@ -3692,6 +4592,70 @@ func (x *studioServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *studioServiceClient) GetAllBatched(ctx context.Context, in *StudioBatchedStreamRequest, opts ...grpc.CallOption) (StudioService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[4], StudioService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioService_GetAllBatchedClient interface {
+	Recv() (*StudioBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioServiceGetAllBatchedClient) Recv() (*StudioBatchedStreamResponse, error) {
+	m := new(StudioBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioServiceClient) SubscribeBatched(ctx context.Context, in *StudioBatchedStreamRequest, opts ...grpc.CallOption) (StudioService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioService_ServiceDesc.Streams[5], StudioService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioService_SubscribeBatchedClient interface {
+	Recv() (*StudioBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioServiceSubscribeBatchedClient) Recv() (*StudioBatchedStreamResponse, error) {
+	m := new(StudioBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // StudioServiceServer is the server API for StudioService service.
 // All implementations must embed UnimplementedStudioServiceServer
 // for forward compatibility
@@ -3702,6 +4666,8 @@ type StudioServiceServer interface {
 	Subscribe(*StudioStreamRequest, StudioService_SubscribeServer) error
 	GetMeta(context.Context, *StudioStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*StudioStreamRequest, StudioService_SubscribeMetaServer) error
+	GetAllBatched(*StudioBatchedStreamRequest, StudioService_GetAllBatchedServer) error
+	SubscribeBatched(*StudioBatchedStreamRequest, StudioService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedStudioServiceServer()
 }
 
@@ -3726,6 +4692,12 @@ func (UnimplementedStudioServiceServer) GetMeta(context.Context, *StudioStreamRe
 }
 func (UnimplementedStudioServiceServer) SubscribeMeta(*StudioStreamRequest, StudioService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedStudioServiceServer) GetAllBatched(*StudioBatchedStreamRequest, StudioService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedStudioServiceServer) SubscribeBatched(*StudioBatchedStreamRequest, StudioService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedStudioServiceServer) mustEmbedUnimplementedStudioServiceServer() {}
 
@@ -3860,6 +4832,48 @@ func (x *studioServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _StudioService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioServiceServer).GetAllBatched(m, &studioServiceGetAllBatchedServer{stream})
+}
+
+type StudioService_GetAllBatchedServer interface {
+	Send(*StudioBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioServiceGetAllBatchedServer) Send(m *StudioBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioServiceServer).SubscribeBatched(m, &studioServiceSubscribeBatchedServer{stream})
+}
+
+type StudioService_SubscribeBatchedServer interface {
+	Send(*StudioBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioServiceSubscribeBatchedServer) Send(m *StudioBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // StudioService_ServiceDesc is the grpc.ServiceDesc for StudioService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3897,22 +4911,34 @@ var StudioService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _StudioService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _StudioService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _StudioService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	StudioConfigService_GetOne_FullMethodName        = "/arista.studio.v1.StudioConfigService/GetOne"
-	StudioConfigService_GetSome_FullMethodName       = "/arista.studio.v1.StudioConfigService/GetSome"
-	StudioConfigService_GetAll_FullMethodName        = "/arista.studio.v1.StudioConfigService/GetAll"
-	StudioConfigService_Subscribe_FullMethodName     = "/arista.studio.v1.StudioConfigService/Subscribe"
-	StudioConfigService_GetMeta_FullMethodName       = "/arista.studio.v1.StudioConfigService/GetMeta"
-	StudioConfigService_SubscribeMeta_FullMethodName = "/arista.studio.v1.StudioConfigService/SubscribeMeta"
-	StudioConfigService_Set_FullMethodName           = "/arista.studio.v1.StudioConfigService/Set"
-	StudioConfigService_SetSome_FullMethodName       = "/arista.studio.v1.StudioConfigService/SetSome"
-	StudioConfigService_Delete_FullMethodName        = "/arista.studio.v1.StudioConfigService/Delete"
-	StudioConfigService_DeleteSome_FullMethodName    = "/arista.studio.v1.StudioConfigService/DeleteSome"
-	StudioConfigService_DeleteAll_FullMethodName     = "/arista.studio.v1.StudioConfigService/DeleteAll"
+	StudioConfigService_GetOne_FullMethodName           = "/arista.studio.v1.StudioConfigService/GetOne"
+	StudioConfigService_GetSome_FullMethodName          = "/arista.studio.v1.StudioConfigService/GetSome"
+	StudioConfigService_GetAll_FullMethodName           = "/arista.studio.v1.StudioConfigService/GetAll"
+	StudioConfigService_Subscribe_FullMethodName        = "/arista.studio.v1.StudioConfigService/Subscribe"
+	StudioConfigService_GetMeta_FullMethodName          = "/arista.studio.v1.StudioConfigService/GetMeta"
+	StudioConfigService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.StudioConfigService/SubscribeMeta"
+	StudioConfigService_Set_FullMethodName              = "/arista.studio.v1.StudioConfigService/Set"
+	StudioConfigService_SetSome_FullMethodName          = "/arista.studio.v1.StudioConfigService/SetSome"
+	StudioConfigService_Delete_FullMethodName           = "/arista.studio.v1.StudioConfigService/Delete"
+	StudioConfigService_DeleteSome_FullMethodName       = "/arista.studio.v1.StudioConfigService/DeleteSome"
+	StudioConfigService_DeleteAll_FullMethodName        = "/arista.studio.v1.StudioConfigService/DeleteAll"
+	StudioConfigService_GetAllBatched_FullMethodName    = "/arista.studio.v1.StudioConfigService/GetAllBatched"
+	StudioConfigService_SubscribeBatched_FullMethodName = "/arista.studio.v1.StudioConfigService/SubscribeBatched"
 )
 
 // StudioConfigServiceClient is the client API for StudioConfigService service.
@@ -3930,6 +4956,8 @@ type StudioConfigServiceClient interface {
 	Delete(ctx context.Context, in *StudioConfigDeleteRequest, opts ...grpc.CallOption) (*StudioConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *StudioConfigDeleteSomeRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *StudioConfigDeleteAllRequest, opts ...grpc.CallOption) (StudioConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *StudioConfigBatchedStreamRequest, opts ...grpc.CallOption) (StudioConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *StudioConfigBatchedStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeBatchedClient, error)
 }
 
 type studioConfigServiceClient struct {
@@ -4200,6 +5228,70 @@ func (x *studioConfigServiceDeleteAllClient) Recv() (*StudioConfigDeleteAllRespo
 	return m, nil
 }
 
+func (c *studioConfigServiceClient) GetAllBatched(ctx context.Context, in *StudioConfigBatchedStreamRequest, opts ...grpc.CallOption) (StudioConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[7], StudioConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_GetAllBatchedClient interface {
+	Recv() (*StudioConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceGetAllBatchedClient) Recv() (*StudioConfigBatchedStreamResponse, error) {
+	m := new(StudioConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioConfigServiceClient) SubscribeBatched(ctx context.Context, in *StudioConfigBatchedStreamRequest, opts ...grpc.CallOption) (StudioConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioConfigService_ServiceDesc.Streams[8], StudioConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioConfigService_SubscribeBatchedClient interface {
+	Recv() (*StudioConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioConfigServiceSubscribeBatchedClient) Recv() (*StudioConfigBatchedStreamResponse, error) {
+	m := new(StudioConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // StudioConfigServiceServer is the server API for StudioConfigService service.
 // All implementations must embed UnimplementedStudioConfigServiceServer
 // for forward compatibility
@@ -4215,6 +5307,8 @@ type StudioConfigServiceServer interface {
 	Delete(context.Context, *StudioConfigDeleteRequest) (*StudioConfigDeleteResponse, error)
 	DeleteSome(*StudioConfigDeleteSomeRequest, StudioConfigService_DeleteSomeServer) error
 	DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error
+	GetAllBatched(*StudioConfigBatchedStreamRequest, StudioConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*StudioConfigBatchedStreamRequest, StudioConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedStudioConfigServiceServer()
 }
 
@@ -4254,6 +5348,12 @@ func (UnimplementedStudioConfigServiceServer) DeleteSome(*StudioConfigDeleteSome
 }
 func (UnimplementedStudioConfigServiceServer) DeleteAll(*StudioConfigDeleteAllRequest, StudioConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) GetAllBatched(*StudioConfigBatchedStreamRequest, StudioConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedStudioConfigServiceServer) SubscribeBatched(*StudioConfigBatchedStreamRequest, StudioConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedStudioConfigServiceServer) mustEmbedUnimplementedStudioConfigServiceServer() {}
 
@@ -4487,6 +5587,48 @@ func (x *studioConfigServiceDeleteAllServer) Send(m *StudioConfigDeleteAllRespon
 	return x.ServerStream.SendMsg(m)
 }
 
+func _StudioConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).GetAllBatched(m, &studioConfigServiceGetAllBatchedServer{stream})
+}
+
+type StudioConfigService_GetAllBatchedServer interface {
+	Send(*StudioConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceGetAllBatchedServer) Send(m *StudioConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioConfigServiceServer).SubscribeBatched(m, &studioConfigServiceSubscribeBatchedServer{stream})
+}
+
+type StudioConfigService_SubscribeBatchedServer interface {
+	Send(*StudioConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioConfigServiceSubscribeBatchedServer) Send(m *StudioConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // StudioConfigService_ServiceDesc is the grpc.ServiceDesc for StudioConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4547,17 +5689,29 @@ var StudioConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _StudioConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _StudioConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _StudioConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/studio.v1/services.gen.proto",
 }
 
 const (
-	StudioSummaryService_GetOne_FullMethodName        = "/arista.studio.v1.StudioSummaryService/GetOne"
-	StudioSummaryService_GetSome_FullMethodName       = "/arista.studio.v1.StudioSummaryService/GetSome"
-	StudioSummaryService_GetAll_FullMethodName        = "/arista.studio.v1.StudioSummaryService/GetAll"
-	StudioSummaryService_Subscribe_FullMethodName     = "/arista.studio.v1.StudioSummaryService/Subscribe"
-	StudioSummaryService_GetMeta_FullMethodName       = "/arista.studio.v1.StudioSummaryService/GetMeta"
-	StudioSummaryService_SubscribeMeta_FullMethodName = "/arista.studio.v1.StudioSummaryService/SubscribeMeta"
+	StudioSummaryService_GetOne_FullMethodName           = "/arista.studio.v1.StudioSummaryService/GetOne"
+	StudioSummaryService_GetSome_FullMethodName          = "/arista.studio.v1.StudioSummaryService/GetSome"
+	StudioSummaryService_GetAll_FullMethodName           = "/arista.studio.v1.StudioSummaryService/GetAll"
+	StudioSummaryService_Subscribe_FullMethodName        = "/arista.studio.v1.StudioSummaryService/Subscribe"
+	StudioSummaryService_GetMeta_FullMethodName          = "/arista.studio.v1.StudioSummaryService/GetMeta"
+	StudioSummaryService_SubscribeMeta_FullMethodName    = "/arista.studio.v1.StudioSummaryService/SubscribeMeta"
+	StudioSummaryService_GetAllBatched_FullMethodName    = "/arista.studio.v1.StudioSummaryService/GetAllBatched"
+	StudioSummaryService_SubscribeBatched_FullMethodName = "/arista.studio.v1.StudioSummaryService/SubscribeBatched"
 )
 
 // StudioSummaryServiceClient is the client API for StudioSummaryService service.
@@ -4570,6 +5724,8 @@ type StudioSummaryServiceClient interface {
 	Subscribe(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *StudioSummaryStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *StudioSummaryBatchedStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *StudioSummaryBatchedStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeBatchedClient, error)
 }
 
 type studioSummaryServiceClient struct {
@@ -4726,6 +5882,70 @@ func (x *studioSummaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) 
 	return m, nil
 }
 
+func (c *studioSummaryServiceClient) GetAllBatched(ctx context.Context, in *StudioSummaryBatchedStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[4], StudioSummaryService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_GetAllBatchedClient interface {
+	Recv() (*StudioSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceGetAllBatchedClient) Recv() (*StudioSummaryBatchedStreamResponse, error) {
+	m := new(StudioSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioSummaryServiceClient) SubscribeBatched(ctx context.Context, in *StudioSummaryBatchedStreamRequest, opts ...grpc.CallOption) (StudioSummaryService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioSummaryService_ServiceDesc.Streams[5], StudioSummaryService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioSummaryServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioSummaryService_SubscribeBatchedClient interface {
+	Recv() (*StudioSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioSummaryServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioSummaryServiceSubscribeBatchedClient) Recv() (*StudioSummaryBatchedStreamResponse, error) {
+	m := new(StudioSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // StudioSummaryServiceServer is the server API for StudioSummaryService service.
 // All implementations must embed UnimplementedStudioSummaryServiceServer
 // for forward compatibility
@@ -4736,6 +5956,8 @@ type StudioSummaryServiceServer interface {
 	Subscribe(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeServer) error
 	GetMeta(context.Context, *StudioSummaryStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeMetaServer) error
+	GetAllBatched(*StudioSummaryBatchedStreamRequest, StudioSummaryService_GetAllBatchedServer) error
+	SubscribeBatched(*StudioSummaryBatchedStreamRequest, StudioSummaryService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedStudioSummaryServiceServer()
 }
 
@@ -4760,6 +5982,12 @@ func (UnimplementedStudioSummaryServiceServer) GetMeta(context.Context, *StudioS
 }
 func (UnimplementedStudioSummaryServiceServer) SubscribeMeta(*StudioSummaryStreamRequest, StudioSummaryService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) GetAllBatched(*StudioSummaryBatchedStreamRequest, StudioSummaryService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedStudioSummaryServiceServer) SubscribeBatched(*StudioSummaryBatchedStreamRequest, StudioSummaryService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedStudioSummaryServiceServer) mustEmbedUnimplementedStudioSummaryServiceServer() {}
 
@@ -4894,6 +6122,48 @@ func (x *studioSummaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _StudioSummaryService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).GetAllBatched(m, &studioSummaryServiceGetAllBatchedServer{stream})
+}
+
+type StudioSummaryService_GetAllBatchedServer interface {
+	Send(*StudioSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceGetAllBatchedServer) Send(m *StudioSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioSummaryService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioSummaryServiceServer).SubscribeBatched(m, &studioSummaryServiceSubscribeBatchedServer{stream})
+}
+
+type StudioSummaryService_SubscribeBatchedServer interface {
+	Send(*StudioSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioSummaryServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioSummaryServiceSubscribeBatchedServer) Send(m *StudioSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // StudioSummaryService_ServiceDesc is the grpc.ServiceDesc for StudioSummaryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4929,6 +6199,16 @@ var StudioSummaryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _StudioSummaryService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _StudioSummaryService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _StudioSummaryService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
