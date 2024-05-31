@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	EndpointLocationService_GetOne_FullMethodName        = "/arista.endpointlocation.v1.EndpointLocationService/GetOne"
-	EndpointLocationService_GetSome_FullMethodName       = "/arista.endpointlocation.v1.EndpointLocationService/GetSome"
-	EndpointLocationService_GetAll_FullMethodName        = "/arista.endpointlocation.v1.EndpointLocationService/GetAll"
-	EndpointLocationService_Subscribe_FullMethodName     = "/arista.endpointlocation.v1.EndpointLocationService/Subscribe"
-	EndpointLocationService_GetMeta_FullMethodName       = "/arista.endpointlocation.v1.EndpointLocationService/GetMeta"
-	EndpointLocationService_SubscribeMeta_FullMethodName = "/arista.endpointlocation.v1.EndpointLocationService/SubscribeMeta"
+	EndpointLocationService_GetOne_FullMethodName           = "/arista.endpointlocation.v1.EndpointLocationService/GetOne"
+	EndpointLocationService_GetSome_FullMethodName          = "/arista.endpointlocation.v1.EndpointLocationService/GetSome"
+	EndpointLocationService_GetAll_FullMethodName           = "/arista.endpointlocation.v1.EndpointLocationService/GetAll"
+	EndpointLocationService_Subscribe_FullMethodName        = "/arista.endpointlocation.v1.EndpointLocationService/Subscribe"
+	EndpointLocationService_GetMeta_FullMethodName          = "/arista.endpointlocation.v1.EndpointLocationService/GetMeta"
+	EndpointLocationService_SubscribeMeta_FullMethodName    = "/arista.endpointlocation.v1.EndpointLocationService/SubscribeMeta"
+	EndpointLocationService_GetAllBatched_FullMethodName    = "/arista.endpointlocation.v1.EndpointLocationService/GetAllBatched"
+	EndpointLocationService_SubscribeBatched_FullMethodName = "/arista.endpointlocation.v1.EndpointLocationService/SubscribeBatched"
 )
 
 // EndpointLocationServiceClient is the client API for EndpointLocationService service.
@@ -45,6 +47,8 @@ type EndpointLocationServiceClient interface {
 	Subscribe(ctx context.Context, in *EndpointLocationStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *EndpointLocationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *EndpointLocationStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *EndpointLocationBatchedStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *EndpointLocationBatchedStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_SubscribeBatchedClient, error)
 }
 
 type endpointLocationServiceClient struct {
@@ -201,6 +205,70 @@ func (x *endpointLocationServiceSubscribeMetaClient) Recv() (*MetaResponse, erro
 	return m, nil
 }
 
+func (c *endpointLocationServiceClient) GetAllBatched(ctx context.Context, in *EndpointLocationBatchedStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EndpointLocationService_ServiceDesc.Streams[4], EndpointLocationService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &endpointLocationServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EndpointLocationService_GetAllBatchedClient interface {
+	Recv() (*EndpointLocationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type endpointLocationServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *endpointLocationServiceGetAllBatchedClient) Recv() (*EndpointLocationBatchedStreamResponse, error) {
+	m := new(EndpointLocationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *endpointLocationServiceClient) SubscribeBatched(ctx context.Context, in *EndpointLocationBatchedStreamRequest, opts ...grpc.CallOption) (EndpointLocationService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EndpointLocationService_ServiceDesc.Streams[5], EndpointLocationService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &endpointLocationServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EndpointLocationService_SubscribeBatchedClient interface {
+	Recv() (*EndpointLocationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type endpointLocationServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *endpointLocationServiceSubscribeBatchedClient) Recv() (*EndpointLocationBatchedStreamResponse, error) {
+	m := new(EndpointLocationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EndpointLocationServiceServer is the server API for EndpointLocationService service.
 // All implementations must embed UnimplementedEndpointLocationServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type EndpointLocationServiceServer interface {
 	Subscribe(*EndpointLocationStreamRequest, EndpointLocationService_SubscribeServer) error
 	GetMeta(context.Context, *EndpointLocationStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*EndpointLocationStreamRequest, EndpointLocationService_SubscribeMetaServer) error
+	GetAllBatched(*EndpointLocationBatchedStreamRequest, EndpointLocationService_GetAllBatchedServer) error
+	SubscribeBatched(*EndpointLocationBatchedStreamRequest, EndpointLocationService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedEndpointLocationServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedEndpointLocationServiceServer) GetMeta(context.Context, *Endp
 }
 func (UnimplementedEndpointLocationServiceServer) SubscribeMeta(*EndpointLocationStreamRequest, EndpointLocationService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedEndpointLocationServiceServer) GetAllBatched(*EndpointLocationBatchedStreamRequest, EndpointLocationService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedEndpointLocationServiceServer) SubscribeBatched(*EndpointLocationBatchedStreamRequest, EndpointLocationService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedEndpointLocationServiceServer) mustEmbedUnimplementedEndpointLocationServiceServer() {
 }
@@ -370,6 +446,48 @@ func (x *endpointLocationServiceSubscribeMetaServer) Send(m *MetaResponse) error
 	return x.ServerStream.SendMsg(m)
 }
 
+func _EndpointLocationService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EndpointLocationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EndpointLocationServiceServer).GetAllBatched(m, &endpointLocationServiceGetAllBatchedServer{stream})
+}
+
+type EndpointLocationService_GetAllBatchedServer interface {
+	Send(*EndpointLocationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type endpointLocationServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *endpointLocationServiceGetAllBatchedServer) Send(m *EndpointLocationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _EndpointLocationService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EndpointLocationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EndpointLocationServiceServer).SubscribeBatched(m, &endpointLocationServiceSubscribeBatchedServer{stream})
+}
+
+type EndpointLocationService_SubscribeBatchedServer interface {
+	Send(*EndpointLocationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type endpointLocationServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *endpointLocationServiceSubscribeBatchedServer) Send(m *EndpointLocationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // EndpointLocationService_ServiceDesc is the grpc.ServiceDesc for EndpointLocationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -405,6 +523,16 @@ var EndpointLocationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _EndpointLocationService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _EndpointLocationService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _EndpointLocationService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

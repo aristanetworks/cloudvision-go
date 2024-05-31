@@ -27,17 +27,19 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	OAuthConfigService_GetOne_FullMethodName        = "/arista.identityprovider.v1.OAuthConfigService/GetOne"
-	OAuthConfigService_GetSome_FullMethodName       = "/arista.identityprovider.v1.OAuthConfigService/GetSome"
-	OAuthConfigService_GetAll_FullMethodName        = "/arista.identityprovider.v1.OAuthConfigService/GetAll"
-	OAuthConfigService_Subscribe_FullMethodName     = "/arista.identityprovider.v1.OAuthConfigService/Subscribe"
-	OAuthConfigService_GetMeta_FullMethodName       = "/arista.identityprovider.v1.OAuthConfigService/GetMeta"
-	OAuthConfigService_SubscribeMeta_FullMethodName = "/arista.identityprovider.v1.OAuthConfigService/SubscribeMeta"
-	OAuthConfigService_Set_FullMethodName           = "/arista.identityprovider.v1.OAuthConfigService/Set"
-	OAuthConfigService_SetSome_FullMethodName       = "/arista.identityprovider.v1.OAuthConfigService/SetSome"
-	OAuthConfigService_Delete_FullMethodName        = "/arista.identityprovider.v1.OAuthConfigService/Delete"
-	OAuthConfigService_DeleteSome_FullMethodName    = "/arista.identityprovider.v1.OAuthConfigService/DeleteSome"
-	OAuthConfigService_DeleteAll_FullMethodName     = "/arista.identityprovider.v1.OAuthConfigService/DeleteAll"
+	OAuthConfigService_GetOne_FullMethodName           = "/arista.identityprovider.v1.OAuthConfigService/GetOne"
+	OAuthConfigService_GetSome_FullMethodName          = "/arista.identityprovider.v1.OAuthConfigService/GetSome"
+	OAuthConfigService_GetAll_FullMethodName           = "/arista.identityprovider.v1.OAuthConfigService/GetAll"
+	OAuthConfigService_Subscribe_FullMethodName        = "/arista.identityprovider.v1.OAuthConfigService/Subscribe"
+	OAuthConfigService_GetMeta_FullMethodName          = "/arista.identityprovider.v1.OAuthConfigService/GetMeta"
+	OAuthConfigService_SubscribeMeta_FullMethodName    = "/arista.identityprovider.v1.OAuthConfigService/SubscribeMeta"
+	OAuthConfigService_Set_FullMethodName              = "/arista.identityprovider.v1.OAuthConfigService/Set"
+	OAuthConfigService_SetSome_FullMethodName          = "/arista.identityprovider.v1.OAuthConfigService/SetSome"
+	OAuthConfigService_Delete_FullMethodName           = "/arista.identityprovider.v1.OAuthConfigService/Delete"
+	OAuthConfigService_DeleteSome_FullMethodName       = "/arista.identityprovider.v1.OAuthConfigService/DeleteSome"
+	OAuthConfigService_DeleteAll_FullMethodName        = "/arista.identityprovider.v1.OAuthConfigService/DeleteAll"
+	OAuthConfigService_GetAllBatched_FullMethodName    = "/arista.identityprovider.v1.OAuthConfigService/GetAllBatched"
+	OAuthConfigService_SubscribeBatched_FullMethodName = "/arista.identityprovider.v1.OAuthConfigService/SubscribeBatched"
 )
 
 // OAuthConfigServiceClient is the client API for OAuthConfigService service.
@@ -55,6 +57,8 @@ type OAuthConfigServiceClient interface {
 	Delete(ctx context.Context, in *OAuthConfigDeleteRequest, opts ...grpc.CallOption) (*OAuthConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *OAuthConfigDeleteSomeRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *OAuthConfigDeleteAllRequest, opts ...grpc.CallOption) (OAuthConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *OAuthConfigBatchedStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *OAuthConfigBatchedStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeBatchedClient, error)
 }
 
 type oAuthConfigServiceClient struct {
@@ -325,6 +329,70 @@ func (x *oAuthConfigServiceDeleteAllClient) Recv() (*OAuthConfigDeleteAllRespons
 	return m, nil
 }
 
+func (c *oAuthConfigServiceClient) GetAllBatched(ctx context.Context, in *OAuthConfigBatchedStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[7], OAuthConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_GetAllBatchedClient interface {
+	Recv() (*OAuthConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceGetAllBatchedClient) Recv() (*OAuthConfigBatchedStreamResponse, error) {
+	m := new(OAuthConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *oAuthConfigServiceClient) SubscribeBatched(ctx context.Context, in *OAuthConfigBatchedStreamRequest, opts ...grpc.CallOption) (OAuthConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OAuthConfigService_ServiceDesc.Streams[8], OAuthConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &oAuthConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OAuthConfigService_SubscribeBatchedClient interface {
+	Recv() (*OAuthConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type oAuthConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *oAuthConfigServiceSubscribeBatchedClient) Recv() (*OAuthConfigBatchedStreamResponse, error) {
+	m := new(OAuthConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // OAuthConfigServiceServer is the server API for OAuthConfigService service.
 // All implementations must embed UnimplementedOAuthConfigServiceServer
 // for forward compatibility
@@ -340,6 +408,8 @@ type OAuthConfigServiceServer interface {
 	Delete(context.Context, *OAuthConfigDeleteRequest) (*OAuthConfigDeleteResponse, error)
 	DeleteSome(*OAuthConfigDeleteSomeRequest, OAuthConfigService_DeleteSomeServer) error
 	DeleteAll(*OAuthConfigDeleteAllRequest, OAuthConfigService_DeleteAllServer) error
+	GetAllBatched(*OAuthConfigBatchedStreamRequest, OAuthConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*OAuthConfigBatchedStreamRequest, OAuthConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedOAuthConfigServiceServer()
 }
 
@@ -379,6 +449,12 @@ func (UnimplementedOAuthConfigServiceServer) DeleteSome(*OAuthConfigDeleteSomeRe
 }
 func (UnimplementedOAuthConfigServiceServer) DeleteAll(*OAuthConfigDeleteAllRequest, OAuthConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedOAuthConfigServiceServer) GetAllBatched(*OAuthConfigBatchedStreamRequest, OAuthConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedOAuthConfigServiceServer) SubscribeBatched(*OAuthConfigBatchedStreamRequest, OAuthConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedOAuthConfigServiceServer) mustEmbedUnimplementedOAuthConfigServiceServer() {}
 
@@ -612,6 +688,48 @@ func (x *oAuthConfigServiceDeleteAllServer) Send(m *OAuthConfigDeleteAllResponse
 	return x.ServerStream.SendMsg(m)
 }
 
+func _OAuthConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).GetAllBatched(m, &oAuthConfigServiceGetAllBatchedServer{stream})
+}
+
+type OAuthConfigService_GetAllBatchedServer interface {
+	Send(*OAuthConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceGetAllBatchedServer) Send(m *OAuthConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _OAuthConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(OAuthConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OAuthConfigServiceServer).SubscribeBatched(m, &oAuthConfigServiceSubscribeBatchedServer{stream})
+}
+
+type OAuthConfigService_SubscribeBatchedServer interface {
+	Send(*OAuthConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type oAuthConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *oAuthConfigServiceSubscribeBatchedServer) Send(m *OAuthConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // OAuthConfigService_ServiceDesc is the grpc.ServiceDesc for OAuthConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -672,22 +790,34 @@ var OAuthConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _OAuthConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _OAuthConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _OAuthConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/identityprovider.v1/services.gen.proto",
 }
 
 const (
-	SAMLConfigService_GetOne_FullMethodName        = "/arista.identityprovider.v1.SAMLConfigService/GetOne"
-	SAMLConfigService_GetSome_FullMethodName       = "/arista.identityprovider.v1.SAMLConfigService/GetSome"
-	SAMLConfigService_GetAll_FullMethodName        = "/arista.identityprovider.v1.SAMLConfigService/GetAll"
-	SAMLConfigService_Subscribe_FullMethodName     = "/arista.identityprovider.v1.SAMLConfigService/Subscribe"
-	SAMLConfigService_GetMeta_FullMethodName       = "/arista.identityprovider.v1.SAMLConfigService/GetMeta"
-	SAMLConfigService_SubscribeMeta_FullMethodName = "/arista.identityprovider.v1.SAMLConfigService/SubscribeMeta"
-	SAMLConfigService_Set_FullMethodName           = "/arista.identityprovider.v1.SAMLConfigService/Set"
-	SAMLConfigService_SetSome_FullMethodName       = "/arista.identityprovider.v1.SAMLConfigService/SetSome"
-	SAMLConfigService_Delete_FullMethodName        = "/arista.identityprovider.v1.SAMLConfigService/Delete"
-	SAMLConfigService_DeleteSome_FullMethodName    = "/arista.identityprovider.v1.SAMLConfigService/DeleteSome"
-	SAMLConfigService_DeleteAll_FullMethodName     = "/arista.identityprovider.v1.SAMLConfigService/DeleteAll"
+	SAMLConfigService_GetOne_FullMethodName           = "/arista.identityprovider.v1.SAMLConfigService/GetOne"
+	SAMLConfigService_GetSome_FullMethodName          = "/arista.identityprovider.v1.SAMLConfigService/GetSome"
+	SAMLConfigService_GetAll_FullMethodName           = "/arista.identityprovider.v1.SAMLConfigService/GetAll"
+	SAMLConfigService_Subscribe_FullMethodName        = "/arista.identityprovider.v1.SAMLConfigService/Subscribe"
+	SAMLConfigService_GetMeta_FullMethodName          = "/arista.identityprovider.v1.SAMLConfigService/GetMeta"
+	SAMLConfigService_SubscribeMeta_FullMethodName    = "/arista.identityprovider.v1.SAMLConfigService/SubscribeMeta"
+	SAMLConfigService_Set_FullMethodName              = "/arista.identityprovider.v1.SAMLConfigService/Set"
+	SAMLConfigService_SetSome_FullMethodName          = "/arista.identityprovider.v1.SAMLConfigService/SetSome"
+	SAMLConfigService_Delete_FullMethodName           = "/arista.identityprovider.v1.SAMLConfigService/Delete"
+	SAMLConfigService_DeleteSome_FullMethodName       = "/arista.identityprovider.v1.SAMLConfigService/DeleteSome"
+	SAMLConfigService_DeleteAll_FullMethodName        = "/arista.identityprovider.v1.SAMLConfigService/DeleteAll"
+	SAMLConfigService_GetAllBatched_FullMethodName    = "/arista.identityprovider.v1.SAMLConfigService/GetAllBatched"
+	SAMLConfigService_SubscribeBatched_FullMethodName = "/arista.identityprovider.v1.SAMLConfigService/SubscribeBatched"
 )
 
 // SAMLConfigServiceClient is the client API for SAMLConfigService service.
@@ -705,6 +835,8 @@ type SAMLConfigServiceClient interface {
 	Delete(ctx context.Context, in *SAMLConfigDeleteRequest, opts ...grpc.CallOption) (*SAMLConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *SAMLConfigDeleteSomeRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *SAMLConfigDeleteAllRequest, opts ...grpc.CallOption) (SAMLConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *SAMLConfigBatchedStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SAMLConfigBatchedStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeBatchedClient, error)
 }
 
 type sAMLConfigServiceClient struct {
@@ -975,6 +1107,70 @@ func (x *sAMLConfigServiceDeleteAllClient) Recv() (*SAMLConfigDeleteAllResponse,
 	return m, nil
 }
 
+func (c *sAMLConfigServiceClient) GetAllBatched(ctx context.Context, in *SAMLConfigBatchedStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[7], SAMLConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_GetAllBatchedClient interface {
+	Recv() (*SAMLConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceGetAllBatchedClient) Recv() (*SAMLConfigBatchedStreamResponse, error) {
+	m := new(SAMLConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *sAMLConfigServiceClient) SubscribeBatched(ctx context.Context, in *SAMLConfigBatchedStreamRequest, opts ...grpc.CallOption) (SAMLConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SAMLConfigService_ServiceDesc.Streams[8], SAMLConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sAMLConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SAMLConfigService_SubscribeBatchedClient interface {
+	Recv() (*SAMLConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type sAMLConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *sAMLConfigServiceSubscribeBatchedClient) Recv() (*SAMLConfigBatchedStreamResponse, error) {
+	m := new(SAMLConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SAMLConfigServiceServer is the server API for SAMLConfigService service.
 // All implementations must embed UnimplementedSAMLConfigServiceServer
 // for forward compatibility
@@ -990,6 +1186,8 @@ type SAMLConfigServiceServer interface {
 	Delete(context.Context, *SAMLConfigDeleteRequest) (*SAMLConfigDeleteResponse, error)
 	DeleteSome(*SAMLConfigDeleteSomeRequest, SAMLConfigService_DeleteSomeServer) error
 	DeleteAll(*SAMLConfigDeleteAllRequest, SAMLConfigService_DeleteAllServer) error
+	GetAllBatched(*SAMLConfigBatchedStreamRequest, SAMLConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*SAMLConfigBatchedStreamRequest, SAMLConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedSAMLConfigServiceServer()
 }
 
@@ -1029,6 +1227,12 @@ func (UnimplementedSAMLConfigServiceServer) DeleteSome(*SAMLConfigDeleteSomeRequ
 }
 func (UnimplementedSAMLConfigServiceServer) DeleteAll(*SAMLConfigDeleteAllRequest, SAMLConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedSAMLConfigServiceServer) GetAllBatched(*SAMLConfigBatchedStreamRequest, SAMLConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSAMLConfigServiceServer) SubscribeBatched(*SAMLConfigBatchedStreamRequest, SAMLConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedSAMLConfigServiceServer) mustEmbedUnimplementedSAMLConfigServiceServer() {}
 
@@ -1262,6 +1466,48 @@ func (x *sAMLConfigServiceDeleteAllServer) Send(m *SAMLConfigDeleteAllResponse) 
 	return x.ServerStream.SendMsg(m)
 }
 
+func _SAMLConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).GetAllBatched(m, &sAMLConfigServiceGetAllBatchedServer{stream})
+}
+
+type SAMLConfigService_GetAllBatchedServer interface {
+	Send(*SAMLConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceGetAllBatchedServer) Send(m *SAMLConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SAMLConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SAMLConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SAMLConfigServiceServer).SubscribeBatched(m, &sAMLConfigServiceSubscribeBatchedServer{stream})
+}
+
+type SAMLConfigService_SubscribeBatchedServer interface {
+	Send(*SAMLConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type sAMLConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *sAMLConfigServiceSubscribeBatchedServer) Send(m *SAMLConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SAMLConfigService_ServiceDesc is the grpc.ServiceDesc for SAMLConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1320,6 +1566,16 @@ var SAMLConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DeleteAll",
 			Handler:       _SAMLConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SAMLConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SAMLConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},

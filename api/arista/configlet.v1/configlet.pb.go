@@ -216,7 +216,7 @@ type Configlet struct {
 	LastModifiedBy *wrapperspb.StringValue `protobuf:"bytes,9,opt,name=last_modified_by,json=lastModifiedBy,proto3" json:"last_modified_by,omitempty"`
 	// digest is the sha256 hash of the configlet body encoded in hexadecimal.
 	Digest *wrapperspb.StringValue `protobuf:"bytes,10,opt,name=digest,proto3" json:"digest,omitempty"`
-	// size of configlet of body in bytes.
+	// size of configlet body in bytes.
 	Size *wrapperspb.Int64Value `protobuf:"bytes,11,opt,name=size,proto3" json:"size,omitempty"`
 }
 

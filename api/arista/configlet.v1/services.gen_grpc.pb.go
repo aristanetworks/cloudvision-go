@@ -27,12 +27,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ConfigletService_GetOne_FullMethodName        = "/arista.configlet.v1.ConfigletService/GetOne"
-	ConfigletService_GetSome_FullMethodName       = "/arista.configlet.v1.ConfigletService/GetSome"
-	ConfigletService_GetAll_FullMethodName        = "/arista.configlet.v1.ConfigletService/GetAll"
-	ConfigletService_Subscribe_FullMethodName     = "/arista.configlet.v1.ConfigletService/Subscribe"
-	ConfigletService_GetMeta_FullMethodName       = "/arista.configlet.v1.ConfigletService/GetMeta"
-	ConfigletService_SubscribeMeta_FullMethodName = "/arista.configlet.v1.ConfigletService/SubscribeMeta"
+	ConfigletService_GetOne_FullMethodName           = "/arista.configlet.v1.ConfigletService/GetOne"
+	ConfigletService_GetSome_FullMethodName          = "/arista.configlet.v1.ConfigletService/GetSome"
+	ConfigletService_GetAll_FullMethodName           = "/arista.configlet.v1.ConfigletService/GetAll"
+	ConfigletService_Subscribe_FullMethodName        = "/arista.configlet.v1.ConfigletService/Subscribe"
+	ConfigletService_GetMeta_FullMethodName          = "/arista.configlet.v1.ConfigletService/GetMeta"
+	ConfigletService_SubscribeMeta_FullMethodName    = "/arista.configlet.v1.ConfigletService/SubscribeMeta"
+	ConfigletService_GetAllBatched_FullMethodName    = "/arista.configlet.v1.ConfigletService/GetAllBatched"
+	ConfigletService_SubscribeBatched_FullMethodName = "/arista.configlet.v1.ConfigletService/SubscribeBatched"
 )
 
 // ConfigletServiceClient is the client API for ConfigletService service.
@@ -45,6 +47,8 @@ type ConfigletServiceClient interface {
 	Subscribe(ctx context.Context, in *ConfigletStreamRequest, opts ...grpc.CallOption) (ConfigletService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ConfigletStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ConfigletStreamRequest, opts ...grpc.CallOption) (ConfigletService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigletBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigletBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletService_SubscribeBatchedClient, error)
 }
 
 type configletServiceClient struct {
@@ -201,6 +205,70 @@ func (x *configletServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
+func (c *configletServiceClient) GetAllBatched(ctx context.Context, in *ConfigletBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletService_ServiceDesc.Streams[4], ConfigletService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletService_GetAllBatchedClient interface {
+	Recv() (*ConfigletBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletServiceGetAllBatchedClient) Recv() (*ConfigletBatchedStreamResponse, error) {
+	m := new(ConfigletBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configletServiceClient) SubscribeBatched(ctx context.Context, in *ConfigletBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletService_ServiceDesc.Streams[5], ConfigletService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletService_SubscribeBatchedClient interface {
+	Recv() (*ConfigletBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletServiceSubscribeBatchedClient) Recv() (*ConfigletBatchedStreamResponse, error) {
+	m := new(ConfigletBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigletServiceServer is the server API for ConfigletService service.
 // All implementations must embed UnimplementedConfigletServiceServer
 // for forward compatibility
@@ -211,6 +279,8 @@ type ConfigletServiceServer interface {
 	Subscribe(*ConfigletStreamRequest, ConfigletService_SubscribeServer) error
 	GetMeta(context.Context, *ConfigletStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ConfigletStreamRequest, ConfigletService_SubscribeMetaServer) error
+	GetAllBatched(*ConfigletBatchedStreamRequest, ConfigletService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigletBatchedStreamRequest, ConfigletService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigletServiceServer()
 }
 
@@ -235,6 +305,12 @@ func (UnimplementedConfigletServiceServer) GetMeta(context.Context, *ConfigletSt
 }
 func (UnimplementedConfigletServiceServer) SubscribeMeta(*ConfigletStreamRequest, ConfigletService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedConfigletServiceServer) GetAllBatched(*ConfigletBatchedStreamRequest, ConfigletService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigletServiceServer) SubscribeBatched(*ConfigletBatchedStreamRequest, ConfigletService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigletServiceServer) mustEmbedUnimplementedConfigletServiceServer() {}
 
@@ -369,6 +445,48 @@ func (x *configletServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigletService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletServiceServer).GetAllBatched(m, &configletServiceGetAllBatchedServer{stream})
+}
+
+type ConfigletService_GetAllBatchedServer interface {
+	Send(*ConfigletBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletServiceGetAllBatchedServer) Send(m *ConfigletBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigletService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletServiceServer).SubscribeBatched(m, &configletServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigletService_SubscribeBatchedServer interface {
+	Send(*ConfigletBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletServiceSubscribeBatchedServer) Send(m *ConfigletBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigletService_ServiceDesc is the grpc.ServiceDesc for ConfigletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -406,17 +524,29 @@ var ConfigletService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ConfigletService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigletService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigletService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configlet.v1/services.gen.proto",
 }
 
 const (
-	ConfigletAssignmentService_GetOne_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentService/GetOne"
-	ConfigletAssignmentService_GetSome_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentService/GetSome"
-	ConfigletAssignmentService_GetAll_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentService/GetAll"
-	ConfigletAssignmentService_Subscribe_FullMethodName     = "/arista.configlet.v1.ConfigletAssignmentService/Subscribe"
-	ConfigletAssignmentService_GetMeta_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentService/GetMeta"
-	ConfigletAssignmentService_SubscribeMeta_FullMethodName = "/arista.configlet.v1.ConfigletAssignmentService/SubscribeMeta"
+	ConfigletAssignmentService_GetOne_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentService/GetOne"
+	ConfigletAssignmentService_GetSome_FullMethodName          = "/arista.configlet.v1.ConfigletAssignmentService/GetSome"
+	ConfigletAssignmentService_GetAll_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentService/GetAll"
+	ConfigletAssignmentService_Subscribe_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentService/Subscribe"
+	ConfigletAssignmentService_GetMeta_FullMethodName          = "/arista.configlet.v1.ConfigletAssignmentService/GetMeta"
+	ConfigletAssignmentService_SubscribeMeta_FullMethodName    = "/arista.configlet.v1.ConfigletAssignmentService/SubscribeMeta"
+	ConfigletAssignmentService_GetAllBatched_FullMethodName    = "/arista.configlet.v1.ConfigletAssignmentService/GetAllBatched"
+	ConfigletAssignmentService_SubscribeBatched_FullMethodName = "/arista.configlet.v1.ConfigletAssignmentService/SubscribeBatched"
 )
 
 // ConfigletAssignmentServiceClient is the client API for ConfigletAssignmentService service.
@@ -429,6 +559,8 @@ type ConfigletAssignmentServiceClient interface {
 	Subscribe(ctx context.Context, in *ConfigletAssignmentStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_SubscribeClient, error)
 	GetMeta(ctx context.Context, in *ConfigletAssignmentStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	SubscribeMeta(ctx context.Context, in *ConfigletAssignmentStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigletAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigletAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_SubscribeBatchedClient, error)
 }
 
 type configletAssignmentServiceClient struct {
@@ -585,6 +717,70 @@ func (x *configletAssignmentServiceSubscribeMetaClient) Recv() (*MetaResponse, e
 	return m, nil
 }
 
+func (c *configletAssignmentServiceClient) GetAllBatched(ctx context.Context, in *ConfigletAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletAssignmentService_ServiceDesc.Streams[4], ConfigletAssignmentService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletAssignmentServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletAssignmentService_GetAllBatchedClient interface {
+	Recv() (*ConfigletAssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletAssignmentServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletAssignmentServiceGetAllBatchedClient) Recv() (*ConfigletAssignmentBatchedStreamResponse, error) {
+	m := new(ConfigletAssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configletAssignmentServiceClient) SubscribeBatched(ctx context.Context, in *ConfigletAssignmentBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletAssignmentService_ServiceDesc.Streams[5], ConfigletAssignmentService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletAssignmentServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletAssignmentService_SubscribeBatchedClient interface {
+	Recv() (*ConfigletAssignmentBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletAssignmentServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletAssignmentServiceSubscribeBatchedClient) Recv() (*ConfigletAssignmentBatchedStreamResponse, error) {
+	m := new(ConfigletAssignmentBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigletAssignmentServiceServer is the server API for ConfigletAssignmentService service.
 // All implementations must embed UnimplementedConfigletAssignmentServiceServer
 // for forward compatibility
@@ -595,6 +791,8 @@ type ConfigletAssignmentServiceServer interface {
 	Subscribe(*ConfigletAssignmentStreamRequest, ConfigletAssignmentService_SubscribeServer) error
 	GetMeta(context.Context, *ConfigletAssignmentStreamRequest) (*MetaResponse, error)
 	SubscribeMeta(*ConfigletAssignmentStreamRequest, ConfigletAssignmentService_SubscribeMetaServer) error
+	GetAllBatched(*ConfigletAssignmentBatchedStreamRequest, ConfigletAssignmentService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigletAssignmentBatchedStreamRequest, ConfigletAssignmentService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigletAssignmentServiceServer()
 }
 
@@ -619,6 +817,12 @@ func (UnimplementedConfigletAssignmentServiceServer) GetMeta(context.Context, *C
 }
 func (UnimplementedConfigletAssignmentServiceServer) SubscribeMeta(*ConfigletAssignmentStreamRequest, ConfigletAssignmentService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedConfigletAssignmentServiceServer) GetAllBatched(*ConfigletAssignmentBatchedStreamRequest, ConfigletAssignmentService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigletAssignmentServiceServer) SubscribeBatched(*ConfigletAssignmentBatchedStreamRequest, ConfigletAssignmentService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigletAssignmentServiceServer) mustEmbedUnimplementedConfigletAssignmentServiceServer() {
 }
@@ -754,6 +958,48 @@ func (x *configletAssignmentServiceSubscribeMetaServer) Send(m *MetaResponse) er
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigletAssignmentService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletAssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletAssignmentServiceServer).GetAllBatched(m, &configletAssignmentServiceGetAllBatchedServer{stream})
+}
+
+type ConfigletAssignmentService_GetAllBatchedServer interface {
+	Send(*ConfigletAssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletAssignmentServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletAssignmentServiceGetAllBatchedServer) Send(m *ConfigletAssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigletAssignmentService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletAssignmentBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletAssignmentServiceServer).SubscribeBatched(m, &configletAssignmentServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigletAssignmentService_SubscribeBatchedServer interface {
+	Send(*ConfigletAssignmentBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletAssignmentServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletAssignmentServiceSubscribeBatchedServer) Send(m *ConfigletAssignmentBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigletAssignmentService_ServiceDesc is the grpc.ServiceDesc for ConfigletAssignmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -791,22 +1037,34 @@ var ConfigletAssignmentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ConfigletAssignmentService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigletAssignmentService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigletAssignmentService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configlet.v1/services.gen.proto",
 }
 
 const (
-	ConfigletAssignmentConfigService_GetOne_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetOne"
-	ConfigletAssignmentConfigService_GetSome_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetSome"
-	ConfigletAssignmentConfigService_GetAll_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetAll"
-	ConfigletAssignmentConfigService_Subscribe_FullMethodName     = "/arista.configlet.v1.ConfigletAssignmentConfigService/Subscribe"
-	ConfigletAssignmentConfigService_GetMeta_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetMeta"
-	ConfigletAssignmentConfigService_SubscribeMeta_FullMethodName = "/arista.configlet.v1.ConfigletAssignmentConfigService/SubscribeMeta"
-	ConfigletAssignmentConfigService_Set_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentConfigService/Set"
-	ConfigletAssignmentConfigService_SetSome_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentConfigService/SetSome"
-	ConfigletAssignmentConfigService_Delete_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentConfigService/Delete"
-	ConfigletAssignmentConfigService_DeleteSome_FullMethodName    = "/arista.configlet.v1.ConfigletAssignmentConfigService/DeleteSome"
-	ConfigletAssignmentConfigService_DeleteAll_FullMethodName     = "/arista.configlet.v1.ConfigletAssignmentConfigService/DeleteAll"
+	ConfigletAssignmentConfigService_GetOne_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetOne"
+	ConfigletAssignmentConfigService_GetSome_FullMethodName          = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetSome"
+	ConfigletAssignmentConfigService_GetAll_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetAll"
+	ConfigletAssignmentConfigService_Subscribe_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentConfigService/Subscribe"
+	ConfigletAssignmentConfigService_GetMeta_FullMethodName          = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetMeta"
+	ConfigletAssignmentConfigService_SubscribeMeta_FullMethodName    = "/arista.configlet.v1.ConfigletAssignmentConfigService/SubscribeMeta"
+	ConfigletAssignmentConfigService_Set_FullMethodName              = "/arista.configlet.v1.ConfigletAssignmentConfigService/Set"
+	ConfigletAssignmentConfigService_SetSome_FullMethodName          = "/arista.configlet.v1.ConfigletAssignmentConfigService/SetSome"
+	ConfigletAssignmentConfigService_Delete_FullMethodName           = "/arista.configlet.v1.ConfigletAssignmentConfigService/Delete"
+	ConfigletAssignmentConfigService_DeleteSome_FullMethodName       = "/arista.configlet.v1.ConfigletAssignmentConfigService/DeleteSome"
+	ConfigletAssignmentConfigService_DeleteAll_FullMethodName        = "/arista.configlet.v1.ConfigletAssignmentConfigService/DeleteAll"
+	ConfigletAssignmentConfigService_GetAllBatched_FullMethodName    = "/arista.configlet.v1.ConfigletAssignmentConfigService/GetAllBatched"
+	ConfigletAssignmentConfigService_SubscribeBatched_FullMethodName = "/arista.configlet.v1.ConfigletAssignmentConfigService/SubscribeBatched"
 )
 
 // ConfigletAssignmentConfigServiceClient is the client API for ConfigletAssignmentConfigService service.
@@ -824,6 +1082,8 @@ type ConfigletAssignmentConfigServiceClient interface {
 	Delete(ctx context.Context, in *ConfigletAssignmentConfigDeleteRequest, opts ...grpc.CallOption) (*ConfigletAssignmentConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *ConfigletAssignmentConfigDeleteSomeRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *ConfigletAssignmentConfigDeleteAllRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigletAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigletAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_SubscribeBatchedClient, error)
 }
 
 type configletAssignmentConfigServiceClient struct {
@@ -1094,6 +1354,70 @@ func (x *configletAssignmentConfigServiceDeleteAllClient) Recv() (*ConfigletAssi
 	return m, nil
 }
 
+func (c *configletAssignmentConfigServiceClient) GetAllBatched(ctx context.Context, in *ConfigletAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletAssignmentConfigService_ServiceDesc.Streams[7], ConfigletAssignmentConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletAssignmentConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletAssignmentConfigService_GetAllBatchedClient interface {
+	Recv() (*ConfigletAssignmentConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletAssignmentConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletAssignmentConfigServiceGetAllBatchedClient) Recv() (*ConfigletAssignmentConfigBatchedStreamResponse, error) {
+	m := new(ConfigletAssignmentConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configletAssignmentConfigServiceClient) SubscribeBatched(ctx context.Context, in *ConfigletAssignmentConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletAssignmentConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletAssignmentConfigService_ServiceDesc.Streams[8], ConfigletAssignmentConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletAssignmentConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletAssignmentConfigService_SubscribeBatchedClient interface {
+	Recv() (*ConfigletAssignmentConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletAssignmentConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletAssignmentConfigServiceSubscribeBatchedClient) Recv() (*ConfigletAssignmentConfigBatchedStreamResponse, error) {
+	m := new(ConfigletAssignmentConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigletAssignmentConfigServiceServer is the server API for ConfigletAssignmentConfigService service.
 // All implementations must embed UnimplementedConfigletAssignmentConfigServiceServer
 // for forward compatibility
@@ -1109,6 +1433,8 @@ type ConfigletAssignmentConfigServiceServer interface {
 	Delete(context.Context, *ConfigletAssignmentConfigDeleteRequest) (*ConfigletAssignmentConfigDeleteResponse, error)
 	DeleteSome(*ConfigletAssignmentConfigDeleteSomeRequest, ConfigletAssignmentConfigService_DeleteSomeServer) error
 	DeleteAll(*ConfigletAssignmentConfigDeleteAllRequest, ConfigletAssignmentConfigService_DeleteAllServer) error
+	GetAllBatched(*ConfigletAssignmentConfigBatchedStreamRequest, ConfigletAssignmentConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigletAssignmentConfigBatchedStreamRequest, ConfigletAssignmentConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigletAssignmentConfigServiceServer()
 }
 
@@ -1148,6 +1474,12 @@ func (UnimplementedConfigletAssignmentConfigServiceServer) DeleteSome(*Configlet
 }
 func (UnimplementedConfigletAssignmentConfigServiceServer) DeleteAll(*ConfigletAssignmentConfigDeleteAllRequest, ConfigletAssignmentConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedConfigletAssignmentConfigServiceServer) GetAllBatched(*ConfigletAssignmentConfigBatchedStreamRequest, ConfigletAssignmentConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigletAssignmentConfigServiceServer) SubscribeBatched(*ConfigletAssignmentConfigBatchedStreamRequest, ConfigletAssignmentConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigletAssignmentConfigServiceServer) mustEmbedUnimplementedConfigletAssignmentConfigServiceServer() {
 }
@@ -1382,6 +1714,48 @@ func (x *configletAssignmentConfigServiceDeleteAllServer) Send(m *ConfigletAssig
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigletAssignmentConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletAssignmentConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletAssignmentConfigServiceServer).GetAllBatched(m, &configletAssignmentConfigServiceGetAllBatchedServer{stream})
+}
+
+type ConfigletAssignmentConfigService_GetAllBatchedServer interface {
+	Send(*ConfigletAssignmentConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletAssignmentConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletAssignmentConfigServiceGetAllBatchedServer) Send(m *ConfigletAssignmentConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigletAssignmentConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletAssignmentConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletAssignmentConfigServiceServer).SubscribeBatched(m, &configletAssignmentConfigServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigletAssignmentConfigService_SubscribeBatchedServer interface {
+	Send(*ConfigletAssignmentConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletAssignmentConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletAssignmentConfigServiceSubscribeBatchedServer) Send(m *ConfigletAssignmentConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigletAssignmentConfigService_ServiceDesc is the grpc.ServiceDesc for ConfigletAssignmentConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1442,22 +1816,34 @@ var ConfigletAssignmentConfigService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _ConfigletAssignmentConfigService_DeleteAll_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigletAssignmentConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigletAssignmentConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "arista/configlet.v1/services.gen.proto",
 }
 
 const (
-	ConfigletConfigService_GetOne_FullMethodName        = "/arista.configlet.v1.ConfigletConfigService/GetOne"
-	ConfigletConfigService_GetSome_FullMethodName       = "/arista.configlet.v1.ConfigletConfigService/GetSome"
-	ConfigletConfigService_GetAll_FullMethodName        = "/arista.configlet.v1.ConfigletConfigService/GetAll"
-	ConfigletConfigService_Subscribe_FullMethodName     = "/arista.configlet.v1.ConfigletConfigService/Subscribe"
-	ConfigletConfigService_GetMeta_FullMethodName       = "/arista.configlet.v1.ConfigletConfigService/GetMeta"
-	ConfigletConfigService_SubscribeMeta_FullMethodName = "/arista.configlet.v1.ConfigletConfigService/SubscribeMeta"
-	ConfigletConfigService_Set_FullMethodName           = "/arista.configlet.v1.ConfigletConfigService/Set"
-	ConfigletConfigService_SetSome_FullMethodName       = "/arista.configlet.v1.ConfigletConfigService/SetSome"
-	ConfigletConfigService_Delete_FullMethodName        = "/arista.configlet.v1.ConfigletConfigService/Delete"
-	ConfigletConfigService_DeleteSome_FullMethodName    = "/arista.configlet.v1.ConfigletConfigService/DeleteSome"
-	ConfigletConfigService_DeleteAll_FullMethodName     = "/arista.configlet.v1.ConfigletConfigService/DeleteAll"
+	ConfigletConfigService_GetOne_FullMethodName           = "/arista.configlet.v1.ConfigletConfigService/GetOne"
+	ConfigletConfigService_GetSome_FullMethodName          = "/arista.configlet.v1.ConfigletConfigService/GetSome"
+	ConfigletConfigService_GetAll_FullMethodName           = "/arista.configlet.v1.ConfigletConfigService/GetAll"
+	ConfigletConfigService_Subscribe_FullMethodName        = "/arista.configlet.v1.ConfigletConfigService/Subscribe"
+	ConfigletConfigService_GetMeta_FullMethodName          = "/arista.configlet.v1.ConfigletConfigService/GetMeta"
+	ConfigletConfigService_SubscribeMeta_FullMethodName    = "/arista.configlet.v1.ConfigletConfigService/SubscribeMeta"
+	ConfigletConfigService_Set_FullMethodName              = "/arista.configlet.v1.ConfigletConfigService/Set"
+	ConfigletConfigService_SetSome_FullMethodName          = "/arista.configlet.v1.ConfigletConfigService/SetSome"
+	ConfigletConfigService_Delete_FullMethodName           = "/arista.configlet.v1.ConfigletConfigService/Delete"
+	ConfigletConfigService_DeleteSome_FullMethodName       = "/arista.configlet.v1.ConfigletConfigService/DeleteSome"
+	ConfigletConfigService_DeleteAll_FullMethodName        = "/arista.configlet.v1.ConfigletConfigService/DeleteAll"
+	ConfigletConfigService_GetAllBatched_FullMethodName    = "/arista.configlet.v1.ConfigletConfigService/GetAllBatched"
+	ConfigletConfigService_SubscribeBatched_FullMethodName = "/arista.configlet.v1.ConfigletConfigService/SubscribeBatched"
 )
 
 // ConfigletConfigServiceClient is the client API for ConfigletConfigService service.
@@ -1475,6 +1861,8 @@ type ConfigletConfigServiceClient interface {
 	Delete(ctx context.Context, in *ConfigletConfigDeleteRequest, opts ...grpc.CallOption) (*ConfigletConfigDeleteResponse, error)
 	DeleteSome(ctx context.Context, in *ConfigletConfigDeleteSomeRequest, opts ...grpc.CallOption) (ConfigletConfigService_DeleteSomeClient, error)
 	DeleteAll(ctx context.Context, in *ConfigletConfigDeleteAllRequest, opts ...grpc.CallOption) (ConfigletConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *ConfigletConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ConfigletConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletConfigService_SubscribeBatchedClient, error)
 }
 
 type configletConfigServiceClient struct {
@@ -1745,6 +2133,70 @@ func (x *configletConfigServiceDeleteAllClient) Recv() (*ConfigletConfigDeleteAl
 	return m, nil
 }
 
+func (c *configletConfigServiceClient) GetAllBatched(ctx context.Context, in *ConfigletConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletConfigService_ServiceDesc.Streams[7], ConfigletConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletConfigService_GetAllBatchedClient interface {
+	Recv() (*ConfigletConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletConfigServiceGetAllBatchedClient) Recv() (*ConfigletConfigBatchedStreamResponse, error) {
+	m := new(ConfigletConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *configletConfigServiceClient) SubscribeBatched(ctx context.Context, in *ConfigletConfigBatchedStreamRequest, opts ...grpc.CallOption) (ConfigletConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ConfigletConfigService_ServiceDesc.Streams[8], ConfigletConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &configletConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ConfigletConfigService_SubscribeBatchedClient interface {
+	Recv() (*ConfigletConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type configletConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *configletConfigServiceSubscribeBatchedClient) Recv() (*ConfigletConfigBatchedStreamResponse, error) {
+	m := new(ConfigletConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConfigletConfigServiceServer is the server API for ConfigletConfigService service.
 // All implementations must embed UnimplementedConfigletConfigServiceServer
 // for forward compatibility
@@ -1760,6 +2212,8 @@ type ConfigletConfigServiceServer interface {
 	Delete(context.Context, *ConfigletConfigDeleteRequest) (*ConfigletConfigDeleteResponse, error)
 	DeleteSome(*ConfigletConfigDeleteSomeRequest, ConfigletConfigService_DeleteSomeServer) error
 	DeleteAll(*ConfigletConfigDeleteAllRequest, ConfigletConfigService_DeleteAllServer) error
+	GetAllBatched(*ConfigletConfigBatchedStreamRequest, ConfigletConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*ConfigletConfigBatchedStreamRequest, ConfigletConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedConfigletConfigServiceServer()
 }
 
@@ -1799,6 +2253,12 @@ func (UnimplementedConfigletConfigServiceServer) DeleteSome(*ConfigletConfigDele
 }
 func (UnimplementedConfigletConfigServiceServer) DeleteAll(*ConfigletConfigDeleteAllRequest, ConfigletConfigService_DeleteAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedConfigletConfigServiceServer) GetAllBatched(*ConfigletConfigBatchedStreamRequest, ConfigletConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedConfigletConfigServiceServer) SubscribeBatched(*ConfigletConfigBatchedStreamRequest, ConfigletConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedConfigletConfigServiceServer) mustEmbedUnimplementedConfigletConfigServiceServer() {
 }
@@ -2033,6 +2493,48 @@ func (x *configletConfigServiceDeleteAllServer) Send(m *ConfigletConfigDeleteAll
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ConfigletConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletConfigServiceServer).GetAllBatched(m, &configletConfigServiceGetAllBatchedServer{stream})
+}
+
+type ConfigletConfigService_GetAllBatchedServer interface {
+	Send(*ConfigletConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletConfigServiceGetAllBatchedServer) Send(m *ConfigletConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ConfigletConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfigletConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConfigletConfigServiceServer).SubscribeBatched(m, &configletConfigServiceSubscribeBatchedServer{stream})
+}
+
+type ConfigletConfigService_SubscribeBatchedServer interface {
+	Send(*ConfigletConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type configletConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *configletConfigServiceSubscribeBatchedServer) Send(m *ConfigletConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ConfigletConfigService_ServiceDesc is the grpc.ServiceDesc for ConfigletConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2091,6 +2593,16 @@ var ConfigletConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DeleteAll",
 			Handler:       _ConfigletConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ConfigletConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ConfigletConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
