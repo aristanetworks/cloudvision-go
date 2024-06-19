@@ -27,12 +27,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AlertService_GetOne_FullMethodName           = "/arista.alert.v1.AlertService/GetOne"
-	AlertService_GetAll_FullMethodName           = "/arista.alert.v1.AlertService/GetAll"
-	AlertService_Subscribe_FullMethodName        = "/arista.alert.v1.AlertService/Subscribe"
-	AlertService_SubscribeMeta_FullMethodName    = "/arista.alert.v1.AlertService/SubscribeMeta"
-	AlertService_GetAllBatched_FullMethodName    = "/arista.alert.v1.AlertService/GetAllBatched"
-	AlertService_SubscribeBatched_FullMethodName = "/arista.alert.v1.AlertService/SubscribeBatched"
+	AlertService_GetOne_FullMethodName        = "/arista.alert.v1.AlertService/GetOne"
+	AlertService_GetAll_FullMethodName        = "/arista.alert.v1.AlertService/GetAll"
+	AlertService_Subscribe_FullMethodName     = "/arista.alert.v1.AlertService/Subscribe"
+	AlertService_SubscribeMeta_FullMethodName = "/arista.alert.v1.AlertService/SubscribeMeta"
 )
 
 // AlertServiceClient is the client API for AlertService service.
@@ -43,8 +41,6 @@ type AlertServiceClient interface {
 	GetAll(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_GetAllClient, error)
 	Subscribe(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeClient, error)
 	SubscribeMeta(ctx context.Context, in *AlertStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeMetaClient, error)
-	GetAllBatched(ctx context.Context, in *AlertBatchedStreamRequest, opts ...grpc.CallOption) (AlertService_GetAllBatchedClient, error)
-	SubscribeBatched(ctx context.Context, in *AlertBatchedStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeBatchedClient, error)
 }
 
 type alertServiceClient struct {
@@ -160,70 +156,6 @@ func (x *alertServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
 	return m, nil
 }
 
-func (c *alertServiceClient) GetAllBatched(ctx context.Context, in *AlertBatchedStreamRequest, opts ...grpc.CallOption) (AlertService_GetAllBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[3], AlertService_GetAllBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &alertServiceGetAllBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type AlertService_GetAllBatchedClient interface {
-	Recv() (*AlertBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type alertServiceGetAllBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *alertServiceGetAllBatchedClient) Recv() (*AlertBatchedStreamResponse, error) {
-	m := new(AlertBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *alertServiceClient) SubscribeBatched(ctx context.Context, in *AlertBatchedStreamRequest, opts ...grpc.CallOption) (AlertService_SubscribeBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertService_ServiceDesc.Streams[4], AlertService_SubscribeBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &alertServiceSubscribeBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type AlertService_SubscribeBatchedClient interface {
-	Recv() (*AlertBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type alertServiceSubscribeBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *alertServiceSubscribeBatchedClient) Recv() (*AlertBatchedStreamResponse, error) {
-	m := new(AlertBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // AlertServiceServer is the server API for AlertService service.
 // All implementations must embed UnimplementedAlertServiceServer
 // for forward compatibility
@@ -232,8 +164,6 @@ type AlertServiceServer interface {
 	GetAll(*AlertStreamRequest, AlertService_GetAllServer) error
 	Subscribe(*AlertStreamRequest, AlertService_SubscribeServer) error
 	SubscribeMeta(*AlertStreamRequest, AlertService_SubscribeMetaServer) error
-	GetAllBatched(*AlertBatchedStreamRequest, AlertService_GetAllBatchedServer) error
-	SubscribeBatched(*AlertBatchedStreamRequest, AlertService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAlertServiceServer()
 }
 
@@ -252,12 +182,6 @@ func (UnimplementedAlertServiceServer) Subscribe(*AlertStreamRequest, AlertServi
 }
 func (UnimplementedAlertServiceServer) SubscribeMeta(*AlertStreamRequest, AlertService_SubscribeMetaServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
-}
-func (UnimplementedAlertServiceServer) GetAllBatched(*AlertBatchedStreamRequest, AlertService_GetAllBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
-}
-func (UnimplementedAlertServiceServer) SubscribeBatched(*AlertBatchedStreamRequest, AlertService_SubscribeBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAlertServiceServer) mustEmbedUnimplementedAlertServiceServer() {}
 
@@ -353,48 +277,6 @@ func (x *alertServiceSubscribeMetaServer) Send(m *MetaResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _AlertService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(AlertBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AlertServiceServer).GetAllBatched(m, &alertServiceGetAllBatchedServer{stream})
-}
-
-type AlertService_GetAllBatchedServer interface {
-	Send(*AlertBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type alertServiceGetAllBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *alertServiceGetAllBatchedServer) Send(m *AlertBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _AlertService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(AlertBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AlertServiceServer).SubscribeBatched(m, &alertServiceSubscribeBatchedServer{stream})
-}
-
-type AlertService_SubscribeBatchedServer interface {
-	Send(*AlertBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type alertServiceSubscribeBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *alertServiceSubscribeBatchedServer) Send(m *AlertBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // AlertService_ServiceDesc is the grpc.ServiceDesc for AlertService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -423,28 +305,16 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AlertService_SubscribeMeta_Handler,
 			ServerStreams: true,
 		},
-		{
-			StreamName:    "GetAllBatched",
-			Handler:       _AlertService_GetAllBatched_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SubscribeBatched",
-			Handler:       _AlertService_SubscribeBatched_Handler,
-			ServerStreams: true,
-		},
 	},
 	Metadata: "arista/alert.v1/services.gen.proto",
 }
 
 const (
-	AlertConfigService_GetOne_FullMethodName           = "/arista.alert.v1.AlertConfigService/GetOne"
-	AlertConfigService_GetAll_FullMethodName           = "/arista.alert.v1.AlertConfigService/GetAll"
-	AlertConfigService_Subscribe_FullMethodName        = "/arista.alert.v1.AlertConfigService/Subscribe"
-	AlertConfigService_SubscribeMeta_FullMethodName    = "/arista.alert.v1.AlertConfigService/SubscribeMeta"
-	AlertConfigService_Set_FullMethodName              = "/arista.alert.v1.AlertConfigService/Set"
-	AlertConfigService_GetAllBatched_FullMethodName    = "/arista.alert.v1.AlertConfigService/GetAllBatched"
-	AlertConfigService_SubscribeBatched_FullMethodName = "/arista.alert.v1.AlertConfigService/SubscribeBatched"
+	AlertConfigService_GetOne_FullMethodName        = "/arista.alert.v1.AlertConfigService/GetOne"
+	AlertConfigService_GetAll_FullMethodName        = "/arista.alert.v1.AlertConfigService/GetAll"
+	AlertConfigService_Subscribe_FullMethodName     = "/arista.alert.v1.AlertConfigService/Subscribe"
+	AlertConfigService_SubscribeMeta_FullMethodName = "/arista.alert.v1.AlertConfigService/SubscribeMeta"
+	AlertConfigService_Set_FullMethodName           = "/arista.alert.v1.AlertConfigService/Set"
 )
 
 // AlertConfigServiceClient is the client API for AlertConfigService service.
@@ -456,8 +326,6 @@ type AlertConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeClient, error)
 	SubscribeMeta(ctx context.Context, in *AlertConfigStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *AlertConfigSetRequest, opts ...grpc.CallOption) (*AlertConfigSetResponse, error)
-	GetAllBatched(ctx context.Context, in *AlertConfigBatchedStreamRequest, opts ...grpc.CallOption) (AlertConfigService_GetAllBatchedClient, error)
-	SubscribeBatched(ctx context.Context, in *AlertConfigBatchedStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeBatchedClient, error)
 }
 
 type alertConfigServiceClient struct {
@@ -582,70 +450,6 @@ func (c *alertConfigServiceClient) Set(ctx context.Context, in *AlertConfigSetRe
 	return out, nil
 }
 
-func (c *alertConfigServiceClient) GetAllBatched(ctx context.Context, in *AlertConfigBatchedStreamRequest, opts ...grpc.CallOption) (AlertConfigService_GetAllBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[3], AlertConfigService_GetAllBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &alertConfigServiceGetAllBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type AlertConfigService_GetAllBatchedClient interface {
-	Recv() (*AlertConfigBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type alertConfigServiceGetAllBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *alertConfigServiceGetAllBatchedClient) Recv() (*AlertConfigBatchedStreamResponse, error) {
-	m := new(AlertConfigBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *alertConfigServiceClient) SubscribeBatched(ctx context.Context, in *AlertConfigBatchedStreamRequest, opts ...grpc.CallOption) (AlertConfigService_SubscribeBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AlertConfigService_ServiceDesc.Streams[4], AlertConfigService_SubscribeBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &alertConfigServiceSubscribeBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type AlertConfigService_SubscribeBatchedClient interface {
-	Recv() (*AlertConfigBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type alertConfigServiceSubscribeBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *alertConfigServiceSubscribeBatchedClient) Recv() (*AlertConfigBatchedStreamResponse, error) {
-	m := new(AlertConfigBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // AlertConfigServiceServer is the server API for AlertConfigService service.
 // All implementations must embed UnimplementedAlertConfigServiceServer
 // for forward compatibility
@@ -655,8 +459,6 @@ type AlertConfigServiceServer interface {
 	Subscribe(*AlertConfigStreamRequest, AlertConfigService_SubscribeServer) error
 	SubscribeMeta(*AlertConfigStreamRequest, AlertConfigService_SubscribeMetaServer) error
 	Set(context.Context, *AlertConfigSetRequest) (*AlertConfigSetResponse, error)
-	GetAllBatched(*AlertConfigBatchedStreamRequest, AlertConfigService_GetAllBatchedServer) error
-	SubscribeBatched(*AlertConfigBatchedStreamRequest, AlertConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedAlertConfigServiceServer()
 }
 
@@ -678,12 +480,6 @@ func (UnimplementedAlertConfigServiceServer) SubscribeMeta(*AlertConfigStreamReq
 }
 func (UnimplementedAlertConfigServiceServer) Set(context.Context, *AlertConfigSetRequest) (*AlertConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedAlertConfigServiceServer) GetAllBatched(*AlertConfigBatchedStreamRequest, AlertConfigService_GetAllBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
-}
-func (UnimplementedAlertConfigServiceServer) SubscribeBatched(*AlertConfigBatchedStreamRequest, AlertConfigService_SubscribeBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedAlertConfigServiceServer) mustEmbedUnimplementedAlertConfigServiceServer() {}
 
@@ -797,48 +593,6 @@ func _AlertConfigService_Set_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AlertConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(AlertConfigBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AlertConfigServiceServer).GetAllBatched(m, &alertConfigServiceGetAllBatchedServer{stream})
-}
-
-type AlertConfigService_GetAllBatchedServer interface {
-	Send(*AlertConfigBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type alertConfigServiceGetAllBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *alertConfigServiceGetAllBatchedServer) Send(m *AlertConfigBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _AlertConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(AlertConfigBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AlertConfigServiceServer).SubscribeBatched(m, &alertConfigServiceSubscribeBatchedServer{stream})
-}
-
-type AlertConfigService_SubscribeBatchedServer interface {
-	Send(*AlertConfigBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type alertConfigServiceSubscribeBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *alertConfigServiceSubscribeBatchedServer) Send(m *AlertConfigBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // AlertConfigService_ServiceDesc is the grpc.ServiceDesc for AlertConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -869,16 +623,6 @@ var AlertConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _AlertConfigService_SubscribeMeta_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetAllBatched",
-			Handler:       _AlertConfigService_GetAllBatched_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SubscribeBatched",
-			Handler:       _AlertConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
