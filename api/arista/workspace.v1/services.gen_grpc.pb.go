@@ -2361,3 +2361,782 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "arista/workspace.v1/services.gen.proto",
 }
+
+const (
+	WorkspaceSyncConfigService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceSyncConfigService/GetOne"
+	WorkspaceSyncConfigService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceSyncConfigService/GetSome"
+	WorkspaceSyncConfigService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceSyncConfigService/GetAll"
+	WorkspaceSyncConfigService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceSyncConfigService/Subscribe"
+	WorkspaceSyncConfigService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceSyncConfigService/GetMeta"
+	WorkspaceSyncConfigService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceSyncConfigService/SubscribeMeta"
+	WorkspaceSyncConfigService_Set_FullMethodName              = "/arista.workspace.v1.WorkspaceSyncConfigService/Set"
+	WorkspaceSyncConfigService_SetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceSyncConfigService/SetSome"
+	WorkspaceSyncConfigService_Delete_FullMethodName           = "/arista.workspace.v1.WorkspaceSyncConfigService/Delete"
+	WorkspaceSyncConfigService_DeleteSome_FullMethodName       = "/arista.workspace.v1.WorkspaceSyncConfigService/DeleteSome"
+	WorkspaceSyncConfigService_DeleteAll_FullMethodName        = "/arista.workspace.v1.WorkspaceSyncConfigService/DeleteAll"
+	WorkspaceSyncConfigService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceSyncConfigService/GetAllBatched"
+	WorkspaceSyncConfigService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceSyncConfigService/SubscribeBatched"
+)
+
+// WorkspaceSyncConfigServiceClient is the client API for WorkspaceSyncConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type WorkspaceSyncConfigServiceClient interface {
+	GetOne(ctx context.Context, in *WorkspaceSyncConfigRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceSyncConfigSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeMetaClient, error)
+	Set(ctx context.Context, in *WorkspaceSyncConfigSetRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigSetResponse, error)
+	SetSome(ctx context.Context, in *WorkspaceSyncConfigSetSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SetSomeClient, error)
+	Delete(ctx context.Context, in *WorkspaceSyncConfigDeleteRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigDeleteResponse, error)
+	DeleteSome(ctx context.Context, in *WorkspaceSyncConfigDeleteSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_DeleteSomeClient, error)
+	DeleteAll(ctx context.Context, in *WorkspaceSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_DeleteAllClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceSyncConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceSyncConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeBatchedClient, error)
+}
+
+type workspaceSyncConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewWorkspaceSyncConfigServiceClient(cc grpc.ClientConnInterface) WorkspaceSyncConfigServiceClient {
+	return &workspaceSyncConfigServiceClient{cc}
+}
+
+func (c *workspaceSyncConfigServiceClient) GetOne(ctx context.Context, in *WorkspaceSyncConfigRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigResponse, error) {
+	out := new(WorkspaceSyncConfigResponse)
+	err := c.cc.Invoke(ctx, WorkspaceSyncConfigService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) GetSome(ctx context.Context, in *WorkspaceSyncConfigSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[0], WorkspaceSyncConfigService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_GetSomeClient interface {
+	Recv() (*WorkspaceSyncConfigSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceGetSomeClient) Recv() (*WorkspaceSyncConfigSomeResponse, error) {
+	m := new(WorkspaceSyncConfigSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) GetAll(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[1], WorkspaceSyncConfigService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_GetAllClient interface {
+	Recv() (*WorkspaceSyncConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceGetAllClient) Recv() (*WorkspaceSyncConfigStreamResponse, error) {
+	m := new(WorkspaceSyncConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) Subscribe(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[2], WorkspaceSyncConfigService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_SubscribeClient interface {
+	Recv() (*WorkspaceSyncConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeClient) Recv() (*WorkspaceSyncConfigStreamResponse, error) {
+	m := new(WorkspaceSyncConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) GetMeta(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, WorkspaceSyncConfigService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceSyncConfigStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[3], WorkspaceSyncConfigService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) Set(ctx context.Context, in *WorkspaceSyncConfigSetRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigSetResponse, error) {
+	out := new(WorkspaceSyncConfigSetResponse)
+	err := c.cc.Invoke(ctx, WorkspaceSyncConfigService_Set_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) SetSome(ctx context.Context, in *WorkspaceSyncConfigSetSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[4], WorkspaceSyncConfigService_SetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceSetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_SetSomeClient interface {
+	Recv() (*WorkspaceSyncConfigSetSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceSetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceSetSomeClient) Recv() (*WorkspaceSyncConfigSetSomeResponse, error) {
+	m := new(WorkspaceSyncConfigSetSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) Delete(ctx context.Context, in *WorkspaceSyncConfigDeleteRequest, opts ...grpc.CallOption) (*WorkspaceSyncConfigDeleteResponse, error) {
+	out := new(WorkspaceSyncConfigDeleteResponse)
+	err := c.cc.Invoke(ctx, WorkspaceSyncConfigService_Delete_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) DeleteSome(ctx context.Context, in *WorkspaceSyncConfigDeleteSomeRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_DeleteSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[5], WorkspaceSyncConfigService_DeleteSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceDeleteSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_DeleteSomeClient interface {
+	Recv() (*WorkspaceSyncConfigDeleteSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceDeleteSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceDeleteSomeClient) Recv() (*WorkspaceSyncConfigDeleteSomeResponse, error) {
+	m := new(WorkspaceSyncConfigDeleteSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) DeleteAll(ctx context.Context, in *WorkspaceSyncConfigDeleteAllRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_DeleteAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[6], WorkspaceSyncConfigService_DeleteAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceDeleteAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_DeleteAllClient interface {
+	Recv() (*WorkspaceSyncConfigDeleteAllResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceDeleteAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceDeleteAllClient) Recv() (*WorkspaceSyncConfigDeleteAllResponse, error) {
+	m := new(WorkspaceSyncConfigDeleteAllResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceSyncConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[7], WorkspaceSyncConfigService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceSyncConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceGetAllBatchedClient) Recv() (*WorkspaceSyncConfigBatchedStreamResponse, error) {
+	m := new(WorkspaceSyncConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceSyncConfigServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceSyncConfigBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceSyncConfigService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceSyncConfigService_ServiceDesc.Streams[8], WorkspaceSyncConfigService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceSyncConfigServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceSyncConfigService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceSyncConfigBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceSyncConfigServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeBatchedClient) Recv() (*WorkspaceSyncConfigBatchedStreamResponse, error) {
+	m := new(WorkspaceSyncConfigBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// WorkspaceSyncConfigServiceServer is the server API for WorkspaceSyncConfigService service.
+// All implementations must embed UnimplementedWorkspaceSyncConfigServiceServer
+// for forward compatibility
+type WorkspaceSyncConfigServiceServer interface {
+	GetOne(context.Context, *WorkspaceSyncConfigRequest) (*WorkspaceSyncConfigResponse, error)
+	GetSome(*WorkspaceSyncConfigSomeRequest, WorkspaceSyncConfigService_GetSomeServer) error
+	GetAll(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_GetAllServer) error
+	Subscribe(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceSyncConfigStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_SubscribeMetaServer) error
+	Set(context.Context, *WorkspaceSyncConfigSetRequest) (*WorkspaceSyncConfigSetResponse, error)
+	SetSome(*WorkspaceSyncConfigSetSomeRequest, WorkspaceSyncConfigService_SetSomeServer) error
+	Delete(context.Context, *WorkspaceSyncConfigDeleteRequest) (*WorkspaceSyncConfigDeleteResponse, error)
+	DeleteSome(*WorkspaceSyncConfigDeleteSomeRequest, WorkspaceSyncConfigService_DeleteSomeServer) error
+	DeleteAll(*WorkspaceSyncConfigDeleteAllRequest, WorkspaceSyncConfigService_DeleteAllServer) error
+	GetAllBatched(*WorkspaceSyncConfigBatchedStreamRequest, WorkspaceSyncConfigService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceSyncConfigBatchedStreamRequest, WorkspaceSyncConfigService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedWorkspaceSyncConfigServiceServer()
+}
+
+// UnimplementedWorkspaceSyncConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedWorkspaceSyncConfigServiceServer struct {
+}
+
+func (UnimplementedWorkspaceSyncConfigServiceServer) GetOne(context.Context, *WorkspaceSyncConfigRequest) (*WorkspaceSyncConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) GetSome(*WorkspaceSyncConfigSomeRequest, WorkspaceSyncConfigService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) GetAll(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) Subscribe(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) GetMeta(context.Context, *WorkspaceSyncConfigStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) SubscribeMeta(*WorkspaceSyncConfigStreamRequest, WorkspaceSyncConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) Set(context.Context, *WorkspaceSyncConfigSetRequest) (*WorkspaceSyncConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) SetSome(*WorkspaceSyncConfigSetSomeRequest, WorkspaceSyncConfigService_SetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method SetSome not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) Delete(context.Context, *WorkspaceSyncConfigDeleteRequest) (*WorkspaceSyncConfigDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) DeleteSome(*WorkspaceSyncConfigDeleteSomeRequest, WorkspaceSyncConfigService_DeleteSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSome not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) DeleteAll(*WorkspaceSyncConfigDeleteAllRequest, WorkspaceSyncConfigService_DeleteAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteAll not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) GetAllBatched(*WorkspaceSyncConfigBatchedStreamRequest, WorkspaceSyncConfigService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) SubscribeBatched(*WorkspaceSyncConfigBatchedStreamRequest, WorkspaceSyncConfigService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedWorkspaceSyncConfigServiceServer) mustEmbedUnimplementedWorkspaceSyncConfigServiceServer() {
+}
+
+// UnsafeWorkspaceSyncConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WorkspaceSyncConfigServiceServer will
+// result in compilation errors.
+type UnsafeWorkspaceSyncConfigServiceServer interface {
+	mustEmbedUnimplementedWorkspaceSyncConfigServiceServer()
+}
+
+func RegisterWorkspaceSyncConfigServiceServer(s grpc.ServiceRegistrar, srv WorkspaceSyncConfigServiceServer) {
+	s.RegisterService(&WorkspaceSyncConfigService_ServiceDesc, srv)
+}
+
+func _WorkspaceSyncConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceSyncConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceSyncConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceSyncConfigService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceSyncConfigServiceServer).GetOne(ctx, req.(*WorkspaceSyncConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceSyncConfigService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).GetSome(m, &workspaceSyncConfigServiceGetSomeServer{stream})
+}
+
+type WorkspaceSyncConfigService_GetSomeServer interface {
+	Send(*WorkspaceSyncConfigSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceGetSomeServer) Send(m *WorkspaceSyncConfigSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).GetAll(m, &workspaceSyncConfigServiceGetAllServer{stream})
+}
+
+type WorkspaceSyncConfigService_GetAllServer interface {
+	Send(*WorkspaceSyncConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceGetAllServer) Send(m *WorkspaceSyncConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).Subscribe(m, &workspaceSyncConfigServiceSubscribeServer{stream})
+}
+
+type WorkspaceSyncConfigService_SubscribeServer interface {
+	Send(*WorkspaceSyncConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeServer) Send(m *WorkspaceSyncConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceSyncConfigStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceSyncConfigServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceSyncConfigService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceSyncConfigServiceServer).GetMeta(ctx, req.(*WorkspaceSyncConfigStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceSyncConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).SubscribeMeta(m, &workspaceSyncConfigServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceSyncConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceSyncConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceSyncConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceSyncConfigService_Set_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceSyncConfigServiceServer).Set(ctx, req.(*WorkspaceSyncConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceSyncConfigService_SetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigSetSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).SetSome(m, &workspaceSyncConfigServiceSetSomeServer{stream})
+}
+
+type WorkspaceSyncConfigService_SetSomeServer interface {
+	Send(*WorkspaceSyncConfigSetSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceSetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceSetSomeServer) Send(m *WorkspaceSyncConfigSetSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceSyncConfigDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceSyncConfigServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceSyncConfigService_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceSyncConfigServiceServer).Delete(ctx, req.(*WorkspaceSyncConfigDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceSyncConfigService_DeleteSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigDeleteSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).DeleteSome(m, &workspaceSyncConfigServiceDeleteSomeServer{stream})
+}
+
+type WorkspaceSyncConfigService_DeleteSomeServer interface {
+	Send(*WorkspaceSyncConfigDeleteSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceDeleteSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceDeleteSomeServer) Send(m *WorkspaceSyncConfigDeleteSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_DeleteAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigDeleteAllRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).DeleteAll(m, &workspaceSyncConfigServiceDeleteAllServer{stream})
+}
+
+type WorkspaceSyncConfigService_DeleteAllServer interface {
+	Send(*WorkspaceSyncConfigDeleteAllResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceDeleteAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceDeleteAllServer) Send(m *WorkspaceSyncConfigDeleteAllResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).GetAllBatched(m, &workspaceSyncConfigServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceSyncConfigService_GetAllBatchedServer interface {
+	Send(*WorkspaceSyncConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceGetAllBatchedServer) Send(m *WorkspaceSyncConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceSyncConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceSyncConfigBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceSyncConfigServiceServer).SubscribeBatched(m, &workspaceSyncConfigServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceSyncConfigService_SubscribeBatchedServer interface {
+	Send(*WorkspaceSyncConfigBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceSyncConfigServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceSyncConfigServiceSubscribeBatchedServer) Send(m *WorkspaceSyncConfigBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// WorkspaceSyncConfigService_ServiceDesc is the grpc.ServiceDesc for WorkspaceSyncConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var WorkspaceSyncConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.workspace.v1.WorkspaceSyncConfigService",
+	HandlerType: (*WorkspaceSyncConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _WorkspaceSyncConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceSyncConfigService_GetMeta_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _WorkspaceSyncConfigService_Set_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _WorkspaceSyncConfigService_Delete_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceSyncConfigService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _WorkspaceSyncConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _WorkspaceSyncConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceSyncConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SetSome",
+			Handler:       _WorkspaceSyncConfigService_SetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSome",
+			Handler:       _WorkspaceSyncConfigService_DeleteSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteAll",
+			Handler:       _WorkspaceSyncConfigService_DeleteAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceSyncConfigService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceSyncConfigService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/workspace.v1/services.gen.proto",
+}
