@@ -31,16 +31,17 @@ const (
 type ErrorCode int32
 
 const (
+	// ERROR_CODE_UNSPECIFIED uninitialized value
 	ErrorCode_ERROR_CODE_UNSPECIFIED ErrorCode = 0
-	// DEVICE_WARNING indicates device warning
+	// ERROR_CODE_DEVICE_WARNING indicates device warning
 	ErrorCode_ERROR_CODE_DEVICE_WARNING ErrorCode = 1
-	// DEVICE_ERROR indicates device error
+	// ERROR_CODE_DEVICE_ERROR indicates device error
 	ErrorCode_ERROR_CODE_DEVICE_ERROR ErrorCode = 2
-	// UNREACHABLE_DEVICE indicates the device cannot be reached
+	// ERROR_CODE_UNREACHABLE_DEVICE indicates the device cannot be reached
 	ErrorCode_ERROR_CODE_UNREACHABLE_DEVICE ErrorCode = 3
-	// CONFIG_FILTER_ERROR indicates error from partial config management filters
+	// ERROR_CODE_CONFIG_FILTER_ERROR indicates error from partial config management filters
 	ErrorCode_ERROR_CODE_CONFIG_FILTER_ERROR ErrorCode = 4
-	// INTERNAL indicates internal errors
+	// ERROR_CODE_INTERNAL indicates internal errors
 	ErrorCode_ERROR_CODE_INTERNAL ErrorCode = 5
 )
 
@@ -95,17 +96,18 @@ func (ErrorCode) EnumDescriptor() ([]byte, []int) {
 type DiffOp int32
 
 const (
+	// DIFF_OP_UNSPECIFIED uninitialized
 	DiffOp_DIFF_OP_UNSPECIFIED DiffOp = 0
-	// NOP indicates no change. A and B are identical at this line
+	// DIFF_OP_NOP indicates no change. A and B are identical at this line
 	DiffOp_DIFF_OP_NOP DiffOp = 1
-	// IGNORE indicates a line that's ignored in either A or B.
+	// DIFF_OP_IGNORE indicates a line that's ignored in either A or B.
 	// One of a_line_num or b_line_num will be -1
 	DiffOp_DIFF_OP_IGNORE DiffOp = 2
-	// ADD is an addition of a line from A
+	// DIFF_OP_ADD is an addition of a line from A
 	DiffOp_DIFF_OP_ADD DiffOp = 3
-	// DELETE is deletion of a line from B
+	// DIFF_OP_DELETE is deletion of a line from B
 	DiffOp_DIFF_OP_DELETE DiffOp = 4
-	// CHANGE is a modification to a line in A
+	// DIFF_OP_CHANGE is a modification to a line in A
 	DiffOp_DIFF_OP_CHANGE DiffOp = 5
 )
 
@@ -160,11 +162,11 @@ func (DiffOp) EnumDescriptor() ([]byte, []int) {
 type ConfigFilterCode int32
 
 const (
-	// UNSPECIFIED indicates config line did not match any partial config management (PCM) filter
+	// CONFIG_FILTER_CODE_UNSPECIFIED uninitialized
 	ConfigFilterCode_CONFIG_FILTER_CODE_UNSPECIFIED ConfigFilterCode = 0
-	// MANAGED_LINE indicates config line matches managed PCM filter hence is managed
+	// CONFIG_FILTER_CODE_MANAGED_LINE indicates config line matches managed PCM filter hence is managed
 	ConfigFilterCode_CONFIG_FILTER_CODE_MANAGED_LINE ConfigFilterCode = 1
-	// UNMANAGED_LINE indicates config line matches unmanaged PCM filter hence is not managed
+	// CONFIG_FILTER_CODE_UNMANAGED_LINE indicates config line matches unmanaged PCM filter hence is not managed
 	ConfigFilterCode_CONFIG_FILTER_CODE_UNMANAGED_LINE ConfigFilterCode = 2
 )
 
@@ -213,10 +215,11 @@ func (ConfigFilterCode) EnumDescriptor() ([]byte, []int) {
 type ConfigSyncCode int32
 
 const (
+	// CONFIG_SYNC_CODE_UNSPECIFIED uninitialized
 	ConfigSyncCode_CONFIG_SYNC_CODE_UNSPECIFIED ConfigSyncCode = 0
-	// IN_SYNC indicates designed config and running config are identical
+	// CONFIG_SYNC_CODE_IN_SYNC indicates designed config and running config are identical
 	ConfigSyncCode_CONFIG_SYNC_CODE_IN_SYNC ConfigSyncCode = 1
-	// OUT_OF_SYNC indicates designed config and running config are not identical
+	// CONFIG_SYNC_CODE_OUT_OF_SYNC indicates designed config and running config are not identical
 	ConfigSyncCode_CONFIG_SYNC_CODE_OUT_OF_SYNC ConfigSyncCode = 2
 )
 
@@ -266,14 +269,17 @@ func (ConfigSyncCode) EnumDescriptor() ([]byte, []int) {
 type ConfigSourceType int32
 
 const (
+	// CONFIG_SOURCE_TYPE_UNSPECIFIED uninitialized value
 	ConfigSourceType_CONFIG_SOURCE_TYPE_UNSPECIFIED ConfigSourceType = 0
 	// CONFIG_SOURCE_TYPE_NETWORK_PROVISIONING_CONFIGLET - configlet created from
 	// the network provisioning workflow.
 	ConfigSourceType_CONFIG_SOURCE_TYPE_NETWORK_PROVISIONING_CONFIGLET ConfigSourceType = 1
 	// CONFIG_SOURCE_TYPE_STUDIO - config generated from a regular studio
 	ConfigSourceType_CONFIG_SOURCE_TYPE_STUDIO ConfigSourceType = 2
-	// SCONFIG_SOURCE_TYPE_STUDIO_STATIC - static config from studios framework
+	// CONFIG_SOURCE_TYPE_STUDIO_STATIC - static config from studios framework
 	ConfigSourceType_CONFIG_SOURCE_TYPE_STUDIO_STATIC ConfigSourceType = 3
+	// CONFIG_SOURCE_TYPE_HIERARCHY - config from the hierarchy frameork
+	ConfigSourceType_CONFIG_SOURCE_TYPE_HIERARCHY ConfigSourceType = 5
 )
 
 // Enum value maps for ConfigSourceType.
@@ -283,12 +289,14 @@ var (
 		1: "CONFIG_SOURCE_TYPE_NETWORK_PROVISIONING_CONFIGLET",
 		2: "CONFIG_SOURCE_TYPE_STUDIO",
 		3: "CONFIG_SOURCE_TYPE_STUDIO_STATIC",
+		5: "CONFIG_SOURCE_TYPE_HIERARCHY",
 	}
 	ConfigSourceType_value = map[string]int32{
 		"CONFIG_SOURCE_TYPE_UNSPECIFIED":                    0,
 		"CONFIG_SOURCE_TYPE_NETWORK_PROVISIONING_CONFIGLET": 1,
 		"CONFIG_SOURCE_TYPE_STUDIO":                         2,
 		"CONFIG_SOURCE_TYPE_STUDIO_STATIC":                  3,
+		"CONFIG_SOURCE_TYPE_HIERARCHY":                      5,
 	}
 )
 
@@ -319,11 +327,15 @@ func (ConfigSourceType) EnumDescriptor() ([]byte, []int) {
 	return file_arista_configstatus_v1_configstatus_proto_rawDescGZIP(), []int{4}
 }
 
+// ConfigType - specifies type of config
 type ConfigType int32
 
 const (
-	ConfigType_CONFIG_TYPE_UNSPECIFIED     ConfigType = 0
-	ConfigType_CONFIG_TYPE_RUNNING_CONFIG  ConfigType = 1
+	// CONFIG_TYPE_UNSPECIFIED uninitialized value
+	ConfigType_CONFIG_TYPE_UNSPECIFIED ConfigType = 0
+	// CONFIG_TYPE_RUNNING_CONFIG uninitialized value
+	ConfigType_CONFIG_TYPE_RUNNING_CONFIG ConfigType = 1
+	// CONFIG_TYPE_DESIGNED_CONFIG uninitialized value
 	ConfigType_CONFIG_TYPE_DESIGNED_CONFIG ConfigType = 2
 )
 
@@ -368,17 +380,19 @@ func (ConfigType) EnumDescriptor() ([]byte, []int) {
 	return file_arista_configstatus_v1_configstatus_proto_rawDescGZIP(), []int{5}
 }
 
-// ConfigError represents errors reported by CVP when handling device configuration
+// ConfigError represents errors reported by CVP/EOS when handling device configuration
 type ConfigError struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ErrorCode ErrorCode               `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=arista.configstatus.v1.ErrorCode" json:"error_code,omitempty"`
-	ErrorMsg  *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error_msg,json=errorMsg,proto3" json:"error_msg,omitempty"`
-	// Line_num represents line number, if any
+	// error_code - type of error.
+	ErrorCode ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=arista.configstatus.v1.ErrorCode" json:"error_code,omitempty"`
+	// error_msg - details of error
+	ErrorMsg *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error_msg,json=errorMsg,proto3" json:"error_msg,omitempty"`
+	// line_num represents line number, if any
 	LineNum *wrapperspb.Int32Value `protobuf:"bytes,3,opt,name=line_num,json=lineNum,proto3" json:"line_num,omitempty"`
-	// Configlet_name represents the originating configlet name. Configlet_name
+	// configlet_name represents the originating configlet name. Configlet_name
 	// and line_num point to the line where config warning or config error originate.
 	ConfigletName *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=configlet_name,json=configletName,proto3" json:"configlet_name,omitempty"`
 }
@@ -443,11 +457,13 @@ func (x *ConfigError) GetConfigletName() *wrapperspb.StringValue {
 	return nil
 }
 
+// ConfigErrors list of errors
 type ConfigErrors struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// values - list of errors
 	Values []*ConfigError `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 }
 
@@ -496,22 +512,23 @@ type DiffEntry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// op - type of diff
 	Op DiffOp `protobuf:"varint,1,opt,name=op,proto3,enum=arista.configstatus.v1.DiffOp" json:"op,omitempty"`
-	// line number in A this diff applies to
+	// a_line_num - line number in A this diff applies to
 	ALineNum *wrapperspb.Int32Value `protobuf:"bytes,2,opt,name=a_line_num,json=aLineNum,proto3" json:"a_line_num,omitempty"`
-	// line number in B this diff applies to
+	// b_line_num - line number in B this diff applies to
 	BLineNum *wrapperspb.Int32Value `protobuf:"bytes,3,opt,name=b_line_num,json=bLineNum,proto3" json:"b_line_num,omitempty"`
-	// line number of the parent command in B
+	// b_parent_line_num line number of the parent command in B
 	BParentLineNum *wrapperspb.Int32Value `protobuf:"bytes,4,opt,name=b_parent_line_num,json=bParentLineNum,proto3" json:"b_parent_line_num,omitempty"`
-	// content of config line in A
+	// a_line content of config line in A
 	ALine *wrapperspb.StringValue `protobuf:"bytes,5,opt,name=a_line,json=aLine,proto3" json:"a_line,omitempty"`
-	// content of config line in B
+	// b_line content of config line in B
 	BLine *wrapperspb.StringValue `protobuf:"bytes,6,opt,name=b_line,json=bLine,proto3" json:"b_line,omitempty"`
-	// Config filter code of the line in A
+	// a_filter_code Config filter code of the line in A
 	AFilterCode ConfigFilterCode `protobuf:"varint,7,opt,name=a_filter_code,json=aFilterCode,proto3,enum=arista.configstatus.v1.ConfigFilterCode" json:"a_filter_code,omitempty"`
-	// Config filter code of the line in B
+	// b_filter_code Config filter code of the line in B
 	BFilterCode ConfigFilterCode `protobuf:"varint,8,opt,name=b_filter_code,json=bFilterCode,proto3,enum=arista.configstatus.v1.ConfigFilterCode" json:"b_filter_code,omitempty"`
-	// line number of the parent command in A
+	// a_parent_line_num line number of the parent command in A
 	AParentLineNum *wrapperspb.Int32Value `protobuf:"bytes,9,opt,name=a_parent_line_num,json=aParentLineNum,proto3" json:"a_parent_line_num,omitempty"`
 }
 
@@ -616,6 +633,7 @@ type DiffEntries struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// values - list of diff entries
 	Values []*DiffEntry `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 }
 
@@ -664,6 +682,7 @@ type ConfigSource struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// source_type - app type of the config snippet
 	SourceType ConfigSourceType `protobuf:"varint,1,opt,name=source_type,json=sourceType,proto3,enum=arista.configstatus.v1.ConfigSourceType" json:"source_type,omitempty"`
 	// source_id identifier to distinguish between multiple instances of the source type
 	// source_id is :
@@ -671,6 +690,7 @@ type ConfigSource struct {
 	//	configlet name for CONFIG_SOURCE_TYPE_NETWORK_PROVISIONING_CONFIGLET
 	//	studio id for CONFIG_SOURCE_TYPE_STUDIO
 	//	configlet id for CONFIG_SOURCE_TYPE_STUDIO_STATIC
+	//	FixtureInstance id for CONFIG_SOURCE_TYPE_HIERARCHY
 	SourceId *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 }
 
@@ -726,6 +746,7 @@ type ConfigSources struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// values - ordered list of all the config snippets present in DC
 	Values []*ConfigSource `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 }
 
@@ -774,32 +795,33 @@ type ConfigSummary struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// sync - state of DC vs RC
 	Sync ConfigSyncCode `protobuf:"varint,1,opt,name=sync,proto3,enum=arista.configstatus.v1.ConfigSyncCode" json:"sync,omitempty"`
-	// Number of lines with code no-operation
+	// nop_lines - Number of lines with code no-operation
 	NopLines *wrapperspb.Int32Value `protobuf:"bytes,2,opt,name=nop_lines,json=nopLines,proto3" json:"nop_lines,omitempty"`
-	// Number of lines with code IGNORE
+	// ignored_lines - Number of lines with code IGNORE
 	IgnoredLines *wrapperspb.Int32Value `protobuf:"bytes,3,opt,name=ignored_lines,json=ignoredLines,proto3" json:"ignored_lines,omitempty"`
-	// Number of lines with code ADD
+	// added_lines - Number of lines with code ADD
 	AddedLines *wrapperspb.Int32Value `protobuf:"bytes,4,opt,name=added_lines,json=addedLines,proto3" json:"added_lines,omitempty"`
-	// Number of lines with code DELETE
+	// deleted_lines - Number of lines with code DELETE
 	DeletedLines *wrapperspb.Int32Value `protobuf:"bytes,5,opt,name=deleted_lines,json=deletedLines,proto3" json:"deleted_lines,omitempty"`
-	// Number of lines with code CHANGE
+	// changed_lines - Number of lines with code CHANGE
 	ChangedLines *wrapperspb.Int32Value `protobuf:"bytes,6,opt,name=changed_lines,json=changedLines,proto3" json:"changed_lines,omitempty"`
-	// Number of designed config errors
+	// designed_config_errors - Number of designed config errors
 	DesignedConfigErrors *wrapperspb.Int32Value `protobuf:"bytes,7,opt,name=designed_config_errors,json=designedConfigErrors,proto3" json:"designed_config_errors,omitempty"`
-	// Number of designed config warnings
+	// designed_config_warnings - Number of designed config warnings
 	DesignedConfigWarnings *wrapperspb.Int32Value `protobuf:"bytes,8,opt,name=designed_config_warnings,json=designedConfigWarnings,proto3" json:"designed_config_warnings,omitempty"`
-	// Timestamp at which running config is updated
+	// running_config_update_time - Timestamp at which running config is updated
 	RunningConfigUpdateTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=running_config_update_time,json=runningConfigUpdateTime,proto3" json:"running_config_update_time,omitempty"`
-	// Timestamp at which designed config is updated
+	// designed_config_update_time - Timestamp at which designed config is updated
 	DesignedConfigUpdateTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=designed_config_update_time,json=designedConfigUpdateTime,proto3" json:"designed_config_update_time,omitempty"`
-	// The HTTP URI client can use to GET running config and associated errors
+	// running_config_uri - The HTTP URI client can use to GET running config and associated errors
 	RunningConfigUri *wrapperspb.StringValue `protobuf:"bytes,11,opt,name=running_config_uri,json=runningConfigUri,proto3" json:"running_config_uri,omitempty"`
-	// The HTTP URI client can use to GET designed config and associated errors
+	// designed_config_uri - The HTTP URI client can use to GET designed config and associated errors
 	DesignedConfigUri *wrapperspb.StringValue `protobuf:"bytes,12,opt,name=designed_config_uri,json=designedConfigUri,proto3" json:"designed_config_uri,omitempty"`
-	// The HTTP URI client can use to GET config diff and associated errors
+	// diff_uri - The HTTP URI client can use to GET config diff and associated errors
 	DiffUri *wrapperspb.StringValue `protobuf:"bytes,13,opt,name=diff_uri,json=diffUri,proto3" json:"diff_uri,omitempty"`
-	// Digest (SHA-256) of the config diff.
+	// digest (SHA-256) of the config diff.
 	Digest *wrapperspb.StringValue `protobuf:"bytes,14,opt,name=digest,proto3" json:"digest,omitempty"`
 }
 
@@ -939,9 +961,9 @@ type ConfigKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Device_id is the serial number of the device
+	// device_id is the serial number of the device
 	DeviceId *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	// Type describes the config type
+	// type describes the config type
 	Type ConfigType `protobuf:"varint,2,opt,name=type,proto3,enum=arista.configstatus.v1.ConfigType" json:"type,omitempty"`
 }
 
@@ -997,8 +1019,9 @@ type Configuration struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// key specifies the device and type of config
 	Key *ConfigKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Uri represents the HTTP URI client can use to GET config body and associated errors
+	// uri represents the HTTP URI client can use to GET config body and associated errors
 	Uri *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=uri,proto3" json:"uri,omitempty"`
 }
 
@@ -1054,17 +1077,17 @@ type ConfigDiffKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A_device_id is the serial number of the device on A side (left hand side)
+	// a_device_id is the serial number of the device on A side (left hand side)
 	ADeviceId *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=a_device_id,json=aDeviceId,proto3" json:"a_device_id,omitempty"`
-	// A_type is the config type on A side (left hand side)
+	// a_type is the config type on A side (left hand side)
 	AType ConfigType `protobuf:"varint,2,opt,name=a_type,json=aType,proto3,enum=arista.configstatus.v1.ConfigType" json:"a_type,omitempty"`
-	// A_time is the time at which to fetch config on A side (left hand side)
+	// a_time is the time at which to fetch config on A side (left hand side)
 	ATime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=a_time,json=aTime,proto3" json:"a_time,omitempty"`
-	// B_device_id is the serial number of the device on B side (right hand side)
+	// b_device_id is the serial number of the device on B side (right hand side)
 	BDeviceId *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=b_device_id,json=bDeviceId,proto3" json:"b_device_id,omitempty"`
-	// B_type is the config type on B side (right hand side)
+	// b_type is the config type on B side (right hand side)
 	BType ConfigType `protobuf:"varint,5,opt,name=b_type,json=bType,proto3,enum=arista.configstatus.v1.ConfigType" json:"b_type,omitempty"`
-	// B_time is the time at which to fetch config on B side (right hand side)
+	// b_time is the time at which to fetch config on B side (right hand side)
 	BTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=b_time,json=bTime,proto3" json:"b_time,omitempty"`
 }
 
@@ -1142,14 +1165,15 @@ func (x *ConfigDiffKey) GetBTime() *timestamppb.Timestamp {
 	return nil
 }
 
+// ConfigDiff - specifies the diff request
 type ConfigDiff struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Key represents config diff key
+	// key represents config diff key
 	Key *ConfigDiffKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// Uri represents the HTTP URI client can use to GET config diff and associated errors
+	// uri represents the HTTP URI client can use to GET config diff and associated errors
 	Uri *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=uri,proto3" json:"uri,omitempty"`
 }
 
@@ -1205,7 +1229,7 @@ type SummaryKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Device_id is the serial number of the device
+	// device_id is the serial number of the device
 	DeviceId *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 }
 
@@ -1248,12 +1272,15 @@ func (x *SummaryKey) GetDeviceId() *wrapperspb.StringValue {
 	return nil
 }
 
+// Summary - Describes the device's diff summary
 type Summary struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key     *SummaryKey    `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// key spefies the device
+	Key *SummaryKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// summary - diff summary of the device
 	Summary *ConfigSummary `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
 }
 
@@ -1368,6 +1395,7 @@ type SecurityProfileComplianceSummary struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// sync - sync state of the device
 	Sync ConfigSyncCode `protobuf:"varint,1,opt,name=sync,proto3,enum=arista.configstatus.v1.ConfigSyncCode" json:"sync,omitempty"`
 	// nop_lines is the number of lines with code no-operation
 	NopLines *wrapperspb.Int32Value `protobuf:"bytes,2,opt,name=nop_lines,json=nopLines,proto3" json:"nop_lines,omitempty"`
@@ -1919,7 +1947,7 @@ var file_arista_configstatus_v1_configstatus_proto_rawDesc = []byte{
 	0x4f, 0x44, 0x45, 0x5f, 0x49, 0x4e, 0x5f, 0x53, 0x59, 0x4e, 0x43, 0x10, 0x01, 0x12, 0x20, 0x0a,
 	0x1c, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x53, 0x59, 0x4e, 0x43, 0x5f, 0x43, 0x4f, 0x44,
 	0x45, 0x5f, 0x4f, 0x55, 0x54, 0x5f, 0x4f, 0x46, 0x5f, 0x53, 0x59, 0x4e, 0x43, 0x10, 0x02, 0x2a,
-	0xb2, 0x01, 0x0a, 0x10, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0xd4, 0x01, 0x0a, 0x10, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65,
 	0x54, 0x79, 0x70, 0x65, 0x12, 0x22, 0x0a, 0x1e, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x53,
 	0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45,
 	0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x35, 0x0a, 0x31, 0x43, 0x4f, 0x4e, 0x46,
@@ -1930,22 +1958,24 @@ var file_arista_configstatus_v1_configstatus_proto_rawDesc = []byte{
 	0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x53, 0x54, 0x55, 0x44, 0x49, 0x4f, 0x10, 0x02, 0x12, 0x24,
 	0x0a, 0x20, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x53, 0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f,
 	0x54, 0x59, 0x50, 0x45, 0x5f, 0x53, 0x54, 0x55, 0x44, 0x49, 0x4f, 0x5f, 0x53, 0x54, 0x41, 0x54,
-	0x49, 0x43, 0x10, 0x03, 0x2a, 0x6a, 0x0a, 0x0a, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x54, 0x79,
-	0x70, 0x65, 0x12, 0x1b, 0x0a, 0x17, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54, 0x59, 0x50,
-	0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12,
-	0x1e, 0x0a, 0x1a, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x52,
-	0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x10, 0x01, 0x12,
-	0x1f, 0x0a, 0x1b, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x44,
-	0x45, 0x53, 0x49, 0x47, 0x4e, 0x45, 0x44, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x10, 0x02,
-	0x42, 0x7e, 0x0a, 0x1a, 0x63, 0x6f, 0x6d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0c,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x50, 0x01, 0x5a, 0x50,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76,
-	0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69,
-	0x73, 0x74, 0x61, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x2e, 0x76, 0x31, 0x3b, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x49, 0x43, 0x10, 0x03, 0x12, 0x20, 0x0a, 0x1c, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x53,
+	0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x48, 0x49, 0x45, 0x52, 0x41,
+	0x52, 0x43, 0x48, 0x59, 0x10, 0x05, 0x2a, 0x6a, 0x0a, 0x0a, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x54, 0x79, 0x70, 0x65, 0x12, 0x1b, 0x0a, 0x17, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54,
+	0x59, 0x50, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10,
+	0x00, 0x12, 0x1e, 0x0a, 0x1a, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54, 0x59, 0x50, 0x45,
+	0x5f, 0x52, 0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x10,
+	0x01, 0x12, 0x1f, 0x0a, 0x1b, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x54, 0x59, 0x50, 0x45,
+	0x5f, 0x44, 0x45, 0x53, 0x49, 0x47, 0x4e, 0x45, 0x44, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47,
+	0x10, 0x02, 0x42, 0x7e, 0x0a, 0x1a, 0x63, 0x6f, 0x6d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x76, 0x31,
+	0x42, 0x0c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x50, 0x01,
+	0x5a, 0x50, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75,
+	0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61,
+	0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x2e, 0x76, 0x31, 0x3b, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
