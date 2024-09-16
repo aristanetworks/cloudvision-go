@@ -166,7 +166,8 @@ func (m *testGNMIClient) Set(ctx context.Context, in *gnmi.SetRequest,
 				m.pathsRemaining = append(m.pathsRemaining[:i], m.pathsRemaining[(i+1):]...)
 				if len(m.pathsRemaining) == 0 {
 					m.pollsRemaining--
-					m.pathsRemaining = m.paths
+					m.pathsRemaining = make([]*gnmi.Path, len(m.paths))
+					copy(m.pathsRemaining, m.paths)
 				}
 				if m.pollsRemaining == 0 {
 					m.cancel()
@@ -237,13 +238,14 @@ func testwalk(oid string, walker gosnmp.WalkFunc, mibStore smi.Store, wm walkMap
 func newTestGNMIClient(cancel context.CancelFunc,
 	tc deviceTestCase) *testGNMIClient {
 	client := &testGNMIClient{
-		cancel: cancel,
-		polls:  tc.polls,
-		paths:  tc.expectedPaths,
-		lock:   &sync.Mutex{},
+		cancel:         cancel,
+		polls:          tc.polls,
+		paths:          tc.expectedPaths,
+		lock:           &sync.Mutex{},
+		pathsRemaining: make([]*gnmi.Path, len(tc.expectedPaths)),
 	}
 	client.pollsRemaining = client.polls
-	client.pathsRemaining = client.paths
+	copy(client.pathsRemaining, client.paths)
 	return client
 }
 
