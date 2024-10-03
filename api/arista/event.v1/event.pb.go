@@ -863,7 +863,8 @@ type Event struct {
 	Read *EventRead `protobuf:"bytes,11,opt,name=read,proto3" json:"read,omitempty"`
 	// rule_id is the label of the rule associated with the event
 	RuleId *wrapperspb.StringValue `protobuf:"bytes,12,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	// delete_time is the time of the event deletion
+	// delete_time is the time when the event ended.
+	// It is nil if event is still ongoing
 	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
 }
 
