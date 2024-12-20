@@ -1318,13 +1318,11 @@ var DashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	GlobalDashboardConfigService_GetOne_FullMethodName           = "/arista.dashboard.v1.GlobalDashboardConfigService/GetOne"
-	GlobalDashboardConfigService_GetAll_FullMethodName           = "/arista.dashboard.v1.GlobalDashboardConfigService/GetAll"
-	GlobalDashboardConfigService_Subscribe_FullMethodName        = "/arista.dashboard.v1.GlobalDashboardConfigService/Subscribe"
-	GlobalDashboardConfigService_SubscribeMeta_FullMethodName    = "/arista.dashboard.v1.GlobalDashboardConfigService/SubscribeMeta"
-	GlobalDashboardConfigService_Set_FullMethodName              = "/arista.dashboard.v1.GlobalDashboardConfigService/Set"
-	GlobalDashboardConfigService_GetAllBatched_FullMethodName    = "/arista.dashboard.v1.GlobalDashboardConfigService/GetAllBatched"
-	GlobalDashboardConfigService_SubscribeBatched_FullMethodName = "/arista.dashboard.v1.GlobalDashboardConfigService/SubscribeBatched"
+	GlobalDashboardConfigService_GetOne_FullMethodName        = "/arista.dashboard.v1.GlobalDashboardConfigService/GetOne"
+	GlobalDashboardConfigService_GetAll_FullMethodName        = "/arista.dashboard.v1.GlobalDashboardConfigService/GetAll"
+	GlobalDashboardConfigService_Subscribe_FullMethodName     = "/arista.dashboard.v1.GlobalDashboardConfigService/Subscribe"
+	GlobalDashboardConfigService_SubscribeMeta_FullMethodName = "/arista.dashboard.v1.GlobalDashboardConfigService/SubscribeMeta"
+	GlobalDashboardConfigService_Set_FullMethodName           = "/arista.dashboard.v1.GlobalDashboardConfigService/Set"
 )
 
 // GlobalDashboardConfigServiceClient is the client API for GlobalDashboardConfigService service.
@@ -1336,8 +1334,6 @@ type GlobalDashboardConfigServiceClient interface {
 	Subscribe(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeClient, error)
 	SubscribeMeta(ctx context.Context, in *GlobalDashboardConfigStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeMetaClient, error)
 	Set(ctx context.Context, in *GlobalDashboardConfigSetRequest, opts ...grpc.CallOption) (*GlobalDashboardConfigSetResponse, error)
-	GetAllBatched(ctx context.Context, in *GlobalDashboardConfigBatchedStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_GetAllBatchedClient, error)
-	SubscribeBatched(ctx context.Context, in *GlobalDashboardConfigBatchedStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeBatchedClient, error)
 }
 
 type globalDashboardConfigServiceClient struct {
@@ -1462,70 +1458,6 @@ func (c *globalDashboardConfigServiceClient) Set(ctx context.Context, in *Global
 	return out, nil
 }
 
-func (c *globalDashboardConfigServiceClient) GetAllBatched(ctx context.Context, in *GlobalDashboardConfigBatchedStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_GetAllBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[3], GlobalDashboardConfigService_GetAllBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &globalDashboardConfigServiceGetAllBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type GlobalDashboardConfigService_GetAllBatchedClient interface {
-	Recv() (*GlobalDashboardConfigBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type globalDashboardConfigServiceGetAllBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *globalDashboardConfigServiceGetAllBatchedClient) Recv() (*GlobalDashboardConfigBatchedStreamResponse, error) {
-	m := new(GlobalDashboardConfigBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *globalDashboardConfigServiceClient) SubscribeBatched(ctx context.Context, in *GlobalDashboardConfigBatchedStreamRequest, opts ...grpc.CallOption) (GlobalDashboardConfigService_SubscribeBatchedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GlobalDashboardConfigService_ServiceDesc.Streams[4], GlobalDashboardConfigService_SubscribeBatched_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &globalDashboardConfigServiceSubscribeBatchedClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type GlobalDashboardConfigService_SubscribeBatchedClient interface {
-	Recv() (*GlobalDashboardConfigBatchedStreamResponse, error)
-	grpc.ClientStream
-}
-
-type globalDashboardConfigServiceSubscribeBatchedClient struct {
-	grpc.ClientStream
-}
-
-func (x *globalDashboardConfigServiceSubscribeBatchedClient) Recv() (*GlobalDashboardConfigBatchedStreamResponse, error) {
-	m := new(GlobalDashboardConfigBatchedStreamResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // GlobalDashboardConfigServiceServer is the server API for GlobalDashboardConfigService service.
 // All implementations must embed UnimplementedGlobalDashboardConfigServiceServer
 // for forward compatibility
@@ -1535,8 +1467,6 @@ type GlobalDashboardConfigServiceServer interface {
 	Subscribe(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeServer) error
 	SubscribeMeta(*GlobalDashboardConfigStreamRequest, GlobalDashboardConfigService_SubscribeMetaServer) error
 	Set(context.Context, *GlobalDashboardConfigSetRequest) (*GlobalDashboardConfigSetResponse, error)
-	GetAllBatched(*GlobalDashboardConfigBatchedStreamRequest, GlobalDashboardConfigService_GetAllBatchedServer) error
-	SubscribeBatched(*GlobalDashboardConfigBatchedStreamRequest, GlobalDashboardConfigService_SubscribeBatchedServer) error
 	mustEmbedUnimplementedGlobalDashboardConfigServiceServer()
 }
 
@@ -1558,12 +1488,6 @@ func (UnimplementedGlobalDashboardConfigServiceServer) SubscribeMeta(*GlobalDash
 }
 func (UnimplementedGlobalDashboardConfigServiceServer) Set(context.Context, *GlobalDashboardConfigSetRequest) (*GlobalDashboardConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
-}
-func (UnimplementedGlobalDashboardConfigServiceServer) GetAllBatched(*GlobalDashboardConfigBatchedStreamRequest, GlobalDashboardConfigService_GetAllBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
-}
-func (UnimplementedGlobalDashboardConfigServiceServer) SubscribeBatched(*GlobalDashboardConfigBatchedStreamRequest, GlobalDashboardConfigService_SubscribeBatchedServer) error {
-	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
 }
 func (UnimplementedGlobalDashboardConfigServiceServer) mustEmbedUnimplementedGlobalDashboardConfigServiceServer() {
 }
@@ -1678,48 +1602,6 @@ func _GlobalDashboardConfigService_Set_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GlobalDashboardConfigService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GlobalDashboardConfigBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(GlobalDashboardConfigServiceServer).GetAllBatched(m, &globalDashboardConfigServiceGetAllBatchedServer{stream})
-}
-
-type GlobalDashboardConfigService_GetAllBatchedServer interface {
-	Send(*GlobalDashboardConfigBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type globalDashboardConfigServiceGetAllBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *globalDashboardConfigServiceGetAllBatchedServer) Send(m *GlobalDashboardConfigBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _GlobalDashboardConfigService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GlobalDashboardConfigBatchedStreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(GlobalDashboardConfigServiceServer).SubscribeBatched(m, &globalDashboardConfigServiceSubscribeBatchedServer{stream})
-}
-
-type GlobalDashboardConfigService_SubscribeBatchedServer interface {
-	Send(*GlobalDashboardConfigBatchedStreamResponse) error
-	grpc.ServerStream
-}
-
-type globalDashboardConfigServiceSubscribeBatchedServer struct {
-	grpc.ServerStream
-}
-
-func (x *globalDashboardConfigServiceSubscribeBatchedServer) Send(m *GlobalDashboardConfigBatchedStreamResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // GlobalDashboardConfigService_ServiceDesc is the grpc.ServiceDesc for GlobalDashboardConfigService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1750,16 +1632,6 @@ var GlobalDashboardConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SubscribeMeta",
 			Handler:       _GlobalDashboardConfigService_SubscribeMeta_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetAllBatched",
-			Handler:       _GlobalDashboardConfigService_GetAllBatched_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "SubscribeBatched",
-			Handler:       _GlobalDashboardConfigService_SubscribeBatched_Handler,
 			ServerStreams: true,
 		},
 	},
