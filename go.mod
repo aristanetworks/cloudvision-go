@@ -1,6 +1,6 @@
 module github.com/aristanetworks/cloudvision-go
 
-go 1.19
+go 1.20
 
 require (
 	github.com/aristanetworks/fsnotify v1.4.6
