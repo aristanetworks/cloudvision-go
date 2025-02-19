@@ -5,7 +5,9 @@
 package smi
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,6 +17,35 @@ import (
 // for objects.
 type Store interface {
 	GetObject(oid string) *Object
+	GetOids() map[string]*Object
+	GetNames() map[string]*Object
+	GetModules() map[string]*Module
+}
+
+// JSONStoreObject defines the JSONStoreObject json structure.
+type JSONStoreObject struct {
+	Access      Access
+	Description string
+	Indexes     []string `json:"indexes,omitempty"`
+	Kind        Kind
+	Module      string
+	Name        string
+	Oid         string
+	Status      Status
+	// Parent and Children fields are  stored as
+	// string, string-slice in the json instead of
+	// storing the pointer object(s) for optimization and
+	// to avoid marshalling cyclic data structure.
+	// The parsed store from NewStore is used to populate
+	// these fields.
+	Parent   string   `json:"parent,omitempty"`
+	Children []string `json:"children,omitempty"`
+}
+
+// JSONStore defines the JSONStore json structure.
+type JSONStore struct {
+	ObjectMap map[string]*JSONStoreObject `json:"jsonstoreobject,omitempty"`
+	Modules   map[string]*Module          `json:"jsonmodule,omitempty"`
 }
 
 // store implements the Store interface.
@@ -53,6 +84,114 @@ func NewStore(files ...string) (Store, error) {
 		store.modules[moduleName] = createModule(pm)
 	}
 	return store, nil
+}
+
+// MergeJSONWithStore merges smi store data from a JSON file with a store object.
+func MergeJSONWithStore(mergejsonbytes []byte, baseStore Store) (Store, error) {
+	astore, ok := baseStore.(*store)
+	if !ok {
+		return nil, fmt.Errorf("error in casting %T to store object", baseStore)
+	}
+	var jsrStore JSONStore
+	err := json.Unmarshal(mergejsonbytes, &jsrStore)
+	if err != nil {
+		return nil, fmt.Errorf("error while unmarshalling json mib file: %v", err)
+	}
+
+	cstore := &store{
+		lock:    &sync.RWMutex{},
+		modules: make(map[string]*Module),
+		oids:    make(map[string]*Object),
+		names:   make(map[string]*Object),
+		known:   make(map[string]*Object),
+	}
+
+	cstore.lock.Lock()
+	// create store object from unmarshalled json file.
+	for oid, jStoreObj := range jsrStore.ObjectMap {
+		cstore.oids[oid] = &Object{
+			Access:      jStoreObj.Access,
+			Description: jStoreObj.Description,
+			Kind:        jStoreObj.Kind,
+			Module:      jStoreObj.Module,
+			Name:        jStoreObj.Name,
+			Oid:         jStoreObj.Name,
+			Status:      jStoreObj.Status,
+		}
+		cstore.oids[oid].Indexes = make([]string, len(jStoreObj.Indexes))
+		copy(cstore.oids[oid].Indexes, jStoreObj.Indexes)
+		cstore.names[jStoreObj.Name] = cstore.oids[oid]
+	}
+
+	// Populate the Parent nodes in the store from the ObjectMap from the
+	// unmarshalled json file.
+	for oid, jStoreObj := range jsrStore.ObjectMap {
+		parentOid := jsrStore.ObjectMap[oid].Parent
+		parentObj := cstore.oids[parentOid]
+		if parentOid != "" {
+			if parentObj == nil {
+				return nil, fmt.Errorf(
+					"error in MergeJSONWithStore: Parent object is nil for oid: %s", parentOid)
+			}
+			cstore.oids[oid].Parent = parentObj
+			cstore.names[jStoreObj.Name].Parent = parentObj
+		}
+	}
+
+	// Populate the Children nodes in the store from the ObjectMap from the
+	// unmarshalled json file.
+	for oid, jStoreObj := range jsrStore.ObjectMap {
+		for _, chi := range jStoreObj.Children {
+			childrenObj := cstore.oids[chi]
+			cstore.oids[oid].Children = append(cstore.oids[oid].Children, childrenObj)
+			cstore.names[jStoreObj.Name].Children = append(
+				cstore.names[jStoreObj.Name].Children, childrenObj)
+		}
+	}
+	cstore.modules = jsrStore.Modules
+	astore.lock.Lock()
+	// merge jsonstore object cstore with astore.
+	for oid, jStoreObj := range cstore.modules {
+		_, ok := astore.modules[oid]
+		if !ok {
+			astore.modules[oid] = jStoreObj
+		}
+	}
+	for k, v := range cstore.oids {
+		_, ok := astore.oids[k]
+		if !ok {
+			astore.oids[k] = v
+		}
+	}
+	for k, v := range cstore.names {
+		_, ok := astore.names[k]
+		if !ok {
+			astore.names[k] = v
+		}
+	}
+	astore.lock.Unlock()
+	cstore.lock.Unlock()
+
+	return astore, nil
+}
+
+// CheckStoresEqual checks for equality between two SMI stores and returns
+// boolean for equality and error.
+func CheckStoresEqual(storeA Store, storeB Store) (bool, error) {
+	storeAObj, ok := storeA.(*store)
+	if !ok {
+		return false, fmt.Errorf("error in type conversion to store object")
+	}
+	storeBObj, ok := storeA.(*store)
+	if !ok {
+		return false, fmt.Errorf("error in type conversion to store object")
+	}
+	if !reflect.DeepEqual(storeAObj, storeBObj) {
+		return false, fmt.Errorf(
+			"mismatch in storeA and storeB objects: storeA: %v, \nstoreB: %v",
+			storeAObj, storeB)
+	}
+	return true, nil
 }
 
 func (s *store) checkKnown(oid string) *Object {
@@ -126,6 +265,21 @@ func (s *store) GetObject(oid string) *Object {
 		s.updateKnown(origOid, o)
 	}
 	return o
+}
+
+// GetOids returns the map of numerical oid to corresponding parsed Object.
+func (s *store) GetOids() map[string]*Object {
+	return s.oids
+}
+
+// GetNames returns the map of oid name to corresponding parsed Object.
+func (s *store) GetNames() map[string]*Object {
+	return s.names
+}
+
+// GetModules returns the map of module-name to the corresponding parsed Module.
+func (s *store) GetModules() map[string]*Module {
+	return s.modules
 }
 
 func resolveOID(po *parseObject, store *store) error {

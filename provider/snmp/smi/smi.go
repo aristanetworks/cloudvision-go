@@ -15,14 +15,14 @@ import (
 type Object struct {
 	Access      Access
 	Description string
-	Indexes     []string
+	Indexes     []string `json:"indexes,omitempty"`
 	Kind        Kind
 	Module      string
 	Name        string
 	Oid         string
 	Status      Status
-	Parent      *Object
-	Children    []*Object
+	Parent      *Object   `json:"parent,omitempty"`
+	Children    []*Object `json:"-"`
 }
 
 func (o *Object) String() string {
@@ -51,8 +51,8 @@ func (i Import) String() string {
 // of imports.
 type Module struct {
 	Name       string
-	ObjectTree []*Object
-	Imports    []Import
+	ObjectTree []*Object `json:"objecttree,omitempty"`
+	Imports    []Import  `json:"imports,omitempty"`
 }
 
 // Kind describes whether an SMI object is a table, row, column,
