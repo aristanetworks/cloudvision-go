@@ -1143,6 +1143,518 @@ var DefaultTemplateService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	SenderStatusService_GetOne_FullMethodName           = "/arista.alert.v1.SenderStatusService/GetOne"
+	SenderStatusService_GetSome_FullMethodName          = "/arista.alert.v1.SenderStatusService/GetSome"
+	SenderStatusService_GetAll_FullMethodName           = "/arista.alert.v1.SenderStatusService/GetAll"
+	SenderStatusService_Subscribe_FullMethodName        = "/arista.alert.v1.SenderStatusService/Subscribe"
+	SenderStatusService_GetMeta_FullMethodName          = "/arista.alert.v1.SenderStatusService/GetMeta"
+	SenderStatusService_SubscribeMeta_FullMethodName    = "/arista.alert.v1.SenderStatusService/SubscribeMeta"
+	SenderStatusService_GetAllBatched_FullMethodName    = "/arista.alert.v1.SenderStatusService/GetAllBatched"
+	SenderStatusService_SubscribeBatched_FullMethodName = "/arista.alert.v1.SenderStatusService/SubscribeBatched"
+)
+
+// SenderStatusServiceClient is the client API for SenderStatusService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SenderStatusServiceClient interface {
+	GetOne(ctx context.Context, in *SenderStatusRequest, opts ...grpc.CallOption) (*SenderStatusResponse, error)
+	GetSome(ctx context.Context, in *SenderStatusSomeRequest, opts ...grpc.CallOption) (SenderStatusService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *SenderStatusBatchedStreamRequest, opts ...grpc.CallOption) (SenderStatusService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *SenderStatusBatchedStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeBatchedClient, error)
+}
+
+type senderStatusServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSenderStatusServiceClient(cc grpc.ClientConnInterface) SenderStatusServiceClient {
+	return &senderStatusServiceClient{cc}
+}
+
+func (c *senderStatusServiceClient) GetOne(ctx context.Context, in *SenderStatusRequest, opts ...grpc.CallOption) (*SenderStatusResponse, error) {
+	out := new(SenderStatusResponse)
+	err := c.cc.Invoke(ctx, SenderStatusService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *senderStatusServiceClient) GetSome(ctx context.Context, in *SenderStatusSomeRequest, opts ...grpc.CallOption) (SenderStatusService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[0], SenderStatusService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_GetSomeClient interface {
+	Recv() (*SenderStatusSomeResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceGetSomeClient) Recv() (*SenderStatusSomeResponse, error) {
+	m := new(SenderStatusSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *senderStatusServiceClient) GetAll(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[1], SenderStatusService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_GetAllClient interface {
+	Recv() (*SenderStatusStreamResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceGetAllClient) Recv() (*SenderStatusStreamResponse, error) {
+	m := new(SenderStatusStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *senderStatusServiceClient) Subscribe(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[2], SenderStatusService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_SubscribeClient interface {
+	Recv() (*SenderStatusStreamResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceSubscribeClient) Recv() (*SenderStatusStreamResponse, error) {
+	m := new(SenderStatusStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *senderStatusServiceClient) GetMeta(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, SenderStatusService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *senderStatusServiceClient) SubscribeMeta(ctx context.Context, in *SenderStatusStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[3], SenderStatusService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *senderStatusServiceClient) GetAllBatched(ctx context.Context, in *SenderStatusBatchedStreamRequest, opts ...grpc.CallOption) (SenderStatusService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[4], SenderStatusService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_GetAllBatchedClient interface {
+	Recv() (*SenderStatusBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceGetAllBatchedClient) Recv() (*SenderStatusBatchedStreamResponse, error) {
+	m := new(SenderStatusBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *senderStatusServiceClient) SubscribeBatched(ctx context.Context, in *SenderStatusBatchedStreamRequest, opts ...grpc.CallOption) (SenderStatusService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SenderStatusService_ServiceDesc.Streams[5], SenderStatusService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &senderStatusServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SenderStatusService_SubscribeBatchedClient interface {
+	Recv() (*SenderStatusBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type senderStatusServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *senderStatusServiceSubscribeBatchedClient) Recv() (*SenderStatusBatchedStreamResponse, error) {
+	m := new(SenderStatusBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// SenderStatusServiceServer is the server API for SenderStatusService service.
+// All implementations must embed UnimplementedSenderStatusServiceServer
+// for forward compatibility
+type SenderStatusServiceServer interface {
+	GetOne(context.Context, *SenderStatusRequest) (*SenderStatusResponse, error)
+	GetSome(*SenderStatusSomeRequest, SenderStatusService_GetSomeServer) error
+	GetAll(*SenderStatusStreamRequest, SenderStatusService_GetAllServer) error
+	Subscribe(*SenderStatusStreamRequest, SenderStatusService_SubscribeServer) error
+	GetMeta(context.Context, *SenderStatusStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*SenderStatusStreamRequest, SenderStatusService_SubscribeMetaServer) error
+	GetAllBatched(*SenderStatusBatchedStreamRequest, SenderStatusService_GetAllBatchedServer) error
+	SubscribeBatched(*SenderStatusBatchedStreamRequest, SenderStatusService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedSenderStatusServiceServer()
+}
+
+// UnimplementedSenderStatusServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedSenderStatusServiceServer struct {
+}
+
+func (UnimplementedSenderStatusServiceServer) GetOne(context.Context, *SenderStatusRequest) (*SenderStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) GetSome(*SenderStatusSomeRequest, SenderStatusService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) GetAll(*SenderStatusStreamRequest, SenderStatusService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) Subscribe(*SenderStatusStreamRequest, SenderStatusService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) GetMeta(context.Context, *SenderStatusStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) SubscribeMeta(*SenderStatusStreamRequest, SenderStatusService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) GetAllBatched(*SenderStatusBatchedStreamRequest, SenderStatusService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) SubscribeBatched(*SenderStatusBatchedStreamRequest, SenderStatusService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedSenderStatusServiceServer) mustEmbedUnimplementedSenderStatusServiceServer() {}
+
+// UnsafeSenderStatusServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SenderStatusServiceServer will
+// result in compilation errors.
+type UnsafeSenderStatusServiceServer interface {
+	mustEmbedUnimplementedSenderStatusServiceServer()
+}
+
+func RegisterSenderStatusServiceServer(s grpc.ServiceRegistrar, srv SenderStatusServiceServer) {
+	s.RegisterService(&SenderStatusService_ServiceDesc, srv)
+}
+
+func _SenderStatusService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SenderStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SenderStatusServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SenderStatusService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SenderStatusServiceServer).GetOne(ctx, req.(*SenderStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SenderStatusService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).GetSome(m, &senderStatusServiceGetSomeServer{stream})
+}
+
+type SenderStatusService_GetSomeServer interface {
+	Send(*SenderStatusSomeResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceGetSomeServer) Send(m *SenderStatusSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SenderStatusService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).GetAll(m, &senderStatusServiceGetAllServer{stream})
+}
+
+type SenderStatusService_GetAllServer interface {
+	Send(*SenderStatusStreamResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceGetAllServer) Send(m *SenderStatusStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SenderStatusService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).Subscribe(m, &senderStatusServiceSubscribeServer{stream})
+}
+
+type SenderStatusService_SubscribeServer interface {
+	Send(*SenderStatusStreamResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceSubscribeServer) Send(m *SenderStatusStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SenderStatusService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SenderStatusStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SenderStatusServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SenderStatusService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SenderStatusServiceServer).GetMeta(ctx, req.(*SenderStatusStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SenderStatusService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).SubscribeMeta(m, &senderStatusServiceSubscribeMetaServer{stream})
+}
+
+type SenderStatusService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SenderStatusService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).GetAllBatched(m, &senderStatusServiceGetAllBatchedServer{stream})
+}
+
+type SenderStatusService_GetAllBatchedServer interface {
+	Send(*SenderStatusBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceGetAllBatchedServer) Send(m *SenderStatusBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SenderStatusService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SenderStatusBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SenderStatusServiceServer).SubscribeBatched(m, &senderStatusServiceSubscribeBatchedServer{stream})
+}
+
+type SenderStatusService_SubscribeBatchedServer interface {
+	Send(*SenderStatusBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type senderStatusServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *senderStatusServiceSubscribeBatchedServer) Send(m *SenderStatusBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// SenderStatusService_ServiceDesc is the grpc.ServiceDesc for SenderStatusService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SenderStatusService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.alert.v1.SenderStatusService",
+	HandlerType: (*SenderStatusServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _SenderStatusService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _SenderStatusService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _SenderStatusService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _SenderStatusService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _SenderStatusService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _SenderStatusService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _SenderStatusService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _SenderStatusService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/alert.v1/services.gen.proto",
+}
+
+const (
 	TemplateConfigService_GetOne_FullMethodName           = "/arista.alert.v1.TemplateConfigService/GetOne"
 	TemplateConfigService_GetSome_FullMethodName          = "/arista.alert.v1.TemplateConfigService/GetSome"
 	TemplateConfigService_GetAll_FullMethodName           = "/arista.alert.v1.TemplateConfigService/GetAll"
