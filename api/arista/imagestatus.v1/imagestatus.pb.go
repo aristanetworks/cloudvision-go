@@ -246,8 +246,8 @@ const (
 	// ERROR_CODE_TA_CV_INCOMPATIBLE represents the case where TerminAttr is incompatible with
 	// CloudVision; i.e., the TerminAttr version is below CloudVision's minimum supported version.
 	ErrorCode_ERROR_CODE_TA_CV_INCOMPATIBLE ErrorCode = 9
-	// ERROR_CODE_EOS_CV_INCOMPATIBLE represents the case where the EOS version is incompatible with
-	// CloudVision; i.e., the EOS version is outside of CloudVision's supported range of versions.
+	// ERROR_CODE_EOS_CV_INCOMPATIBLE represents the case where EOS is not supported by CV.
+	// The given EOS is below CV's minimum supported EOS version.
 	ErrorCode_ERROR_CODE_EOS_CV_INCOMPATIBLE ErrorCode = 10
 	// ERROR_CODE_EOS_SUPPORT_NOT_INTRODUCED represents the case where the given EOS version does
 	// not support the SKU.
@@ -368,7 +368,7 @@ const (
 	//
 	// Deprecated: Marked as deprecated in arista/imagestatus.v1/imagestatus.proto.
 	WarningCode_WARNING_CODE_TA_CV_INCOMPATIBLE WarningCode = 6
-	// WARNING_CODE_EOS_CV_INCOMPATIBLE indicates that EOS is not yet supported by CV.
+	// WARNING_CODE_EOS_CV_INCOMPATIBLE represents the case where EOS is not yet supported by CV.
 	// The given EOS exceeds CV's maximum supported EOS version.
 	WarningCode_WARNING_CODE_EOS_CV_INCOMPATIBLE WarningCode = 7
 	// WARNING_CODE_EOS_ARCH_UNKNOWN represents cases where the specified architecture is
