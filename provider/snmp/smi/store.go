@@ -115,7 +115,7 @@ func MergeJSONWithStore(mergejsonbytes []byte, baseStore Store) (Store, error) {
 			Kind:        jStoreObj.Kind,
 			Module:      jStoreObj.Module,
 			Name:        jStoreObj.Name,
-			Oid:         jStoreObj.Name,
+			Oid:         jStoreObj.Oid,
 			Status:      jStoreObj.Status,
 		}
 		cstore.oids[oid].Indexes = make([]string, len(jStoreObj.Indexes))
