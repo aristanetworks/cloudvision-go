@@ -122,6 +122,535 @@ func (x *MetaResponse) GetCount() *wrapperspb.UInt32Value {
 	return nil
 }
 
+type StudioGeneratedConfigurationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Key uniquely identifies a StudioGeneratedConfiguration instance to retrieve.
+	// This value must be populated.
+	Key *StudioGeneratedConfigurationKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Time indicates the time for which you are interested in the data.
+	// If no time is given, the server will use the time at which it makes the request.
+	Time *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationRequest) Reset() {
+	*x = StudioGeneratedConfigurationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationRequest) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationRequest.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationRequest) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *StudioGeneratedConfigurationRequest) GetKey() *StudioGeneratedConfigurationKey {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationRequest) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Value is the value requested.
+	// This structure will be fully-populated as it exists in the datastore. If
+	// optional fields were not given at creation, these fields will be empty or
+	// set to default values.
+	Value *StudioGeneratedConfiguration `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// StudioGeneratedConfiguration instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationResponse) Reset() {
+	*x = StudioGeneratedConfigurationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationResponse) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationResponse.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationResponse) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StudioGeneratedConfigurationResponse) GetValue() *StudioGeneratedConfiguration {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationResponse) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationSomeRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Keys []*StudioGeneratedConfigurationKey `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
+	// Time indicates the time for which you are interested in the data.
+	// If no time is given, the server will use the time at which it makes the request.
+	Time *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationSomeRequest) Reset() {
+	*x = StudioGeneratedConfigurationSomeRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationSomeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationSomeRequest) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationSomeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationSomeRequest.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationSomeRequest) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *StudioGeneratedConfigurationSomeRequest) GetKeys() []*StudioGeneratedConfigurationKey {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationSomeRequest) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationSomeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Value is the value requested.
+	// This structure will be fully-populated as it exists in the datastore. If
+	// optional fields were not given at creation, these fields will be empty or
+	// set to default values.
+	Value *StudioGeneratedConfiguration `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Error is an optional field.
+	// It should be filled when there is an error in the GetSome process.
+	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationSomeResponse) Reset() {
+	*x = StudioGeneratedConfigurationSomeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationSomeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationSomeResponse) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationSomeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationSomeResponse.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationSomeResponse) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *StudioGeneratedConfigurationSomeResponse) GetValue() *StudioGeneratedConfiguration {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationSomeResponse) GetError() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationSomeResponse) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationStreamRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// PartialEqFilter provides a way to server-side filter a GetAll/Subscribe.
+	// This requires all provided fields to be equal to the response.
+	//
+	// While transparent to users, this field also allows services to optimize internal
+	// subscriptions if filter(s) are sufficiently specific.
+	PartialEqFilter []*StudioGeneratedConfiguration `protobuf:"bytes,1,rep,name=partial_eq_filter,json=partialEqFilter,proto3" json:"partial_eq_filter,omitempty"`
+	// TimeRange allows limiting response data to within a specified time window.
+	// If this field is populated, at least one of the two time fields are required.
+	//
+	// For GetAll, the fields start and end can be used as follows:
+	//
+	//   - end: Returns the state of each StudioGeneratedConfiguration at end.
+	//   - Each StudioGeneratedConfiguration response is fully-specified (all fields set).
+	//   - start: Returns the state of each StudioGeneratedConfiguration at start, followed by updates until now.
+	//   - Each StudioGeneratedConfiguration response at start is fully-specified, but updates may be partial.
+	//   - start and end: Returns the state of each StudioGeneratedConfiguration at start, followed by updates
+	//     until end.
+	//   - Each StudioGeneratedConfiguration response at start is fully-specified, but updates until end may
+	//     be partial.
+	//
+	// This field is not allowed in the Subscribe RPC.
+	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationStreamRequest) Reset() {
+	*x = StudioGeneratedConfigurationStreamRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationStreamRequest) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationStreamRequest.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationStreamRequest) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StudioGeneratedConfigurationStreamRequest) GetPartialEqFilter() []*StudioGeneratedConfiguration {
+	if x != nil {
+		return x.PartialEqFilter
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationStreamRequest) GetTime() *time.TimeBounds {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationStreamResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Value is a value deemed relevant to the initiating request.
+	// This structure will always have its key-field populated. Which other fields are
+	// populated, and why, depends on the value of Operation and what triggered this notification.
+	Value *StudioGeneratedConfiguration `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Time holds the timestamp of this StudioGeneratedConfiguration's last modification.
+	Time *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+	// Operation indicates how the StudioGeneratedConfiguration value in this response should be considered.
+	// Under non-subscribe requests, this value should always be INITIAL. In a subscription,
+	// once all initial data is streamed and the client begins to receive modification updates,
+	// you should not see INITIAL again.
+	Type subscriptions.Operation `protobuf:"varint,3,opt,name=type,proto3,enum=arista.subscriptions.Operation" json:"type,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationStreamResponse) Reset() {
+	*x = StudioGeneratedConfigurationStreamResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationStreamResponse) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationStreamResponse.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationStreamResponse) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *StudioGeneratedConfigurationStreamResponse) GetValue() *StudioGeneratedConfiguration {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationStreamResponse) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationStreamResponse) GetType() subscriptions.Operation {
+	if x != nil {
+		return x.Type
+	}
+	return subscriptions.Operation(0)
+}
+
+type StudioGeneratedConfigurationBatchedStreamRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// PartialEqFilter provides a way to server-side filter a GetAll/Subscribe.
+	// This requires all provided fields to be equal to the response.
+	//
+	// While transparent to users, this field also allows services to optimize internal
+	// subscriptions if filter(s) are sufficiently specific.
+	PartialEqFilter []*StudioGeneratedConfiguration `protobuf:"bytes,1,rep,name=partial_eq_filter,json=partialEqFilter,proto3" json:"partial_eq_filter,omitempty"`
+	// TimeRange allows limiting response data to within a specified time window.
+	// If this field is populated, at least one of the two time fields are required.
+	//
+	// For GetAll, the fields start and end can be used as follows:
+	//
+	//   - end: Returns the state of each StudioGeneratedConfiguration at end.
+	//   - Each StudioGeneratedConfiguration response is fully-specified (all fields set).
+	//   - start: Returns the state of each StudioGeneratedConfiguration at start, followed by updates until now.
+	//   - Each StudioGeneratedConfiguration response at start is fully-specified, but updates may be partial.
+	//   - start and end: Returns the state of each StudioGeneratedConfiguration at start, followed by updates
+	//     until end.
+	//   - Each StudioGeneratedConfiguration response at start is fully-specified, but updates until end may
+	//     be partial.
+	//
+	// This field is not allowed in the Subscribe RPC.
+	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// MaxMessages limits the maximum number of messages that can be contained in one batch.
+	// MaxMessages is required to be at least 1.
+	// The maximum number of messages in a batch is min(max_messages, INTERNAL_BATCH_LIMIT)
+	// INTERNAL_BATCH_LIMIT is set based on the maximum message size.
+	MaxMessages *wrapperspb.UInt32Value `protobuf:"bytes,4,opt,name=max_messages,json=maxMessages,proto3" json:"max_messages,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) Reset() {
+	*x = StudioGeneratedConfigurationBatchedStreamRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationBatchedStreamRequest) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationBatchedStreamRequest.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationBatchedStreamRequest) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) GetPartialEqFilter() []*StudioGeneratedConfiguration {
+	if x != nil {
+		return x.PartialEqFilter
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) GetTime() *time.TimeBounds {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamRequest) GetMaxMessages() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.MaxMessages
+	}
+	return nil
+}
+
+type StudioGeneratedConfigurationBatchedStreamResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Values are the values deemed relevant to the initiating request.
+	// The length of this structure is guaranteed to be between (inclusive) 1 and
+	// min(req.max_messages, INTERNAL_BATCH_LIMIT).
+	Responses []*StudioGeneratedConfigurationStreamResponse `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses,omitempty"`
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamResponse) Reset() {
+	*x = StudioGeneratedConfigurationBatchedStreamResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StudioGeneratedConfigurationBatchedStreamResponse) ProtoMessage() {}
+
+func (x *StudioGeneratedConfigurationBatchedStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StudioGeneratedConfigurationBatchedStreamResponse.ProtoReflect.Descriptor instead.
+func (*StudioGeneratedConfigurationBatchedStreamResponse) Descriptor() ([]byte, []int) {
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *StudioGeneratedConfigurationBatchedStreamResponse) GetResponses() []*StudioGeneratedConfigurationStreamResponse {
+	if x != nil {
+		return x.Responses
+	}
+	return nil
+}
+
 type WorkspaceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -138,7 +667,7 @@ type WorkspaceRequest struct {
 func (x *WorkspaceRequest) Reset() {
 	*x = WorkspaceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[1]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -151,7 +680,7 @@ func (x *WorkspaceRequest) String() string {
 func (*WorkspaceRequest) ProtoMessage() {}
 
 func (x *WorkspaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[1]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -164,7 +693,7 @@ func (x *WorkspaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{1}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WorkspaceRequest) GetKey() *WorkspaceKey {
@@ -199,7 +728,7 @@ type WorkspaceResponse struct {
 func (x *WorkspaceResponse) Reset() {
 	*x = WorkspaceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[2]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -212,7 +741,7 @@ func (x *WorkspaceResponse) String() string {
 func (*WorkspaceResponse) ProtoMessage() {}
 
 func (x *WorkspaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[2]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -225,7 +754,7 @@ func (x *WorkspaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{2}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WorkspaceResponse) GetValue() *Workspace {
@@ -256,7 +785,7 @@ type WorkspaceSomeRequest struct {
 func (x *WorkspaceSomeRequest) Reset() {
 	*x = WorkspaceSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[3]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -269,7 +798,7 @@ func (x *WorkspaceSomeRequest) String() string {
 func (*WorkspaceSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[3]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -282,7 +811,7 @@ func (x *WorkspaceSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{3}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WorkspaceSomeRequest) GetKeys() []*WorkspaceKey {
@@ -318,7 +847,7 @@ type WorkspaceSomeResponse struct {
 func (x *WorkspaceSomeResponse) Reset() {
 	*x = WorkspaceSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[4]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -331,7 +860,7 @@ func (x *WorkspaceSomeResponse) String() string {
 func (*WorkspaceSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[4]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -344,7 +873,7 @@ func (x *WorkspaceSomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{4}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WorkspaceSomeResponse) GetValue() *Workspace {
@@ -400,7 +929,7 @@ type WorkspaceStreamRequest struct {
 func (x *WorkspaceStreamRequest) Reset() {
 	*x = WorkspaceStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[5]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -413,7 +942,7 @@ func (x *WorkspaceStreamRequest) String() string {
 func (*WorkspaceStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[5]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +955,7 @@ func (x *WorkspaceStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{5}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WorkspaceStreamRequest) GetPartialEqFilter() []*Workspace {
@@ -464,7 +993,7 @@ type WorkspaceStreamResponse struct {
 func (x *WorkspaceStreamResponse) Reset() {
 	*x = WorkspaceStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[6]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -477,7 +1006,7 @@ func (x *WorkspaceStreamResponse) String() string {
 func (*WorkspaceStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[6]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -490,7 +1019,7 @@ func (x *WorkspaceStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{6}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WorkspaceStreamResponse) GetValue() *Workspace {
@@ -551,7 +1080,7 @@ type WorkspaceBatchedStreamRequest struct {
 func (x *WorkspaceBatchedStreamRequest) Reset() {
 	*x = WorkspaceBatchedStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[7]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -564,7 +1093,7 @@ func (x *WorkspaceBatchedStreamRequest) String() string {
 func (*WorkspaceBatchedStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceBatchedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[7]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -577,7 +1106,7 @@ func (x *WorkspaceBatchedStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBatchedStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBatchedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{7}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WorkspaceBatchedStreamRequest) GetPartialEqFilter() []*Workspace {
@@ -615,7 +1144,7 @@ type WorkspaceBatchedStreamResponse struct {
 func (x *WorkspaceBatchedStreamResponse) Reset() {
 	*x = WorkspaceBatchedStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[8]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -628,7 +1157,7 @@ func (x *WorkspaceBatchedStreamResponse) String() string {
 func (*WorkspaceBatchedStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceBatchedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[8]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -641,7 +1170,7 @@ func (x *WorkspaceBatchedStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBatchedStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBatchedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{8}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *WorkspaceBatchedStreamResponse) GetResponses() []*WorkspaceStreamResponse {
@@ -667,7 +1196,7 @@ type WorkspaceBuildRequest struct {
 func (x *WorkspaceBuildRequest) Reset() {
 	*x = WorkspaceBuildRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[9]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -680,7 +1209,7 @@ func (x *WorkspaceBuildRequest) String() string {
 func (*WorkspaceBuildRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[9]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +1222,7 @@ func (x *WorkspaceBuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{9}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *WorkspaceBuildRequest) GetKey() *WorkspaceBuildKey {
@@ -728,7 +1257,7 @@ type WorkspaceBuildResponse struct {
 func (x *WorkspaceBuildResponse) Reset() {
 	*x = WorkspaceBuildResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[10]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -741,7 +1270,7 @@ func (x *WorkspaceBuildResponse) String() string {
 func (*WorkspaceBuildResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[10]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -754,7 +1283,7 @@ func (x *WorkspaceBuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{10}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WorkspaceBuildResponse) GetValue() *WorkspaceBuild {
@@ -785,7 +1314,7 @@ type WorkspaceBuildSomeRequest struct {
 func (x *WorkspaceBuildSomeRequest) Reset() {
 	*x = WorkspaceBuildSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[11]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -798,7 +1327,7 @@ func (x *WorkspaceBuildSomeRequest) String() string {
 func (*WorkspaceBuildSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[11]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -811,7 +1340,7 @@ func (x *WorkspaceBuildSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{11}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *WorkspaceBuildSomeRequest) GetKeys() []*WorkspaceBuildKey {
@@ -847,7 +1376,7 @@ type WorkspaceBuildSomeResponse struct {
 func (x *WorkspaceBuildSomeResponse) Reset() {
 	*x = WorkspaceBuildSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[12]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -860,7 +1389,7 @@ func (x *WorkspaceBuildSomeResponse) String() string {
 func (*WorkspaceBuildSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[12]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -873,7 +1402,7 @@ func (x *WorkspaceBuildSomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{12}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *WorkspaceBuildSomeResponse) GetValue() *WorkspaceBuild {
@@ -929,7 +1458,7 @@ type WorkspaceBuildStreamRequest struct {
 func (x *WorkspaceBuildStreamRequest) Reset() {
 	*x = WorkspaceBuildStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[13]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -942,7 +1471,7 @@ func (x *WorkspaceBuildStreamRequest) String() string {
 func (*WorkspaceBuildStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[13]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -955,7 +1484,7 @@ func (x *WorkspaceBuildStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{13}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *WorkspaceBuildStreamRequest) GetPartialEqFilter() []*WorkspaceBuild {
@@ -993,7 +1522,7 @@ type WorkspaceBuildStreamResponse struct {
 func (x *WorkspaceBuildStreamResponse) Reset() {
 	*x = WorkspaceBuildStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[14]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1006,7 +1535,7 @@ func (x *WorkspaceBuildStreamResponse) String() string {
 func (*WorkspaceBuildStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[14]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1019,7 +1548,7 @@ func (x *WorkspaceBuildStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{14}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *WorkspaceBuildStreamResponse) GetValue() *WorkspaceBuild {
@@ -1080,7 +1609,7 @@ type WorkspaceBuildBatchedStreamRequest struct {
 func (x *WorkspaceBuildBatchedStreamRequest) Reset() {
 	*x = WorkspaceBuildBatchedStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[15]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1093,7 +1622,7 @@ func (x *WorkspaceBuildBatchedStreamRequest) String() string {
 func (*WorkspaceBuildBatchedStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildBatchedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[15]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1106,7 +1635,7 @@ func (x *WorkspaceBuildBatchedStreamRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WorkspaceBuildBatchedStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildBatchedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{15}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *WorkspaceBuildBatchedStreamRequest) GetPartialEqFilter() []*WorkspaceBuild {
@@ -1144,7 +1673,7 @@ type WorkspaceBuildBatchedStreamResponse struct {
 func (x *WorkspaceBuildBatchedStreamResponse) Reset() {
 	*x = WorkspaceBuildBatchedStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[16]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1157,7 +1686,7 @@ func (x *WorkspaceBuildBatchedStreamResponse) String() string {
 func (*WorkspaceBuildBatchedStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildBatchedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[16]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1170,7 +1699,7 @@ func (x *WorkspaceBuildBatchedStreamResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use WorkspaceBuildBatchedStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildBatchedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{16}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *WorkspaceBuildBatchedStreamResponse) GetResponses() []*WorkspaceBuildStreamResponse {
@@ -1196,7 +1725,7 @@ type WorkspaceBuildDetailsRequest struct {
 func (x *WorkspaceBuildDetailsRequest) Reset() {
 	*x = WorkspaceBuildDetailsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[17]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1209,7 +1738,7 @@ func (x *WorkspaceBuildDetailsRequest) String() string {
 func (*WorkspaceBuildDetailsRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[17]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1222,7 +1751,7 @@ func (x *WorkspaceBuildDetailsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildDetailsRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{17}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *WorkspaceBuildDetailsRequest) GetKey() *WorkspaceBuildDetailsKey {
@@ -1257,7 +1786,7 @@ type WorkspaceBuildDetailsResponse struct {
 func (x *WorkspaceBuildDetailsResponse) Reset() {
 	*x = WorkspaceBuildDetailsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[18]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1270,7 +1799,7 @@ func (x *WorkspaceBuildDetailsResponse) String() string {
 func (*WorkspaceBuildDetailsResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[18]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1283,7 +1812,7 @@ func (x *WorkspaceBuildDetailsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildDetailsResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{18}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *WorkspaceBuildDetailsResponse) GetValue() *WorkspaceBuildDetails {
@@ -1314,7 +1843,7 @@ type WorkspaceBuildDetailsSomeRequest struct {
 func (x *WorkspaceBuildDetailsSomeRequest) Reset() {
 	*x = WorkspaceBuildDetailsSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[19]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1327,7 +1856,7 @@ func (x *WorkspaceBuildDetailsSomeRequest) String() string {
 func (*WorkspaceBuildDetailsSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[19]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1340,7 +1869,7 @@ func (x *WorkspaceBuildDetailsSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceBuildDetailsSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{19}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *WorkspaceBuildDetailsSomeRequest) GetKeys() []*WorkspaceBuildDetailsKey {
@@ -1376,7 +1905,7 @@ type WorkspaceBuildDetailsSomeResponse struct {
 func (x *WorkspaceBuildDetailsSomeResponse) Reset() {
 	*x = WorkspaceBuildDetailsSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[20]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1389,7 +1918,7 @@ func (x *WorkspaceBuildDetailsSomeResponse) String() string {
 func (*WorkspaceBuildDetailsSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[20]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1402,7 +1931,7 @@ func (x *WorkspaceBuildDetailsSomeResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WorkspaceBuildDetailsSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{20}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *WorkspaceBuildDetailsSomeResponse) GetValue() *WorkspaceBuildDetails {
@@ -1458,7 +1987,7 @@ type WorkspaceBuildDetailsStreamRequest struct {
 func (x *WorkspaceBuildDetailsStreamRequest) Reset() {
 	*x = WorkspaceBuildDetailsStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[21]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1471,7 +2000,7 @@ func (x *WorkspaceBuildDetailsStreamRequest) String() string {
 func (*WorkspaceBuildDetailsStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[21]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,7 +2013,7 @@ func (x *WorkspaceBuildDetailsStreamRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WorkspaceBuildDetailsStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{21}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *WorkspaceBuildDetailsStreamRequest) GetPartialEqFilter() []*WorkspaceBuildDetails {
@@ -1522,7 +2051,7 @@ type WorkspaceBuildDetailsStreamResponse struct {
 func (x *WorkspaceBuildDetailsStreamResponse) Reset() {
 	*x = WorkspaceBuildDetailsStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[22]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1535,7 +2064,7 @@ func (x *WorkspaceBuildDetailsStreamResponse) String() string {
 func (*WorkspaceBuildDetailsStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[22]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1548,7 +2077,7 @@ func (x *WorkspaceBuildDetailsStreamResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use WorkspaceBuildDetailsStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{22}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *WorkspaceBuildDetailsStreamResponse) GetValue() *WorkspaceBuildDetails {
@@ -1609,7 +2138,7 @@ type WorkspaceBuildDetailsBatchedStreamRequest struct {
 func (x *WorkspaceBuildDetailsBatchedStreamRequest) Reset() {
 	*x = WorkspaceBuildDetailsBatchedStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[23]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1622,7 +2151,7 @@ func (x *WorkspaceBuildDetailsBatchedStreamRequest) String() string {
 func (*WorkspaceBuildDetailsBatchedStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsBatchedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[23]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1635,7 +2164,7 @@ func (x *WorkspaceBuildDetailsBatchedStreamRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use WorkspaceBuildDetailsBatchedStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsBatchedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{23}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *WorkspaceBuildDetailsBatchedStreamRequest) GetPartialEqFilter() []*WorkspaceBuildDetails {
@@ -1673,7 +2202,7 @@ type WorkspaceBuildDetailsBatchedStreamResponse struct {
 func (x *WorkspaceBuildDetailsBatchedStreamResponse) Reset() {
 	*x = WorkspaceBuildDetailsBatchedStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[24]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1686,7 +2215,7 @@ func (x *WorkspaceBuildDetailsBatchedStreamResponse) String() string {
 func (*WorkspaceBuildDetailsBatchedStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceBuildDetailsBatchedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[24]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1699,7 +2228,7 @@ func (x *WorkspaceBuildDetailsBatchedStreamResponse) ProtoReflect() protoreflect
 
 // Deprecated: Use WorkspaceBuildDetailsBatchedStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceBuildDetailsBatchedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{24}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *WorkspaceBuildDetailsBatchedStreamResponse) GetResponses() []*WorkspaceBuildDetailsStreamResponse {
@@ -1725,7 +2254,7 @@ type WorkspaceConfigRequest struct {
 func (x *WorkspaceConfigRequest) Reset() {
 	*x = WorkspaceConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[25]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1738,7 +2267,7 @@ func (x *WorkspaceConfigRequest) String() string {
 func (*WorkspaceConfigRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[25]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1751,7 +2280,7 @@ func (x *WorkspaceConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{25}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *WorkspaceConfigRequest) GetKey() *WorkspaceKey {
@@ -1786,7 +2315,7 @@ type WorkspaceConfigResponse struct {
 func (x *WorkspaceConfigResponse) Reset() {
 	*x = WorkspaceConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[26]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1799,7 +2328,7 @@ func (x *WorkspaceConfigResponse) String() string {
 func (*WorkspaceConfigResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[26]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1812,7 +2341,7 @@ func (x *WorkspaceConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{26}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *WorkspaceConfigResponse) GetValue() *WorkspaceConfig {
@@ -1843,7 +2372,7 @@ type WorkspaceConfigSomeRequest struct {
 func (x *WorkspaceConfigSomeRequest) Reset() {
 	*x = WorkspaceConfigSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[27]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1856,7 +2385,7 @@ func (x *WorkspaceConfigSomeRequest) String() string {
 func (*WorkspaceConfigSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[27]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1869,7 +2398,7 @@ func (x *WorkspaceConfigSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{27}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *WorkspaceConfigSomeRequest) GetKeys() []*WorkspaceKey {
@@ -1905,7 +2434,7 @@ type WorkspaceConfigSomeResponse struct {
 func (x *WorkspaceConfigSomeResponse) Reset() {
 	*x = WorkspaceConfigSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[28]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1918,7 +2447,7 @@ func (x *WorkspaceConfigSomeResponse) String() string {
 func (*WorkspaceConfigSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[28]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2460,7 @@ func (x *WorkspaceConfigSomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{28}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *WorkspaceConfigSomeResponse) GetValue() *WorkspaceConfig {
@@ -1987,7 +2516,7 @@ type WorkspaceConfigStreamRequest struct {
 func (x *WorkspaceConfigStreamRequest) Reset() {
 	*x = WorkspaceConfigStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[29]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2000,7 +2529,7 @@ func (x *WorkspaceConfigStreamRequest) String() string {
 func (*WorkspaceConfigStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[29]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2013,7 +2542,7 @@ func (x *WorkspaceConfigStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{29}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *WorkspaceConfigStreamRequest) GetPartialEqFilter() []*WorkspaceConfig {
@@ -2051,7 +2580,7 @@ type WorkspaceConfigStreamResponse struct {
 func (x *WorkspaceConfigStreamResponse) Reset() {
 	*x = WorkspaceConfigStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[30]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2064,7 +2593,7 @@ func (x *WorkspaceConfigStreamResponse) String() string {
 func (*WorkspaceConfigStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[30]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2077,7 +2606,7 @@ func (x *WorkspaceConfigStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{30}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *WorkspaceConfigStreamResponse) GetValue() *WorkspaceConfig {
@@ -2138,7 +2667,7 @@ type WorkspaceConfigBatchedStreamRequest struct {
 func (x *WorkspaceConfigBatchedStreamRequest) Reset() {
 	*x = WorkspaceConfigBatchedStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[31]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2151,7 +2680,7 @@ func (x *WorkspaceConfigBatchedStreamRequest) String() string {
 func (*WorkspaceConfigBatchedStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigBatchedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[31]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2164,7 +2693,7 @@ func (x *WorkspaceConfigBatchedStreamRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use WorkspaceConfigBatchedStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigBatchedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{31}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *WorkspaceConfigBatchedStreamRequest) GetPartialEqFilter() []*WorkspaceConfig {
@@ -2202,7 +2731,7 @@ type WorkspaceConfigBatchedStreamResponse struct {
 func (x *WorkspaceConfigBatchedStreamResponse) Reset() {
 	*x = WorkspaceConfigBatchedStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[32]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2215,7 +2744,7 @@ func (x *WorkspaceConfigBatchedStreamResponse) String() string {
 func (*WorkspaceConfigBatchedStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigBatchedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[32]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2228,7 +2757,7 @@ func (x *WorkspaceConfigBatchedStreamResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use WorkspaceConfigBatchedStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigBatchedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{32}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *WorkspaceConfigBatchedStreamResponse) GetResponses() []*WorkspaceConfigStreamResponse {
@@ -2251,7 +2780,7 @@ type WorkspaceConfigSetRequest struct {
 func (x *WorkspaceConfigSetRequest) Reset() {
 	*x = WorkspaceConfigSetRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[33]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2264,7 +2793,7 @@ func (x *WorkspaceConfigSetRequest) String() string {
 func (*WorkspaceConfigSetRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[33]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2277,7 +2806,7 @@ func (x *WorkspaceConfigSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSetRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSetRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{33}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *WorkspaceConfigSetRequest) GetValue() *WorkspaceConfig {
@@ -2306,7 +2835,7 @@ type WorkspaceConfigSetResponse struct {
 func (x *WorkspaceConfigSetResponse) Reset() {
 	*x = WorkspaceConfigSetResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[34]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2319,7 +2848,7 @@ func (x *WorkspaceConfigSetResponse) String() string {
 func (*WorkspaceConfigSetResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[34]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2332,7 +2861,7 @@ func (x *WorkspaceConfigSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSetResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSetResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{34}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *WorkspaceConfigSetResponse) GetValue() *WorkspaceConfig {
@@ -2367,7 +2896,7 @@ type WorkspaceConfigSetSomeRequest struct {
 func (x *WorkspaceConfigSetSomeRequest) Reset() {
 	*x = WorkspaceConfigSetSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[35]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2380,7 +2909,7 @@ func (x *WorkspaceConfigSetSomeRequest) String() string {
 func (*WorkspaceConfigSetSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigSetSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[35]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2393,7 +2922,7 @@ func (x *WorkspaceConfigSetSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSetSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSetSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{35}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *WorkspaceConfigSetSomeRequest) GetValues() []*WorkspaceConfig {
@@ -2415,7 +2944,7 @@ type WorkspaceConfigSetSomeResponse struct {
 func (x *WorkspaceConfigSetSomeResponse) Reset() {
 	*x = WorkspaceConfigSetSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[36]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2428,7 +2957,7 @@ func (x *WorkspaceConfigSetSomeResponse) String() string {
 func (*WorkspaceConfigSetSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigSetSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[36]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2441,7 +2970,7 @@ func (x *WorkspaceConfigSetSomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigSetSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigSetSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{36}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *WorkspaceConfigSetSomeResponse) GetKey() *WorkspaceKey {
@@ -2471,7 +3000,7 @@ type WorkspaceConfigDeleteRequest struct {
 func (x *WorkspaceConfigDeleteRequest) Reset() {
 	*x = WorkspaceConfigDeleteRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[37]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2484,7 +3013,7 @@ func (x *WorkspaceConfigDeleteRequest) String() string {
 func (*WorkspaceConfigDeleteRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[37]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2497,7 +3026,7 @@ func (x *WorkspaceConfigDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigDeleteRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{37}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *WorkspaceConfigDeleteRequest) GetKey() *WorkspaceKey {
@@ -2525,7 +3054,7 @@ type WorkspaceConfigDeleteResponse struct {
 func (x *WorkspaceConfigDeleteResponse) Reset() {
 	*x = WorkspaceConfigDeleteResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[38]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2538,7 +3067,7 @@ func (x *WorkspaceConfigDeleteResponse) String() string {
 func (*WorkspaceConfigDeleteResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[38]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2551,7 +3080,7 @@ func (x *WorkspaceConfigDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigDeleteResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{38}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *WorkspaceConfigDeleteResponse) GetKey() *WorkspaceKey {
@@ -2580,7 +3109,7 @@ type WorkspaceConfigDeleteSomeRequest struct {
 func (x *WorkspaceConfigDeleteSomeRequest) Reset() {
 	*x = WorkspaceConfigDeleteSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[39]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2593,7 +3122,7 @@ func (x *WorkspaceConfigDeleteSomeRequest) String() string {
 func (*WorkspaceConfigDeleteSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[39]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2606,7 +3135,7 @@ func (x *WorkspaceConfigDeleteSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigDeleteSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{39}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *WorkspaceConfigDeleteSomeRequest) GetKeys() []*WorkspaceKey {
@@ -2629,7 +3158,7 @@ type WorkspaceConfigDeleteSomeResponse struct {
 func (x *WorkspaceConfigDeleteSomeResponse) Reset() {
 	*x = WorkspaceConfigDeleteSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[40]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2642,7 +3171,7 @@ func (x *WorkspaceConfigDeleteSomeResponse) String() string {
 func (*WorkspaceConfigDeleteSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[40]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2655,7 +3184,7 @@ func (x *WorkspaceConfigDeleteSomeResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WorkspaceConfigDeleteSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{40}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *WorkspaceConfigDeleteSomeResponse) GetKey() *WorkspaceKey {
@@ -2686,7 +3215,7 @@ type WorkspaceConfigDeleteAllRequest struct {
 func (x *WorkspaceConfigDeleteAllRequest) Reset() {
 	*x = WorkspaceConfigDeleteAllRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[41]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2699,7 +3228,7 @@ func (x *WorkspaceConfigDeleteAllRequest) String() string {
 func (*WorkspaceConfigDeleteAllRequest) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteAllRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[41]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +3241,7 @@ func (x *WorkspaceConfigDeleteAllRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigDeleteAllRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteAllRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{41}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *WorkspaceConfigDeleteAllRequest) GetPartialEqFilter() []*WorkspaceConfig {
@@ -2741,7 +3270,7 @@ type WorkspaceConfigDeleteAllResponse struct {
 func (x *WorkspaceConfigDeleteAllResponse) Reset() {
 	*x = WorkspaceConfigDeleteAllResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[42]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2754,7 +3283,7 @@ func (x *WorkspaceConfigDeleteAllResponse) String() string {
 func (*WorkspaceConfigDeleteAllResponse) ProtoMessage() {}
 
 func (x *WorkspaceConfigDeleteAllResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[42]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2767,7 +3296,7 @@ func (x *WorkspaceConfigDeleteAllResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceConfigDeleteAllResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceConfigDeleteAllResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{42}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *WorkspaceConfigDeleteAllResponse) GetType() fmp.DeleteError {
@@ -2814,7 +3343,7 @@ type WorkspaceSyncConfigRequest struct {
 func (x *WorkspaceSyncConfigRequest) Reset() {
 	*x = WorkspaceSyncConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[43]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2827,7 +3356,7 @@ func (x *WorkspaceSyncConfigRequest) String() string {
 func (*WorkspaceSyncConfigRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[43]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2840,7 +3369,7 @@ func (x *WorkspaceSyncConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{43}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *WorkspaceSyncConfigRequest) GetKey() *WorkspaceSyncKey {
@@ -2875,7 +3404,7 @@ type WorkspaceSyncConfigResponse struct {
 func (x *WorkspaceSyncConfigResponse) Reset() {
 	*x = WorkspaceSyncConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[44]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2888,7 +3417,7 @@ func (x *WorkspaceSyncConfigResponse) String() string {
 func (*WorkspaceSyncConfigResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[44]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2901,7 +3430,7 @@ func (x *WorkspaceSyncConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{44}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *WorkspaceSyncConfigResponse) GetValue() *WorkspaceSyncConfig {
@@ -2932,7 +3461,7 @@ type WorkspaceSyncConfigSomeRequest struct {
 func (x *WorkspaceSyncConfigSomeRequest) Reset() {
 	*x = WorkspaceSyncConfigSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[45]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2945,7 +3474,7 @@ func (x *WorkspaceSyncConfigSomeRequest) String() string {
 func (*WorkspaceSyncConfigSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[45]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2958,7 +3487,7 @@ func (x *WorkspaceSyncConfigSomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{45}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *WorkspaceSyncConfigSomeRequest) GetKeys() []*WorkspaceSyncKey {
@@ -2994,7 +3523,7 @@ type WorkspaceSyncConfigSomeResponse struct {
 func (x *WorkspaceSyncConfigSomeResponse) Reset() {
 	*x = WorkspaceSyncConfigSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[46]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3007,7 +3536,7 @@ func (x *WorkspaceSyncConfigSomeResponse) String() string {
 func (*WorkspaceSyncConfigSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[46]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3020,7 +3549,7 @@ func (x *WorkspaceSyncConfigSomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{46}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *WorkspaceSyncConfigSomeResponse) GetValue() *WorkspaceSyncConfig {
@@ -3076,7 +3605,7 @@ type WorkspaceSyncConfigStreamRequest struct {
 func (x *WorkspaceSyncConfigStreamRequest) Reset() {
 	*x = WorkspaceSyncConfigStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[47]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3089,7 +3618,7 @@ func (x *WorkspaceSyncConfigStreamRequest) String() string {
 func (*WorkspaceSyncConfigStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[47]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3102,7 +3631,7 @@ func (x *WorkspaceSyncConfigStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{47}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *WorkspaceSyncConfigStreamRequest) GetPartialEqFilter() []*WorkspaceSyncConfig {
@@ -3140,7 +3669,7 @@ type WorkspaceSyncConfigStreamResponse struct {
 func (x *WorkspaceSyncConfigStreamResponse) Reset() {
 	*x = WorkspaceSyncConfigStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[48]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3153,7 +3682,7 @@ func (x *WorkspaceSyncConfigStreamResponse) String() string {
 func (*WorkspaceSyncConfigStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[48]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3166,7 +3695,7 @@ func (x *WorkspaceSyncConfigStreamResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WorkspaceSyncConfigStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{48}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *WorkspaceSyncConfigStreamResponse) GetValue() *WorkspaceSyncConfig {
@@ -3227,7 +3756,7 @@ type WorkspaceSyncConfigBatchedStreamRequest struct {
 func (x *WorkspaceSyncConfigBatchedStreamRequest) Reset() {
 	*x = WorkspaceSyncConfigBatchedStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[49]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3240,7 +3769,7 @@ func (x *WorkspaceSyncConfigBatchedStreamRequest) String() string {
 func (*WorkspaceSyncConfigBatchedStreamRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigBatchedStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[49]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3253,7 +3782,7 @@ func (x *WorkspaceSyncConfigBatchedStreamRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use WorkspaceSyncConfigBatchedStreamRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigBatchedStreamRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{49}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *WorkspaceSyncConfigBatchedStreamRequest) GetPartialEqFilter() []*WorkspaceSyncConfig {
@@ -3291,7 +3820,7 @@ type WorkspaceSyncConfigBatchedStreamResponse struct {
 func (x *WorkspaceSyncConfigBatchedStreamResponse) Reset() {
 	*x = WorkspaceSyncConfigBatchedStreamResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[50]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3304,7 +3833,7 @@ func (x *WorkspaceSyncConfigBatchedStreamResponse) String() string {
 func (*WorkspaceSyncConfigBatchedStreamResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigBatchedStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[50]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3317,7 +3846,7 @@ func (x *WorkspaceSyncConfigBatchedStreamResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use WorkspaceSyncConfigBatchedStreamResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigBatchedStreamResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{50}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *WorkspaceSyncConfigBatchedStreamResponse) GetResponses() []*WorkspaceSyncConfigStreamResponse {
@@ -3340,7 +3869,7 @@ type WorkspaceSyncConfigSetRequest struct {
 func (x *WorkspaceSyncConfigSetRequest) Reset() {
 	*x = WorkspaceSyncConfigSetRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[51]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3353,7 +3882,7 @@ func (x *WorkspaceSyncConfigSetRequest) String() string {
 func (*WorkspaceSyncConfigSetRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[51]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3366,7 +3895,7 @@ func (x *WorkspaceSyncConfigSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigSetRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSetRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{51}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *WorkspaceSyncConfigSetRequest) GetValue() *WorkspaceSyncConfig {
@@ -3395,7 +3924,7 @@ type WorkspaceSyncConfigSetResponse struct {
 func (x *WorkspaceSyncConfigSetResponse) Reset() {
 	*x = WorkspaceSyncConfigSetResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[52]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3408,7 +3937,7 @@ func (x *WorkspaceSyncConfigSetResponse) String() string {
 func (*WorkspaceSyncConfigSetResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[52]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3421,7 +3950,7 @@ func (x *WorkspaceSyncConfigSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigSetResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSetResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{52}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *WorkspaceSyncConfigSetResponse) GetValue() *WorkspaceSyncConfig {
@@ -3456,7 +3985,7 @@ type WorkspaceSyncConfigSetSomeRequest struct {
 func (x *WorkspaceSyncConfigSetSomeRequest) Reset() {
 	*x = WorkspaceSyncConfigSetSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[53]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3469,7 +3998,7 @@ func (x *WorkspaceSyncConfigSetSomeRequest) String() string {
 func (*WorkspaceSyncConfigSetSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSetSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[53]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3482,7 +4011,7 @@ func (x *WorkspaceSyncConfigSetSomeRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WorkspaceSyncConfigSetSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSetSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{53}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *WorkspaceSyncConfigSetSomeRequest) GetValues() []*WorkspaceSyncConfig {
@@ -3504,7 +4033,7 @@ type WorkspaceSyncConfigSetSomeResponse struct {
 func (x *WorkspaceSyncConfigSetSomeResponse) Reset() {
 	*x = WorkspaceSyncConfigSetSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[54]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3517,7 +4046,7 @@ func (x *WorkspaceSyncConfigSetSomeResponse) String() string {
 func (*WorkspaceSyncConfigSetSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigSetSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[54]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3530,7 +4059,7 @@ func (x *WorkspaceSyncConfigSetSomeResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WorkspaceSyncConfigSetSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigSetSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{54}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *WorkspaceSyncConfigSetSomeResponse) GetKey() *WorkspaceSyncKey {
@@ -3560,7 +4089,7 @@ type WorkspaceSyncConfigDeleteRequest struct {
 func (x *WorkspaceSyncConfigDeleteRequest) Reset() {
 	*x = WorkspaceSyncConfigDeleteRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[55]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3573,7 +4102,7 @@ func (x *WorkspaceSyncConfigDeleteRequest) String() string {
 func (*WorkspaceSyncConfigDeleteRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[55]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3586,7 +4115,7 @@ func (x *WorkspaceSyncConfigDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkspaceSyncConfigDeleteRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{55}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *WorkspaceSyncConfigDeleteRequest) GetKey() *WorkspaceSyncKey {
@@ -3614,7 +4143,7 @@ type WorkspaceSyncConfigDeleteResponse struct {
 func (x *WorkspaceSyncConfigDeleteResponse) Reset() {
 	*x = WorkspaceSyncConfigDeleteResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[56]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3627,7 +4156,7 @@ func (x *WorkspaceSyncConfigDeleteResponse) String() string {
 func (*WorkspaceSyncConfigDeleteResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[56]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3640,7 +4169,7 @@ func (x *WorkspaceSyncConfigDeleteResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WorkspaceSyncConfigDeleteResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{56}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *WorkspaceSyncConfigDeleteResponse) GetKey() *WorkspaceSyncKey {
@@ -3669,7 +4198,7 @@ type WorkspaceSyncConfigDeleteSomeRequest struct {
 func (x *WorkspaceSyncConfigDeleteSomeRequest) Reset() {
 	*x = WorkspaceSyncConfigDeleteSomeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[57]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3682,7 +4211,7 @@ func (x *WorkspaceSyncConfigDeleteSomeRequest) String() string {
 func (*WorkspaceSyncConfigDeleteSomeRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteSomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[57]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3695,7 +4224,7 @@ func (x *WorkspaceSyncConfigDeleteSomeRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use WorkspaceSyncConfigDeleteSomeRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteSomeRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{57}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *WorkspaceSyncConfigDeleteSomeRequest) GetKeys() []*WorkspaceSyncKey {
@@ -3718,7 +4247,7 @@ type WorkspaceSyncConfigDeleteSomeResponse struct {
 func (x *WorkspaceSyncConfigDeleteSomeResponse) Reset() {
 	*x = WorkspaceSyncConfigDeleteSomeResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[58]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3731,7 +4260,7 @@ func (x *WorkspaceSyncConfigDeleteSomeResponse) String() string {
 func (*WorkspaceSyncConfigDeleteSomeResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteSomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[58]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3744,7 +4273,7 @@ func (x *WorkspaceSyncConfigDeleteSomeResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use WorkspaceSyncConfigDeleteSomeResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteSomeResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{58}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *WorkspaceSyncConfigDeleteSomeResponse) GetKey() *WorkspaceSyncKey {
@@ -3775,7 +4304,7 @@ type WorkspaceSyncConfigDeleteAllRequest struct {
 func (x *WorkspaceSyncConfigDeleteAllRequest) Reset() {
 	*x = WorkspaceSyncConfigDeleteAllRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[59]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3788,7 +4317,7 @@ func (x *WorkspaceSyncConfigDeleteAllRequest) String() string {
 func (*WorkspaceSyncConfigDeleteAllRequest) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteAllRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[59]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3801,7 +4330,7 @@ func (x *WorkspaceSyncConfigDeleteAllRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use WorkspaceSyncConfigDeleteAllRequest.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteAllRequest) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{59}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *WorkspaceSyncConfigDeleteAllRequest) GetPartialEqFilter() []*WorkspaceSyncConfig {
@@ -3830,7 +4359,7 @@ type WorkspaceSyncConfigDeleteAllResponse struct {
 func (x *WorkspaceSyncConfigDeleteAllResponse) Reset() {
 	*x = WorkspaceSyncConfigDeleteAllResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[60]
+		mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3843,7 +4372,7 @@ func (x *WorkspaceSyncConfigDeleteAllResponse) String() string {
 func (*WorkspaceSyncConfigDeleteAllResponse) ProtoMessage() {}
 
 func (x *WorkspaceSyncConfigDeleteAllResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[60]
+	mi := &file_arista_workspace_v1_services_gen_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3856,7 +4385,7 @@ func (x *WorkspaceSyncConfigDeleteAllResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use WorkspaceSyncConfigDeleteAllResponse.ProtoReflect.Descriptor instead.
 func (*WorkspaceSyncConfigDeleteAllResponse) Descriptor() ([]byte, []int) {
-	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{60}
+	return file_arista_workspace_v1_services_gen_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *WorkspaceSyncConfigDeleteAllResponse) GetType() fmp.DeleteError {
@@ -3916,7 +4445,102 @@ var file_arista_workspace_v1_services_gen_proto_rawDesc = []byte{
 	0x0a, 0x05, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
 	0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x63, 0x6f, 0x75,
-	0x6e, 0x74, 0x22, 0x77, 0x0a, 0x10, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x52,
+	0x6e, 0x74, 0x22, 0x9d, 0x01, 0x0a, 0x23, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e,
+	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74,
+	0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4b, 0x65, 0x79, 0x52, 0x03, 0x6b,
+	0x65, 0x79, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x04, 0x74, 0x69,
+	0x6d, 0x65, 0x22, 0x9f, 0x01, 0x0a, 0x24, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e,
+	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x47, 0x0a, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x31, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x04,
+	0x74, 0x69, 0x6d, 0x65, 0x22, 0xa3, 0x01, 0x0a, 0x27, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47,
+	0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x48, 0x0a, 0x04, 0x6b, 0x65, 0x79, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x34,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72,
+	0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x4b, 0x65, 0x79, 0x52, 0x04, 0x6b, 0x65, 0x79, 0x73, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69,
+	0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73,
+	0x74, 0x61, 0x6d, 0x70, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x22, 0xd7, 0x01, 0x0a, 0x28, 0x53,
+	0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x6f, 0x6d, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x47, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75,
+	0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x12, 0x32, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x04,
+	0x74, 0x69, 0x6d, 0x65, 0x22, 0xb7, 0x01, 0x0a, 0x29, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47,
+	0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x5d, 0x0a, 0x11, 0x70, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x65, 0x71,
+	0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x31, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x0f, 0x70, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6c, 0x45, 0x71, 0x46, 0x69, 0x6c, 0x74, 0x65,
+	0x72, 0x12, 0x2b, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x17, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69,
+	0x6d, 0x65, 0x42, 0x6f, 0x75, 0x6e, 0x64, 0x73, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x22, 0xda,
+	0x01, 0x0a, 0x2a, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
+	0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x47, 0x0a,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x31, 0x2e, 0x61,
+	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
+	0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
+	0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
+	0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x33, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0e, 0x32, 0x1f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x73, 0x75,
+	0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x4f, 0x70, 0x65, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0xff, 0x01, 0x0a, 0x30,
+	0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x5d, 0x0a, 0x11, 0x70, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x65, 0x71, 0x5f, 0x66,
+	0x69, 0x6c, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x31, 0x2e, 0x61, 0x72,
+	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
+	0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65,
+	0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0f,
+	0x70, 0x61, 0x72, 0x74, 0x69, 0x61, 0x6c, 0x45, 0x71, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12,
+	0x2b, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x69, 0x6d, 0x65, 0x2e, 0x54, 0x69, 0x6d, 0x65,
+	0x42, 0x6f, 0x75, 0x6e, 0x64, 0x73, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x3f, 0x0a, 0x0c,
+	0x6d, 0x61, 0x78, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x52, 0x0b, 0x6d, 0x61, 0x78, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x22, 0x92, 0x01,
+	0x0a, 0x31, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65,
+	0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x61,
+	0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x5d, 0x0a, 0x09, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75,
+	0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x09, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x73, 0x22, 0x77, 0x0a, 0x10, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x33, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
 	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
@@ -4482,388 +5106,460 @@ var file_arista_workspace_v1_services_gen_proto_rawDesc = []byte{
 	0x6b, 0x65, 0x79, 0x12, 0x2e, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x04, 0x74,
-	0x69, 0x6d, 0x65, 0x32, 0xd9, 0x06, 0x0a, 0x10, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
-	0x65, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x57, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f,
-	0x6e, 0x65, 0x12, 0x25, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x62, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x29, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x6f, 0x6d, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x65, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12,
-	0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x68, 0x0a, 0x09,
-	0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x59, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74,
-	0x61, 0x12, 0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
-	0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21,
-	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
-	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x61, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65,
-	0x74, 0x61, 0x12, 0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x69, 0x6d, 0x65, 0x32, 0xfb, 0x08, 0x0a, 0x23, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65,
+	0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x7d, 0x0a, 0x06, 0x47,
+	0x65, 0x74, 0x4f, 0x6e, 0x65, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64,
+	0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65,
+	0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x88, 0x01, 0x0a, 0x07, 0x47,
+	0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x3c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75,
+	0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x3d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69,
+	0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x8b, 0x01, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c,
+	0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e,
+	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e,
+	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x30, 0x01, 0x12, 0x8e, 0x01, 0x0a, 0x09, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62,
+	0x65, 0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65,
+	0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65,
+	0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x30, 0x01, 0x12, 0x6c, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12,
+	0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65,
+	0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
 	0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
 	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x30, 0x01, 0x12, 0x7a, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61,
-	0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x73, 0x65, 0x12, 0x74, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d,
+	0x65, 0x74, 0x61, 0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f,
+	0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0xa0, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74,
+	0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x45, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x46, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65,
+	0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
+	0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0xa3, 0x01, 0x0a, 0x10,
+	0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
+	0x12, 0x45, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e,
+	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x46, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74,
+	0x75, 0x64, 0x69, 0x6f, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30,
+	0x01, 0x32, 0xd9, 0x06, 0x0a, 0x10, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x57, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e, 0x65,
+	0x12, 0x25, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x62, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x29, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
 	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
-	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01,
-	0x12, 0x7d, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x65, 0x64, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x30, 0x01, 0x12, 0x65, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x2b, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x68, 0x0a, 0x09, 0x53, 0x75,
+	0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
 	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32,
-	0xa6, 0x07, 0x0a, 0x15, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69,
-	0x6c, 0x64, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x61, 0x0a, 0x06, 0x47, 0x65, 0x74,
-	0x4f, 0x6e, 0x65, 0x12, 0x2a, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x70, 0x61, 0x63, 0x65, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x30, 0x01, 0x12, 0x59, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12,
 	0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42,
-	0x75, 0x69, 0x6c, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6c, 0x0a, 0x07,
-	0x47, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x2e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x6f, 0x6d, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x6f, 0x6d, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6f, 0x0a, 0x06, 0x47, 0x65,
-	0x74, 0x41, 0x6c, 0x6c, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x72, 0x0a, 0x09, 0x53,
-	0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72,
-	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x61, 0x72, 0x69,
-	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
-	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12,
-	0x5e, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69,
-	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
-	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53,
+	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53,
 	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61,
 	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
 	0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x66, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61,
-	0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x84, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41,
-	0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61,
-	0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74,
-	0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x87,
-	0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x64, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c,
-	0x64, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0x90, 0x08, 0x0a, 0x1c, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69,
-	0x6c, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x6f, 0x0a, 0x06, 0x47, 0x65, 0x74,
-	0x4f, 0x6e, 0x65, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69,
-	0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7a, 0x0a, 0x07, 0x47, 0x65,
-	0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c,
-	0x73, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c,
-	0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7d, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c,
-	0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65,
-	0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x80, 0x01, 0x0a, 0x09, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72,
-	0x69, 0x62, 0x65, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c,
-	0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x65, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d,
-	0x65, 0x74, 0x61, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x6d, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61,
-	0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x92,
-	0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
-	0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x30, 0x01, 0x12, 0x95, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62,
-	0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74,
-	0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74,
-	0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0xff, 0x0b, 0x0a, 0x16,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53,
-	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x63, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e, 0x65,
+	0x61, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61,
 	0x12, 0x2b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
 	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e,
+	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e,
 	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6e, 0x0a, 0x07, 0x47,
-	0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x30, 0x01, 0x12, 0x7a, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x65, 0x64, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
 	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x71, 0x0a, 0x06, 0x47,
-	0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
-	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74,
-	0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x74,
-	0x0a, 0x09, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x31, 0x2e, 0x61, 0x72,
-	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
-	0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32,
-	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
-	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x30, 0x01, 0x12, 0x5f, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12,
-	0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69,
-	0x62, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7d,
+	0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68,
+	0x65, 0x64, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
 	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x66,
-	0x0a, 0x03, 0x53, 0x65, 0x74, 0x12, 0x2e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0xa6, 0x07,
+	0x0a, 0x15, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64,
+	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x61, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e,
+	0x65, 0x12, 0x2a, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69,
+	0x6c, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6c, 0x0a, 0x07, 0x47, 0x65,
+	0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x2e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
 	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
 	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x74, 0x0a, 0x07, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d,
-	0x65, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
-	0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
-	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f,
-	0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6f, 0x0a, 0x06,
-	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6f, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41,
+	0x6c, 0x6c, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x72, 0x0a, 0x09, 0x53, 0x75, 0x62,
+	0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
 	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65,
-	0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44,
-	0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7d, 0x0a,
-	0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
+	0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
+	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x5e, 0x0a,
+	0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
+	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x66, 0x0a,
+	0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x30,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x84, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c,
+	0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x87, 0x01, 0x0a,
+	0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x64, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x42,
+	0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0x90, 0x08, 0x0a, 0x1c, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73,
+	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x6f, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e,
+	0x65, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7a, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x53,
+	0x6f, 0x6d, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53,
+	0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x30, 0x01, 0x12, 0x7d, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x37,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61,
+	0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x30, 0x01, 0x12, 0x80, 0x01, 0x0a, 0x09, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62,
+	0x65, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x65, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74,
+	0x61, 0x12, 0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6d, 0x0a,
+	0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x37,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65,
+	0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x92, 0x01, 0x0a,
+	0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x3e,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3f,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
+	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30,
+	0x01, 0x12, 0x95, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42,
+	0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x3e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69,
+	0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x44, 0x65, 0x74, 0x61, 0x69,
+	0x6c, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0xff, 0x0b, 0x0a, 0x16, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x63, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4f, 0x6e, 0x65, 0x12, 0x2b,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x61, 0x72,
 	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
 	0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f,
-	0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7a, 0x0a, 0x09,
-	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73,
+	0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6e, 0x0a, 0x07, 0x47, 0x65, 0x74,
+	0x53, 0x6f, 0x6d, 0x65, 0x12, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x71, 0x0a, 0x06, 0x47, 0x65, 0x74,
+	0x41, 0x6c, 0x6c, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x74, 0x0a, 0x09,
+	0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73,
+	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
+	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61,
+	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
+	0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x30, 0x01, 0x12, 0x5f, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x31, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x67, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65,
+	0x4d, 0x65, 0x74, 0x61, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65,
+	0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x66, 0x0a, 0x03,
+	0x53, 0x65, 0x74, 0x12, 0x2e, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x74, 0x0a, 0x07, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12,
+	0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6f, 0x0a, 0x06, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x12, 0x31, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7d, 0x0a, 0x0a, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73,
 	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
 	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44,
-	0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x86, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74,
-	0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69,
-	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
-	0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7a, 0x0a, 0x09, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c,
+	0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x86, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c,
+	0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
+	0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61,
+	0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12,
+	0x89, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x65, 0x64, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
 	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
-	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30,
-	0x01, 0x12, 0x89, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42,
-	0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72,
-	0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0xe5, 0x0c,
-	0x0a, 0x1a, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x6b, 0x0a, 0x06,
-	0x47, 0x65, 0x74, 0x4f, 0x6e, 0x65, 0x12, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x39,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61,
+	0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x32, 0xe5, 0x0c, 0x0a, 0x1a,
+	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x6b, 0x0a, 0x06, 0x47, 0x65,
+	0x74, 0x4f, 0x6e, 0x65, 0x12, 0x2f, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x76, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x53, 0x6f,
+	0x6d, 0x65, 0x12, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
 	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
 	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x76, 0x0a, 0x07, 0x47, 0x65, 0x74,
-	0x53, 0x6f, 0x6d, 0x65, 0x12, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x6f,
-	0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
-	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30,
-	0x01, 0x12, 0x79, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x35, 0x2e, 0x61, 0x72,
-	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
-	0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7c, 0x0a, 0x09,
-	0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73,
+	0x67, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12,
+	0x79, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73,
 	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
 	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
 	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
 	0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x63, 0x0a, 0x07, 0x47, 0x65,
-	0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x7c, 0x0a, 0x09, 0x53, 0x75,
+	0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79,
+	0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x63, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d,
+	0x65, 0x74, 0x61, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69,
+	0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31,
+	0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x6b, 0x0a,
+	0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x35,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79,
+	0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6e, 0x0a, 0x03, 0x53, 0x65,
+	0x74, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
 	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
 	0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53,
-	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x6b, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x4d, 0x65, 0x74, 0x61,
-	0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
-	0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65,
-	0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x6e, 0x0a, 0x03,
-	0x53, 0x65, 0x74, 0x12, 0x32, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x53, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7c, 0x0a, 0x07,
-	0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x37, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53,
-	0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x77, 0x0a, 0x06, 0x44, 0x65,
-	0x6c, 0x65, 0x74, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
-	0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65,
-	0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61, 0x72,
-	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
-	0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x85, 0x01, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f,
-	0x6d, 0x65, 0x12, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65,
-	0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e,
+	0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7c, 0x0a, 0x07, 0x53, 0x65,
+	0x74, 0x53, 0x6f, 0x6d, 0x65, 0x12, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53,
+	0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e,
 	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
 	0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e,
-	0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x82, 0x01, 0x0a, 0x09,
-	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73,
+	0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x53, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x77, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x12, 0x35, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x61, 0x72, 0x69, 0x73,
 	0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e,
 	0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c,
-	0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01,
-	0x12, 0x8e, 0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68,
-	0x65, 0x64, 0x12, 0x3c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
-	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63,
-	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x3d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x85, 0x01, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65,
+	0x12, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x53, 0x6f, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e, 0x61, 0x72,
+	0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76,
+	0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x6f, 0x6d, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x82, 0x01, 0x0a, 0x09, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x38, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
+	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f,
+	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x39, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x6c, 0x65, 0x74,
+	0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12, 0x8e,
+	0x01, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64,
+	0x12, 0x3c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
 	0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65,
 	0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65,
-	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30,
-	0x01, 0x12, 0x91, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42,
-	0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x12, 0x3c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x3d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
+	0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3d,
+	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x53, 0x79,
+	0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x30, 0x01, 0x12,
+	0x91, 0x01, 0x0a, 0x10, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x65, 0x64, 0x12, 0x3c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f,
 	0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61,
-	0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x30, 0x01, 0x42, 0x4c, 0x5a, 0x4a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67,
-	0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x77, 0x6f, 0x72,
-	0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x3b, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70,
-	0x61, 0x63, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x3d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x61, 0x74, 0x63,
+	0x68, 0x65, 0x64, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x30, 0x01, 0x42, 0x4c, 0x5a, 0x4a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x77, 0x6f, 0x72, 0x6b, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x3b, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -4878,314 +5574,358 @@ func file_arista_workspace_v1_services_gen_proto_rawDescGZIP() []byte {
 	return file_arista_workspace_v1_services_gen_proto_rawDescData
 }
 
-var file_arista_workspace_v1_services_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
+var file_arista_workspace_v1_services_gen_proto_msgTypes = make([]protoimpl.MessageInfo, 69)
 var file_arista_workspace_v1_services_gen_proto_goTypes = []interface{}{
-	(*MetaResponse)(nil),                               // 0: arista.workspace.v1.MetaResponse
-	(*WorkspaceRequest)(nil),                           // 1: arista.workspace.v1.WorkspaceRequest
-	(*WorkspaceResponse)(nil),                          // 2: arista.workspace.v1.WorkspaceResponse
-	(*WorkspaceSomeRequest)(nil),                       // 3: arista.workspace.v1.WorkspaceSomeRequest
-	(*WorkspaceSomeResponse)(nil),                      // 4: arista.workspace.v1.WorkspaceSomeResponse
-	(*WorkspaceStreamRequest)(nil),                     // 5: arista.workspace.v1.WorkspaceStreamRequest
-	(*WorkspaceStreamResponse)(nil),                    // 6: arista.workspace.v1.WorkspaceStreamResponse
-	(*WorkspaceBatchedStreamRequest)(nil),              // 7: arista.workspace.v1.WorkspaceBatchedStreamRequest
-	(*WorkspaceBatchedStreamResponse)(nil),             // 8: arista.workspace.v1.WorkspaceBatchedStreamResponse
-	(*WorkspaceBuildRequest)(nil),                      // 9: arista.workspace.v1.WorkspaceBuildRequest
-	(*WorkspaceBuildResponse)(nil),                     // 10: arista.workspace.v1.WorkspaceBuildResponse
-	(*WorkspaceBuildSomeRequest)(nil),                  // 11: arista.workspace.v1.WorkspaceBuildSomeRequest
-	(*WorkspaceBuildSomeResponse)(nil),                 // 12: arista.workspace.v1.WorkspaceBuildSomeResponse
-	(*WorkspaceBuildStreamRequest)(nil),                // 13: arista.workspace.v1.WorkspaceBuildStreamRequest
-	(*WorkspaceBuildStreamResponse)(nil),               // 14: arista.workspace.v1.WorkspaceBuildStreamResponse
-	(*WorkspaceBuildBatchedStreamRequest)(nil),         // 15: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
-	(*WorkspaceBuildBatchedStreamResponse)(nil),        // 16: arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
-	(*WorkspaceBuildDetailsRequest)(nil),               // 17: arista.workspace.v1.WorkspaceBuildDetailsRequest
-	(*WorkspaceBuildDetailsResponse)(nil),              // 18: arista.workspace.v1.WorkspaceBuildDetailsResponse
-	(*WorkspaceBuildDetailsSomeRequest)(nil),           // 19: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest
-	(*WorkspaceBuildDetailsSomeResponse)(nil),          // 20: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse
-	(*WorkspaceBuildDetailsStreamRequest)(nil),         // 21: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
-	(*WorkspaceBuildDetailsStreamResponse)(nil),        // 22: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
-	(*WorkspaceBuildDetailsBatchedStreamRequest)(nil),  // 23: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
-	(*WorkspaceBuildDetailsBatchedStreamResponse)(nil), // 24: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
-	(*WorkspaceConfigRequest)(nil),                     // 25: arista.workspace.v1.WorkspaceConfigRequest
-	(*WorkspaceConfigResponse)(nil),                    // 26: arista.workspace.v1.WorkspaceConfigResponse
-	(*WorkspaceConfigSomeRequest)(nil),                 // 27: arista.workspace.v1.WorkspaceConfigSomeRequest
-	(*WorkspaceConfigSomeResponse)(nil),                // 28: arista.workspace.v1.WorkspaceConfigSomeResponse
-	(*WorkspaceConfigStreamRequest)(nil),               // 29: arista.workspace.v1.WorkspaceConfigStreamRequest
-	(*WorkspaceConfigStreamResponse)(nil),              // 30: arista.workspace.v1.WorkspaceConfigStreamResponse
-	(*WorkspaceConfigBatchedStreamRequest)(nil),        // 31: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
-	(*WorkspaceConfigBatchedStreamResponse)(nil),       // 32: arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
-	(*WorkspaceConfigSetRequest)(nil),                  // 33: arista.workspace.v1.WorkspaceConfigSetRequest
-	(*WorkspaceConfigSetResponse)(nil),                 // 34: arista.workspace.v1.WorkspaceConfigSetResponse
-	(*WorkspaceConfigSetSomeRequest)(nil),              // 35: arista.workspace.v1.WorkspaceConfigSetSomeRequest
-	(*WorkspaceConfigSetSomeResponse)(nil),             // 36: arista.workspace.v1.WorkspaceConfigSetSomeResponse
-	(*WorkspaceConfigDeleteRequest)(nil),               // 37: arista.workspace.v1.WorkspaceConfigDeleteRequest
-	(*WorkspaceConfigDeleteResponse)(nil),              // 38: arista.workspace.v1.WorkspaceConfigDeleteResponse
-	(*WorkspaceConfigDeleteSomeRequest)(nil),           // 39: arista.workspace.v1.WorkspaceConfigDeleteSomeRequest
-	(*WorkspaceConfigDeleteSomeResponse)(nil),          // 40: arista.workspace.v1.WorkspaceConfigDeleteSomeResponse
-	(*WorkspaceConfigDeleteAllRequest)(nil),            // 41: arista.workspace.v1.WorkspaceConfigDeleteAllRequest
-	(*WorkspaceConfigDeleteAllResponse)(nil),           // 42: arista.workspace.v1.WorkspaceConfigDeleteAllResponse
-	(*WorkspaceSyncConfigRequest)(nil),                 // 43: arista.workspace.v1.WorkspaceSyncConfigRequest
-	(*WorkspaceSyncConfigResponse)(nil),                // 44: arista.workspace.v1.WorkspaceSyncConfigResponse
-	(*WorkspaceSyncConfigSomeRequest)(nil),             // 45: arista.workspace.v1.WorkspaceSyncConfigSomeRequest
-	(*WorkspaceSyncConfigSomeResponse)(nil),            // 46: arista.workspace.v1.WorkspaceSyncConfigSomeResponse
-	(*WorkspaceSyncConfigStreamRequest)(nil),           // 47: arista.workspace.v1.WorkspaceSyncConfigStreamRequest
-	(*WorkspaceSyncConfigStreamResponse)(nil),          // 48: arista.workspace.v1.WorkspaceSyncConfigStreamResponse
-	(*WorkspaceSyncConfigBatchedStreamRequest)(nil),    // 49: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
-	(*WorkspaceSyncConfigBatchedStreamResponse)(nil),   // 50: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
-	(*WorkspaceSyncConfigSetRequest)(nil),              // 51: arista.workspace.v1.WorkspaceSyncConfigSetRequest
-	(*WorkspaceSyncConfigSetResponse)(nil),             // 52: arista.workspace.v1.WorkspaceSyncConfigSetResponse
-	(*WorkspaceSyncConfigSetSomeRequest)(nil),          // 53: arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest
-	(*WorkspaceSyncConfigSetSomeResponse)(nil),         // 54: arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse
-	(*WorkspaceSyncConfigDeleteRequest)(nil),           // 55: arista.workspace.v1.WorkspaceSyncConfigDeleteRequest
-	(*WorkspaceSyncConfigDeleteResponse)(nil),          // 56: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse
-	(*WorkspaceSyncConfigDeleteSomeRequest)(nil),       // 57: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest
-	(*WorkspaceSyncConfigDeleteSomeResponse)(nil),      // 58: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse
-	(*WorkspaceSyncConfigDeleteAllRequest)(nil),        // 59: arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest
-	(*WorkspaceSyncConfigDeleteAllResponse)(nil),       // 60: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse
-	(*timestamppb.Timestamp)(nil),                      // 61: google.protobuf.Timestamp
-	(subscriptions.Operation)(0),                       // 62: arista.subscriptions.Operation
-	(*wrapperspb.UInt32Value)(nil),                     // 63: google.protobuf.UInt32Value
-	(*WorkspaceKey)(nil),                               // 64: arista.workspace.v1.WorkspaceKey
-	(*Workspace)(nil),                                  // 65: arista.workspace.v1.Workspace
-	(*wrapperspb.StringValue)(nil),                     // 66: google.protobuf.StringValue
-	(*time.TimeBounds)(nil),                            // 67: arista.time.TimeBounds
-	(*WorkspaceBuildKey)(nil),                          // 68: arista.workspace.v1.WorkspaceBuildKey
-	(*WorkspaceBuild)(nil),                             // 69: arista.workspace.v1.WorkspaceBuild
-	(*WorkspaceBuildDetailsKey)(nil),                   // 70: arista.workspace.v1.WorkspaceBuildDetailsKey
-	(*WorkspaceBuildDetails)(nil),                      // 71: arista.workspace.v1.WorkspaceBuildDetails
-	(*WorkspaceConfig)(nil),                            // 72: arista.workspace.v1.WorkspaceConfig
-	(fmp.DeleteError)(0),                               // 73: fmp.DeleteError
-	(*WorkspaceSyncKey)(nil),                           // 74: arista.workspace.v1.WorkspaceSyncKey
-	(*WorkspaceSyncConfig)(nil),                        // 75: arista.workspace.v1.WorkspaceSyncConfig
+	(*MetaResponse)(nil),                                      // 0: arista.workspace.v1.MetaResponse
+	(*StudioGeneratedConfigurationRequest)(nil),               // 1: arista.workspace.v1.StudioGeneratedConfigurationRequest
+	(*StudioGeneratedConfigurationResponse)(nil),              // 2: arista.workspace.v1.StudioGeneratedConfigurationResponse
+	(*StudioGeneratedConfigurationSomeRequest)(nil),           // 3: arista.workspace.v1.StudioGeneratedConfigurationSomeRequest
+	(*StudioGeneratedConfigurationSomeResponse)(nil),          // 4: arista.workspace.v1.StudioGeneratedConfigurationSomeResponse
+	(*StudioGeneratedConfigurationStreamRequest)(nil),         // 5: arista.workspace.v1.StudioGeneratedConfigurationStreamRequest
+	(*StudioGeneratedConfigurationStreamResponse)(nil),        // 6: arista.workspace.v1.StudioGeneratedConfigurationStreamResponse
+	(*StudioGeneratedConfigurationBatchedStreamRequest)(nil),  // 7: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest
+	(*StudioGeneratedConfigurationBatchedStreamResponse)(nil), // 8: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamResponse
+	(*WorkspaceRequest)(nil),                                  // 9: arista.workspace.v1.WorkspaceRequest
+	(*WorkspaceResponse)(nil),                                 // 10: arista.workspace.v1.WorkspaceResponse
+	(*WorkspaceSomeRequest)(nil),                              // 11: arista.workspace.v1.WorkspaceSomeRequest
+	(*WorkspaceSomeResponse)(nil),                             // 12: arista.workspace.v1.WorkspaceSomeResponse
+	(*WorkspaceStreamRequest)(nil),                            // 13: arista.workspace.v1.WorkspaceStreamRequest
+	(*WorkspaceStreamResponse)(nil),                           // 14: arista.workspace.v1.WorkspaceStreamResponse
+	(*WorkspaceBatchedStreamRequest)(nil),                     // 15: arista.workspace.v1.WorkspaceBatchedStreamRequest
+	(*WorkspaceBatchedStreamResponse)(nil),                    // 16: arista.workspace.v1.WorkspaceBatchedStreamResponse
+	(*WorkspaceBuildRequest)(nil),                             // 17: arista.workspace.v1.WorkspaceBuildRequest
+	(*WorkspaceBuildResponse)(nil),                            // 18: arista.workspace.v1.WorkspaceBuildResponse
+	(*WorkspaceBuildSomeRequest)(nil),                         // 19: arista.workspace.v1.WorkspaceBuildSomeRequest
+	(*WorkspaceBuildSomeResponse)(nil),                        // 20: arista.workspace.v1.WorkspaceBuildSomeResponse
+	(*WorkspaceBuildStreamRequest)(nil),                       // 21: arista.workspace.v1.WorkspaceBuildStreamRequest
+	(*WorkspaceBuildStreamResponse)(nil),                      // 22: arista.workspace.v1.WorkspaceBuildStreamResponse
+	(*WorkspaceBuildBatchedStreamRequest)(nil),                // 23: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
+	(*WorkspaceBuildBatchedStreamResponse)(nil),               // 24: arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
+	(*WorkspaceBuildDetailsRequest)(nil),                      // 25: arista.workspace.v1.WorkspaceBuildDetailsRequest
+	(*WorkspaceBuildDetailsResponse)(nil),                     // 26: arista.workspace.v1.WorkspaceBuildDetailsResponse
+	(*WorkspaceBuildDetailsSomeRequest)(nil),                  // 27: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest
+	(*WorkspaceBuildDetailsSomeResponse)(nil),                 // 28: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse
+	(*WorkspaceBuildDetailsStreamRequest)(nil),                // 29: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
+	(*WorkspaceBuildDetailsStreamResponse)(nil),               // 30: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
+	(*WorkspaceBuildDetailsBatchedStreamRequest)(nil),         // 31: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
+	(*WorkspaceBuildDetailsBatchedStreamResponse)(nil),        // 32: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
+	(*WorkspaceConfigRequest)(nil),                            // 33: arista.workspace.v1.WorkspaceConfigRequest
+	(*WorkspaceConfigResponse)(nil),                           // 34: arista.workspace.v1.WorkspaceConfigResponse
+	(*WorkspaceConfigSomeRequest)(nil),                        // 35: arista.workspace.v1.WorkspaceConfigSomeRequest
+	(*WorkspaceConfigSomeResponse)(nil),                       // 36: arista.workspace.v1.WorkspaceConfigSomeResponse
+	(*WorkspaceConfigStreamRequest)(nil),                      // 37: arista.workspace.v1.WorkspaceConfigStreamRequest
+	(*WorkspaceConfigStreamResponse)(nil),                     // 38: arista.workspace.v1.WorkspaceConfigStreamResponse
+	(*WorkspaceConfigBatchedStreamRequest)(nil),               // 39: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
+	(*WorkspaceConfigBatchedStreamResponse)(nil),              // 40: arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
+	(*WorkspaceConfigSetRequest)(nil),                         // 41: arista.workspace.v1.WorkspaceConfigSetRequest
+	(*WorkspaceConfigSetResponse)(nil),                        // 42: arista.workspace.v1.WorkspaceConfigSetResponse
+	(*WorkspaceConfigSetSomeRequest)(nil),                     // 43: arista.workspace.v1.WorkspaceConfigSetSomeRequest
+	(*WorkspaceConfigSetSomeResponse)(nil),                    // 44: arista.workspace.v1.WorkspaceConfigSetSomeResponse
+	(*WorkspaceConfigDeleteRequest)(nil),                      // 45: arista.workspace.v1.WorkspaceConfigDeleteRequest
+	(*WorkspaceConfigDeleteResponse)(nil),                     // 46: arista.workspace.v1.WorkspaceConfigDeleteResponse
+	(*WorkspaceConfigDeleteSomeRequest)(nil),                  // 47: arista.workspace.v1.WorkspaceConfigDeleteSomeRequest
+	(*WorkspaceConfigDeleteSomeResponse)(nil),                 // 48: arista.workspace.v1.WorkspaceConfigDeleteSomeResponse
+	(*WorkspaceConfigDeleteAllRequest)(nil),                   // 49: arista.workspace.v1.WorkspaceConfigDeleteAllRequest
+	(*WorkspaceConfigDeleteAllResponse)(nil),                  // 50: arista.workspace.v1.WorkspaceConfigDeleteAllResponse
+	(*WorkspaceSyncConfigRequest)(nil),                        // 51: arista.workspace.v1.WorkspaceSyncConfigRequest
+	(*WorkspaceSyncConfigResponse)(nil),                       // 52: arista.workspace.v1.WorkspaceSyncConfigResponse
+	(*WorkspaceSyncConfigSomeRequest)(nil),                    // 53: arista.workspace.v1.WorkspaceSyncConfigSomeRequest
+	(*WorkspaceSyncConfigSomeResponse)(nil),                   // 54: arista.workspace.v1.WorkspaceSyncConfigSomeResponse
+	(*WorkspaceSyncConfigStreamRequest)(nil),                  // 55: arista.workspace.v1.WorkspaceSyncConfigStreamRequest
+	(*WorkspaceSyncConfigStreamResponse)(nil),                 // 56: arista.workspace.v1.WorkspaceSyncConfigStreamResponse
+	(*WorkspaceSyncConfigBatchedStreamRequest)(nil),           // 57: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
+	(*WorkspaceSyncConfigBatchedStreamResponse)(nil),          // 58: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
+	(*WorkspaceSyncConfigSetRequest)(nil),                     // 59: arista.workspace.v1.WorkspaceSyncConfigSetRequest
+	(*WorkspaceSyncConfigSetResponse)(nil),                    // 60: arista.workspace.v1.WorkspaceSyncConfigSetResponse
+	(*WorkspaceSyncConfigSetSomeRequest)(nil),                 // 61: arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest
+	(*WorkspaceSyncConfigSetSomeResponse)(nil),                // 62: arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse
+	(*WorkspaceSyncConfigDeleteRequest)(nil),                  // 63: arista.workspace.v1.WorkspaceSyncConfigDeleteRequest
+	(*WorkspaceSyncConfigDeleteResponse)(nil),                 // 64: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse
+	(*WorkspaceSyncConfigDeleteSomeRequest)(nil),              // 65: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest
+	(*WorkspaceSyncConfigDeleteSomeResponse)(nil),             // 66: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse
+	(*WorkspaceSyncConfigDeleteAllRequest)(nil),               // 67: arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest
+	(*WorkspaceSyncConfigDeleteAllResponse)(nil),              // 68: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse
+	(*timestamppb.Timestamp)(nil),                             // 69: google.protobuf.Timestamp
+	(subscriptions.Operation)(0),                              // 70: arista.subscriptions.Operation
+	(*wrapperspb.UInt32Value)(nil),                            // 71: google.protobuf.UInt32Value
+	(*StudioGeneratedConfigurationKey)(nil),                   // 72: arista.workspace.v1.StudioGeneratedConfigurationKey
+	(*StudioGeneratedConfiguration)(nil),                      // 73: arista.workspace.v1.StudioGeneratedConfiguration
+	(*wrapperspb.StringValue)(nil),                            // 74: google.protobuf.StringValue
+	(*time.TimeBounds)(nil),                                   // 75: arista.time.TimeBounds
+	(*WorkspaceKey)(nil),                                      // 76: arista.workspace.v1.WorkspaceKey
+	(*Workspace)(nil),                                         // 77: arista.workspace.v1.Workspace
+	(*WorkspaceBuildKey)(nil),                                 // 78: arista.workspace.v1.WorkspaceBuildKey
+	(*WorkspaceBuild)(nil),                                    // 79: arista.workspace.v1.WorkspaceBuild
+	(*WorkspaceBuildDetailsKey)(nil),                          // 80: arista.workspace.v1.WorkspaceBuildDetailsKey
+	(*WorkspaceBuildDetails)(nil),                             // 81: arista.workspace.v1.WorkspaceBuildDetails
+	(*WorkspaceConfig)(nil),                                   // 82: arista.workspace.v1.WorkspaceConfig
+	(fmp.DeleteError)(0),                                      // 83: fmp.DeleteError
+	(*WorkspaceSyncKey)(nil),                                  // 84: arista.workspace.v1.WorkspaceSyncKey
+	(*WorkspaceSyncConfig)(nil),                               // 85: arista.workspace.v1.WorkspaceSyncConfig
 }
 var file_arista_workspace_v1_services_gen_proto_depIdxs = []int32{
-	61,  // 0: arista.workspace.v1.MetaResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 1: arista.workspace.v1.MetaResponse.type:type_name -> arista.subscriptions.Operation
-	63,  // 2: arista.workspace.v1.MetaResponse.count:type_name -> google.protobuf.UInt32Value
-	64,  // 3: arista.workspace.v1.WorkspaceRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 4: arista.workspace.v1.WorkspaceRequest.time:type_name -> google.protobuf.Timestamp
-	65,  // 5: arista.workspace.v1.WorkspaceResponse.value:type_name -> arista.workspace.v1.Workspace
-	61,  // 6: arista.workspace.v1.WorkspaceResponse.time:type_name -> google.protobuf.Timestamp
-	64,  // 7: arista.workspace.v1.WorkspaceSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 8: arista.workspace.v1.WorkspaceSomeRequest.time:type_name -> google.protobuf.Timestamp
-	65,  // 9: arista.workspace.v1.WorkspaceSomeResponse.value:type_name -> arista.workspace.v1.Workspace
-	66,  // 10: arista.workspace.v1.WorkspaceSomeResponse.error:type_name -> google.protobuf.StringValue
-	61,  // 11: arista.workspace.v1.WorkspaceSomeResponse.time:type_name -> google.protobuf.Timestamp
-	65,  // 12: arista.workspace.v1.WorkspaceStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.Workspace
-	67,  // 13: arista.workspace.v1.WorkspaceStreamRequest.time:type_name -> arista.time.TimeBounds
-	65,  // 14: arista.workspace.v1.WorkspaceStreamResponse.value:type_name -> arista.workspace.v1.Workspace
-	61,  // 15: arista.workspace.v1.WorkspaceStreamResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 16: arista.workspace.v1.WorkspaceStreamResponse.type:type_name -> arista.subscriptions.Operation
-	65,  // 17: arista.workspace.v1.WorkspaceBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.Workspace
-	67,  // 18: arista.workspace.v1.WorkspaceBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
-	63,  // 19: arista.workspace.v1.WorkspaceBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
-	6,   // 20: arista.workspace.v1.WorkspaceBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceStreamResponse
-	68,  // 21: arista.workspace.v1.WorkspaceBuildRequest.key:type_name -> arista.workspace.v1.WorkspaceBuildKey
-	61,  // 22: arista.workspace.v1.WorkspaceBuildRequest.time:type_name -> google.protobuf.Timestamp
-	69,  // 23: arista.workspace.v1.WorkspaceBuildResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
-	61,  // 24: arista.workspace.v1.WorkspaceBuildResponse.time:type_name -> google.protobuf.Timestamp
-	68,  // 25: arista.workspace.v1.WorkspaceBuildSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceBuildKey
-	61,  // 26: arista.workspace.v1.WorkspaceBuildSomeRequest.time:type_name -> google.protobuf.Timestamp
-	69,  // 27: arista.workspace.v1.WorkspaceBuildSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
-	66,  // 28: arista.workspace.v1.WorkspaceBuildSomeResponse.error:type_name -> google.protobuf.StringValue
-	61,  // 29: arista.workspace.v1.WorkspaceBuildSomeResponse.time:type_name -> google.protobuf.Timestamp
-	69,  // 30: arista.workspace.v1.WorkspaceBuildStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuild
-	67,  // 31: arista.workspace.v1.WorkspaceBuildStreamRequest.time:type_name -> arista.time.TimeBounds
-	69,  // 32: arista.workspace.v1.WorkspaceBuildStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
-	61,  // 33: arista.workspace.v1.WorkspaceBuildStreamResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 34: arista.workspace.v1.WorkspaceBuildStreamResponse.type:type_name -> arista.subscriptions.Operation
-	69,  // 35: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuild
-	67,  // 36: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
-	63,  // 37: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
-	14,  // 38: arista.workspace.v1.WorkspaceBuildBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceBuildStreamResponse
-	70,  // 39: arista.workspace.v1.WorkspaceBuildDetailsRequest.key:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
-	61,  // 40: arista.workspace.v1.WorkspaceBuildDetailsRequest.time:type_name -> google.protobuf.Timestamp
-	71,  // 41: arista.workspace.v1.WorkspaceBuildDetailsResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
-	61,  // 42: arista.workspace.v1.WorkspaceBuildDetailsResponse.time:type_name -> google.protobuf.Timestamp
-	70,  // 43: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
-	61,  // 44: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest.time:type_name -> google.protobuf.Timestamp
-	71,  // 45: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
-	66,  // 46: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.error:type_name -> google.protobuf.StringValue
-	61,  // 47: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.time:type_name -> google.protobuf.Timestamp
-	71,  // 48: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuildDetails
-	67,  // 49: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest.time:type_name -> arista.time.TimeBounds
-	71,  // 50: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
-	61,  // 51: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 52: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.type:type_name -> arista.subscriptions.Operation
-	71,  // 53: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuildDetails
-	67,  // 54: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
-	63,  // 55: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
-	22,  // 56: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
-	64,  // 57: arista.workspace.v1.WorkspaceConfigRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 58: arista.workspace.v1.WorkspaceConfigRequest.time:type_name -> google.protobuf.Timestamp
-	72,  // 59: arista.workspace.v1.WorkspaceConfigResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
-	61,  // 60: arista.workspace.v1.WorkspaceConfigResponse.time:type_name -> google.protobuf.Timestamp
-	64,  // 61: arista.workspace.v1.WorkspaceConfigSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 62: arista.workspace.v1.WorkspaceConfigSomeRequest.time:type_name -> google.protobuf.Timestamp
-	72,  // 63: arista.workspace.v1.WorkspaceConfigSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
-	66,  // 64: arista.workspace.v1.WorkspaceConfigSomeResponse.error:type_name -> google.protobuf.StringValue
-	61,  // 65: arista.workspace.v1.WorkspaceConfigSomeResponse.time:type_name -> google.protobuf.Timestamp
-	72,  // 66: arista.workspace.v1.WorkspaceConfigStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
-	67,  // 67: arista.workspace.v1.WorkspaceConfigStreamRequest.time:type_name -> arista.time.TimeBounds
-	72,  // 68: arista.workspace.v1.WorkspaceConfigStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
-	61,  // 69: arista.workspace.v1.WorkspaceConfigStreamResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 70: arista.workspace.v1.WorkspaceConfigStreamResponse.type:type_name -> arista.subscriptions.Operation
-	72,  // 71: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
-	67,  // 72: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
-	63,  // 73: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
-	30,  // 74: arista.workspace.v1.WorkspaceConfigBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceConfigStreamResponse
-	72,  // 75: arista.workspace.v1.WorkspaceConfigSetRequest.value:type_name -> arista.workspace.v1.WorkspaceConfig
-	72,  // 76: arista.workspace.v1.WorkspaceConfigSetResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
-	61,  // 77: arista.workspace.v1.WorkspaceConfigSetResponse.time:type_name -> google.protobuf.Timestamp
-	72,  // 78: arista.workspace.v1.WorkspaceConfigSetSomeRequest.values:type_name -> arista.workspace.v1.WorkspaceConfig
-	64,  // 79: arista.workspace.v1.WorkspaceConfigSetSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
-	64,  // 80: arista.workspace.v1.WorkspaceConfigDeleteRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
-	64,  // 81: arista.workspace.v1.WorkspaceConfigDeleteResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 82: arista.workspace.v1.WorkspaceConfigDeleteResponse.time:type_name -> google.protobuf.Timestamp
-	64,  // 83: arista.workspace.v1.WorkspaceConfigDeleteSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
-	64,  // 84: arista.workspace.v1.WorkspaceConfigDeleteSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
-	72,  // 85: arista.workspace.v1.WorkspaceConfigDeleteAllRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
-	73,  // 86: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.type:type_name -> fmp.DeleteError
-	66,  // 87: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.error:type_name -> google.protobuf.StringValue
-	64,  // 88: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
-	61,  // 89: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.time:type_name -> google.protobuf.Timestamp
-	74,  // 90: arista.workspace.v1.WorkspaceSyncConfigRequest.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	61,  // 91: arista.workspace.v1.WorkspaceSyncConfigRequest.time:type_name -> google.protobuf.Timestamp
-	75,  // 92: arista.workspace.v1.WorkspaceSyncConfigResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	61,  // 93: arista.workspace.v1.WorkspaceSyncConfigResponse.time:type_name -> google.protobuf.Timestamp
-	74,  // 94: arista.workspace.v1.WorkspaceSyncConfigSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	61,  // 95: arista.workspace.v1.WorkspaceSyncConfigSomeRequest.time:type_name -> google.protobuf.Timestamp
-	75,  // 96: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	66,  // 97: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.error:type_name -> google.protobuf.StringValue
-	61,  // 98: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.time:type_name -> google.protobuf.Timestamp
-	75,  // 99: arista.workspace.v1.WorkspaceSyncConfigStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	67,  // 100: arista.workspace.v1.WorkspaceSyncConfigStreamRequest.time:type_name -> arista.time.TimeBounds
-	75,  // 101: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	61,  // 102: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.time:type_name -> google.protobuf.Timestamp
-	62,  // 103: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.type:type_name -> arista.subscriptions.Operation
-	75,  // 104: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	67,  // 105: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
-	63,  // 106: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
-	48,  // 107: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
-	75,  // 108: arista.workspace.v1.WorkspaceSyncConfigSetRequest.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	75,  // 109: arista.workspace.v1.WorkspaceSyncConfigSetResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	61,  // 110: arista.workspace.v1.WorkspaceSyncConfigSetResponse.time:type_name -> google.protobuf.Timestamp
-	75,  // 111: arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest.values:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	74,  // 112: arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	74,  // 113: arista.workspace.v1.WorkspaceSyncConfigDeleteRequest.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	74,  // 114: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	61,  // 115: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse.time:type_name -> google.protobuf.Timestamp
-	74,  // 116: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	74,  // 117: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	75,  // 118: arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
-	73,  // 119: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.type:type_name -> fmp.DeleteError
-	66,  // 120: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.error:type_name -> google.protobuf.StringValue
-	74,  // 121: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	61,  // 122: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.time:type_name -> google.protobuf.Timestamp
-	1,   // 123: arista.workspace.v1.WorkspaceService.GetOne:input_type -> arista.workspace.v1.WorkspaceRequest
-	3,   // 124: arista.workspace.v1.WorkspaceService.GetSome:input_type -> arista.workspace.v1.WorkspaceSomeRequest
-	5,   // 125: arista.workspace.v1.WorkspaceService.GetAll:input_type -> arista.workspace.v1.WorkspaceStreamRequest
-	5,   // 126: arista.workspace.v1.WorkspaceService.Subscribe:input_type -> arista.workspace.v1.WorkspaceStreamRequest
-	5,   // 127: arista.workspace.v1.WorkspaceService.GetMeta:input_type -> arista.workspace.v1.WorkspaceStreamRequest
-	5,   // 128: arista.workspace.v1.WorkspaceService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceStreamRequest
-	7,   // 129: arista.workspace.v1.WorkspaceService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBatchedStreamRequest
-	7,   // 130: arista.workspace.v1.WorkspaceService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBatchedStreamRequest
-	9,   // 131: arista.workspace.v1.WorkspaceBuildService.GetOne:input_type -> arista.workspace.v1.WorkspaceBuildRequest
-	11,  // 132: arista.workspace.v1.WorkspaceBuildService.GetSome:input_type -> arista.workspace.v1.WorkspaceBuildSomeRequest
-	13,  // 133: arista.workspace.v1.WorkspaceBuildService.GetAll:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
-	13,  // 134: arista.workspace.v1.WorkspaceBuildService.Subscribe:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
-	13,  // 135: arista.workspace.v1.WorkspaceBuildService.GetMeta:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
-	13,  // 136: arista.workspace.v1.WorkspaceBuildService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
-	15,  // 137: arista.workspace.v1.WorkspaceBuildService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
-	15,  // 138: arista.workspace.v1.WorkspaceBuildService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
-	17,  // 139: arista.workspace.v1.WorkspaceBuildDetailsService.GetOne:input_type -> arista.workspace.v1.WorkspaceBuildDetailsRequest
-	19,  // 140: arista.workspace.v1.WorkspaceBuildDetailsService.GetSome:input_type -> arista.workspace.v1.WorkspaceBuildDetailsSomeRequest
-	21,  // 141: arista.workspace.v1.WorkspaceBuildDetailsService.GetAll:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
-	21,  // 142: arista.workspace.v1.WorkspaceBuildDetailsService.Subscribe:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
-	21,  // 143: arista.workspace.v1.WorkspaceBuildDetailsService.GetMeta:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
-	21,  // 144: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
-	23,  // 145: arista.workspace.v1.WorkspaceBuildDetailsService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
-	23,  // 146: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
-	25,  // 147: arista.workspace.v1.WorkspaceConfigService.GetOne:input_type -> arista.workspace.v1.WorkspaceConfigRequest
-	27,  // 148: arista.workspace.v1.WorkspaceConfigService.GetSome:input_type -> arista.workspace.v1.WorkspaceConfigSomeRequest
-	29,  // 149: arista.workspace.v1.WorkspaceConfigService.GetAll:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
-	29,  // 150: arista.workspace.v1.WorkspaceConfigService.Subscribe:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
-	29,  // 151: arista.workspace.v1.WorkspaceConfigService.GetMeta:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
-	29,  // 152: arista.workspace.v1.WorkspaceConfigService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
-	33,  // 153: arista.workspace.v1.WorkspaceConfigService.Set:input_type -> arista.workspace.v1.WorkspaceConfigSetRequest
-	35,  // 154: arista.workspace.v1.WorkspaceConfigService.SetSome:input_type -> arista.workspace.v1.WorkspaceConfigSetSomeRequest
-	37,  // 155: arista.workspace.v1.WorkspaceConfigService.Delete:input_type -> arista.workspace.v1.WorkspaceConfigDeleteRequest
-	39,  // 156: arista.workspace.v1.WorkspaceConfigService.DeleteSome:input_type -> arista.workspace.v1.WorkspaceConfigDeleteSomeRequest
-	41,  // 157: arista.workspace.v1.WorkspaceConfigService.DeleteAll:input_type -> arista.workspace.v1.WorkspaceConfigDeleteAllRequest
-	31,  // 158: arista.workspace.v1.WorkspaceConfigService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
-	31,  // 159: arista.workspace.v1.WorkspaceConfigService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
-	43,  // 160: arista.workspace.v1.WorkspaceSyncConfigService.GetOne:input_type -> arista.workspace.v1.WorkspaceSyncConfigRequest
-	45,  // 161: arista.workspace.v1.WorkspaceSyncConfigService.GetSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigSomeRequest
-	47,  // 162: arista.workspace.v1.WorkspaceSyncConfigService.GetAll:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
-	47,  // 163: arista.workspace.v1.WorkspaceSyncConfigService.Subscribe:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
-	47,  // 164: arista.workspace.v1.WorkspaceSyncConfigService.GetMeta:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
-	47,  // 165: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
-	51,  // 166: arista.workspace.v1.WorkspaceSyncConfigService.Set:input_type -> arista.workspace.v1.WorkspaceSyncConfigSetRequest
-	53,  // 167: arista.workspace.v1.WorkspaceSyncConfigService.SetSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest
-	55,  // 168: arista.workspace.v1.WorkspaceSyncConfigService.Delete:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteRequest
-	57,  // 169: arista.workspace.v1.WorkspaceSyncConfigService.DeleteSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest
-	59,  // 170: arista.workspace.v1.WorkspaceSyncConfigService.DeleteAll:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest
-	49,  // 171: arista.workspace.v1.WorkspaceSyncConfigService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
-	49,  // 172: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
-	2,   // 173: arista.workspace.v1.WorkspaceService.GetOne:output_type -> arista.workspace.v1.WorkspaceResponse
-	4,   // 174: arista.workspace.v1.WorkspaceService.GetSome:output_type -> arista.workspace.v1.WorkspaceSomeResponse
-	6,   // 175: arista.workspace.v1.WorkspaceService.GetAll:output_type -> arista.workspace.v1.WorkspaceStreamResponse
-	6,   // 176: arista.workspace.v1.WorkspaceService.Subscribe:output_type -> arista.workspace.v1.WorkspaceStreamResponse
-	0,   // 177: arista.workspace.v1.WorkspaceService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
-	0,   // 178: arista.workspace.v1.WorkspaceService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
-	8,   // 179: arista.workspace.v1.WorkspaceService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBatchedStreamResponse
-	8,   // 180: arista.workspace.v1.WorkspaceService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBatchedStreamResponse
-	10,  // 181: arista.workspace.v1.WorkspaceBuildService.GetOne:output_type -> arista.workspace.v1.WorkspaceBuildResponse
-	12,  // 182: arista.workspace.v1.WorkspaceBuildService.GetSome:output_type -> arista.workspace.v1.WorkspaceBuildSomeResponse
-	14,  // 183: arista.workspace.v1.WorkspaceBuildService.GetAll:output_type -> arista.workspace.v1.WorkspaceBuildStreamResponse
-	14,  // 184: arista.workspace.v1.WorkspaceBuildService.Subscribe:output_type -> arista.workspace.v1.WorkspaceBuildStreamResponse
-	0,   // 185: arista.workspace.v1.WorkspaceBuildService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
-	0,   // 186: arista.workspace.v1.WorkspaceBuildService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
-	16,  // 187: arista.workspace.v1.WorkspaceBuildService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
-	16,  // 188: arista.workspace.v1.WorkspaceBuildService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
-	18,  // 189: arista.workspace.v1.WorkspaceBuildDetailsService.GetOne:output_type -> arista.workspace.v1.WorkspaceBuildDetailsResponse
-	20,  // 190: arista.workspace.v1.WorkspaceBuildDetailsService.GetSome:output_type -> arista.workspace.v1.WorkspaceBuildDetailsSomeResponse
-	22,  // 191: arista.workspace.v1.WorkspaceBuildDetailsService.GetAll:output_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
-	22,  // 192: arista.workspace.v1.WorkspaceBuildDetailsService.Subscribe:output_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
-	0,   // 193: arista.workspace.v1.WorkspaceBuildDetailsService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
-	0,   // 194: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
-	24,  // 195: arista.workspace.v1.WorkspaceBuildDetailsService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
-	24,  // 196: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
-	26,  // 197: arista.workspace.v1.WorkspaceConfigService.GetOne:output_type -> arista.workspace.v1.WorkspaceConfigResponse
-	28,  // 198: arista.workspace.v1.WorkspaceConfigService.GetSome:output_type -> arista.workspace.v1.WorkspaceConfigSomeResponse
-	30,  // 199: arista.workspace.v1.WorkspaceConfigService.GetAll:output_type -> arista.workspace.v1.WorkspaceConfigStreamResponse
-	30,  // 200: arista.workspace.v1.WorkspaceConfigService.Subscribe:output_type -> arista.workspace.v1.WorkspaceConfigStreamResponse
-	0,   // 201: arista.workspace.v1.WorkspaceConfigService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
-	0,   // 202: arista.workspace.v1.WorkspaceConfigService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
-	34,  // 203: arista.workspace.v1.WorkspaceConfigService.Set:output_type -> arista.workspace.v1.WorkspaceConfigSetResponse
-	36,  // 204: arista.workspace.v1.WorkspaceConfigService.SetSome:output_type -> arista.workspace.v1.WorkspaceConfigSetSomeResponse
-	38,  // 205: arista.workspace.v1.WorkspaceConfigService.Delete:output_type -> arista.workspace.v1.WorkspaceConfigDeleteResponse
-	40,  // 206: arista.workspace.v1.WorkspaceConfigService.DeleteSome:output_type -> arista.workspace.v1.WorkspaceConfigDeleteSomeResponse
-	42,  // 207: arista.workspace.v1.WorkspaceConfigService.DeleteAll:output_type -> arista.workspace.v1.WorkspaceConfigDeleteAllResponse
-	32,  // 208: arista.workspace.v1.WorkspaceConfigService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
-	32,  // 209: arista.workspace.v1.WorkspaceConfigService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
-	44,  // 210: arista.workspace.v1.WorkspaceSyncConfigService.GetOne:output_type -> arista.workspace.v1.WorkspaceSyncConfigResponse
-	46,  // 211: arista.workspace.v1.WorkspaceSyncConfigService.GetSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigSomeResponse
-	48,  // 212: arista.workspace.v1.WorkspaceSyncConfigService.GetAll:output_type -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
-	48,  // 213: arista.workspace.v1.WorkspaceSyncConfigService.Subscribe:output_type -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
-	0,   // 214: arista.workspace.v1.WorkspaceSyncConfigService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
-	0,   // 215: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
-	52,  // 216: arista.workspace.v1.WorkspaceSyncConfigService.Set:output_type -> arista.workspace.v1.WorkspaceSyncConfigSetResponse
-	54,  // 217: arista.workspace.v1.WorkspaceSyncConfigService.SetSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse
-	56,  // 218: arista.workspace.v1.WorkspaceSyncConfigService.Delete:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteResponse
-	58,  // 219: arista.workspace.v1.WorkspaceSyncConfigService.DeleteSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse
-	60,  // 220: arista.workspace.v1.WorkspaceSyncConfigService.DeleteAll:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse
-	50,  // 221: arista.workspace.v1.WorkspaceSyncConfigService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
-	50,  // 222: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
-	173, // [173:223] is the sub-list for method output_type
-	123, // [123:173] is the sub-list for method input_type
-	123, // [123:123] is the sub-list for extension type_name
-	123, // [123:123] is the sub-list for extension extendee
-	0,   // [0:123] is the sub-list for field type_name
+	69,  // 0: arista.workspace.v1.MetaResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 1: arista.workspace.v1.MetaResponse.type:type_name -> arista.subscriptions.Operation
+	71,  // 2: arista.workspace.v1.MetaResponse.count:type_name -> google.protobuf.UInt32Value
+	72,  // 3: arista.workspace.v1.StudioGeneratedConfigurationRequest.key:type_name -> arista.workspace.v1.StudioGeneratedConfigurationKey
+	69,  // 4: arista.workspace.v1.StudioGeneratedConfigurationRequest.time:type_name -> google.protobuf.Timestamp
+	73,  // 5: arista.workspace.v1.StudioGeneratedConfigurationResponse.value:type_name -> arista.workspace.v1.StudioGeneratedConfiguration
+	69,  // 6: arista.workspace.v1.StudioGeneratedConfigurationResponse.time:type_name -> google.protobuf.Timestamp
+	72,  // 7: arista.workspace.v1.StudioGeneratedConfigurationSomeRequest.keys:type_name -> arista.workspace.v1.StudioGeneratedConfigurationKey
+	69,  // 8: arista.workspace.v1.StudioGeneratedConfigurationSomeRequest.time:type_name -> google.protobuf.Timestamp
+	73,  // 9: arista.workspace.v1.StudioGeneratedConfigurationSomeResponse.value:type_name -> arista.workspace.v1.StudioGeneratedConfiguration
+	74,  // 10: arista.workspace.v1.StudioGeneratedConfigurationSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 11: arista.workspace.v1.StudioGeneratedConfigurationSomeResponse.time:type_name -> google.protobuf.Timestamp
+	73,  // 12: arista.workspace.v1.StudioGeneratedConfigurationStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.StudioGeneratedConfiguration
+	75,  // 13: arista.workspace.v1.StudioGeneratedConfigurationStreamRequest.time:type_name -> arista.time.TimeBounds
+	73,  // 14: arista.workspace.v1.StudioGeneratedConfigurationStreamResponse.value:type_name -> arista.workspace.v1.StudioGeneratedConfiguration
+	69,  // 15: arista.workspace.v1.StudioGeneratedConfigurationStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 16: arista.workspace.v1.StudioGeneratedConfigurationStreamResponse.type:type_name -> arista.subscriptions.Operation
+	73,  // 17: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.StudioGeneratedConfiguration
+	75,  // 18: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 19: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	6,   // 20: arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamResponse.responses:type_name -> arista.workspace.v1.StudioGeneratedConfigurationStreamResponse
+	76,  // 21: arista.workspace.v1.WorkspaceRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 22: arista.workspace.v1.WorkspaceRequest.time:type_name -> google.protobuf.Timestamp
+	77,  // 23: arista.workspace.v1.WorkspaceResponse.value:type_name -> arista.workspace.v1.Workspace
+	69,  // 24: arista.workspace.v1.WorkspaceResponse.time:type_name -> google.protobuf.Timestamp
+	76,  // 25: arista.workspace.v1.WorkspaceSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 26: arista.workspace.v1.WorkspaceSomeRequest.time:type_name -> google.protobuf.Timestamp
+	77,  // 27: arista.workspace.v1.WorkspaceSomeResponse.value:type_name -> arista.workspace.v1.Workspace
+	74,  // 28: arista.workspace.v1.WorkspaceSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 29: arista.workspace.v1.WorkspaceSomeResponse.time:type_name -> google.protobuf.Timestamp
+	77,  // 30: arista.workspace.v1.WorkspaceStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.Workspace
+	75,  // 31: arista.workspace.v1.WorkspaceStreamRequest.time:type_name -> arista.time.TimeBounds
+	77,  // 32: arista.workspace.v1.WorkspaceStreamResponse.value:type_name -> arista.workspace.v1.Workspace
+	69,  // 33: arista.workspace.v1.WorkspaceStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 34: arista.workspace.v1.WorkspaceStreamResponse.type:type_name -> arista.subscriptions.Operation
+	77,  // 35: arista.workspace.v1.WorkspaceBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.Workspace
+	75,  // 36: arista.workspace.v1.WorkspaceBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 37: arista.workspace.v1.WorkspaceBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	14,  // 38: arista.workspace.v1.WorkspaceBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceStreamResponse
+	78,  // 39: arista.workspace.v1.WorkspaceBuildRequest.key:type_name -> arista.workspace.v1.WorkspaceBuildKey
+	69,  // 40: arista.workspace.v1.WorkspaceBuildRequest.time:type_name -> google.protobuf.Timestamp
+	79,  // 41: arista.workspace.v1.WorkspaceBuildResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
+	69,  // 42: arista.workspace.v1.WorkspaceBuildResponse.time:type_name -> google.protobuf.Timestamp
+	78,  // 43: arista.workspace.v1.WorkspaceBuildSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceBuildKey
+	69,  // 44: arista.workspace.v1.WorkspaceBuildSomeRequest.time:type_name -> google.protobuf.Timestamp
+	79,  // 45: arista.workspace.v1.WorkspaceBuildSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
+	74,  // 46: arista.workspace.v1.WorkspaceBuildSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 47: arista.workspace.v1.WorkspaceBuildSomeResponse.time:type_name -> google.protobuf.Timestamp
+	79,  // 48: arista.workspace.v1.WorkspaceBuildStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuild
+	75,  // 49: arista.workspace.v1.WorkspaceBuildStreamRequest.time:type_name -> arista.time.TimeBounds
+	79,  // 50: arista.workspace.v1.WorkspaceBuildStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceBuild
+	69,  // 51: arista.workspace.v1.WorkspaceBuildStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 52: arista.workspace.v1.WorkspaceBuildStreamResponse.type:type_name -> arista.subscriptions.Operation
+	79,  // 53: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuild
+	75,  // 54: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 55: arista.workspace.v1.WorkspaceBuildBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	22,  // 56: arista.workspace.v1.WorkspaceBuildBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceBuildStreamResponse
+	80,  // 57: arista.workspace.v1.WorkspaceBuildDetailsRequest.key:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
+	69,  // 58: arista.workspace.v1.WorkspaceBuildDetailsRequest.time:type_name -> google.protobuf.Timestamp
+	81,  // 59: arista.workspace.v1.WorkspaceBuildDetailsResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
+	69,  // 60: arista.workspace.v1.WorkspaceBuildDetailsResponse.time:type_name -> google.protobuf.Timestamp
+	80,  // 61: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
+	69,  // 62: arista.workspace.v1.WorkspaceBuildDetailsSomeRequest.time:type_name -> google.protobuf.Timestamp
+	81,  // 63: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
+	74,  // 64: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 65: arista.workspace.v1.WorkspaceBuildDetailsSomeResponse.time:type_name -> google.protobuf.Timestamp
+	81,  // 66: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuildDetails
+	75,  // 67: arista.workspace.v1.WorkspaceBuildDetailsStreamRequest.time:type_name -> arista.time.TimeBounds
+	81,  // 68: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceBuildDetails
+	69,  // 69: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 70: arista.workspace.v1.WorkspaceBuildDetailsStreamResponse.type:type_name -> arista.subscriptions.Operation
+	81,  // 71: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceBuildDetails
+	75,  // 72: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 73: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	30,  // 74: arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
+	76,  // 75: arista.workspace.v1.WorkspaceConfigRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 76: arista.workspace.v1.WorkspaceConfigRequest.time:type_name -> google.protobuf.Timestamp
+	82,  // 77: arista.workspace.v1.WorkspaceConfigResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
+	69,  // 78: arista.workspace.v1.WorkspaceConfigResponse.time:type_name -> google.protobuf.Timestamp
+	76,  // 79: arista.workspace.v1.WorkspaceConfigSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 80: arista.workspace.v1.WorkspaceConfigSomeRequest.time:type_name -> google.protobuf.Timestamp
+	82,  // 81: arista.workspace.v1.WorkspaceConfigSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
+	74,  // 82: arista.workspace.v1.WorkspaceConfigSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 83: arista.workspace.v1.WorkspaceConfigSomeResponse.time:type_name -> google.protobuf.Timestamp
+	82,  // 84: arista.workspace.v1.WorkspaceConfigStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
+	75,  // 85: arista.workspace.v1.WorkspaceConfigStreamRequest.time:type_name -> arista.time.TimeBounds
+	82,  // 86: arista.workspace.v1.WorkspaceConfigStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
+	69,  // 87: arista.workspace.v1.WorkspaceConfigStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 88: arista.workspace.v1.WorkspaceConfigStreamResponse.type:type_name -> arista.subscriptions.Operation
+	82,  // 89: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
+	75,  // 90: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 91: arista.workspace.v1.WorkspaceConfigBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	38,  // 92: arista.workspace.v1.WorkspaceConfigBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceConfigStreamResponse
+	82,  // 93: arista.workspace.v1.WorkspaceConfigSetRequest.value:type_name -> arista.workspace.v1.WorkspaceConfig
+	82,  // 94: arista.workspace.v1.WorkspaceConfigSetResponse.value:type_name -> arista.workspace.v1.WorkspaceConfig
+	69,  // 95: arista.workspace.v1.WorkspaceConfigSetResponse.time:type_name -> google.protobuf.Timestamp
+	82,  // 96: arista.workspace.v1.WorkspaceConfigSetSomeRequest.values:type_name -> arista.workspace.v1.WorkspaceConfig
+	76,  // 97: arista.workspace.v1.WorkspaceConfigSetSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
+	76,  // 98: arista.workspace.v1.WorkspaceConfigDeleteRequest.key:type_name -> arista.workspace.v1.WorkspaceKey
+	76,  // 99: arista.workspace.v1.WorkspaceConfigDeleteResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 100: arista.workspace.v1.WorkspaceConfigDeleteResponse.time:type_name -> google.protobuf.Timestamp
+	76,  // 101: arista.workspace.v1.WorkspaceConfigDeleteSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceKey
+	76,  // 102: arista.workspace.v1.WorkspaceConfigDeleteSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
+	82,  // 103: arista.workspace.v1.WorkspaceConfigDeleteAllRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceConfig
+	83,  // 104: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.type:type_name -> fmp.DeleteError
+	74,  // 105: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.error:type_name -> google.protobuf.StringValue
+	76,  // 106: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.key:type_name -> arista.workspace.v1.WorkspaceKey
+	69,  // 107: arista.workspace.v1.WorkspaceConfigDeleteAllResponse.time:type_name -> google.protobuf.Timestamp
+	84,  // 108: arista.workspace.v1.WorkspaceSyncConfigRequest.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	69,  // 109: arista.workspace.v1.WorkspaceSyncConfigRequest.time:type_name -> google.protobuf.Timestamp
+	85,  // 110: arista.workspace.v1.WorkspaceSyncConfigResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	69,  // 111: arista.workspace.v1.WorkspaceSyncConfigResponse.time:type_name -> google.protobuf.Timestamp
+	84,  // 112: arista.workspace.v1.WorkspaceSyncConfigSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	69,  // 113: arista.workspace.v1.WorkspaceSyncConfigSomeRequest.time:type_name -> google.protobuf.Timestamp
+	85,  // 114: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	74,  // 115: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.error:type_name -> google.protobuf.StringValue
+	69,  // 116: arista.workspace.v1.WorkspaceSyncConfigSomeResponse.time:type_name -> google.protobuf.Timestamp
+	85,  // 117: arista.workspace.v1.WorkspaceSyncConfigStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	75,  // 118: arista.workspace.v1.WorkspaceSyncConfigStreamRequest.time:type_name -> arista.time.TimeBounds
+	85,  // 119: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	69,  // 120: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.time:type_name -> google.protobuf.Timestamp
+	70,  // 121: arista.workspace.v1.WorkspaceSyncConfigStreamResponse.type:type_name -> arista.subscriptions.Operation
+	85,  // 122: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	75,  // 123: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.time:type_name -> arista.time.TimeBounds
+	71,  // 124: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest.max_messages:type_name -> google.protobuf.UInt32Value
+	56,  // 125: arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse.responses:type_name -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
+	85,  // 126: arista.workspace.v1.WorkspaceSyncConfigSetRequest.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	85,  // 127: arista.workspace.v1.WorkspaceSyncConfigSetResponse.value:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	69,  // 128: arista.workspace.v1.WorkspaceSyncConfigSetResponse.time:type_name -> google.protobuf.Timestamp
+	85,  // 129: arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest.values:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	84,  // 130: arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	84,  // 131: arista.workspace.v1.WorkspaceSyncConfigDeleteRequest.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	84,  // 132: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	69,  // 133: arista.workspace.v1.WorkspaceSyncConfigDeleteResponse.time:type_name -> google.protobuf.Timestamp
+	84,  // 134: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest.keys:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	84,  // 135: arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	85,  // 136: arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest.partial_eq_filter:type_name -> arista.workspace.v1.WorkspaceSyncConfig
+	83,  // 137: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.type:type_name -> fmp.DeleteError
+	74,  // 138: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.error:type_name -> google.protobuf.StringValue
+	84,  // 139: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	69,  // 140: arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse.time:type_name -> google.protobuf.Timestamp
+	1,   // 141: arista.workspace.v1.StudioGeneratedConfigurationService.GetOne:input_type -> arista.workspace.v1.StudioGeneratedConfigurationRequest
+	3,   // 142: arista.workspace.v1.StudioGeneratedConfigurationService.GetSome:input_type -> arista.workspace.v1.StudioGeneratedConfigurationSomeRequest
+	5,   // 143: arista.workspace.v1.StudioGeneratedConfigurationService.GetAll:input_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamRequest
+	5,   // 144: arista.workspace.v1.StudioGeneratedConfigurationService.Subscribe:input_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamRequest
+	5,   // 145: arista.workspace.v1.StudioGeneratedConfigurationService.GetMeta:input_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamRequest
+	5,   // 146: arista.workspace.v1.StudioGeneratedConfigurationService.SubscribeMeta:input_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamRequest
+	7,   // 147: arista.workspace.v1.StudioGeneratedConfigurationService.GetAllBatched:input_type -> arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest
+	7,   // 148: arista.workspace.v1.StudioGeneratedConfigurationService.SubscribeBatched:input_type -> arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamRequest
+	9,   // 149: arista.workspace.v1.WorkspaceService.GetOne:input_type -> arista.workspace.v1.WorkspaceRequest
+	11,  // 150: arista.workspace.v1.WorkspaceService.GetSome:input_type -> arista.workspace.v1.WorkspaceSomeRequest
+	13,  // 151: arista.workspace.v1.WorkspaceService.GetAll:input_type -> arista.workspace.v1.WorkspaceStreamRequest
+	13,  // 152: arista.workspace.v1.WorkspaceService.Subscribe:input_type -> arista.workspace.v1.WorkspaceStreamRequest
+	13,  // 153: arista.workspace.v1.WorkspaceService.GetMeta:input_type -> arista.workspace.v1.WorkspaceStreamRequest
+	13,  // 154: arista.workspace.v1.WorkspaceService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceStreamRequest
+	15,  // 155: arista.workspace.v1.WorkspaceService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBatchedStreamRequest
+	15,  // 156: arista.workspace.v1.WorkspaceService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBatchedStreamRequest
+	17,  // 157: arista.workspace.v1.WorkspaceBuildService.GetOne:input_type -> arista.workspace.v1.WorkspaceBuildRequest
+	19,  // 158: arista.workspace.v1.WorkspaceBuildService.GetSome:input_type -> arista.workspace.v1.WorkspaceBuildSomeRequest
+	21,  // 159: arista.workspace.v1.WorkspaceBuildService.GetAll:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
+	21,  // 160: arista.workspace.v1.WorkspaceBuildService.Subscribe:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
+	21,  // 161: arista.workspace.v1.WorkspaceBuildService.GetMeta:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
+	21,  // 162: arista.workspace.v1.WorkspaceBuildService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceBuildStreamRequest
+	23,  // 163: arista.workspace.v1.WorkspaceBuildService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
+	23,  // 164: arista.workspace.v1.WorkspaceBuildService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamRequest
+	25,  // 165: arista.workspace.v1.WorkspaceBuildDetailsService.GetOne:input_type -> arista.workspace.v1.WorkspaceBuildDetailsRequest
+	27,  // 166: arista.workspace.v1.WorkspaceBuildDetailsService.GetSome:input_type -> arista.workspace.v1.WorkspaceBuildDetailsSomeRequest
+	29,  // 167: arista.workspace.v1.WorkspaceBuildDetailsService.GetAll:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
+	29,  // 168: arista.workspace.v1.WorkspaceBuildDetailsService.Subscribe:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
+	29,  // 169: arista.workspace.v1.WorkspaceBuildDetailsService.GetMeta:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
+	29,  // 170: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamRequest
+	31,  // 171: arista.workspace.v1.WorkspaceBuildDetailsService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
+	31,  // 172: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamRequest
+	33,  // 173: arista.workspace.v1.WorkspaceConfigService.GetOne:input_type -> arista.workspace.v1.WorkspaceConfigRequest
+	35,  // 174: arista.workspace.v1.WorkspaceConfigService.GetSome:input_type -> arista.workspace.v1.WorkspaceConfigSomeRequest
+	37,  // 175: arista.workspace.v1.WorkspaceConfigService.GetAll:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
+	37,  // 176: arista.workspace.v1.WorkspaceConfigService.Subscribe:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
+	37,  // 177: arista.workspace.v1.WorkspaceConfigService.GetMeta:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
+	37,  // 178: arista.workspace.v1.WorkspaceConfigService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceConfigStreamRequest
+	41,  // 179: arista.workspace.v1.WorkspaceConfigService.Set:input_type -> arista.workspace.v1.WorkspaceConfigSetRequest
+	43,  // 180: arista.workspace.v1.WorkspaceConfigService.SetSome:input_type -> arista.workspace.v1.WorkspaceConfigSetSomeRequest
+	45,  // 181: arista.workspace.v1.WorkspaceConfigService.Delete:input_type -> arista.workspace.v1.WorkspaceConfigDeleteRequest
+	47,  // 182: arista.workspace.v1.WorkspaceConfigService.DeleteSome:input_type -> arista.workspace.v1.WorkspaceConfigDeleteSomeRequest
+	49,  // 183: arista.workspace.v1.WorkspaceConfigService.DeleteAll:input_type -> arista.workspace.v1.WorkspaceConfigDeleteAllRequest
+	39,  // 184: arista.workspace.v1.WorkspaceConfigService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
+	39,  // 185: arista.workspace.v1.WorkspaceConfigService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamRequest
+	51,  // 186: arista.workspace.v1.WorkspaceSyncConfigService.GetOne:input_type -> arista.workspace.v1.WorkspaceSyncConfigRequest
+	53,  // 187: arista.workspace.v1.WorkspaceSyncConfigService.GetSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigSomeRequest
+	55,  // 188: arista.workspace.v1.WorkspaceSyncConfigService.GetAll:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
+	55,  // 189: arista.workspace.v1.WorkspaceSyncConfigService.Subscribe:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
+	55,  // 190: arista.workspace.v1.WorkspaceSyncConfigService.GetMeta:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
+	55,  // 191: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeMeta:input_type -> arista.workspace.v1.WorkspaceSyncConfigStreamRequest
+	59,  // 192: arista.workspace.v1.WorkspaceSyncConfigService.Set:input_type -> arista.workspace.v1.WorkspaceSyncConfigSetRequest
+	61,  // 193: arista.workspace.v1.WorkspaceSyncConfigService.SetSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigSetSomeRequest
+	63,  // 194: arista.workspace.v1.WorkspaceSyncConfigService.Delete:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteRequest
+	65,  // 195: arista.workspace.v1.WorkspaceSyncConfigService.DeleteSome:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteSomeRequest
+	67,  // 196: arista.workspace.v1.WorkspaceSyncConfigService.DeleteAll:input_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteAllRequest
+	57,  // 197: arista.workspace.v1.WorkspaceSyncConfigService.GetAllBatched:input_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
+	57,  // 198: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeBatched:input_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamRequest
+	2,   // 199: arista.workspace.v1.StudioGeneratedConfigurationService.GetOne:output_type -> arista.workspace.v1.StudioGeneratedConfigurationResponse
+	4,   // 200: arista.workspace.v1.StudioGeneratedConfigurationService.GetSome:output_type -> arista.workspace.v1.StudioGeneratedConfigurationSomeResponse
+	6,   // 201: arista.workspace.v1.StudioGeneratedConfigurationService.GetAll:output_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamResponse
+	6,   // 202: arista.workspace.v1.StudioGeneratedConfigurationService.Subscribe:output_type -> arista.workspace.v1.StudioGeneratedConfigurationStreamResponse
+	0,   // 203: arista.workspace.v1.StudioGeneratedConfigurationService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 204: arista.workspace.v1.StudioGeneratedConfigurationService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	8,   // 205: arista.workspace.v1.StudioGeneratedConfigurationService.GetAllBatched:output_type -> arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamResponse
+	8,   // 206: arista.workspace.v1.StudioGeneratedConfigurationService.SubscribeBatched:output_type -> arista.workspace.v1.StudioGeneratedConfigurationBatchedStreamResponse
+	10,  // 207: arista.workspace.v1.WorkspaceService.GetOne:output_type -> arista.workspace.v1.WorkspaceResponse
+	12,  // 208: arista.workspace.v1.WorkspaceService.GetSome:output_type -> arista.workspace.v1.WorkspaceSomeResponse
+	14,  // 209: arista.workspace.v1.WorkspaceService.GetAll:output_type -> arista.workspace.v1.WorkspaceStreamResponse
+	14,  // 210: arista.workspace.v1.WorkspaceService.Subscribe:output_type -> arista.workspace.v1.WorkspaceStreamResponse
+	0,   // 211: arista.workspace.v1.WorkspaceService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 212: arista.workspace.v1.WorkspaceService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	16,  // 213: arista.workspace.v1.WorkspaceService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBatchedStreamResponse
+	16,  // 214: arista.workspace.v1.WorkspaceService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBatchedStreamResponse
+	18,  // 215: arista.workspace.v1.WorkspaceBuildService.GetOne:output_type -> arista.workspace.v1.WorkspaceBuildResponse
+	20,  // 216: arista.workspace.v1.WorkspaceBuildService.GetSome:output_type -> arista.workspace.v1.WorkspaceBuildSomeResponse
+	22,  // 217: arista.workspace.v1.WorkspaceBuildService.GetAll:output_type -> arista.workspace.v1.WorkspaceBuildStreamResponse
+	22,  // 218: arista.workspace.v1.WorkspaceBuildService.Subscribe:output_type -> arista.workspace.v1.WorkspaceBuildStreamResponse
+	0,   // 219: arista.workspace.v1.WorkspaceBuildService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 220: arista.workspace.v1.WorkspaceBuildService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	24,  // 221: arista.workspace.v1.WorkspaceBuildService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
+	24,  // 222: arista.workspace.v1.WorkspaceBuildService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBuildBatchedStreamResponse
+	26,  // 223: arista.workspace.v1.WorkspaceBuildDetailsService.GetOne:output_type -> arista.workspace.v1.WorkspaceBuildDetailsResponse
+	28,  // 224: arista.workspace.v1.WorkspaceBuildDetailsService.GetSome:output_type -> arista.workspace.v1.WorkspaceBuildDetailsSomeResponse
+	30,  // 225: arista.workspace.v1.WorkspaceBuildDetailsService.GetAll:output_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
+	30,  // 226: arista.workspace.v1.WorkspaceBuildDetailsService.Subscribe:output_type -> arista.workspace.v1.WorkspaceBuildDetailsStreamResponse
+	0,   // 227: arista.workspace.v1.WorkspaceBuildDetailsService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 228: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	32,  // 229: arista.workspace.v1.WorkspaceBuildDetailsService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
+	32,  // 230: arista.workspace.v1.WorkspaceBuildDetailsService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceBuildDetailsBatchedStreamResponse
+	34,  // 231: arista.workspace.v1.WorkspaceConfigService.GetOne:output_type -> arista.workspace.v1.WorkspaceConfigResponse
+	36,  // 232: arista.workspace.v1.WorkspaceConfigService.GetSome:output_type -> arista.workspace.v1.WorkspaceConfigSomeResponse
+	38,  // 233: arista.workspace.v1.WorkspaceConfigService.GetAll:output_type -> arista.workspace.v1.WorkspaceConfigStreamResponse
+	38,  // 234: arista.workspace.v1.WorkspaceConfigService.Subscribe:output_type -> arista.workspace.v1.WorkspaceConfigStreamResponse
+	0,   // 235: arista.workspace.v1.WorkspaceConfigService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 236: arista.workspace.v1.WorkspaceConfigService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	42,  // 237: arista.workspace.v1.WorkspaceConfigService.Set:output_type -> arista.workspace.v1.WorkspaceConfigSetResponse
+	44,  // 238: arista.workspace.v1.WorkspaceConfigService.SetSome:output_type -> arista.workspace.v1.WorkspaceConfigSetSomeResponse
+	46,  // 239: arista.workspace.v1.WorkspaceConfigService.Delete:output_type -> arista.workspace.v1.WorkspaceConfigDeleteResponse
+	48,  // 240: arista.workspace.v1.WorkspaceConfigService.DeleteSome:output_type -> arista.workspace.v1.WorkspaceConfigDeleteSomeResponse
+	50,  // 241: arista.workspace.v1.WorkspaceConfigService.DeleteAll:output_type -> arista.workspace.v1.WorkspaceConfigDeleteAllResponse
+	40,  // 242: arista.workspace.v1.WorkspaceConfigService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
+	40,  // 243: arista.workspace.v1.WorkspaceConfigService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceConfigBatchedStreamResponse
+	52,  // 244: arista.workspace.v1.WorkspaceSyncConfigService.GetOne:output_type -> arista.workspace.v1.WorkspaceSyncConfigResponse
+	54,  // 245: arista.workspace.v1.WorkspaceSyncConfigService.GetSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigSomeResponse
+	56,  // 246: arista.workspace.v1.WorkspaceSyncConfigService.GetAll:output_type -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
+	56,  // 247: arista.workspace.v1.WorkspaceSyncConfigService.Subscribe:output_type -> arista.workspace.v1.WorkspaceSyncConfigStreamResponse
+	0,   // 248: arista.workspace.v1.WorkspaceSyncConfigService.GetMeta:output_type -> arista.workspace.v1.MetaResponse
+	0,   // 249: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeMeta:output_type -> arista.workspace.v1.MetaResponse
+	60,  // 250: arista.workspace.v1.WorkspaceSyncConfigService.Set:output_type -> arista.workspace.v1.WorkspaceSyncConfigSetResponse
+	62,  // 251: arista.workspace.v1.WorkspaceSyncConfigService.SetSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigSetSomeResponse
+	64,  // 252: arista.workspace.v1.WorkspaceSyncConfigService.Delete:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteResponse
+	66,  // 253: arista.workspace.v1.WorkspaceSyncConfigService.DeleteSome:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteSomeResponse
+	68,  // 254: arista.workspace.v1.WorkspaceSyncConfigService.DeleteAll:output_type -> arista.workspace.v1.WorkspaceSyncConfigDeleteAllResponse
+	58,  // 255: arista.workspace.v1.WorkspaceSyncConfigService.GetAllBatched:output_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
+	58,  // 256: arista.workspace.v1.WorkspaceSyncConfigService.SubscribeBatched:output_type -> arista.workspace.v1.WorkspaceSyncConfigBatchedStreamResponse
+	199, // [199:257] is the sub-list for method output_type
+	141, // [141:199] is the sub-list for method input_type
+	141, // [141:141] is the sub-list for extension type_name
+	141, // [141:141] is the sub-list for extension extendee
+	0,   // [0:141] is the sub-list for field type_name
 }
 
 func init() { file_arista_workspace_v1_services_gen_proto_init() }
@@ -5208,7 +5948,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceRequest); i {
+			switch v := v.(*StudioGeneratedConfigurationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5220,7 +5960,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceResponse); i {
+			switch v := v.(*StudioGeneratedConfigurationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5232,7 +5972,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSomeRequest); i {
+			switch v := v.(*StudioGeneratedConfigurationSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5244,7 +5984,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSomeResponse); i {
+			switch v := v.(*StudioGeneratedConfigurationSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5256,7 +5996,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceStreamRequest); i {
+			switch v := v.(*StudioGeneratedConfigurationStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5268,7 +6008,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceStreamResponse); i {
+			switch v := v.(*StudioGeneratedConfigurationStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5280,7 +6020,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBatchedStreamRequest); i {
+			switch v := v.(*StudioGeneratedConfigurationBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5292,7 +6032,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBatchedStreamResponse); i {
+			switch v := v.(*StudioGeneratedConfigurationBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5304,7 +6044,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildRequest); i {
+			switch v := v.(*WorkspaceRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5316,7 +6056,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildResponse); i {
+			switch v := v.(*WorkspaceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5328,7 +6068,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildSomeRequest); i {
+			switch v := v.(*WorkspaceSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5340,7 +6080,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildSomeResponse); i {
+			switch v := v.(*WorkspaceSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5352,7 +6092,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildStreamRequest); i {
+			switch v := v.(*WorkspaceStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5364,7 +6104,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildStreamResponse); i {
+			switch v := v.(*WorkspaceStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5376,7 +6116,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildBatchedStreamRequest); i {
+			switch v := v.(*WorkspaceBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5388,7 +6128,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildBatchedStreamResponse); i {
+			switch v := v.(*WorkspaceBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5400,7 +6140,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsRequest); i {
+			switch v := v.(*WorkspaceBuildRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5412,7 +6152,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsResponse); i {
+			switch v := v.(*WorkspaceBuildResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5424,7 +6164,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsSomeRequest); i {
+			switch v := v.(*WorkspaceBuildSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5436,7 +6176,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsSomeResponse); i {
+			switch v := v.(*WorkspaceBuildSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5448,7 +6188,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsStreamRequest); i {
+			switch v := v.(*WorkspaceBuildStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5460,7 +6200,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsStreamResponse); i {
+			switch v := v.(*WorkspaceBuildStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5472,7 +6212,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsBatchedStreamRequest); i {
+			switch v := v.(*WorkspaceBuildBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5484,7 +6224,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceBuildDetailsBatchedStreamResponse); i {
+			switch v := v.(*WorkspaceBuildBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5496,7 +6236,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigRequest); i {
+			switch v := v.(*WorkspaceBuildDetailsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5508,7 +6248,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigResponse); i {
+			switch v := v.(*WorkspaceBuildDetailsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5520,7 +6260,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSomeRequest); i {
+			switch v := v.(*WorkspaceBuildDetailsSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5532,7 +6272,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSomeResponse); i {
+			switch v := v.(*WorkspaceBuildDetailsSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5544,7 +6284,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigStreamRequest); i {
+			switch v := v.(*WorkspaceBuildDetailsStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5556,7 +6296,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigStreamResponse); i {
+			switch v := v.(*WorkspaceBuildDetailsStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5568,7 +6308,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigBatchedStreamRequest); i {
+			switch v := v.(*WorkspaceBuildDetailsBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5580,7 +6320,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigBatchedStreamResponse); i {
+			switch v := v.(*WorkspaceBuildDetailsBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5592,7 +6332,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSetRequest); i {
+			switch v := v.(*WorkspaceConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5604,7 +6344,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSetResponse); i {
+			switch v := v.(*WorkspaceConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5616,7 +6356,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSetSomeRequest); i {
+			switch v := v.(*WorkspaceConfigSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5628,7 +6368,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigSetSomeResponse); i {
+			switch v := v.(*WorkspaceConfigSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5640,7 +6380,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteRequest); i {
+			switch v := v.(*WorkspaceConfigStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5652,7 +6392,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteResponse); i {
+			switch v := v.(*WorkspaceConfigStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5664,7 +6404,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteSomeRequest); i {
+			switch v := v.(*WorkspaceConfigBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5676,7 +6416,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteSomeResponse); i {
+			switch v := v.(*WorkspaceConfigBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5688,7 +6428,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteAllRequest); i {
+			switch v := v.(*WorkspaceConfigSetRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5700,7 +6440,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceConfigDeleteAllResponse); i {
+			switch v := v.(*WorkspaceConfigSetResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5712,7 +6452,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigRequest); i {
+			switch v := v.(*WorkspaceConfigSetSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5724,7 +6464,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigResponse); i {
+			switch v := v.(*WorkspaceConfigSetSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5736,7 +6476,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSomeRequest); i {
+			switch v := v.(*WorkspaceConfigDeleteRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5748,7 +6488,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSomeResponse); i {
+			switch v := v.(*WorkspaceConfigDeleteResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5760,7 +6500,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigStreamRequest); i {
+			switch v := v.(*WorkspaceConfigDeleteSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5772,7 +6512,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigStreamResponse); i {
+			switch v := v.(*WorkspaceConfigDeleteSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5784,7 +6524,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigBatchedStreamRequest); i {
+			switch v := v.(*WorkspaceConfigDeleteAllRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5796,7 +6536,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigBatchedStreamResponse); i {
+			switch v := v.(*WorkspaceConfigDeleteAllResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5808,7 +6548,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSetRequest); i {
+			switch v := v.(*WorkspaceSyncConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5820,7 +6560,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSetResponse); i {
+			switch v := v.(*WorkspaceSyncConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5832,7 +6572,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSetSomeRequest); i {
+			switch v := v.(*WorkspaceSyncConfigSomeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5844,7 +6584,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigSetSomeResponse); i {
+			switch v := v.(*WorkspaceSyncConfigSomeResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5856,7 +6596,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigDeleteRequest); i {
+			switch v := v.(*WorkspaceSyncConfigStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5868,7 +6608,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigDeleteResponse); i {
+			switch v := v.(*WorkspaceSyncConfigStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5880,7 +6620,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigDeleteSomeRequest); i {
+			switch v := v.(*WorkspaceSyncConfigBatchedStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5892,7 +6632,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigDeleteSomeResponse); i {
+			switch v := v.(*WorkspaceSyncConfigBatchedStreamResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5904,7 +6644,7 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WorkspaceSyncConfigDeleteAllRequest); i {
+			switch v := v.(*WorkspaceSyncConfigSetRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5916,6 +6656,102 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			}
 		}
 		file_arista_workspace_v1_services_gen_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigSetResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigSetSomeRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigSetSomeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigDeleteRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigDeleteResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigDeleteSomeRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigDeleteSomeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorkspaceSyncConfigDeleteAllRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_workspace_v1_services_gen_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WorkspaceSyncConfigDeleteAllResponse); i {
 			case 0:
 				return &v.state
@@ -5934,9 +6770,9 @@ func file_arista_workspace_v1_services_gen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_arista_workspace_v1_services_gen_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   61,
+			NumMessages:   69,
 			NumExtensions: 0,
-			NumServices:   5,
+			NumServices:   6,
 		},
 		GoTypes:           file_arista_workspace_v1_services_gen_proto_goTypes,
 		DependencyIndexes: file_arista_workspace_v1_services_gen_proto_depIdxs,

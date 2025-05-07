@@ -47,6 +47,519 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	StudioGeneratedConfigurationService_GetOne_FullMethodName           = "/arista.workspace.v1.StudioGeneratedConfigurationService/GetOne"
+	StudioGeneratedConfigurationService_GetSome_FullMethodName          = "/arista.workspace.v1.StudioGeneratedConfigurationService/GetSome"
+	StudioGeneratedConfigurationService_GetAll_FullMethodName           = "/arista.workspace.v1.StudioGeneratedConfigurationService/GetAll"
+	StudioGeneratedConfigurationService_Subscribe_FullMethodName        = "/arista.workspace.v1.StudioGeneratedConfigurationService/Subscribe"
+	StudioGeneratedConfigurationService_GetMeta_FullMethodName          = "/arista.workspace.v1.StudioGeneratedConfigurationService/GetMeta"
+	StudioGeneratedConfigurationService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.StudioGeneratedConfigurationService/SubscribeMeta"
+	StudioGeneratedConfigurationService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.StudioGeneratedConfigurationService/GetAllBatched"
+	StudioGeneratedConfigurationService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.StudioGeneratedConfigurationService/SubscribeBatched"
+)
+
+// StudioGeneratedConfigurationServiceClient is the client API for StudioGeneratedConfigurationService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type StudioGeneratedConfigurationServiceClient interface {
+	GetOne(ctx context.Context, in *StudioGeneratedConfigurationRequest, opts ...grpc.CallOption) (*StudioGeneratedConfigurationResponse, error)
+	GetSome(ctx context.Context, in *StudioGeneratedConfigurationSomeRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *StudioGeneratedConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *StudioGeneratedConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeBatchedClient, error)
+}
+
+type studioGeneratedConfigurationServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewStudioGeneratedConfigurationServiceClient(cc grpc.ClientConnInterface) StudioGeneratedConfigurationServiceClient {
+	return &studioGeneratedConfigurationServiceClient{cc}
+}
+
+func (c *studioGeneratedConfigurationServiceClient) GetOne(ctx context.Context, in *StudioGeneratedConfigurationRequest, opts ...grpc.CallOption) (*StudioGeneratedConfigurationResponse, error) {
+	out := new(StudioGeneratedConfigurationResponse)
+	err := c.cc.Invoke(ctx, StudioGeneratedConfigurationService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) GetSome(ctx context.Context, in *StudioGeneratedConfigurationSomeRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[0], StudioGeneratedConfigurationService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_GetSomeClient interface {
+	Recv() (*StudioGeneratedConfigurationSomeResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetSomeClient) Recv() (*StudioGeneratedConfigurationSomeResponse, error) {
+	m := new(StudioGeneratedConfigurationSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) GetAll(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[1], StudioGeneratedConfigurationService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_GetAllClient interface {
+	Recv() (*StudioGeneratedConfigurationStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetAllClient) Recv() (*StudioGeneratedConfigurationStreamResponse, error) {
+	m := new(StudioGeneratedConfigurationStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) Subscribe(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[2], StudioGeneratedConfigurationService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_SubscribeClient interface {
+	Recv() (*StudioGeneratedConfigurationStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeClient) Recv() (*StudioGeneratedConfigurationStreamResponse, error) {
+	m := new(StudioGeneratedConfigurationStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) GetMeta(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, StudioGeneratedConfigurationService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) SubscribeMeta(ctx context.Context, in *StudioGeneratedConfigurationStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[3], StudioGeneratedConfigurationService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) GetAllBatched(ctx context.Context, in *StudioGeneratedConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[4], StudioGeneratedConfigurationService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_GetAllBatchedClient interface {
+	Recv() (*StudioGeneratedConfigurationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetAllBatchedClient) Recv() (*StudioGeneratedConfigurationBatchedStreamResponse, error) {
+	m := new(StudioGeneratedConfigurationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *studioGeneratedConfigurationServiceClient) SubscribeBatched(ctx context.Context, in *StudioGeneratedConfigurationBatchedStreamRequest, opts ...grpc.CallOption) (StudioGeneratedConfigurationService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StudioGeneratedConfigurationService_ServiceDesc.Streams[5], StudioGeneratedConfigurationService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &studioGeneratedConfigurationServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type StudioGeneratedConfigurationService_SubscribeBatchedClient interface {
+	Recv() (*StudioGeneratedConfigurationBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeBatchedClient) Recv() (*StudioGeneratedConfigurationBatchedStreamResponse, error) {
+	m := new(StudioGeneratedConfigurationBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// StudioGeneratedConfigurationServiceServer is the server API for StudioGeneratedConfigurationService service.
+// All implementations must embed UnimplementedStudioGeneratedConfigurationServiceServer
+// for forward compatibility
+type StudioGeneratedConfigurationServiceServer interface {
+	GetOne(context.Context, *StudioGeneratedConfigurationRequest) (*StudioGeneratedConfigurationResponse, error)
+	GetSome(*StudioGeneratedConfigurationSomeRequest, StudioGeneratedConfigurationService_GetSomeServer) error
+	GetAll(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_GetAllServer) error
+	Subscribe(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_SubscribeServer) error
+	GetMeta(context.Context, *StudioGeneratedConfigurationStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_SubscribeMetaServer) error
+	GetAllBatched(*StudioGeneratedConfigurationBatchedStreamRequest, StudioGeneratedConfigurationService_GetAllBatchedServer) error
+	SubscribeBatched(*StudioGeneratedConfigurationBatchedStreamRequest, StudioGeneratedConfigurationService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedStudioGeneratedConfigurationServiceServer()
+}
+
+// UnimplementedStudioGeneratedConfigurationServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedStudioGeneratedConfigurationServiceServer struct {
+}
+
+func (UnimplementedStudioGeneratedConfigurationServiceServer) GetOne(context.Context, *StudioGeneratedConfigurationRequest) (*StudioGeneratedConfigurationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) GetSome(*StudioGeneratedConfigurationSomeRequest, StudioGeneratedConfigurationService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) GetAll(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) Subscribe(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) GetMeta(context.Context, *StudioGeneratedConfigurationStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) SubscribeMeta(*StudioGeneratedConfigurationStreamRequest, StudioGeneratedConfigurationService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) GetAllBatched(*StudioGeneratedConfigurationBatchedStreamRequest, StudioGeneratedConfigurationService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) SubscribeBatched(*StudioGeneratedConfigurationBatchedStreamRequest, StudioGeneratedConfigurationService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedStudioGeneratedConfigurationServiceServer) mustEmbedUnimplementedStudioGeneratedConfigurationServiceServer() {
+}
+
+// UnsafeStudioGeneratedConfigurationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to StudioGeneratedConfigurationServiceServer will
+// result in compilation errors.
+type UnsafeStudioGeneratedConfigurationServiceServer interface {
+	mustEmbedUnimplementedStudioGeneratedConfigurationServiceServer()
+}
+
+func RegisterStudioGeneratedConfigurationServiceServer(s grpc.ServiceRegistrar, srv StudioGeneratedConfigurationServiceServer) {
+	s.RegisterService(&StudioGeneratedConfigurationService_ServiceDesc, srv)
+}
+
+func _StudioGeneratedConfigurationService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioGeneratedConfigurationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioGeneratedConfigurationServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StudioGeneratedConfigurationService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioGeneratedConfigurationServiceServer).GetOne(ctx, req.(*StudioGeneratedConfigurationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioGeneratedConfigurationService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).GetSome(m, &studioGeneratedConfigurationServiceGetSomeServer{stream})
+}
+
+type StudioGeneratedConfigurationService_GetSomeServer interface {
+	Send(*StudioGeneratedConfigurationSomeResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetSomeServer) Send(m *StudioGeneratedConfigurationSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioGeneratedConfigurationService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).GetAll(m, &studioGeneratedConfigurationServiceGetAllServer{stream})
+}
+
+type StudioGeneratedConfigurationService_GetAllServer interface {
+	Send(*StudioGeneratedConfigurationStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetAllServer) Send(m *StudioGeneratedConfigurationStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioGeneratedConfigurationService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).Subscribe(m, &studioGeneratedConfigurationServiceSubscribeServer{stream})
+}
+
+type StudioGeneratedConfigurationService_SubscribeServer interface {
+	Send(*StudioGeneratedConfigurationStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeServer) Send(m *StudioGeneratedConfigurationStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioGeneratedConfigurationService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StudioGeneratedConfigurationStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudioGeneratedConfigurationServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StudioGeneratedConfigurationService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudioGeneratedConfigurationServiceServer).GetMeta(ctx, req.(*StudioGeneratedConfigurationStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StudioGeneratedConfigurationService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).SubscribeMeta(m, &studioGeneratedConfigurationServiceSubscribeMetaServer{stream})
+}
+
+type StudioGeneratedConfigurationService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioGeneratedConfigurationService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).GetAllBatched(m, &studioGeneratedConfigurationServiceGetAllBatchedServer{stream})
+}
+
+type StudioGeneratedConfigurationService_GetAllBatchedServer interface {
+	Send(*StudioGeneratedConfigurationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceGetAllBatchedServer) Send(m *StudioGeneratedConfigurationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _StudioGeneratedConfigurationService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StudioGeneratedConfigurationBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StudioGeneratedConfigurationServiceServer).SubscribeBatched(m, &studioGeneratedConfigurationServiceSubscribeBatchedServer{stream})
+}
+
+type StudioGeneratedConfigurationService_SubscribeBatchedServer interface {
+	Send(*StudioGeneratedConfigurationBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type studioGeneratedConfigurationServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *studioGeneratedConfigurationServiceSubscribeBatchedServer) Send(m *StudioGeneratedConfigurationBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// StudioGeneratedConfigurationService_ServiceDesc is the grpc.ServiceDesc for StudioGeneratedConfigurationService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var StudioGeneratedConfigurationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.workspace.v1.StudioGeneratedConfigurationService",
+	HandlerType: (*StudioGeneratedConfigurationServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _StudioGeneratedConfigurationService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _StudioGeneratedConfigurationService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _StudioGeneratedConfigurationService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _StudioGeneratedConfigurationService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _StudioGeneratedConfigurationService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _StudioGeneratedConfigurationService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _StudioGeneratedConfigurationService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _StudioGeneratedConfigurationService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/workspace.v1/services.gen.proto",
+}
+
+const (
 	WorkspaceService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceService/GetOne"
 	WorkspaceService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceService/GetSome"
 	WorkspaceService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceService/GetAll"
