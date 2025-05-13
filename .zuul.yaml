@@ -1,0 +1,3 @@
+- project:
+    name: cloudvision-go
+    queue: cvp-queue
