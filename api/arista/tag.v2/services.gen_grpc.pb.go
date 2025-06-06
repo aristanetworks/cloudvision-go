@@ -27,6 +27,518 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	ElementService_GetOne_FullMethodName           = "/arista.tag.v2.ElementService/GetOne"
+	ElementService_GetSome_FullMethodName          = "/arista.tag.v2.ElementService/GetSome"
+	ElementService_GetAll_FullMethodName           = "/arista.tag.v2.ElementService/GetAll"
+	ElementService_Subscribe_FullMethodName        = "/arista.tag.v2.ElementService/Subscribe"
+	ElementService_GetMeta_FullMethodName          = "/arista.tag.v2.ElementService/GetMeta"
+	ElementService_SubscribeMeta_FullMethodName    = "/arista.tag.v2.ElementService/SubscribeMeta"
+	ElementService_GetAllBatched_FullMethodName    = "/arista.tag.v2.ElementService/GetAllBatched"
+	ElementService_SubscribeBatched_FullMethodName = "/arista.tag.v2.ElementService/SubscribeBatched"
+)
+
+// ElementServiceClient is the client API for ElementService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ElementServiceClient interface {
+	GetOne(ctx context.Context, in *ElementRequest, opts ...grpc.CallOption) (*ElementResponse, error)
+	GetSome(ctx context.Context, in *ElementSomeRequest, opts ...grpc.CallOption) (ElementService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ElementBatchedStreamRequest, opts ...grpc.CallOption) (ElementService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ElementBatchedStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeBatchedClient, error)
+}
+
+type elementServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewElementServiceClient(cc grpc.ClientConnInterface) ElementServiceClient {
+	return &elementServiceClient{cc}
+}
+
+func (c *elementServiceClient) GetOne(ctx context.Context, in *ElementRequest, opts ...grpc.CallOption) (*ElementResponse, error) {
+	out := new(ElementResponse)
+	err := c.cc.Invoke(ctx, ElementService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *elementServiceClient) GetSome(ctx context.Context, in *ElementSomeRequest, opts ...grpc.CallOption) (ElementService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[0], ElementService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_GetSomeClient interface {
+	Recv() (*ElementSomeResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceGetSomeClient) Recv() (*ElementSomeResponse, error) {
+	m := new(ElementSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *elementServiceClient) GetAll(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[1], ElementService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_GetAllClient interface {
+	Recv() (*ElementStreamResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceGetAllClient) Recv() (*ElementStreamResponse, error) {
+	m := new(ElementStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *elementServiceClient) Subscribe(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[2], ElementService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_SubscribeClient interface {
+	Recv() (*ElementStreamResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceSubscribeClient) Recv() (*ElementStreamResponse, error) {
+	m := new(ElementStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *elementServiceClient) GetMeta(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, ElementService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *elementServiceClient) SubscribeMeta(ctx context.Context, in *ElementStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[3], ElementService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *elementServiceClient) GetAllBatched(ctx context.Context, in *ElementBatchedStreamRequest, opts ...grpc.CallOption) (ElementService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[4], ElementService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_GetAllBatchedClient interface {
+	Recv() (*ElementBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceGetAllBatchedClient) Recv() (*ElementBatchedStreamResponse, error) {
+	m := new(ElementBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *elementServiceClient) SubscribeBatched(ctx context.Context, in *ElementBatchedStreamRequest, opts ...grpc.CallOption) (ElementService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ElementService_ServiceDesc.Streams[5], ElementService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &elementServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ElementService_SubscribeBatchedClient interface {
+	Recv() (*ElementBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type elementServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *elementServiceSubscribeBatchedClient) Recv() (*ElementBatchedStreamResponse, error) {
+	m := new(ElementBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// ElementServiceServer is the server API for ElementService service.
+// All implementations must embed UnimplementedElementServiceServer
+// for forward compatibility
+type ElementServiceServer interface {
+	GetOne(context.Context, *ElementRequest) (*ElementResponse, error)
+	GetSome(*ElementSomeRequest, ElementService_GetSomeServer) error
+	GetAll(*ElementStreamRequest, ElementService_GetAllServer) error
+	Subscribe(*ElementStreamRequest, ElementService_SubscribeServer) error
+	GetMeta(context.Context, *ElementStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ElementStreamRequest, ElementService_SubscribeMetaServer) error
+	GetAllBatched(*ElementBatchedStreamRequest, ElementService_GetAllBatchedServer) error
+	SubscribeBatched(*ElementBatchedStreamRequest, ElementService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedElementServiceServer()
+}
+
+// UnimplementedElementServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedElementServiceServer struct {
+}
+
+func (UnimplementedElementServiceServer) GetOne(context.Context, *ElementRequest) (*ElementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedElementServiceServer) GetSome(*ElementSomeRequest, ElementService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedElementServiceServer) GetAll(*ElementStreamRequest, ElementService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedElementServiceServer) Subscribe(*ElementStreamRequest, ElementService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedElementServiceServer) GetMeta(context.Context, *ElementStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedElementServiceServer) SubscribeMeta(*ElementStreamRequest, ElementService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedElementServiceServer) GetAllBatched(*ElementBatchedStreamRequest, ElementService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedElementServiceServer) SubscribeBatched(*ElementBatchedStreamRequest, ElementService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedElementServiceServer) mustEmbedUnimplementedElementServiceServer() {}
+
+// UnsafeElementServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ElementServiceServer will
+// result in compilation errors.
+type UnsafeElementServiceServer interface {
+	mustEmbedUnimplementedElementServiceServer()
+}
+
+func RegisterElementServiceServer(s grpc.ServiceRegistrar, srv ElementServiceServer) {
+	s.RegisterService(&ElementService_ServiceDesc, srv)
+}
+
+func _ElementService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ElementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ElementServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ElementService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ElementServiceServer).GetOne(ctx, req.(*ElementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ElementService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).GetSome(m, &elementServiceGetSomeServer{stream})
+}
+
+type ElementService_GetSomeServer interface {
+	Send(*ElementSomeResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceGetSomeServer) Send(m *ElementSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ElementService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).GetAll(m, &elementServiceGetAllServer{stream})
+}
+
+type ElementService_GetAllServer interface {
+	Send(*ElementStreamResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceGetAllServer) Send(m *ElementStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ElementService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).Subscribe(m, &elementServiceSubscribeServer{stream})
+}
+
+type ElementService_SubscribeServer interface {
+	Send(*ElementStreamResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceSubscribeServer) Send(m *ElementStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ElementService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ElementStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ElementServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ElementService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ElementServiceServer).GetMeta(ctx, req.(*ElementStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ElementService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).SubscribeMeta(m, &elementServiceSubscribeMetaServer{stream})
+}
+
+type ElementService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ElementService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).GetAllBatched(m, &elementServiceGetAllBatchedServer{stream})
+}
+
+type ElementService_GetAllBatchedServer interface {
+	Send(*ElementBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceGetAllBatchedServer) Send(m *ElementBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ElementService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ElementBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ElementServiceServer).SubscribeBatched(m, &elementServiceSubscribeBatchedServer{stream})
+}
+
+type ElementService_SubscribeBatchedServer interface {
+	Send(*ElementBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type elementServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *elementServiceSubscribeBatchedServer) Send(m *ElementBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// ElementService_ServiceDesc is the grpc.ServiceDesc for ElementService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ElementService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.tag.v2.ElementService",
+	HandlerType: (*ElementServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _ElementService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ElementService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ElementService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _ElementService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _ElementService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ElementService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ElementService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ElementService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/tag.v2/services.gen.proto",
+}
+
+const (
 	TagService_GetOne_FullMethodName           = "/arista.tag.v2.TagService/GetOne"
 	TagService_GetSome_FullMethodName          = "/arista.tag.v2.TagService/GetSome"
 	TagService_GetAll_FullMethodName           = "/arista.tag.v2.TagService/GetAll"

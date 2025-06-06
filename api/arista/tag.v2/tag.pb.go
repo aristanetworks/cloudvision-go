@@ -698,6 +698,324 @@ func (x *TagAssignment) GetTagCreatorType() CreatorType {
 	return CreatorType_CREATOR_TYPE_UNSPECIFIED
 }
 
+// ElementFilter is a custom filter for elements.
+type ElementFilter struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// search can be used to search for elements via a tag query.
+	Search *ElementSearchFilter `protobuf:"bytes,1,opt,name=search,proto3" json:"search,omitempty"`
+}
+
+func (x *ElementFilter) Reset() {
+	*x = ElementFilter{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_tag_v2_tag_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ElementFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ElementFilter) ProtoMessage() {}
+
+func (x *ElementFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_tag_v2_tag_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ElementFilter.ProtoReflect.Descriptor instead.
+func (*ElementFilter) Descriptor() ([]byte, []int) {
+	return file_arista_tag_v2_tag_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ElementFilter) GetSearch() *ElementSearchFilter {
+	if x != nil {
+		return x.Search
+	}
+	return nil
+}
+
+// ElementSearchFilter is a filter that can be used to search for a set of
+// elements using a tag query.
+type ElementSearchFilter struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// query_element_type (required) indicates the type of element against which
+	// the query will be executed. To search by sub-type, use the special "type:"
+	// tag from within the query.
+	QueryElementType ElementType `protobuf:"varint,1,opt,name=query_element_type,json=queryElementType,proto3,enum=arista.tag.v2.ElementType" json:"query_element_type,omitempty"`
+	// query (required) is a tag query. This is a string that specifies a set of
+	// tag assignment conditions. For example:
+	//
+	//   - "Campus:SF"
+	//     Match any device that has the "Campus:SF" tag assigned to it.
+	//     I.e., match any device in the SF campus.
+	//   - "Campus:*"
+	//     Match any device that has any "Campus:" tag assigned to it.
+	//     I.e., match any device in any campus.
+	//   - "Campus:SF AND Role:Spine"
+	//     Match any device that has the "Campus:SF" and "Role:Spine"
+	//     tag assigned to it.
+	//     I.e., match any spine device in the SF campus.
+	//
+	// TODO: Link to grammar file.
+	Query *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	// workspace_id is the ID of a workspace. If set, it indicates that the
+	// search space should be constrained only to the elements that are known
+	// or configured in the given workspace.
+	WorkspaceId *wrapperspb.StringValue `protobuf:"bytes,10,opt,name=workspace_id,json=workspaceId,proto3" json:"workspace_id,omitempty"`
+	// exclude_unregistered_elements indicates whether elements that are not registered
+	// in the Inventory and Topology (I&T) Studio should be excluded from the results.
+	ExcludeUnregisteredElements *wrapperspb.BoolValue `protobuf:"bytes,11,opt,name=exclude_unregistered_elements,json=excludeUnregisteredElements,proto3" json:"exclude_unregistered_elements,omitempty"`
+	// ignore_topology_tags indicates whether topology_hint tags should be ignored during
+	// the execution of the query.
+	IgnoreTopologyTags *wrapperspb.BoolValue `protobuf:"bytes,12,opt,name=ignore_topology_tags,json=ignoreTopologyTags,proto3" json:"ignore_topology_tags,omitempty"`
+}
+
+func (x *ElementSearchFilter) Reset() {
+	*x = ElementSearchFilter{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_tag_v2_tag_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ElementSearchFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ElementSearchFilter) ProtoMessage() {}
+
+func (x *ElementSearchFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_tag_v2_tag_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ElementSearchFilter.ProtoReflect.Descriptor instead.
+func (*ElementSearchFilter) Descriptor() ([]byte, []int) {
+	return file_arista_tag_v2_tag_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ElementSearchFilter) GetQueryElementType() ElementType {
+	if x != nil {
+		return x.QueryElementType
+	}
+	return ElementType_ELEMENT_TYPE_UNSPECIFIED
+}
+
+func (x *ElementSearchFilter) GetQuery() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Query
+	}
+	return nil
+}
+
+func (x *ElementSearchFilter) GetWorkspaceId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.WorkspaceId
+	}
+	return nil
+}
+
+func (x *ElementSearchFilter) GetExcludeUnregisteredElements() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.ExcludeUnregisteredElements
+	}
+	return nil
+}
+
+func (x *ElementSearchFilter) GetIgnoreTopologyTags() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.IgnoreTopologyTags
+	}
+	return nil
+}
+
+// ElementKey uniquely identifies a tagged or untagged network element.
+type ElementKey struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// type is the type of the element.
+	Type ElementType `protobuf:"varint,1,opt,name=type,proto3,enum=arista.tag.v2.ElementType" json:"type,omitempty"`
+	// sub_type is the sub-type of the element.
+	SubType ElementSubType `protobuf:"varint,2,opt,name=sub_type,json=subType,proto3,enum=arista.tag.v2.ElementSubType" json:"sub_type,omitempty"`
+	// primary_id is the device ID of the element. The value of
+	// this ID is based on type and sub_type:
+	//
+	// type: DEVICE
+	//
+	//	sub_type: DEVICE
+	//	  id: <serial_number>
+	//	sub_type: VDS, WORKLOAD_SERVER, VM
+	//	  id: <uuid>
+	//
+	// type: INTERFACE
+	//
+	//	sub_type: DEVICE
+	//	  id: <serial_number>
+	//	sub_type: VDS, WORKLOAD_SERVER, VM
+	//	  id: <uuid>
+	//
+	// type: VIRTUAL
+	//
+	//	sub_type: APPLICATION
+	//	  id: <application_id>
+	PrimaryId *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=primary_id,json=primaryId,proto3" json:"primary_id,omitempty"`
+	// secondary_id is the interface ID of the element. The value of
+	// this ID is based on type and sub_type:
+	//
+	// type: DEVICE
+	//
+	//	N/A
+	//
+	// type: INTERFACE
+	//
+	//	sub_type: DEVICE
+	//	  id: <interface_name>
+	//	sub_type: VDS, WORKLOAD_SERVER, VM
+	//	  id: <interface_name>
+	//
+	// type: VIRTUAL
+	//
+	//	sub_type: APPLICATION
+	//	  id: <service_id>
+	SecondaryId *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=secondary_id,json=secondaryId,proto3" json:"secondary_id,omitempty"`
+}
+
+func (x *ElementKey) Reset() {
+	*x = ElementKey{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_tag_v2_tag_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ElementKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ElementKey) ProtoMessage() {}
+
+func (x *ElementKey) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_tag_v2_tag_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ElementKey.ProtoReflect.Descriptor instead.
+func (*ElementKey) Descriptor() ([]byte, []int) {
+	return file_arista_tag_v2_tag_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ElementKey) GetType() ElementType {
+	if x != nil {
+		return x.Type
+	}
+	return ElementType_ELEMENT_TYPE_UNSPECIFIED
+}
+
+func (x *ElementKey) GetSubType() ElementSubType {
+	if x != nil {
+		return x.SubType
+	}
+	return ElementSubType_ELEMENT_SUB_TYPE_UNSPECIFIED
+}
+
+func (x *ElementKey) GetPrimaryId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.PrimaryId
+	}
+	return nil
+}
+
+func (x *ElementKey) GetSecondaryId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.SecondaryId
+	}
+	return nil
+}
+
+// Element holds basic information about a tagged or untagged network
+// element.
+type Element struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// key uniquely identifies the element.
+	Key *ElementKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+}
+
+func (x *Element) Reset() {
+	*x = Element{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_tag_v2_tag_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Element) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Element) ProtoMessage() {}
+
+func (x *Element) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_tag_v2_tag_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Element.ProtoReflect.Descriptor instead.
+func (*Element) Descriptor() ([]byte, []int) {
+	return file_arista_tag_v2_tag_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Element) GetKey() *ElementKey {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
 var File_arista_tag_v2_tag_proto protoreflect.FileDescriptor
 
 var file_arista_tag_v2_tag_proto_rawDesc = []byte{
@@ -800,7 +1118,57 @@ var file_arista_tag_v2_tag_proto_rawDesc = []byte{
 	0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74,
 	0x61, 0x2e, 0x74, 0x61, 0x67, 0x2e, 0x76, 0x32, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x6f, 0x72,
 	0x54, 0x79, 0x70, 0x65, 0x52, 0x0e, 0x74, 0x61, 0x67, 0x43, 0x72, 0x65, 0x61, 0x74, 0x6f, 0x72,
-	0x54, 0x79, 0x70, 0x65, 0x3a, 0x06, 0xfa, 0x8d, 0x19, 0x02, 0x72, 0x6f, 0x2a, 0x7a, 0x0a, 0x0b,
+	0x54, 0x79, 0x70, 0x65, 0x3a, 0x06, 0xfa, 0x8d, 0x19, 0x02, 0x72, 0x6f, 0x22, 0x4b, 0x0a, 0x0d,
+	0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x3a, 0x0a,
+	0x06, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x61, 0x67, 0x2e, 0x76, 0x32, 0x2e, 0x45, 0x6c,
+	0x65, 0x6d, 0x65, 0x6e, 0x74, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x46, 0x69, 0x6c, 0x74, 0x65,
+	0x72, 0x52, 0x06, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x22, 0x82, 0x03, 0x0a, 0x13, 0x45, 0x6c,
+	0x65, 0x6d, 0x65, 0x6e, 0x74, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x46, 0x69, 0x6c, 0x74, 0x65,
+	0x72, 0x12, 0x48, 0x0a, 0x12, 0x71, 0x75, 0x65, 0x72, 0x79, 0x5f, 0x65, 0x6c, 0x65, 0x6d, 0x65,
+	0x6e, 0x74, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x61, 0x67, 0x2e, 0x76, 0x32, 0x2e, 0x45, 0x6c,
+	0x65, 0x6d, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x52, 0x10, 0x71, 0x75, 0x65, 0x72, 0x79,
+	0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x32, 0x0a, 0x05, 0x71,
+	0x75, 0x65, 0x72, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x12,
+	0x3f, 0x0a, 0x0c, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18,
+	0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x52, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63, 0x65, 0x49, 0x64,
+	0x12, 0x5e, 0x0a, 0x1d, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f, 0x75, 0x6e, 0x72, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x65, 0x64, 0x5f, 0x65, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74,
+	0x73, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x52, 0x1b, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x55, 0x6e, 0x72, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x65, 0x64, 0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x73,
+	0x12, 0x4c, 0x0a, 0x14, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x74, 0x6f, 0x70, 0x6f, 0x6c,
+	0x6f, 0x67, 0x79, 0x5f, 0x74, 0x61, 0x67, 0x73, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x12, 0x69, 0x67, 0x6e, 0x6f,
+	0x72, 0x65, 0x54, 0x6f, 0x70, 0x6f, 0x6c, 0x6f, 0x67, 0x79, 0x54, 0x61, 0x67, 0x73, 0x22, 0xfa,
+	0x01, 0x0a, 0x0a, 0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4b, 0x65, 0x79, 0x12, 0x2e, 0x0a,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1a, 0x2e, 0x61, 0x72,
+	0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x61, 0x67, 0x2e, 0x76, 0x32, 0x2e, 0x45, 0x6c, 0x65, 0x6d,
+	0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x38, 0x0a,
+	0x08, 0x73, 0x75, 0x62, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32,
+	0x1d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x61, 0x67, 0x2e, 0x76, 0x32, 0x2e,
+	0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x53, 0x75, 0x62, 0x54, 0x79, 0x70, 0x65, 0x52, 0x07,
+	0x73, 0x75, 0x62, 0x54, 0x79, 0x70, 0x65, 0x12, 0x3b, 0x0a, 0x0a, 0x70, 0x72, 0x69, 0x6d, 0x61,
+	0x72, 0x79, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74,
+	0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x09, 0x70, 0x72, 0x69, 0x6d, 0x61,
+	0x72, 0x79, 0x49, 0x64, 0x12, 0x3f, 0x0a, 0x0c, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x61, 0x72,
+	0x79, 0x5f, 0x69, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x0b, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64,
+	0x61, 0x72, 0x79, 0x49, 0x64, 0x3a, 0x04, 0x80, 0x8e, 0x19, 0x01, 0x22, 0x4f, 0x0a, 0x07, 0x45,
+	0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x2b, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x74, 0x61, 0x67,
+	0x2e, 0x76, 0x32, 0x2e, 0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4b, 0x65, 0x79, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x3a, 0x17, 0xfa, 0x8d, 0x19, 0x02, 0x72, 0x6f, 0x8a, 0x8e, 0x19, 0x0d, 0x45,
+	0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2a, 0x7a, 0x0a, 0x0b,
 	0x45, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1c, 0x0a, 0x18, 0x45,
 	0x4c, 0x45, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50,
 	0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x17, 0x0a, 0x13, 0x45, 0x4c, 0x45,
@@ -849,7 +1217,7 @@ func file_arista_tag_v2_tag_proto_rawDescGZIP() []byte {
 }
 
 var file_arista_tag_v2_tag_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_arista_tag_v2_tag_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_arista_tag_v2_tag_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_arista_tag_v2_tag_proto_goTypes = []interface{}{
 	(ElementType)(0),               // 0: arista.tag.v2.ElementType
 	(ElementSubType)(0),            // 1: arista.tag.v2.ElementSubType
@@ -860,38 +1228,53 @@ var file_arista_tag_v2_tag_proto_goTypes = []interface{}{
 	(*TagAssignmentKey)(nil),       // 6: arista.tag.v2.TagAssignmentKey
 	(*TagAssignmentConfig)(nil),    // 7: arista.tag.v2.TagAssignmentConfig
 	(*TagAssignment)(nil),          // 8: arista.tag.v2.TagAssignment
-	(*wrapperspb.StringValue)(nil), // 9: google.protobuf.StringValue
-	(*wrapperspb.BoolValue)(nil),   // 10: google.protobuf.BoolValue
+	(*ElementFilter)(nil),          // 9: arista.tag.v2.ElementFilter
+	(*ElementSearchFilter)(nil),    // 10: arista.tag.v2.ElementSearchFilter
+	(*ElementKey)(nil),             // 11: arista.tag.v2.ElementKey
+	(*Element)(nil),                // 12: arista.tag.v2.Element
+	(*wrapperspb.StringValue)(nil), // 13: google.protobuf.StringValue
+	(*wrapperspb.BoolValue)(nil),   // 14: google.protobuf.BoolValue
 }
 var file_arista_tag_v2_tag_proto_depIdxs = []int32{
-	9,  // 0: arista.tag.v2.TagKey.workspace_id:type_name -> google.protobuf.StringValue
+	13, // 0: arista.tag.v2.TagKey.workspace_id:type_name -> google.protobuf.StringValue
 	0,  // 1: arista.tag.v2.TagKey.element_type:type_name -> arista.tag.v2.ElementType
-	9,  // 2: arista.tag.v2.TagKey.label:type_name -> google.protobuf.StringValue
-	9,  // 3: arista.tag.v2.TagKey.value:type_name -> google.protobuf.StringValue
+	13, // 2: arista.tag.v2.TagKey.label:type_name -> google.protobuf.StringValue
+	13, // 3: arista.tag.v2.TagKey.value:type_name -> google.protobuf.StringValue
 	1,  // 4: arista.tag.v2.TagKey.element_sub_type:type_name -> arista.tag.v2.ElementSubType
 	3,  // 5: arista.tag.v2.TagConfig.key:type_name -> arista.tag.v2.TagKey
-	10, // 6: arista.tag.v2.TagConfig.remove:type_name -> google.protobuf.BoolValue
+	14, // 6: arista.tag.v2.TagConfig.remove:type_name -> google.protobuf.BoolValue
 	3,  // 7: arista.tag.v2.Tag.key:type_name -> arista.tag.v2.TagKey
 	2,  // 8: arista.tag.v2.Tag.creator_type:type_name -> arista.tag.v2.CreatorType
-	10, // 9: arista.tag.v2.Tag.assigned:type_name -> google.protobuf.BoolValue
-	9,  // 10: arista.tag.v2.TagAssignmentKey.workspace_id:type_name -> google.protobuf.StringValue
+	14, // 9: arista.tag.v2.Tag.assigned:type_name -> google.protobuf.BoolValue
+	13, // 10: arista.tag.v2.TagAssignmentKey.workspace_id:type_name -> google.protobuf.StringValue
 	0,  // 11: arista.tag.v2.TagAssignmentKey.element_type:type_name -> arista.tag.v2.ElementType
-	9,  // 12: arista.tag.v2.TagAssignmentKey.label:type_name -> google.protobuf.StringValue
-	9,  // 13: arista.tag.v2.TagAssignmentKey.value:type_name -> google.protobuf.StringValue
-	9,  // 14: arista.tag.v2.TagAssignmentKey.device_id:type_name -> google.protobuf.StringValue
-	9,  // 15: arista.tag.v2.TagAssignmentKey.interface_id:type_name -> google.protobuf.StringValue
+	13, // 12: arista.tag.v2.TagAssignmentKey.label:type_name -> google.protobuf.StringValue
+	13, // 13: arista.tag.v2.TagAssignmentKey.value:type_name -> google.protobuf.StringValue
+	13, // 14: arista.tag.v2.TagAssignmentKey.device_id:type_name -> google.protobuf.StringValue
+	13, // 15: arista.tag.v2.TagAssignmentKey.interface_id:type_name -> google.protobuf.StringValue
 	1,  // 16: arista.tag.v2.TagAssignmentKey.element_sub_type:type_name -> arista.tag.v2.ElementSubType
-	9,  // 17: arista.tag.v2.TagAssignmentKey.primary_entity_id:type_name -> google.protobuf.StringValue
-	9,  // 18: arista.tag.v2.TagAssignmentKey.secondary_entity_id:type_name -> google.protobuf.StringValue
+	13, // 17: arista.tag.v2.TagAssignmentKey.primary_entity_id:type_name -> google.protobuf.StringValue
+	13, // 18: arista.tag.v2.TagAssignmentKey.secondary_entity_id:type_name -> google.protobuf.StringValue
 	6,  // 19: arista.tag.v2.TagAssignmentConfig.key:type_name -> arista.tag.v2.TagAssignmentKey
-	10, // 20: arista.tag.v2.TagAssignmentConfig.remove:type_name -> google.protobuf.BoolValue
+	14, // 20: arista.tag.v2.TagAssignmentConfig.remove:type_name -> google.protobuf.BoolValue
 	6,  // 21: arista.tag.v2.TagAssignment.key:type_name -> arista.tag.v2.TagAssignmentKey
 	2,  // 22: arista.tag.v2.TagAssignment.tag_creator_type:type_name -> arista.tag.v2.CreatorType
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	10, // 23: arista.tag.v2.ElementFilter.search:type_name -> arista.tag.v2.ElementSearchFilter
+	0,  // 24: arista.tag.v2.ElementSearchFilter.query_element_type:type_name -> arista.tag.v2.ElementType
+	13, // 25: arista.tag.v2.ElementSearchFilter.query:type_name -> google.protobuf.StringValue
+	13, // 26: arista.tag.v2.ElementSearchFilter.workspace_id:type_name -> google.protobuf.StringValue
+	14, // 27: arista.tag.v2.ElementSearchFilter.exclude_unregistered_elements:type_name -> google.protobuf.BoolValue
+	14, // 28: arista.tag.v2.ElementSearchFilter.ignore_topology_tags:type_name -> google.protobuf.BoolValue
+	0,  // 29: arista.tag.v2.ElementKey.type:type_name -> arista.tag.v2.ElementType
+	1,  // 30: arista.tag.v2.ElementKey.sub_type:type_name -> arista.tag.v2.ElementSubType
+	13, // 31: arista.tag.v2.ElementKey.primary_id:type_name -> google.protobuf.StringValue
+	13, // 32: arista.tag.v2.ElementKey.secondary_id:type_name -> google.protobuf.StringValue
+	11, // 33: arista.tag.v2.Element.key:type_name -> arista.tag.v2.ElementKey
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_arista_tag_v2_tag_proto_init() }
@@ -972,6 +1355,54 @@ func file_arista_tag_v2_tag_proto_init() {
 				return nil
 			}
 		}
+		file_arista_tag_v2_tag_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ElementFilter); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_tag_v2_tag_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ElementSearchFilter); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_tag_v2_tag_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ElementKey); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_tag_v2_tag_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Element); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -979,7 +1410,7 @@ func file_arista_tag_v2_tag_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_arista_tag_v2_tag_proto_rawDesc,
 			NumEnums:      3,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
