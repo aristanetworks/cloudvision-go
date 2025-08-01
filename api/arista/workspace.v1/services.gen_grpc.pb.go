@@ -2876,6 +2876,518 @@ var WorkspaceConfigService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	WorkspaceDiffsService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceDiffsService/GetOne"
+	WorkspaceDiffsService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceDiffsService/GetSome"
+	WorkspaceDiffsService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceDiffsService/GetAll"
+	WorkspaceDiffsService_Subscribe_FullMethodName        = "/arista.workspace.v1.WorkspaceDiffsService/Subscribe"
+	WorkspaceDiffsService_GetMeta_FullMethodName          = "/arista.workspace.v1.WorkspaceDiffsService/GetMeta"
+	WorkspaceDiffsService_SubscribeMeta_FullMethodName    = "/arista.workspace.v1.WorkspaceDiffsService/SubscribeMeta"
+	WorkspaceDiffsService_GetAllBatched_FullMethodName    = "/arista.workspace.v1.WorkspaceDiffsService/GetAllBatched"
+	WorkspaceDiffsService_SubscribeBatched_FullMethodName = "/arista.workspace.v1.WorkspaceDiffsService/SubscribeBatched"
+)
+
+// WorkspaceDiffsServiceClient is the client API for WorkspaceDiffsService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type WorkspaceDiffsServiceClient interface {
+	GetOne(ctx context.Context, in *WorkspaceDiffsRequest, opts ...grpc.CallOption) (*WorkspaceDiffsResponse, error)
+	GetSome(ctx context.Context, in *WorkspaceDiffsSomeRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *WorkspaceDiffsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *WorkspaceDiffsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeBatchedClient, error)
+}
+
+type workspaceDiffsServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewWorkspaceDiffsServiceClient(cc grpc.ClientConnInterface) WorkspaceDiffsServiceClient {
+	return &workspaceDiffsServiceClient{cc}
+}
+
+func (c *workspaceDiffsServiceClient) GetOne(ctx context.Context, in *WorkspaceDiffsRequest, opts ...grpc.CallOption) (*WorkspaceDiffsResponse, error) {
+	out := new(WorkspaceDiffsResponse)
+	err := c.cc.Invoke(ctx, WorkspaceDiffsService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceDiffsServiceClient) GetSome(ctx context.Context, in *WorkspaceDiffsSomeRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[0], WorkspaceDiffsService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_GetSomeClient interface {
+	Recv() (*WorkspaceDiffsSomeResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceGetSomeClient) Recv() (*WorkspaceDiffsSomeResponse, error) {
+	m := new(WorkspaceDiffsSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceDiffsServiceClient) GetAll(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[1], WorkspaceDiffsService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_GetAllClient interface {
+	Recv() (*WorkspaceDiffsStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceGetAllClient) Recv() (*WorkspaceDiffsStreamResponse, error) {
+	m := new(WorkspaceDiffsStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceDiffsServiceClient) Subscribe(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[2], WorkspaceDiffsService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_SubscribeClient interface {
+	Recv() (*WorkspaceDiffsStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceSubscribeClient) Recv() (*WorkspaceDiffsStreamResponse, error) {
+	m := new(WorkspaceDiffsStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceDiffsServiceClient) GetMeta(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, WorkspaceDiffsService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workspaceDiffsServiceClient) SubscribeMeta(ctx context.Context, in *WorkspaceDiffsStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[3], WorkspaceDiffsService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceDiffsServiceClient) GetAllBatched(ctx context.Context, in *WorkspaceDiffsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[4], WorkspaceDiffsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_GetAllBatchedClient interface {
+	Recv() (*WorkspaceDiffsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceGetAllBatchedClient) Recv() (*WorkspaceDiffsBatchedStreamResponse, error) {
+	m := new(WorkspaceDiffsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *workspaceDiffsServiceClient) SubscribeBatched(ctx context.Context, in *WorkspaceDiffsBatchedStreamRequest, opts ...grpc.CallOption) (WorkspaceDiffsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &WorkspaceDiffsService_ServiceDesc.Streams[5], WorkspaceDiffsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &workspaceDiffsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type WorkspaceDiffsService_SubscribeBatchedClient interface {
+	Recv() (*WorkspaceDiffsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type workspaceDiffsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *workspaceDiffsServiceSubscribeBatchedClient) Recv() (*WorkspaceDiffsBatchedStreamResponse, error) {
+	m := new(WorkspaceDiffsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// WorkspaceDiffsServiceServer is the server API for WorkspaceDiffsService service.
+// All implementations must embed UnimplementedWorkspaceDiffsServiceServer
+// for forward compatibility
+type WorkspaceDiffsServiceServer interface {
+	GetOne(context.Context, *WorkspaceDiffsRequest) (*WorkspaceDiffsResponse, error)
+	GetSome(*WorkspaceDiffsSomeRequest, WorkspaceDiffsService_GetSomeServer) error
+	GetAll(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_GetAllServer) error
+	Subscribe(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_SubscribeServer) error
+	GetMeta(context.Context, *WorkspaceDiffsStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_SubscribeMetaServer) error
+	GetAllBatched(*WorkspaceDiffsBatchedStreamRequest, WorkspaceDiffsService_GetAllBatchedServer) error
+	SubscribeBatched(*WorkspaceDiffsBatchedStreamRequest, WorkspaceDiffsService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedWorkspaceDiffsServiceServer()
+}
+
+// UnimplementedWorkspaceDiffsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedWorkspaceDiffsServiceServer struct {
+}
+
+func (UnimplementedWorkspaceDiffsServiceServer) GetOne(context.Context, *WorkspaceDiffsRequest) (*WorkspaceDiffsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) GetSome(*WorkspaceDiffsSomeRequest, WorkspaceDiffsService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) GetAll(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) Subscribe(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) GetMeta(context.Context, *WorkspaceDiffsStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) SubscribeMeta(*WorkspaceDiffsStreamRequest, WorkspaceDiffsService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) GetAllBatched(*WorkspaceDiffsBatchedStreamRequest, WorkspaceDiffsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) SubscribeBatched(*WorkspaceDiffsBatchedStreamRequest, WorkspaceDiffsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedWorkspaceDiffsServiceServer) mustEmbedUnimplementedWorkspaceDiffsServiceServer() {}
+
+// UnsafeWorkspaceDiffsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WorkspaceDiffsServiceServer will
+// result in compilation errors.
+type UnsafeWorkspaceDiffsServiceServer interface {
+	mustEmbedUnimplementedWorkspaceDiffsServiceServer()
+}
+
+func RegisterWorkspaceDiffsServiceServer(s grpc.ServiceRegistrar, srv WorkspaceDiffsServiceServer) {
+	s.RegisterService(&WorkspaceDiffsService_ServiceDesc, srv)
+}
+
+func _WorkspaceDiffsService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceDiffsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceDiffsServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceDiffsService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceDiffsServiceServer).GetOne(ctx, req.(*WorkspaceDiffsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceDiffsService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).GetSome(m, &workspaceDiffsServiceGetSomeServer{stream})
+}
+
+type WorkspaceDiffsService_GetSomeServer interface {
+	Send(*WorkspaceDiffsSomeResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceGetSomeServer) Send(m *WorkspaceDiffsSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceDiffsService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).GetAll(m, &workspaceDiffsServiceGetAllServer{stream})
+}
+
+type WorkspaceDiffsService_GetAllServer interface {
+	Send(*WorkspaceDiffsStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceGetAllServer) Send(m *WorkspaceDiffsStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceDiffsService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).Subscribe(m, &workspaceDiffsServiceSubscribeServer{stream})
+}
+
+type WorkspaceDiffsService_SubscribeServer interface {
+	Send(*WorkspaceDiffsStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceSubscribeServer) Send(m *WorkspaceDiffsStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceDiffsService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceDiffsStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceDiffsServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkspaceDiffsService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceDiffsServiceServer).GetMeta(ctx, req.(*WorkspaceDiffsStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkspaceDiffsService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).SubscribeMeta(m, &workspaceDiffsServiceSubscribeMetaServer{stream})
+}
+
+type WorkspaceDiffsService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceDiffsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).GetAllBatched(m, &workspaceDiffsServiceGetAllBatchedServer{stream})
+}
+
+type WorkspaceDiffsService_GetAllBatchedServer interface {
+	Send(*WorkspaceDiffsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceGetAllBatchedServer) Send(m *WorkspaceDiffsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _WorkspaceDiffsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WorkspaceDiffsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkspaceDiffsServiceServer).SubscribeBatched(m, &workspaceDiffsServiceSubscribeBatchedServer{stream})
+}
+
+type WorkspaceDiffsService_SubscribeBatchedServer interface {
+	Send(*WorkspaceDiffsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type workspaceDiffsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *workspaceDiffsServiceSubscribeBatchedServer) Send(m *WorkspaceDiffsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// WorkspaceDiffsService_ServiceDesc is the grpc.ServiceDesc for WorkspaceDiffsService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var WorkspaceDiffsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.workspace.v1.WorkspaceDiffsService",
+	HandlerType: (*WorkspaceDiffsServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _WorkspaceDiffsService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _WorkspaceDiffsService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _WorkspaceDiffsService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _WorkspaceDiffsService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _WorkspaceDiffsService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _WorkspaceDiffsService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _WorkspaceDiffsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _WorkspaceDiffsService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/workspace.v1/services.gen.proto",
+}
+
+const (
 	WorkspaceSyncConfigService_GetOne_FullMethodName           = "/arista.workspace.v1.WorkspaceSyncConfigService/GetOne"
 	WorkspaceSyncConfigService_GetSome_FullMethodName          = "/arista.workspace.v1.WorkspaceSyncConfigService/GetSome"
 	WorkspaceSyncConfigService_GetAll_FullMethodName           = "/arista.workspace.v1.WorkspaceSyncConfigService/GetAll"
