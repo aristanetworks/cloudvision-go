@@ -2093,3 +2093,324 @@ var TokenConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "arista/serviceaccount.v1/services.gen.proto",
 }
+
+const (
+	TokenSelfRefreshConfigService_GetOne_FullMethodName        = "/arista.serviceaccount.v1.TokenSelfRefreshConfigService/GetOne"
+	TokenSelfRefreshConfigService_GetAll_FullMethodName        = "/arista.serviceaccount.v1.TokenSelfRefreshConfigService/GetAll"
+	TokenSelfRefreshConfigService_Subscribe_FullMethodName     = "/arista.serviceaccount.v1.TokenSelfRefreshConfigService/Subscribe"
+	TokenSelfRefreshConfigService_SubscribeMeta_FullMethodName = "/arista.serviceaccount.v1.TokenSelfRefreshConfigService/SubscribeMeta"
+	TokenSelfRefreshConfigService_Set_FullMethodName           = "/arista.serviceaccount.v1.TokenSelfRefreshConfigService/Set"
+)
+
+// TokenSelfRefreshConfigServiceClient is the client API for TokenSelfRefreshConfigService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TokenSelfRefreshConfigServiceClient interface {
+	GetOne(ctx context.Context, in *TokenSelfRefreshConfigRequest, opts ...grpc.CallOption) (*TokenSelfRefreshConfigResponse, error)
+	GetAll(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_SubscribeClient, error)
+	SubscribeMeta(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_SubscribeMetaClient, error)
+	Set(ctx context.Context, in *TokenSelfRefreshConfigSetRequest, opts ...grpc.CallOption) (*TokenSelfRefreshConfigSetResponse, error)
+}
+
+type tokenSelfRefreshConfigServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTokenSelfRefreshConfigServiceClient(cc grpc.ClientConnInterface) TokenSelfRefreshConfigServiceClient {
+	return &tokenSelfRefreshConfigServiceClient{cc}
+}
+
+func (c *tokenSelfRefreshConfigServiceClient) GetOne(ctx context.Context, in *TokenSelfRefreshConfigRequest, opts ...grpc.CallOption) (*TokenSelfRefreshConfigResponse, error) {
+	out := new(TokenSelfRefreshConfigResponse)
+	err := c.cc.Invoke(ctx, TokenSelfRefreshConfigService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tokenSelfRefreshConfigServiceClient) GetAll(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TokenSelfRefreshConfigService_ServiceDesc.Streams[0], TokenSelfRefreshConfigService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tokenSelfRefreshConfigServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TokenSelfRefreshConfigService_GetAllClient interface {
+	Recv() (*TokenSelfRefreshConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tokenSelfRefreshConfigServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *tokenSelfRefreshConfigServiceGetAllClient) Recv() (*TokenSelfRefreshConfigStreamResponse, error) {
+	m := new(TokenSelfRefreshConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tokenSelfRefreshConfigServiceClient) Subscribe(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TokenSelfRefreshConfigService_ServiceDesc.Streams[1], TokenSelfRefreshConfigService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tokenSelfRefreshConfigServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TokenSelfRefreshConfigService_SubscribeClient interface {
+	Recv() (*TokenSelfRefreshConfigStreamResponse, error)
+	grpc.ClientStream
+}
+
+type tokenSelfRefreshConfigServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *tokenSelfRefreshConfigServiceSubscribeClient) Recv() (*TokenSelfRefreshConfigStreamResponse, error) {
+	m := new(TokenSelfRefreshConfigStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tokenSelfRefreshConfigServiceClient) SubscribeMeta(ctx context.Context, in *TokenSelfRefreshConfigStreamRequest, opts ...grpc.CallOption) (TokenSelfRefreshConfigService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TokenSelfRefreshConfigService_ServiceDesc.Streams[2], TokenSelfRefreshConfigService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &tokenSelfRefreshConfigServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TokenSelfRefreshConfigService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type tokenSelfRefreshConfigServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *tokenSelfRefreshConfigServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *tokenSelfRefreshConfigServiceClient) Set(ctx context.Context, in *TokenSelfRefreshConfigSetRequest, opts ...grpc.CallOption) (*TokenSelfRefreshConfigSetResponse, error) {
+	out := new(TokenSelfRefreshConfigSetResponse)
+	err := c.cc.Invoke(ctx, TokenSelfRefreshConfigService_Set_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TokenSelfRefreshConfigServiceServer is the server API for TokenSelfRefreshConfigService service.
+// All implementations must embed UnimplementedTokenSelfRefreshConfigServiceServer
+// for forward compatibility
+type TokenSelfRefreshConfigServiceServer interface {
+	GetOne(context.Context, *TokenSelfRefreshConfigRequest) (*TokenSelfRefreshConfigResponse, error)
+	GetAll(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_GetAllServer) error
+	Subscribe(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_SubscribeServer) error
+	SubscribeMeta(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_SubscribeMetaServer) error
+	Set(context.Context, *TokenSelfRefreshConfigSetRequest) (*TokenSelfRefreshConfigSetResponse, error)
+	mustEmbedUnimplementedTokenSelfRefreshConfigServiceServer()
+}
+
+// UnimplementedTokenSelfRefreshConfigServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedTokenSelfRefreshConfigServiceServer struct {
+}
+
+func (UnimplementedTokenSelfRefreshConfigServiceServer) GetOne(context.Context, *TokenSelfRefreshConfigRequest) (*TokenSelfRefreshConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedTokenSelfRefreshConfigServiceServer) GetAll(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedTokenSelfRefreshConfigServiceServer) Subscribe(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedTokenSelfRefreshConfigServiceServer) SubscribeMeta(*TokenSelfRefreshConfigStreamRequest, TokenSelfRefreshConfigService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedTokenSelfRefreshConfigServiceServer) Set(context.Context, *TokenSelfRefreshConfigSetRequest) (*TokenSelfRefreshConfigSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
+}
+func (UnimplementedTokenSelfRefreshConfigServiceServer) mustEmbedUnimplementedTokenSelfRefreshConfigServiceServer() {
+}
+
+// UnsafeTokenSelfRefreshConfigServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TokenSelfRefreshConfigServiceServer will
+// result in compilation errors.
+type UnsafeTokenSelfRefreshConfigServiceServer interface {
+	mustEmbedUnimplementedTokenSelfRefreshConfigServiceServer()
+}
+
+func RegisterTokenSelfRefreshConfigServiceServer(s grpc.ServiceRegistrar, srv TokenSelfRefreshConfigServiceServer) {
+	s.RegisterService(&TokenSelfRefreshConfigService_ServiceDesc, srv)
+}
+
+func _TokenSelfRefreshConfigService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenSelfRefreshConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenSelfRefreshConfigServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenSelfRefreshConfigService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenSelfRefreshConfigServiceServer).GetOne(ctx, req.(*TokenSelfRefreshConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TokenSelfRefreshConfigService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TokenSelfRefreshConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TokenSelfRefreshConfigServiceServer).GetAll(m, &tokenSelfRefreshConfigServiceGetAllServer{stream})
+}
+
+type TokenSelfRefreshConfigService_GetAllServer interface {
+	Send(*TokenSelfRefreshConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type tokenSelfRefreshConfigServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *tokenSelfRefreshConfigServiceGetAllServer) Send(m *TokenSelfRefreshConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TokenSelfRefreshConfigService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TokenSelfRefreshConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TokenSelfRefreshConfigServiceServer).Subscribe(m, &tokenSelfRefreshConfigServiceSubscribeServer{stream})
+}
+
+type TokenSelfRefreshConfigService_SubscribeServer interface {
+	Send(*TokenSelfRefreshConfigStreamResponse) error
+	grpc.ServerStream
+}
+
+type tokenSelfRefreshConfigServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *tokenSelfRefreshConfigServiceSubscribeServer) Send(m *TokenSelfRefreshConfigStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TokenSelfRefreshConfigService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TokenSelfRefreshConfigStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TokenSelfRefreshConfigServiceServer).SubscribeMeta(m, &tokenSelfRefreshConfigServiceSubscribeMetaServer{stream})
+}
+
+type TokenSelfRefreshConfigService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type tokenSelfRefreshConfigServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *tokenSelfRefreshConfigServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _TokenSelfRefreshConfigService_Set_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenSelfRefreshConfigSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenSelfRefreshConfigServiceServer).Set(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenSelfRefreshConfigService_Set_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenSelfRefreshConfigServiceServer).Set(ctx, req.(*TokenSelfRefreshConfigSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// TokenSelfRefreshConfigService_ServiceDesc is the grpc.ServiceDesc for TokenSelfRefreshConfigService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TokenSelfRefreshConfigService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.serviceaccount.v1.TokenSelfRefreshConfigService",
+	HandlerType: (*TokenSelfRefreshConfigServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _TokenSelfRefreshConfigService_GetOne_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _TokenSelfRefreshConfigService_Set_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetAll",
+			Handler:       _TokenSelfRefreshConfigService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _TokenSelfRefreshConfigService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _TokenSelfRefreshConfigService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/serviceaccount.v1/services.gen.proto",
+}
