@@ -1275,9 +1275,14 @@ type WorkspaceConfig struct {
 	Request Request `protobuf:"varint,4,opt,name=request,proto3,enum=arista.workspace.v1.Request" json:"request,omitempty"`
 	// request_params specify the parameters for `request`.
 	RequestParams *RequestParams `protobuf:"bytes,5,opt,name=request_params,json=requestParams,proto3" json:"request_params,omitempty"`
-	// exclude_network_provisioning excludes Network Provisioning components from
-	// build and from designed config on submit. This field is set to true in the
-	// workspace in which migration to Studios is initiated from the UI.
+	// exclude_network_provisioning is a flag used to manage the migration
+	// from Network Provisioning to Studios. When set to true, it prevents Network
+	// Provisioning components from being included in the build process and in the
+	// designed config generated upon submission.
+	// This flag is set exclusively at the start of the migration process.
+	// This field must not be set for workspaces in "Studios-only" mode or after a
+	// migration is complete. Any attempt to submit a workspace where this field is
+	// true in these states will result in a failure.
 	ExcludeNetworkProvisioning *wrapperspb.BoolValue `protobuf:"bytes,6,opt,name=exclude_network_provisioning,json=excludeNetworkProvisioning,proto3" json:"exclude_network_provisioning,omitempty"`
 }
 
