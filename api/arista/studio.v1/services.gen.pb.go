@@ -295,7 +295,9 @@ type AssignedTagsSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// AssignedTags instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *AssignedTagsSomeResponse) Reset() {
@@ -375,8 +377,6 @@ type AssignedTagsStreamRequest struct {
 	//     until end.
 	//   - Each AssignedTags response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -521,8 +521,6 @@ type AssignedTagsBatchedStreamRequest struct {
 	//     until end.
 	//   - Each AssignedTags response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -824,7 +822,9 @@ type AssignedTagsConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// AssignedTagsConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *AssignedTagsConfigSomeResponse) Reset() {
@@ -904,8 +904,6 @@ type AssignedTagsConfigStreamRequest struct {
 	//     until end.
 	//   - Each AssignedTagsConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1050,8 +1048,6 @@ type AssignedTagsConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each AssignedTagsConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1913,7 +1909,9 @@ type AutofillActionSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// AutofillAction instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *AutofillActionSomeResponse) Reset() {
@@ -1993,8 +1991,6 @@ type AutofillActionStreamRequest struct {
 	//     until end.
 	//   - Each AutofillAction response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2139,8 +2135,6 @@ type AutofillActionBatchedStreamRequest struct {
 	//     until end.
 	//   - Each AutofillAction response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -2442,7 +2436,9 @@ type AutofillActionConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// AutofillActionConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *AutofillActionConfigSomeResponse) Reset() {
@@ -2522,8 +2518,6 @@ type AutofillActionConfigStreamRequest struct {
 	//     until end.
 	//   - Each AutofillActionConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2668,8 +2662,6 @@ type AutofillActionConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each AutofillActionConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -3531,7 +3523,9 @@ type InputsSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// Inputs instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *InputsSomeResponse) Reset() {
@@ -3611,8 +3605,6 @@ type InputsStreamRequest struct {
 	//     until end.
 	//   - Each Inputs response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -3757,8 +3749,6 @@ type InputsBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Inputs response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -4060,7 +4050,9 @@ type InputsConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// InputsConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *InputsConfigSomeResponse) Reset() {
@@ -4140,8 +4132,6 @@ type InputsConfigStreamRequest struct {
 	//     until end.
 	//   - Each InputsConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -4286,8 +4276,6 @@ type InputsConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each InputsConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -5149,7 +5137,9 @@ type SecretInputSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// SecretInput instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *SecretInputSomeResponse) Reset() {
@@ -5229,8 +5219,6 @@ type SecretInputStreamRequest struct {
 	//     until end.
 	//   - Each SecretInput response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -5375,8 +5363,6 @@ type SecretInputBatchedStreamRequest struct {
 	//     until end.
 	//   - Each SecretInput response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -5678,7 +5664,9 @@ type StudioSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// Studio instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *StudioSomeResponse) Reset() {
@@ -5758,8 +5746,6 @@ type StudioStreamRequest struct {
 	//     until end.
 	//   - Each Studio response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -5904,8 +5890,6 @@ type StudioBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Studio response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -6207,7 +6191,9 @@ type StudioConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// StudioConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *StudioConfigSomeResponse) Reset() {
@@ -6287,8 +6273,6 @@ type StudioConfigStreamRequest struct {
 	//     until end.
 	//   - Each StudioConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -6433,8 +6417,6 @@ type StudioConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each StudioConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -7296,7 +7278,9 @@ type StudioSummarySomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// StudioSummary instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *StudioSummarySomeResponse) Reset() {
@@ -7376,8 +7360,6 @@ type StudioSummaryStreamRequest struct {
 	//     until end.
 	//   - Each StudioSummary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -7522,8 +7504,6 @@ type StudioSummaryBatchedStreamRequest struct {
 	//     until end.
 	//   - Each StudioSummary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
