@@ -222,7 +222,7 @@ type Attributes struct {
 	// eg: "user logged in"
 	Message *wrapperspb.StringValue `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
 	// tags associated with the audit log.
-	// eg: "tags": {"mnemonic": "DEVICE_PROVISIONING_SUCCESS"}
+	// eg: `tags: {mnemonic: DEVICE_PROVISIONING_SUCCESS}`
 	Tags *fmp.MapStringString `protobuf:"bytes,7,opt,name=tags,proto3" json:"tags,omitempty"`
 }
 
@@ -434,15 +434,15 @@ type Filter struct {
 
 	// category filters based on category of the logs.
 	// eg:
-	// {"filter":[{"category":{"custom_type": "abc"}}]}
+	// `{filter:[{category:{custom_type: abc}}]}`
 	// filters all logs associated with the service abc.
 	Category *Category `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
 	// queries is the list of strings that should be present in the log.
-	// eg: {"filter":[{"queries":{"values":["abc"]}}]} searches for all
+	// eg: `{filter:[{queries:{values:[abc]}}]}` searches for all
 	// logs containing the string abc.
 	Queries *fmp.RepeatedString `protobuf:"bytes,2,opt,name=queries,proto3" json:"queries,omitempty"`
 	// tags filters based on tags associated with the log.
-	// eg: {"filter":[{"tags":{"values":{"id":"xyz"}}}]}
+	// eg: `{filter:[{tags:{values:{id:xyz}}}]}`
 	// searches for all logs associates with the tag
 	// id:xyz.
 	Tags *fmp.MapStringString `protobuf:"bytes,3,opt,name=tags,proto3" json:"tags,omitempty"`
@@ -520,7 +520,7 @@ func (x *Filter) GetUser() *wrapperspb.StringValue {
 }
 
 // Category organizes audit logs into different groups using the CategoryType and the identifier
-// eg:"filter":[{"category":{"type":"CATEGORY_TYPE_INVENTORY","identifier":"abc"}}]
+// eg: `filter:[{category:{type:CATEGORY_TYPE_INVENTORY,identifier:abc}}]`
 // filters all logs associated with the service "inventory" and device abc
 type Category struct {
 	state         protoimpl.MessageState
