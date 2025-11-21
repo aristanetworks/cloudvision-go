@@ -49,7 +49,7 @@ func TestDatasourceMonitor(t *testing.T) {
 
 	// Monitor should log out Info level message.
 	msg1 := "Datasource monitor msg-1"
-	dm.Infof(msg1)
+	dm.Infof("Datasource monitor msg-1")
 	got := b.String()
 	if !strings.Contains(got, msg1) {
 		t.Fatalf("Monitor last message should be: %s, got %s", msg1, got)
@@ -80,7 +80,7 @@ func TestDatasourceMonitor(t *testing.T) {
 	// Set Monitor to Debug level.
 	msg3 := "Datasource monitor msg-3"
 	dm.SetLoggerLevel(logrus.DebugLevel)
-	dm.Debugf(msg3)
+	dm.Debugf("Datasource monitor msg-3")
 	got = b.String()
 	if !strings.Contains(got, msg3) {
 		t.Fatalf("Monitor last message should be: %s, got: %v", msg3, got)
@@ -92,7 +92,7 @@ func TestDatasourceMonitor(t *testing.T) {
 
 	// Monitor should log out Error level message, since current level is higher.
 	msg4 := "Datasource monitor msg-4"
-	dm.Errorf(msg4)
+	dm.Errorf("Datasource monitor msg-4")
 	got = b.String()
 	if !strings.Contains(got, msg4) {
 		t.Fatalf("Monitor last message should be: %s, got: %v", msg4, got)
@@ -105,7 +105,7 @@ func TestDatasourceMonitor(t *testing.T) {
 	// Trace level
 	dm.SetLoggerLevel(logrus.TraceLevel)
 	msg5 := "Datasource monitor msg-5"
-	dm.Tracef(msg5)
+	dm.Tracef("Datasource monitor msg-5")
 	got = b.String()
 	if !strings.Contains(got, msg5) {
 		t.Fatalf("Monitor last message should be: %s, got: %v", msg5, got)
