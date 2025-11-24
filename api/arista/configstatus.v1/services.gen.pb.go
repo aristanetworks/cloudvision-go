@@ -291,7 +291,9 @@ type ConfigDiffSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// ConfigDiff instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigDiffSomeResponse) Reset() {
@@ -371,8 +373,6 @@ type ConfigDiffStreamRequest struct {
 	//     until end.
 	//   - Each ConfigDiff response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -517,8 +517,6 @@ type ConfigDiffBatchedStreamRequest struct {
 	//     until end.
 	//   - Each ConfigDiff response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -820,7 +818,9 @@ type ConfigurationSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// Configuration instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigurationSomeResponse) Reset() {
@@ -900,8 +900,6 @@ type ConfigurationStreamRequest struct {
 	//     until end.
 	//   - Each Configuration response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1046,8 +1044,6 @@ type ConfigurationBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Configuration response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1349,7 +1345,9 @@ type SecurityProfileSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// SecurityProfile instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *SecurityProfileSomeResponse) Reset() {
@@ -1429,8 +1427,6 @@ type SecurityProfileStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfile response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1575,8 +1571,6 @@ type SecurityProfileBatchedStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfile response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1878,7 +1872,9 @@ type SecurityProfileDiffSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// SecurityProfileDiff instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *SecurityProfileDiffSomeResponse) Reset() {
@@ -1958,8 +1954,6 @@ type SecurityProfileDiffStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfileDiff response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2104,8 +2098,6 @@ type SecurityProfileDiffBatchedStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfileDiff response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -2407,7 +2399,9 @@ type SecurityProfileDiffSummarySomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// SecurityProfileDiffSummary instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *SecurityProfileDiffSummarySomeResponse) Reset() {
@@ -2487,8 +2481,6 @@ type SecurityProfileDiffSummaryStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfileDiffSummary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2633,8 +2625,6 @@ type SecurityProfileDiffSummaryBatchedStreamRequest struct {
 	//     until end.
 	//   - Each SecurityProfileDiffSummary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -2936,7 +2926,9 @@ type SummarySomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// Summary instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *SummarySomeResponse) Reset() {
@@ -3016,8 +3008,6 @@ type SummaryStreamRequest struct {
 	//     until end.
 	//   - Each Summary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -3162,8 +3152,6 @@ type SummaryBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Summary response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
