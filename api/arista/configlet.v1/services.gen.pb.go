@@ -292,7 +292,9 @@ type ConfigletSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// Configlet instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigletSomeResponse) Reset() {
@@ -376,8 +378,6 @@ type ConfigletStreamRequest struct {
 	//     until end.
 	//   - Each Configlet response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -533,8 +533,6 @@ type ConfigletBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Configlet response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -843,7 +841,9 @@ type ConfigletAssignmentSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// ConfigletAssignment instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigletAssignmentSomeResponse) Reset() {
@@ -923,8 +923,6 @@ type ConfigletAssignmentStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletAssignment response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1069,8 +1067,6 @@ type ConfigletAssignmentBatchedStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletAssignment response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1372,7 +1368,9 @@ type ConfigletAssignmentConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// ConfigletAssignmentConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigletAssignmentConfigSomeResponse) Reset() {
@@ -1452,8 +1450,6 @@ type ConfigletAssignmentConfigStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletAssignmentConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1598,8 +1594,6 @@ type ConfigletAssignmentConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletAssignmentConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -2461,7 +2455,9 @@ type ConfigletConfigSomeResponse struct {
 	// Error is an optional field.
 	// It should be filled when there is an error in the GetSome process.
 	Error *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	Time  *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	// Time carries the (UTC) timestamp of the last-modification of the
+	// ConfigletConfig instance in this response.
+	Time *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
 func (x *ConfigletConfigSomeResponse) Reset() {
@@ -2545,8 +2541,6 @@ type ConfigletConfigStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2702,8 +2696,6 @@ type ConfigletConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each ConfigletConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
