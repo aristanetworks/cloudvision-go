@@ -38,6 +38,518 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	AssignmentsService_GetOne_FullMethodName           = "/arista.softwaremanagement.v1.AssignmentsService/GetOne"
+	AssignmentsService_GetSome_FullMethodName          = "/arista.softwaremanagement.v1.AssignmentsService/GetSome"
+	AssignmentsService_GetAll_FullMethodName           = "/arista.softwaremanagement.v1.AssignmentsService/GetAll"
+	AssignmentsService_Subscribe_FullMethodName        = "/arista.softwaremanagement.v1.AssignmentsService/Subscribe"
+	AssignmentsService_GetMeta_FullMethodName          = "/arista.softwaremanagement.v1.AssignmentsService/GetMeta"
+	AssignmentsService_SubscribeMeta_FullMethodName    = "/arista.softwaremanagement.v1.AssignmentsService/SubscribeMeta"
+	AssignmentsService_GetAllBatched_FullMethodName    = "/arista.softwaremanagement.v1.AssignmentsService/GetAllBatched"
+	AssignmentsService_SubscribeBatched_FullMethodName = "/arista.softwaremanagement.v1.AssignmentsService/SubscribeBatched"
+)
+
+// AssignmentsServiceClient is the client API for AssignmentsService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AssignmentsServiceClient interface {
+	GetOne(ctx context.Context, in *AssignmentsRequest, opts ...grpc.CallOption) (*AssignmentsResponse, error)
+	GetSome(ctx context.Context, in *AssignmentsSomeRequest, opts ...grpc.CallOption) (AssignmentsService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *AssignmentsBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentsService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *AssignmentsBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeBatchedClient, error)
+}
+
+type assignmentsServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAssignmentsServiceClient(cc grpc.ClientConnInterface) AssignmentsServiceClient {
+	return &assignmentsServiceClient{cc}
+}
+
+func (c *assignmentsServiceClient) GetOne(ctx context.Context, in *AssignmentsRequest, opts ...grpc.CallOption) (*AssignmentsResponse, error) {
+	out := new(AssignmentsResponse)
+	err := c.cc.Invoke(ctx, AssignmentsService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assignmentsServiceClient) GetSome(ctx context.Context, in *AssignmentsSomeRequest, opts ...grpc.CallOption) (AssignmentsService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[0], AssignmentsService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_GetSomeClient interface {
+	Recv() (*AssignmentsSomeResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceGetSomeClient) Recv() (*AssignmentsSomeResponse, error) {
+	m := new(AssignmentsSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentsServiceClient) GetAll(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[1], AssignmentsService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_GetAllClient interface {
+	Recv() (*AssignmentsStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceGetAllClient) Recv() (*AssignmentsStreamResponse, error) {
+	m := new(AssignmentsStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentsServiceClient) Subscribe(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[2], AssignmentsService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_SubscribeClient interface {
+	Recv() (*AssignmentsStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceSubscribeClient) Recv() (*AssignmentsStreamResponse, error) {
+	m := new(AssignmentsStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentsServiceClient) GetMeta(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, AssignmentsService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assignmentsServiceClient) SubscribeMeta(ctx context.Context, in *AssignmentsStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[3], AssignmentsService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentsServiceClient) GetAllBatched(ctx context.Context, in *AssignmentsBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentsService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[4], AssignmentsService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_GetAllBatchedClient interface {
+	Recv() (*AssignmentsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceGetAllBatchedClient) Recv() (*AssignmentsBatchedStreamResponse, error) {
+	m := new(AssignmentsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *assignmentsServiceClient) SubscribeBatched(ctx context.Context, in *AssignmentsBatchedStreamRequest, opts ...grpc.CallOption) (AssignmentsService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AssignmentsService_ServiceDesc.Streams[5], AssignmentsService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &assignmentsServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AssignmentsService_SubscribeBatchedClient interface {
+	Recv() (*AssignmentsBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type assignmentsServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *assignmentsServiceSubscribeBatchedClient) Recv() (*AssignmentsBatchedStreamResponse, error) {
+	m := new(AssignmentsBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// AssignmentsServiceServer is the server API for AssignmentsService service.
+// All implementations must embed UnimplementedAssignmentsServiceServer
+// for forward compatibility
+type AssignmentsServiceServer interface {
+	GetOne(context.Context, *AssignmentsRequest) (*AssignmentsResponse, error)
+	GetSome(*AssignmentsSomeRequest, AssignmentsService_GetSomeServer) error
+	GetAll(*AssignmentsStreamRequest, AssignmentsService_GetAllServer) error
+	Subscribe(*AssignmentsStreamRequest, AssignmentsService_SubscribeServer) error
+	GetMeta(context.Context, *AssignmentsStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AssignmentsStreamRequest, AssignmentsService_SubscribeMetaServer) error
+	GetAllBatched(*AssignmentsBatchedStreamRequest, AssignmentsService_GetAllBatchedServer) error
+	SubscribeBatched(*AssignmentsBatchedStreamRequest, AssignmentsService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedAssignmentsServiceServer()
+}
+
+// UnimplementedAssignmentsServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAssignmentsServiceServer struct {
+}
+
+func (UnimplementedAssignmentsServiceServer) GetOne(context.Context, *AssignmentsRequest) (*AssignmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) GetSome(*AssignmentsSomeRequest, AssignmentsService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) GetAll(*AssignmentsStreamRequest, AssignmentsService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) Subscribe(*AssignmentsStreamRequest, AssignmentsService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) GetMeta(context.Context, *AssignmentsStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) SubscribeMeta(*AssignmentsStreamRequest, AssignmentsService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) GetAllBatched(*AssignmentsBatchedStreamRequest, AssignmentsService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) SubscribeBatched(*AssignmentsBatchedStreamRequest, AssignmentsService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedAssignmentsServiceServer) mustEmbedUnimplementedAssignmentsServiceServer() {}
+
+// UnsafeAssignmentsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AssignmentsServiceServer will
+// result in compilation errors.
+type UnsafeAssignmentsServiceServer interface {
+	mustEmbedUnimplementedAssignmentsServiceServer()
+}
+
+func RegisterAssignmentsServiceServer(s grpc.ServiceRegistrar, srv AssignmentsServiceServer) {
+	s.RegisterService(&AssignmentsService_ServiceDesc, srv)
+}
+
+func _AssignmentsService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssignmentsServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssignmentsService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssignmentsServiceServer).GetOne(ctx, req.(*AssignmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignmentsService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).GetSome(m, &assignmentsServiceGetSomeServer{stream})
+}
+
+type AssignmentsService_GetSomeServer interface {
+	Send(*AssignmentsSomeResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceGetSomeServer) Send(m *AssignmentsSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentsService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).GetAll(m, &assignmentsServiceGetAllServer{stream})
+}
+
+type AssignmentsService_GetAllServer interface {
+	Send(*AssignmentsStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceGetAllServer) Send(m *AssignmentsStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentsService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).Subscribe(m, &assignmentsServiceSubscribeServer{stream})
+}
+
+type AssignmentsService_SubscribeServer interface {
+	Send(*AssignmentsStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceSubscribeServer) Send(m *AssignmentsStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentsService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignmentsStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssignmentsServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssignmentsService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssignmentsServiceServer).GetMeta(ctx, req.(*AssignmentsStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssignmentsService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).SubscribeMeta(m, &assignmentsServiceSubscribeMetaServer{stream})
+}
+
+type AssignmentsService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentsService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).GetAllBatched(m, &assignmentsServiceGetAllBatchedServer{stream})
+}
+
+type AssignmentsService_GetAllBatchedServer interface {
+	Send(*AssignmentsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceGetAllBatchedServer) Send(m *AssignmentsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AssignmentsService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AssignmentsBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AssignmentsServiceServer).SubscribeBatched(m, &assignmentsServiceSubscribeBatchedServer{stream})
+}
+
+type AssignmentsService_SubscribeBatchedServer interface {
+	Send(*AssignmentsBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type assignmentsServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *assignmentsServiceSubscribeBatchedServer) Send(m *AssignmentsBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// AssignmentsService_ServiceDesc is the grpc.ServiceDesc for AssignmentsService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AssignmentsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.softwaremanagement.v1.AssignmentsService",
+	HandlerType: (*AssignmentsServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _AssignmentsService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _AssignmentsService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AssignmentsService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _AssignmentsService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _AssignmentsService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AssignmentsService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _AssignmentsService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _AssignmentsService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/softwaremanagement.v1/services.gen.proto",
+}
+
+const (
 	ReleasesService_GetOne_FullMethodName        = "/arista.softwaremanagement.v1.ReleasesService/GetOne"
 	ReleasesService_GetAll_FullMethodName        = "/arista.softwaremanagement.v1.ReleasesService/GetAll"
 	ReleasesService_Subscribe_FullMethodName     = "/arista.softwaremanagement.v1.ReleasesService/Subscribe"
