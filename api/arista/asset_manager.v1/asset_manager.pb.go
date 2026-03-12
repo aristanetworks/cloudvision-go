@@ -587,6 +587,7 @@ func (x *DeviceKey) GetDeviceId() *wrapperspb.StringValue {
 // DeviceTenantAssignment represents tenant/customer information for a device
 // This api could also be used to get a list of all devices assigned to a tenant
 // id. Example : get list of devices assigned to a tenant
+// ```
 // Request :
 //
 //	{
@@ -613,6 +614,8 @@ func (x *DeviceKey) GetDeviceId() *wrapperspb.StringValue {
 //	  "model_name": "DCS-7130",
 //	  ...
 //	}
+//
+// ```
 type DeviceTenantAssignment struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -821,6 +824,7 @@ func (x *DeviceTenantAssignConfig) GetMetadata() *fmp.MapStringString {
 // LicenseTenantAssignment represents tenant/customer information for a license
 // This api could also be used to get a list of all licenses assigned to a tenant
 // id. Example : get list of licenses assigned to a tenant
+// ```
 // Request :
 //
 //	{
@@ -847,6 +851,8 @@ func (x *DeviceTenantAssignConfig) GetMetadata() *fmp.MapStringString {
 //	  "sku": "LIC-FIX-4-MACSEC",
 //	  ...
 //	}
+//
+// ```
 type LicenseTenantAssignment struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1235,6 +1241,7 @@ func (x *CustomerInfo) GetAllowedTenantIds() *fmp.RepeatedString {
 // AllowedTenants represents a list of authorized
 // customers whose assets (devices/licenses) the tenant key has
 // permission to view or move.
+// ```
 // Request :
 //
 //	{
@@ -1256,7 +1263,9 @@ func (x *CustomerInfo) GetAllowedTenantIds() *fmp.RepeatedString {
 //			"tenant_3"
 //		  ]
 //		}
-//	 }
+//	}
+//
+// ```
 type AllowedTenants struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
