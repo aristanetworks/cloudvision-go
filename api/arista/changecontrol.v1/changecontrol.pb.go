@@ -1750,18 +1750,25 @@ func (x *ApproveConfig) GetVersion() *timestamppb.Timestamp {
 	return nil
 }
 
-// ActionCount holds the count of the various action types.
-type ActionCount struct {
+// ActionSummary provides detailed information about actions in a change control.
+type ActionSummary struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// values is a map from action id to number of actions of said type.
-	Values map[string]uint32 `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+	// id uniquely identifies the action.
+	// For built-in actions: it will be the action identifier (e.g., "setImage", "setConfig")
+	// For custom scripts: it will be the script UUID
+	// For task actions: it will be the task type (e.g., "ADD", "CONFIG_PUSH", "IMAGE_PUSH")
+	Id *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// name is the name of the action.
+	Name *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// count is the number of times this action appears in the change control.
+	Count *wrapperspb.UInt32Value `protobuf:"bytes,3,opt,name=count,proto3" json:"count,omitempty"`
 }
 
-func (x *ActionCount) Reset() {
-	*x = ActionCount{}
+func (x *ActionSummary) Reset() {
+	*x = ActionSummary{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1769,13 +1776,13 @@ func (x *ActionCount) Reset() {
 	}
 }
 
-func (x *ActionCount) String() string {
+func (x *ActionSummary) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ActionCount) ProtoMessage() {}
+func (*ActionSummary) ProtoMessage() {}
 
-func (x *ActionCount) ProtoReflect() protoreflect.Message {
+func (x *ActionSummary) ProtoReflect() protoreflect.Message {
 	mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1787,12 +1794,75 @@ func (x *ActionCount) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ActionCount.ProtoReflect.Descriptor instead.
-func (*ActionCount) Descriptor() ([]byte, []int) {
+// Deprecated: Use ActionSummary.ProtoReflect.Descriptor instead.
+func (*ActionSummary) Descriptor() ([]byte, []int) {
 	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *ActionCount) GetValues() map[string]uint32 {
+func (x *ActionSummary) GetId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+func (x *ActionSummary) GetName() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Name
+	}
+	return nil
+}
+
+func (x *ActionSummary) GetCount() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.Count
+	}
+	return nil
+}
+
+// ActionSummaries contains a list of ActionSummary values.
+type ActionSummaries struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// values is a list of ActionSummary.
+	Values []*ActionSummary `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *ActionSummaries) Reset() {
+	*x = ActionSummaries{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ActionSummaries) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActionSummaries) ProtoMessage() {}
+
+func (x *ActionSummaries) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActionSummaries.ProtoReflect.Descriptor instead.
+func (*ActionSummaries) Descriptor() ([]byte, []int) {
+	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ActionSummaries) GetValues() []*ActionSummary {
 	if x != nil {
 		return x.Values
 	}
@@ -1813,8 +1883,8 @@ type ChangeControlSummary struct {
 	Status ChangeControlStatus `protobuf:"varint,3,opt,name=status,proto3,enum=arista.changecontrol.v1.ChangeControlStatus" json:"status,omitempty"`
 	// device_count is the count of the devices impacted in the change control.
 	DeviceCount *wrapperspb.UInt32Value `protobuf:"bytes,4,opt,name=device_count,json=deviceCount,proto3" json:"device_count,omitempty"`
-	// action_count is the map of action types to their corresponding counts.
-	ActionCount *ActionCount `protobuf:"bytes,5,opt,name=action_count,json=actionCount,proto3" json:"action_count,omitempty"`
+	// action_summaries provides detailed information about each action type used in the change control.
+	ActionSummaries *ActionSummaries `protobuf:"bytes,5,opt,name=action_summaries,json=actionSummaries,proto3" json:"action_summaries,omitempty"`
 	// created_time is the time at which the change control was created.
 	CreatedTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_time,json=createdTime,proto3" json:"created_time,omitempty"`
 	// created_user is the user by whom the change control was created.
@@ -1846,7 +1916,7 @@ type ChangeControlSummary struct {
 func (x *ChangeControlSummary) Reset() {
 	*x = ChangeControlSummary{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[22]
+		mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1859,7 +1929,7 @@ func (x *ChangeControlSummary) String() string {
 func (*ChangeControlSummary) ProtoMessage() {}
 
 func (x *ChangeControlSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[22]
+	mi := &file_arista_changecontrol_v1_changecontrol_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1872,7 +1942,7 @@ func (x *ChangeControlSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangeControlSummary.ProtoReflect.Descriptor instead.
 func (*ChangeControlSummary) Descriptor() ([]byte, []int) {
-	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{22}
+	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ChangeControlSummary) GetKey() *ChangeControlKey {
@@ -1903,9 +1973,9 @@ func (x *ChangeControlSummary) GetDeviceCount() *wrapperspb.UInt32Value {
 	return nil
 }
 
-func (x *ChangeControlSummary) GetActionCount() *ActionCount {
+func (x *ChangeControlSummary) GetActionSummaries() *ActionSummaries {
 	if x != nil {
-		return x.ActionCount
+		return x.ActionSummaries
 	}
 	return nil
 }
@@ -2297,38 +2367,45 @@ var file_arista_changecontrol_v1_changecontrol_proto_rawDesc = []byte{
 	0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
 	0x61, 0x6d, 0x70, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x3a, 0x06, 0xfa, 0x8d,
-	0x19, 0x02, 0x72, 0x77, 0x22, 0x92, 0x01, 0x0a, 0x0b, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43,
-	0x6f, 0x75, 0x6e, 0x74, 0x12, 0x48, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01,
-	0x20, 0x03, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68,
-	0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x41,
-	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65,
-	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x1a, 0x39,
-	0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a,
-	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12,
-	0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0xc0, 0x09, 0x0a, 0x14, 0x43, 0x68,
-	0x61, 0x6e, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x53, 0x75, 0x6d, 0x6d, 0x61,
-	0x72, 0x79, 0x12, 0x3b, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x29, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63,
-	0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65,
-	0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x4b, 0x65, 0x79, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12,
-	0x30, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x04, 0x6e, 0x61, 0x6d,
-	0x65, 0x12, 0x44, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x0e, 0x32, 0x2c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68, 0x61, 0x6e, 0x67,
-	0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x68, 0x61, 0x6e,
-	0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52,
-	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x3f, 0x0a, 0x0c, 0x64, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x0b, 0x64, 0x65, 0x76,
-	0x69, 0x63, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x47, 0x0a, 0x0c, 0x61, 0x63, 0x74, 0x69,
-	0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24,
-	0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f,
-	0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43,
-	0x6f, 0x75, 0x6e, 0x74, 0x52, 0x0b, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x75, 0x6e,
-	0x74, 0x12, 0x3d, 0x0a, 0x0c, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x74, 0x69, 0x6d,
+	0x19, 0x02, 0x72, 0x77, 0x22, 0xa3, 0x01, 0x0a, 0x0d, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53,
+	0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x2c, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x52, 0x02, 0x69, 0x64, 0x12, 0x30, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x32, 0x0a, 0x05, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x52, 0x05, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x51, 0x0a, 0x0f, 0x41, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x69, 0x65, 0x73, 0x12, 0x3e, 0x0a,
+	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x26, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e,
+	0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75,
+	0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0xcc, 0x09,
+	0x0a, 0x14, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x53,
+	0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x3b, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63, 0x68, 0x61,
+	0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x68,
+	0x61, 0x6e, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x4b, 0x65, 0x79, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x30, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x44, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x2c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x63,
+	0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31, 0x2e,
+	0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x53, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x3f, 0x0a, 0x0c, 0x64,
+	0x65, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
+	0x0b, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x53, 0x0a, 0x10,
+	0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x69, 0x65, 0x73,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e, 0x76, 0x31,
+	0x2e, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x69, 0x65, 0x73,
+	0x52, 0x0f, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x69, 0x65,
+	0x73, 0x12, 0x3d, 0x0a, 0x0c, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x74, 0x69, 0x6d,
 	0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
 	0x61, 0x6d, 0x70, 0x52, 0x0b, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x54, 0x69, 0x6d, 0x65,
@@ -2462,13 +2539,13 @@ var file_arista_changecontrol_v1_changecontrol_proto_goTypes = []interface{}{
 	(*DeviceToStageMap)(nil),       // 21: arista.changecontrol.v1.DeviceToStageMap
 	(*ChangeControl)(nil),          // 22: arista.changecontrol.v1.ChangeControl
 	(*ApproveConfig)(nil),          // 23: arista.changecontrol.v1.ApproveConfig
-	(*ActionCount)(nil),            // 24: arista.changecontrol.v1.ActionCount
-	(*ChangeControlSummary)(nil),   // 25: arista.changecontrol.v1.ChangeControlSummary
-	nil,                            // 26: arista.changecontrol.v1.StageConfigMap.ValuesEntry
-	nil,                            // 27: arista.changecontrol.v1.ActionSteps.ValuesEntry
-	nil,                            // 28: arista.changecontrol.v1.StageMap.ValuesEntry
-	nil,                            // 29: arista.changecontrol.v1.DeviceToStageMap.ValuesEntry
-	nil,                            // 30: arista.changecontrol.v1.ActionCount.ValuesEntry
+	(*ActionSummary)(nil),          // 24: arista.changecontrol.v1.ActionSummary
+	(*ActionSummaries)(nil),        // 25: arista.changecontrol.v1.ActionSummaries
+	(*ChangeControlSummary)(nil),   // 26: arista.changecontrol.v1.ChangeControlSummary
+	nil,                            // 27: arista.changecontrol.v1.StageConfigMap.ValuesEntry
+	nil,                            // 28: arista.changecontrol.v1.ActionSteps.ValuesEntry
+	nil,                            // 29: arista.changecontrol.v1.StageMap.ValuesEntry
+	nil,                            // 30: arista.changecontrol.v1.DeviceToStageMap.ValuesEntry
 	(*fmp.RepeatedString)(nil),     // 31: fmp.RepeatedString
 	(*wrapperspb.StringValue)(nil), // 32: google.protobuf.StringValue
 	(*wrapperspb.UInt32Value)(nil), // 33: google.protobuf.UInt32Value
@@ -2485,7 +2562,7 @@ var file_arista_changecontrol_v1_changecontrol_proto_depIdxs = []int32{
 	32, // 5: arista.changecontrol.v1.StageConfig.name:type_name -> google.protobuf.StringValue
 	5,  // 6: arista.changecontrol.v1.StageConfig.action:type_name -> arista.changecontrol.v1.Action
 	3,  // 7: arista.changecontrol.v1.StageConfig.rows:type_name -> arista.changecontrol.v1.RepeatedRepeatedString
-	26, // 8: arista.changecontrol.v1.StageConfigMap.values:type_name -> arista.changecontrol.v1.StageConfigMap.ValuesEntry
+	27, // 8: arista.changecontrol.v1.StageConfigMap.values:type_name -> arista.changecontrol.v1.StageConfigMap.ValuesEntry
 	32, // 9: arista.changecontrol.v1.ChangeConfig.name:type_name -> google.protobuf.StringValue
 	32, // 10: arista.changecontrol.v1.ChangeConfig.root_stage_id:type_name -> google.protobuf.StringValue
 	7,  // 11: arista.changecontrol.v1.ChangeConfig.stages:type_name -> arista.changecontrol.v1.StageConfigMap
@@ -2502,7 +2579,7 @@ var file_arista_changecontrol_v1_changecontrol_proto_depIdxs = []int32{
 	1,  // 22: arista.changecontrol.v1.StepInfo.status:type_name -> arista.changecontrol.v1.StepStatus
 	32, // 23: arista.changecontrol.v1.StepInfo.error:type_name -> google.protobuf.StringValue
 	32, // 24: arista.changecontrol.v1.StepInfo.message:type_name -> google.protobuf.StringValue
-	27, // 25: arista.changecontrol.v1.ActionSteps.values:type_name -> arista.changecontrol.v1.ActionSteps.ValuesEntry
+	28, // 25: arista.changecontrol.v1.ActionSteps.values:type_name -> arista.changecontrol.v1.ActionSteps.ValuesEntry
 	32, // 26: arista.changecontrol.v1.Stage.name:type_name -> google.protobuf.StringValue
 	5,  // 27: arista.changecontrol.v1.Stage.action:type_name -> arista.changecontrol.v1.Action
 	3,  // 28: arista.changecontrol.v1.Stage.rows:type_name -> arista.changecontrol.v1.RepeatedRepeatedString
@@ -2511,7 +2588,7 @@ var file_arista_changecontrol_v1_changecontrol_proto_depIdxs = []int32{
 	36, // 31: arista.changecontrol.v1.Stage.start_time:type_name -> google.protobuf.Timestamp
 	36, // 32: arista.changecontrol.v1.Stage.end_time:type_name -> google.protobuf.Timestamp
 	13, // 33: arista.changecontrol.v1.Stage.steps:type_name -> arista.changecontrol.v1.ActionSteps
-	28, // 34: arista.changecontrol.v1.StageMap.values:type_name -> arista.changecontrol.v1.StageMap.ValuesEntry
+	29, // 34: arista.changecontrol.v1.StageMap.values:type_name -> arista.changecontrol.v1.StageMap.ValuesEntry
 	32, // 35: arista.changecontrol.v1.Change.name:type_name -> google.protobuf.StringValue
 	32, // 36: arista.changecontrol.v1.Change.root_stage_id:type_name -> google.protobuf.StringValue
 	15, // 37: arista.changecontrol.v1.Change.stages:type_name -> arista.changecontrol.v1.StageMap
@@ -2529,7 +2606,7 @@ var file_arista_changecontrol_v1_changecontrol_proto_depIdxs = []int32{
 	36, // 49: arista.changecontrol.v1.Creation.time:type_name -> google.protobuf.Timestamp
 	32, // 50: arista.changecontrol.v1.Creation.user:type_name -> google.protobuf.StringValue
 	31, // 51: arista.changecontrol.v1.Filter.device_ids:type_name -> fmp.RepeatedString
-	29, // 52: arista.changecontrol.v1.DeviceToStageMap.values:type_name -> arista.changecontrol.v1.DeviceToStageMap.ValuesEntry
+	30, // 52: arista.changecontrol.v1.DeviceToStageMap.values:type_name -> arista.changecontrol.v1.DeviceToStageMap.ValuesEntry
 	4,  // 53: arista.changecontrol.v1.ChangeControl.key:type_name -> arista.changecontrol.v1.ChangeControlKey
 	16, // 54: arista.changecontrol.v1.ChangeControl.change:type_name -> arista.changecontrol.v1.Change
 	17, // 55: arista.changecontrol.v1.ChangeControl.approve:type_name -> arista.changecontrol.v1.Flag
@@ -2543,34 +2620,37 @@ var file_arista_changecontrol_v1_changecontrol_proto_depIdxs = []int32{
 	4,  // 63: arista.changecontrol.v1.ApproveConfig.key:type_name -> arista.changecontrol.v1.ChangeControlKey
 	9,  // 64: arista.changecontrol.v1.ApproveConfig.approve:type_name -> arista.changecontrol.v1.FlagConfig
 	36, // 65: arista.changecontrol.v1.ApproveConfig.version:type_name -> google.protobuf.Timestamp
-	30, // 66: arista.changecontrol.v1.ActionCount.values:type_name -> arista.changecontrol.v1.ActionCount.ValuesEntry
-	4,  // 67: arista.changecontrol.v1.ChangeControlSummary.key:type_name -> arista.changecontrol.v1.ChangeControlKey
-	32, // 68: arista.changecontrol.v1.ChangeControlSummary.name:type_name -> google.protobuf.StringValue
-	2,  // 69: arista.changecontrol.v1.ChangeControlSummary.status:type_name -> arista.changecontrol.v1.ChangeControlStatus
-	33, // 70: arista.changecontrol.v1.ChangeControlSummary.device_count:type_name -> google.protobuf.UInt32Value
-	24, // 71: arista.changecontrol.v1.ChangeControlSummary.action_count:type_name -> arista.changecontrol.v1.ActionCount
-	36, // 72: arista.changecontrol.v1.ChangeControlSummary.created_time:type_name -> google.protobuf.Timestamp
-	32, // 73: arista.changecontrol.v1.ChangeControlSummary.created_user:type_name -> google.protobuf.StringValue
-	36, // 74: arista.changecontrol.v1.ChangeControlSummary.last_edited_time:type_name -> google.protobuf.Timestamp
-	32, // 75: arista.changecontrol.v1.ChangeControlSummary.last_edited_user:type_name -> google.protobuf.StringValue
-	36, // 76: arista.changecontrol.v1.ChangeControlSummary.last_approved_time:type_name -> google.protobuf.Timestamp
-	32, // 77: arista.changecontrol.v1.ChangeControlSummary.last_approved_user:type_name -> google.protobuf.StringValue
-	36, // 78: arista.changecontrol.v1.ChangeControlSummary.last_scheduled_time:type_name -> google.protobuf.Timestamp
-	32, // 79: arista.changecontrol.v1.ChangeControlSummary.last_scheduled_user:type_name -> google.protobuf.StringValue
-	36, // 80: arista.changecontrol.v1.ChangeControlSummary.start_time:type_name -> google.protobuf.Timestamp
-	32, // 81: arista.changecontrol.v1.ChangeControlSummary.start_user:type_name -> google.protobuf.StringValue
-	36, // 82: arista.changecontrol.v1.ChangeControlSummary.end_time:type_name -> google.protobuf.Timestamp
-	32, // 83: arista.changecontrol.v1.ChangeControlSummary.error:type_name -> google.protobuf.StringValue
-	35, // 84: arista.changecontrol.v1.ChangeControlSummary.approved:type_name -> google.protobuf.BoolValue
-	6,  // 85: arista.changecontrol.v1.StageConfigMap.ValuesEntry.value:type_name -> arista.changecontrol.v1.StageConfig
-	12, // 86: arista.changecontrol.v1.ActionSteps.ValuesEntry.value:type_name -> arista.changecontrol.v1.StepInfo
-	14, // 87: arista.changecontrol.v1.StageMap.ValuesEntry.value:type_name -> arista.changecontrol.v1.Stage
-	31, // 88: arista.changecontrol.v1.DeviceToStageMap.ValuesEntry.value:type_name -> fmp.RepeatedString
-	89, // [89:89] is the sub-list for method output_type
-	89, // [89:89] is the sub-list for method input_type
-	89, // [89:89] is the sub-list for extension type_name
-	89, // [89:89] is the sub-list for extension extendee
-	0,  // [0:89] is the sub-list for field type_name
+	32, // 66: arista.changecontrol.v1.ActionSummary.id:type_name -> google.protobuf.StringValue
+	32, // 67: arista.changecontrol.v1.ActionSummary.name:type_name -> google.protobuf.StringValue
+	33, // 68: arista.changecontrol.v1.ActionSummary.count:type_name -> google.protobuf.UInt32Value
+	24, // 69: arista.changecontrol.v1.ActionSummaries.values:type_name -> arista.changecontrol.v1.ActionSummary
+	4,  // 70: arista.changecontrol.v1.ChangeControlSummary.key:type_name -> arista.changecontrol.v1.ChangeControlKey
+	32, // 71: arista.changecontrol.v1.ChangeControlSummary.name:type_name -> google.protobuf.StringValue
+	2,  // 72: arista.changecontrol.v1.ChangeControlSummary.status:type_name -> arista.changecontrol.v1.ChangeControlStatus
+	33, // 73: arista.changecontrol.v1.ChangeControlSummary.device_count:type_name -> google.protobuf.UInt32Value
+	25, // 74: arista.changecontrol.v1.ChangeControlSummary.action_summaries:type_name -> arista.changecontrol.v1.ActionSummaries
+	36, // 75: arista.changecontrol.v1.ChangeControlSummary.created_time:type_name -> google.protobuf.Timestamp
+	32, // 76: arista.changecontrol.v1.ChangeControlSummary.created_user:type_name -> google.protobuf.StringValue
+	36, // 77: arista.changecontrol.v1.ChangeControlSummary.last_edited_time:type_name -> google.protobuf.Timestamp
+	32, // 78: arista.changecontrol.v1.ChangeControlSummary.last_edited_user:type_name -> google.protobuf.StringValue
+	36, // 79: arista.changecontrol.v1.ChangeControlSummary.last_approved_time:type_name -> google.protobuf.Timestamp
+	32, // 80: arista.changecontrol.v1.ChangeControlSummary.last_approved_user:type_name -> google.protobuf.StringValue
+	36, // 81: arista.changecontrol.v1.ChangeControlSummary.last_scheduled_time:type_name -> google.protobuf.Timestamp
+	32, // 82: arista.changecontrol.v1.ChangeControlSummary.last_scheduled_user:type_name -> google.protobuf.StringValue
+	36, // 83: arista.changecontrol.v1.ChangeControlSummary.start_time:type_name -> google.protobuf.Timestamp
+	32, // 84: arista.changecontrol.v1.ChangeControlSummary.start_user:type_name -> google.protobuf.StringValue
+	36, // 85: arista.changecontrol.v1.ChangeControlSummary.end_time:type_name -> google.protobuf.Timestamp
+	32, // 86: arista.changecontrol.v1.ChangeControlSummary.error:type_name -> google.protobuf.StringValue
+	35, // 87: arista.changecontrol.v1.ChangeControlSummary.approved:type_name -> google.protobuf.BoolValue
+	6,  // 88: arista.changecontrol.v1.StageConfigMap.ValuesEntry.value:type_name -> arista.changecontrol.v1.StageConfig
+	12, // 89: arista.changecontrol.v1.ActionSteps.ValuesEntry.value:type_name -> arista.changecontrol.v1.StepInfo
+	14, // 90: arista.changecontrol.v1.StageMap.ValuesEntry.value:type_name -> arista.changecontrol.v1.Stage
+	31, // 91: arista.changecontrol.v1.DeviceToStageMap.ValuesEntry.value:type_name -> fmp.RepeatedString
+	92, // [92:92] is the sub-list for method output_type
+	92, // [92:92] is the sub-list for method input_type
+	92, // [92:92] is the sub-list for extension type_name
+	92, // [92:92] is the sub-list for extension extendee
+	0,  // [0:92] is the sub-list for field type_name
 }
 
 func init() { file_arista_changecontrol_v1_changecontrol_proto_init() }
@@ -2832,7 +2912,7 @@ func file_arista_changecontrol_v1_changecontrol_proto_init() {
 			}
 		}
 		file_arista_changecontrol_v1_changecontrol_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ActionCount); i {
+			switch v := v.(*ActionSummary); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2844,6 +2924,18 @@ func file_arista_changecontrol_v1_changecontrol_proto_init() {
 			}
 		}
 		file_arista_changecontrol_v1_changecontrol_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ActionSummaries); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_changecontrol_v1_changecontrol_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChangeControlSummary); i {
 			case 0:
 				return &v.state
