@@ -1991,7 +1991,7 @@ func (x *EmailSettings) GetAzureOAuth() *AzureOAuth {
 	return nil
 }
 
-// AzureOAuth contains the settings for the sending of emails on Azure smtp server
+// AzureOAuth contains the settings for authenticating against Azure using OAuth2
 type AzureOAuth struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2078,6 +2078,86 @@ func (x *AzureOAuth) GetScopes() *fmp.RepeatedString {
 	return nil
 }
 
+// OAuth2ClientCredentials contains generic settings for authenticating webhook
+// requests using the OAuth2 client credentials (including OpenID Connect) flow.
+type OAuth2ClientCredentials struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// client_id of the OAuth2 client
+	ClientId *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// client_secret for the OAuth2 client
+	ClientSecret *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	// token_url is the full URL of the OAuth2/OIDC token endpoint
+	// e.g. https://example.com/oauth2/token
+	TokenUrl *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=token_url,json=tokenUrl,proto3" json:"token_url,omitempty"`
+	// scope is the optional OAuth2 scope string requested for the access token.
+	// Multiple scopes can be defined by separating them with spaces,
+	// e.g. "scope1 scope2 scope3".
+	Scope *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
+}
+
+func (x *OAuth2ClientCredentials) Reset() {
+	*x = OAuth2ClientCredentials{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OAuth2ClientCredentials) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OAuth2ClientCredentials) ProtoMessage() {}
+
+func (x *OAuth2ClientCredentials) ProtoReflect() protoreflect.Message {
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OAuth2ClientCredentials.ProtoReflect.Descriptor instead.
+func (*OAuth2ClientCredentials) Descriptor() ([]byte, []int) {
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *OAuth2ClientCredentials) GetClientId() *wrapperspb.StringValue {
+	if x != nil {
+		return x.ClientId
+	}
+	return nil
+}
+
+func (x *OAuth2ClientCredentials) GetClientSecret() *wrapperspb.StringValue {
+	if x != nil {
+		return x.ClientSecret
+	}
+	return nil
+}
+
+func (x *OAuth2ClientCredentials) GetTokenUrl() *wrapperspb.StringValue {
+	if x != nil {
+		return x.TokenUrl
+	}
+	return nil
+}
+
+func (x *OAuth2ClientCredentials) GetScope() *wrapperspb.StringValue {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
 // HttpSettings are the settings to be used when sending various message over a http connection
 type HttpSettings struct {
 	state         protoimpl.MessageState
@@ -2097,7 +2177,7 @@ type HttpSettings struct {
 func (x *HttpSettings) Reset() {
 	*x = HttpSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[14]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2110,7 +2190,7 @@ func (x *HttpSettings) String() string {
 func (*HttpSettings) ProtoMessage() {}
 
 func (x *HttpSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[14]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2123,7 +2203,7 @@ func (x *HttpSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HttpSettings.ProtoReflect.Descriptor instead.
 func (*HttpSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{14}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *HttpSettings) GetUsername() *wrapperspb.StringValue {
@@ -2167,7 +2247,7 @@ type HttpHeaders struct {
 func (x *HttpHeaders) Reset() {
 	*x = HttpHeaders{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[15]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2180,7 +2260,7 @@ func (x *HttpHeaders) String() string {
 func (*HttpHeaders) ProtoMessage() {}
 
 func (x *HttpHeaders) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[15]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2193,7 +2273,7 @@ func (x *HttpHeaders) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HttpHeaders.ProtoReflect.Descriptor instead.
 func (*HttpHeaders) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{15}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *HttpHeaders) GetValues() map[string]*HeaderValues {
@@ -2216,7 +2296,7 @@ type HeaderValues struct {
 func (x *HeaderValues) Reset() {
 	*x = HeaderValues{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[16]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2229,7 +2309,7 @@ func (x *HeaderValues) String() string {
 func (*HeaderValues) ProtoMessage() {}
 
 func (x *HeaderValues) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[16]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2242,7 +2322,7 @@ func (x *HeaderValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeaderValues.ProtoReflect.Descriptor instead.
 func (*HeaderValues) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{16}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *HeaderValues) GetValues() []string {
@@ -2265,7 +2345,7 @@ type SlackSettings struct {
 func (x *SlackSettings) Reset() {
 	*x = SlackSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[17]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2278,7 +2358,7 @@ func (x *SlackSettings) String() string {
 func (*SlackSettings) ProtoMessage() {}
 
 func (x *SlackSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[17]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2291,7 +2371,7 @@ func (x *SlackSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlackSettings.ProtoReflect.Descriptor instead.
 func (*SlackSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{17}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SlackSettings) GetUrl() *wrapperspb.StringValue {
@@ -2317,7 +2397,7 @@ type VictoropsSettings struct {
 func (x *VictoropsSettings) Reset() {
 	*x = VictoropsSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[18]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2330,7 +2410,7 @@ func (x *VictoropsSettings) String() string {
 func (*VictoropsSettings) ProtoMessage() {}
 
 func (x *VictoropsSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[18]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2343,7 +2423,7 @@ func (x *VictoropsSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VictoropsSettings.ProtoReflect.Descriptor instead.
 func (*VictoropsSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{18}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *VictoropsSettings) GetKey() *wrapperspb.StringValue {
@@ -2373,7 +2453,7 @@ type PagerdutySettings struct {
 func (x *PagerdutySettings) Reset() {
 	*x = PagerdutySettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[19]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2386,7 +2466,7 @@ func (x *PagerdutySettings) String() string {
 func (*PagerdutySettings) ProtoMessage() {}
 
 func (x *PagerdutySettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[19]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2399,7 +2479,7 @@ func (x *PagerdutySettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PagerdutySettings.ProtoReflect.Descriptor instead.
 func (*PagerdutySettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{19}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PagerdutySettings) GetUrl() *wrapperspb.StringValue {
@@ -2424,7 +2504,7 @@ type OpsgenieSettings struct {
 func (x *OpsgenieSettings) Reset() {
 	*x = OpsgenieSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[20]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2437,7 +2517,7 @@ func (x *OpsgenieSettings) String() string {
 func (*OpsgenieSettings) ProtoMessage() {}
 
 func (x *OpsgenieSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[20]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2450,7 +2530,7 @@ func (x *OpsgenieSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpsgenieSettings.ProtoReflect.Descriptor instead.
 func (*OpsgenieSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{20}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OpsgenieSettings) GetKey() *wrapperspb.StringValue {
@@ -2480,7 +2560,7 @@ type GoogleChatSettings struct {
 func (x *GoogleChatSettings) Reset() {
 	*x = GoogleChatSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[21]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2493,7 +2573,7 @@ func (x *GoogleChatSettings) String() string {
 func (*GoogleChatSettings) ProtoMessage() {}
 
 func (x *GoogleChatSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[21]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2506,7 +2586,7 @@ func (x *GoogleChatSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleChatSettings.ProtoReflect.Descriptor instead.
 func (*GoogleChatSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{21}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GoogleChatSettings) GetUrl() *wrapperspb.StringValue {
@@ -2529,7 +2609,7 @@ type MsTeamsSettings struct {
 func (x *MsTeamsSettings) Reset() {
 	*x = MsTeamsSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[22]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2542,7 +2622,7 @@ func (x *MsTeamsSettings) String() string {
 func (*MsTeamsSettings) ProtoMessage() {}
 
 func (x *MsTeamsSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[22]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2555,7 +2635,7 @@ func (x *MsTeamsSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsTeamsSettings.ProtoReflect.Descriptor instead.
 func (*MsTeamsSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{22}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *MsTeamsSettings) GetUrl() *wrapperspb.StringValue {
@@ -2571,15 +2651,16 @@ type WebhookSettings struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// azure_o_auth used for auth when using an Azure smtp server
-	// uses auth_username
+	// azure_o_auth used for auth when using Azure to authenticate webhook requests
 	AzureOAuth *AzureOAuth `protobuf:"bytes,1,opt,name=azure_o_auth,json=azureOAuth,proto3" json:"azure_o_auth,omitempty"`
+	// oauth2_client_credentials used for generic OAuth2/OIDC client-credentials auth for webhook
+	Oauth2ClientCredentials *OAuth2ClientCredentials `protobuf:"bytes,2,opt,name=oauth2_client_credentials,json=oauth2ClientCredentials,proto3" json:"oauth2_client_credentials,omitempty"`
 }
 
 func (x *WebhookSettings) Reset() {
 	*x = WebhookSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[23]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2592,7 +2673,7 @@ func (x *WebhookSettings) String() string {
 func (*WebhookSettings) ProtoMessage() {}
 
 func (x *WebhookSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[23]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2605,12 +2686,19 @@ func (x *WebhookSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WebhookSettings.ProtoReflect.Descriptor instead.
 func (*WebhookSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{23}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *WebhookSettings) GetAzureOAuth() *AzureOAuth {
 	if x != nil {
 		return x.AzureOAuth
+	}
+	return nil
+}
+
+func (x *WebhookSettings) GetOauth2ClientCredentials() *OAuth2ClientCredentials {
+	if x != nil {
+		return x.Oauth2ClientCredentials
 	}
 	return nil
 }
@@ -2634,7 +2722,7 @@ type MsGraphSendMailSettings struct {
 func (x *MsGraphSendMailSettings) Reset() {
 	*x = MsGraphSendMailSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[24]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2647,7 +2735,7 @@ func (x *MsGraphSendMailSettings) String() string {
 func (*MsGraphSendMailSettings) ProtoMessage() {}
 
 func (x *MsGraphSendMailSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[24]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2660,7 +2748,7 @@ func (x *MsGraphSendMailSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsGraphSendMailSettings.ProtoReflect.Descriptor instead.
 func (*MsGraphSendMailSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{24}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *MsGraphSendMailSettings) GetSingleAlertPerEmail() *wrapperspb.BoolValue {
@@ -2715,7 +2803,7 @@ type SyslogSettings struct {
 func (x *SyslogSettings) Reset() {
 	*x = SyslogSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[25]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2728,7 +2816,7 @@ func (x *SyslogSettings) String() string {
 func (*SyslogSettings) ProtoMessage() {}
 
 func (x *SyslogSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[25]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2741,7 +2829,7 @@ func (x *SyslogSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyslogSettings.ProtoReflect.Descriptor instead.
 func (*SyslogSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{25}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SyslogSettings) GetNetwork() *wrapperspb.StringValue {
@@ -2812,7 +2900,7 @@ type Priorities struct {
 func (x *Priorities) Reset() {
 	*x = Priorities{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[26]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2825,7 +2913,7 @@ func (x *Priorities) String() string {
 func (*Priorities) ProtoMessage() {}
 
 func (x *Priorities) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[26]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2838,7 +2926,7 @@ func (x *Priorities) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Priorities.ProtoReflect.Descriptor instead.
 func (*Priorities) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{26}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Priorities) GetCritical() *wrapperspb.Int32Value {
@@ -2882,7 +2970,7 @@ type CueData struct {
 func (x *CueData) Reset() {
 	*x = CueData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[27]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2895,7 +2983,7 @@ func (x *CueData) String() string {
 func (*CueData) ProtoMessage() {}
 
 func (x *CueData) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[27]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2908,7 +2996,7 @@ func (x *CueData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueData.ProtoReflect.Descriptor instead.
 func (*CueData) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{27}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CueData) GetValues() map[string]string {
@@ -2943,7 +3031,7 @@ type CueSyslogSettings struct {
 func (x *CueSyslogSettings) Reset() {
 	*x = CueSyslogSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[28]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2956,7 +3044,7 @@ func (x *CueSyslogSettings) String() string {
 func (*CueSyslogSettings) ProtoMessage() {}
 
 func (x *CueSyslogSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[28]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2969,7 +3057,7 @@ func (x *CueSyslogSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSyslogSettings.ProtoReflect.Descriptor instead.
 func (*CueSyslogSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{28}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CueSyslogSettings) GetNetwork() *wrapperspb.StringValue {
@@ -3041,7 +3129,7 @@ type SNMPSettings struct {
 func (x *SNMPSettings) Reset() {
 	*x = SNMPSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[29]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3054,7 +3142,7 @@ func (x *SNMPSettings) String() string {
 func (*SNMPSettings) ProtoMessage() {}
 
 func (x *SNMPSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[29]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3067,7 +3155,7 @@ func (x *SNMPSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SNMPSettings.ProtoReflect.Descriptor instead.
 func (*SNMPSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{29}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SNMPSettings) GetTarget() *wrapperspb.StringValue {
@@ -3142,7 +3230,7 @@ type SNMPAuth struct {
 func (x *SNMPAuth) Reset() {
 	*x = SNMPAuth{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[30]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3155,7 +3243,7 @@ func (x *SNMPAuth) String() string {
 func (*SNMPAuth) ProtoMessage() {}
 
 func (x *SNMPAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[30]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3168,7 +3256,7 @@ func (x *SNMPAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SNMPAuth.ProtoReflect.Descriptor instead.
 func (*SNMPAuth) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{30}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SNMPAuth) GetCommunity() *wrapperspb.StringValue {
@@ -3250,7 +3338,7 @@ type CueSNMPAuth struct {
 func (x *CueSNMPAuth) Reset() {
 	*x = CueSNMPAuth{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[31]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3263,7 +3351,7 @@ func (x *CueSNMPAuth) String() string {
 func (*CueSNMPAuth) ProtoMessage() {}
 
 func (x *CueSNMPAuth) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[31]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3276,7 +3364,7 @@ func (x *CueSNMPAuth) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSNMPAuth.ProtoReflect.Descriptor instead.
 func (*CueSNMPAuth) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{31}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CueSNMPAuth) GetCommunity() *wrapperspb.StringValue {
@@ -3351,7 +3439,7 @@ type CueSNMPSettings struct {
 func (x *CueSNMPSettings) Reset() {
 	*x = CueSNMPSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[32]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3364,7 +3452,7 @@ func (x *CueSNMPSettings) String() string {
 func (*CueSNMPSettings) ProtoMessage() {}
 
 func (x *CueSNMPSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[32]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3377,7 +3465,7 @@ func (x *CueSNMPSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSNMPSettings.ProtoReflect.Descriptor instead.
 func (*CueSNMPSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{32}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CueSNMPSettings) GetTarget() *wrapperspb.StringValue {
@@ -3437,7 +3525,7 @@ type SendgridSettings struct {
 func (x *SendgridSettings) Reset() {
 	*x = SendgridSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[33]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3450,7 +3538,7 @@ func (x *SendgridSettings) String() string {
 func (*SendgridSettings) ProtoMessage() {}
 
 func (x *SendgridSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[33]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3463,7 +3551,7 @@ func (x *SendgridSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendgridSettings.ProtoReflect.Descriptor instead.
 func (*SendgridSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{33}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SendgridSettings) GetApiKey() *wrapperspb.StringValue {
@@ -3495,7 +3583,7 @@ type CueSendgridSettings struct {
 func (x *CueSendgridSettings) Reset() {
 	*x = CueSendgridSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[34]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3508,7 +3596,7 @@ func (x *CueSendgridSettings) String() string {
 func (*CueSendgridSettings) ProtoMessage() {}
 
 func (x *CueSendgridSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[34]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3521,7 +3609,7 @@ func (x *CueSendgridSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSendgridSettings.ProtoReflect.Descriptor instead.
 func (*CueSendgridSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{34}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CueSendgridSettings) GetApiKey() *wrapperspb.StringValue {
@@ -3553,7 +3641,7 @@ type ZoomSettings struct {
 func (x *ZoomSettings) Reset() {
 	*x = ZoomSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[35]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3566,7 +3654,7 @@ func (x *ZoomSettings) String() string {
 func (*ZoomSettings) ProtoMessage() {}
 
 func (x *ZoomSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[35]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3579,7 +3667,7 @@ func (x *ZoomSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoomSettings.ProtoReflect.Descriptor instead.
 func (*ZoomSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{35}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ZoomSettings) GetUrl() *wrapperspb.StringValue {
@@ -3606,7 +3694,7 @@ type CvActionSettings struct {
 func (x *CvActionSettings) Reset() {
 	*x = CvActionSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[36]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3619,7 +3707,7 @@ func (x *CvActionSettings) String() string {
 func (*CvActionSettings) ProtoMessage() {}
 
 func (x *CvActionSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[36]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3632,7 +3720,7 @@ func (x *CvActionSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CvActionSettings.ProtoReflect.Descriptor instead.
 func (*CvActionSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{36}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{37}
 }
 
 // InhibitionSettings allows certain event types to be suppressed while other event types are active
@@ -3649,7 +3737,7 @@ type InhibitionSettings struct {
 func (x *InhibitionSettings) Reset() {
 	*x = InhibitionSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[37]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3662,7 +3750,7 @@ func (x *InhibitionSettings) String() string {
 func (*InhibitionSettings) ProtoMessage() {}
 
 func (x *InhibitionSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[37]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3675,7 +3763,7 @@ func (x *InhibitionSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InhibitionSettings.ProtoReflect.Descriptor instead.
 func (*InhibitionSettings) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{37}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *InhibitionSettings) GetValues() map[string]*EventList {
@@ -3698,7 +3786,7 @@ type EventList struct {
 func (x *EventList) Reset() {
 	*x = EventList{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[38]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3711,7 +3799,7 @@ func (x *EventList) String() string {
 func (*EventList) ProtoMessage() {}
 
 func (x *EventList) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[38]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3724,7 +3812,7 @@ func (x *EventList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventList.ProtoReflect.Descriptor instead.
 func (*EventList) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{38}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *EventList) GetEventTypes() *fmp.RepeatedString {
@@ -3747,7 +3835,7 @@ type Rules struct {
 func (x *Rules) Reset() {
 	*x = Rules{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[39]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3760,7 +3848,7 @@ func (x *Rules) String() string {
 func (*Rules) ProtoMessage() {}
 
 func (x *Rules) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[39]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3773,7 +3861,7 @@ func (x *Rules) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rules.ProtoReflect.Descriptor instead.
 func (*Rules) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{39}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *Rules) GetValues() []*Rule {
@@ -3806,7 +3894,7 @@ type Rule struct {
 func (x *Rule) Reset() {
 	*x = Rule{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[40]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3819,7 +3907,7 @@ func (x *Rule) String() string {
 func (*Rule) ProtoMessage() {}
 
 func (x *Rule) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[40]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3832,7 +3920,7 @@ func (x *Rule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rule.ProtoReflect.Descriptor instead.
 func (*Rule) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{40}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *Rule) GetSendsTo() *wrapperspb.StringValue {
@@ -3902,7 +3990,7 @@ type Matches struct {
 func (x *Matches) Reset() {
 	*x = Matches{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[41]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3915,7 +4003,7 @@ func (x *Matches) String() string {
 func (*Matches) ProtoMessage() {}
 
 func (x *Matches) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[41]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3928,7 +4016,7 @@ func (x *Matches) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Matches.ProtoReflect.Descriptor instead.
 func (*Matches) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{41}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *Matches) GetSeverities() *fmp.RepeatedString {
@@ -3993,7 +4081,7 @@ type BroadcastGroups struct {
 func (x *BroadcastGroups) Reset() {
 	*x = BroadcastGroups{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[42]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4006,7 +4094,7 @@ func (x *BroadcastGroups) String() string {
 func (*BroadcastGroups) ProtoMessage() {}
 
 func (x *BroadcastGroups) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[42]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4019,7 +4107,7 @@ func (x *BroadcastGroups) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BroadcastGroups.ProtoReflect.Descriptor instead.
 func (*BroadcastGroups) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{42}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *BroadcastGroups) GetValues() map[string]*BroadcastGroup {
@@ -4084,7 +4172,7 @@ type BroadcastGroup struct {
 func (x *BroadcastGroup) Reset() {
 	*x = BroadcastGroup{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[43]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4097,7 +4185,7 @@ func (x *BroadcastGroup) String() string {
 func (*BroadcastGroup) ProtoMessage() {}
 
 func (x *BroadcastGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[43]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4110,7 +4198,7 @@ func (x *BroadcastGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BroadcastGroup.ProtoReflect.Descriptor instead.
 func (*BroadcastGroup) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{43}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *BroadcastGroup) GetEmail() *EmailEndpoints {
@@ -4259,7 +4347,7 @@ type EmailEndpoints struct {
 func (x *EmailEndpoints) Reset() {
 	*x = EmailEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[44]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4272,7 +4360,7 @@ func (x *EmailEndpoints) String() string {
 func (*EmailEndpoints) ProtoMessage() {}
 
 func (x *EmailEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[44]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4285,7 +4373,7 @@ func (x *EmailEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailEndpoints.ProtoReflect.Descriptor instead.
 func (*EmailEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{44}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *EmailEndpoints) GetValues() []*EmailEndpoint {
@@ -4308,7 +4396,7 @@ type WebhookEndpoints struct {
 func (x *WebhookEndpoints) Reset() {
 	*x = WebhookEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[45]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4321,7 +4409,7 @@ func (x *WebhookEndpoints) String() string {
 func (*WebhookEndpoints) ProtoMessage() {}
 
 func (x *WebhookEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[45]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4334,7 +4422,7 @@ func (x *WebhookEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WebhookEndpoints.ProtoReflect.Descriptor instead.
 func (*WebhookEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{45}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *WebhookEndpoints) GetValues() []*WebhookEndpoint {
@@ -4357,7 +4445,7 @@ type SlackEndpoints struct {
 func (x *SlackEndpoints) Reset() {
 	*x = SlackEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[46]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4370,7 +4458,7 @@ func (x *SlackEndpoints) String() string {
 func (*SlackEndpoints) ProtoMessage() {}
 
 func (x *SlackEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[46]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4383,7 +4471,7 @@ func (x *SlackEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlackEndpoints.ProtoReflect.Descriptor instead.
 func (*SlackEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{46}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *SlackEndpoints) GetValues() []*SlackEndpoint {
@@ -4406,7 +4494,7 @@ type OpsgenieEndpoints struct {
 func (x *OpsgenieEndpoints) Reset() {
 	*x = OpsgenieEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[47]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4419,7 +4507,7 @@ func (x *OpsgenieEndpoints) String() string {
 func (*OpsgenieEndpoints) ProtoMessage() {}
 
 func (x *OpsgenieEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[47]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4432,7 +4520,7 @@ func (x *OpsgenieEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpsgenieEndpoints.ProtoReflect.Descriptor instead.
 func (*OpsgenieEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{47}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *OpsgenieEndpoints) GetValues() []*OpsgenieEndpoint {
@@ -4455,7 +4543,7 @@ type PushoverEndpoints struct {
 func (x *PushoverEndpoints) Reset() {
 	*x = PushoverEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[48]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4468,7 +4556,7 @@ func (x *PushoverEndpoints) String() string {
 func (*PushoverEndpoints) ProtoMessage() {}
 
 func (x *PushoverEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[48]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4481,7 +4569,7 @@ func (x *PushoverEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PushoverEndpoints.ProtoReflect.Descriptor instead.
 func (*PushoverEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{48}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *PushoverEndpoints) GetValues() []*PushoverEndpoint {
@@ -4504,7 +4592,7 @@ type PagerdutyEndpoints struct {
 func (x *PagerdutyEndpoints) Reset() {
 	*x = PagerdutyEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[49]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4517,7 +4605,7 @@ func (x *PagerdutyEndpoints) String() string {
 func (*PagerdutyEndpoints) ProtoMessage() {}
 
 func (x *PagerdutyEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[49]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4530,7 +4618,7 @@ func (x *PagerdutyEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PagerdutyEndpoints.ProtoReflect.Descriptor instead.
 func (*PagerdutyEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{49}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *PagerdutyEndpoints) GetValues() []*PagerdutyEndpoint {
@@ -4553,7 +4641,7 @@ type VictorOpsEndpoints struct {
 func (x *VictorOpsEndpoints) Reset() {
 	*x = VictorOpsEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[50]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4566,7 +4654,7 @@ func (x *VictorOpsEndpoints) String() string {
 func (*VictorOpsEndpoints) ProtoMessage() {}
 
 func (x *VictorOpsEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[50]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4579,7 +4667,7 @@ func (x *VictorOpsEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VictorOpsEndpoints.ProtoReflect.Descriptor instead.
 func (*VictorOpsEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{50}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *VictorOpsEndpoints) GetValues() []*VictorOpsEndpoint {
@@ -4602,7 +4690,7 @@ type GoogleChatEndpoints struct {
 func (x *GoogleChatEndpoints) Reset() {
 	*x = GoogleChatEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[51]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4615,7 +4703,7 @@ func (x *GoogleChatEndpoints) String() string {
 func (*GoogleChatEndpoints) ProtoMessage() {}
 
 func (x *GoogleChatEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[51]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4628,7 +4716,7 @@ func (x *GoogleChatEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleChatEndpoints.ProtoReflect.Descriptor instead.
 func (*GoogleChatEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{51}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GoogleChatEndpoints) GetValues() []*GoogleChatEndpoint {
@@ -4651,7 +4739,7 @@ type MsTeamsEndpoints struct {
 func (x *MsTeamsEndpoints) Reset() {
 	*x = MsTeamsEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[52]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4664,7 +4752,7 @@ func (x *MsTeamsEndpoints) String() string {
 func (*MsTeamsEndpoints) ProtoMessage() {}
 
 func (x *MsTeamsEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[52]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4677,7 +4765,7 @@ func (x *MsTeamsEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsTeamsEndpoints.ProtoReflect.Descriptor instead.
 func (*MsTeamsEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{52}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *MsTeamsEndpoints) GetValues() []*MsTeamsEndpoint {
@@ -4700,7 +4788,7 @@ type SendgridEndpoints struct {
 func (x *SendgridEndpoints) Reset() {
 	*x = SendgridEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[53]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4713,7 +4801,7 @@ func (x *SendgridEndpoints) String() string {
 func (*SendgridEndpoints) ProtoMessage() {}
 
 func (x *SendgridEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[53]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4726,7 +4814,7 @@ func (x *SendgridEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendgridEndpoints.ProtoReflect.Descriptor instead.
 func (*SendgridEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{53}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *SendgridEndpoints) GetValues() []*SendgridEndpoint {
@@ -4749,7 +4837,7 @@ type CueSendgridEndpoints struct {
 func (x *CueSendgridEndpoints) Reset() {
 	*x = CueSendgridEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[54]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4762,7 +4850,7 @@ func (x *CueSendgridEndpoints) String() string {
 func (*CueSendgridEndpoints) ProtoMessage() {}
 
 func (x *CueSendgridEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[54]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4775,7 +4863,7 @@ func (x *CueSendgridEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSendgridEndpoints.ProtoReflect.Descriptor instead.
 func (*CueSendgridEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{54}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *CueSendgridEndpoints) GetValues() []*CueSendgridEndpoint {
@@ -4798,7 +4886,7 @@ type SyslogEndpoints struct {
 func (x *SyslogEndpoints) Reset() {
 	*x = SyslogEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[55]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4811,7 +4899,7 @@ func (x *SyslogEndpoints) String() string {
 func (*SyslogEndpoints) ProtoMessage() {}
 
 func (x *SyslogEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[55]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4824,7 +4912,7 @@ func (x *SyslogEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyslogEndpoints.ProtoReflect.Descriptor instead.
 func (*SyslogEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{55}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *SyslogEndpoints) GetValues() []*SyslogEndpoint {
@@ -4847,7 +4935,7 @@ type CueSyslogEndpoints struct {
 func (x *CueSyslogEndpoints) Reset() {
 	*x = CueSyslogEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[56]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4860,7 +4948,7 @@ func (x *CueSyslogEndpoints) String() string {
 func (*CueSyslogEndpoints) ProtoMessage() {}
 
 func (x *CueSyslogEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[56]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4873,7 +4961,7 @@ func (x *CueSyslogEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSyslogEndpoints.ProtoReflect.Descriptor instead.
 func (*CueSyslogEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{56}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *CueSyslogEndpoints) GetValues() []*CueSyslogEndpoint {
@@ -4896,7 +4984,7 @@ type SNMPEndpoints struct {
 func (x *SNMPEndpoints) Reset() {
 	*x = SNMPEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[57]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4909,7 +4997,7 @@ func (x *SNMPEndpoints) String() string {
 func (*SNMPEndpoints) ProtoMessage() {}
 
 func (x *SNMPEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[57]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4922,7 +5010,7 @@ func (x *SNMPEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SNMPEndpoints.ProtoReflect.Descriptor instead.
 func (*SNMPEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{57}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *SNMPEndpoints) GetValues() []*SNMPEndpoint {
@@ -4945,7 +5033,7 @@ type CueSnmpEndpoints struct {
 func (x *CueSnmpEndpoints) Reset() {
 	*x = CueSnmpEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[58]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4958,7 +5046,7 @@ func (x *CueSnmpEndpoints) String() string {
 func (*CueSnmpEndpoints) ProtoMessage() {}
 
 func (x *CueSnmpEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[58]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4971,7 +5059,7 @@ func (x *CueSnmpEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSnmpEndpoints.ProtoReflect.Descriptor instead.
 func (*CueSnmpEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{58}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *CueSnmpEndpoints) GetValues() []*CueSNMPEndpoint {
@@ -4994,7 +5082,7 @@ type ZoomEndpoints struct {
 func (x *ZoomEndpoints) Reset() {
 	*x = ZoomEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[59]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5007,7 +5095,7 @@ func (x *ZoomEndpoints) String() string {
 func (*ZoomEndpoints) ProtoMessage() {}
 
 func (x *ZoomEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[59]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5020,7 +5108,7 @@ func (x *ZoomEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoomEndpoints.ProtoReflect.Descriptor instead.
 func (*ZoomEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{59}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ZoomEndpoints) GetValues() []*ZoomEndpoint {
@@ -5043,7 +5131,7 @@ type MsGraphSendMailEndpoints struct {
 func (x *MsGraphSendMailEndpoints) Reset() {
 	*x = MsGraphSendMailEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[60]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5056,7 +5144,7 @@ func (x *MsGraphSendMailEndpoints) String() string {
 func (*MsGraphSendMailEndpoints) ProtoMessage() {}
 
 func (x *MsGraphSendMailEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[60]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5069,7 +5157,7 @@ func (x *MsGraphSendMailEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsGraphSendMailEndpoints.ProtoReflect.Descriptor instead.
 func (*MsGraphSendMailEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{60}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *MsGraphSendMailEndpoints) GetValues() []*MsGraphSendMailEndpoint {
@@ -5092,7 +5180,7 @@ type CvActionEndpoints struct {
 func (x *CvActionEndpoints) Reset() {
 	*x = CvActionEndpoints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[61]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5105,7 +5193,7 @@ func (x *CvActionEndpoints) String() string {
 func (*CvActionEndpoints) ProtoMessage() {}
 
 func (x *CvActionEndpoints) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[61]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5118,7 +5206,7 @@ func (x *CvActionEndpoints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CvActionEndpoints.ProtoReflect.Descriptor instead.
 func (*CvActionEndpoints) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{61}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CvActionEndpoints) GetValues() []*CvActionEndpoint {
@@ -5143,7 +5231,7 @@ type EmailEndpoint struct {
 func (x *EmailEndpoint) Reset() {
 	*x = EmailEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[62]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5156,7 +5244,7 @@ func (x *EmailEndpoint) String() string {
 func (*EmailEndpoint) ProtoMessage() {}
 
 func (x *EmailEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[62]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5169,7 +5257,7 @@ func (x *EmailEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailEndpoint.ProtoReflect.Descriptor instead.
 func (*EmailEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{62}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *EmailEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5212,7 +5300,7 @@ type WebhookEndpoint struct {
 func (x *WebhookEndpoint) Reset() {
 	*x = WebhookEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[63]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5225,7 +5313,7 @@ func (x *WebhookEndpoint) String() string {
 func (*WebhookEndpoint) ProtoMessage() {}
 
 func (x *WebhookEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[63]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5238,7 +5326,7 @@ func (x *WebhookEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WebhookEndpoint.ProtoReflect.Descriptor instead.
 func (*WebhookEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{63}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *WebhookEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5303,7 +5391,7 @@ type MsGraphSendMailEndpoint struct {
 func (x *MsGraphSendMailEndpoint) Reset() {
 	*x = MsGraphSendMailEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[64]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5316,7 +5404,7 @@ func (x *MsGraphSendMailEndpoint) String() string {
 func (*MsGraphSendMailEndpoint) ProtoMessage() {}
 
 func (x *MsGraphSendMailEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[64]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5329,7 +5417,7 @@ func (x *MsGraphSendMailEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsGraphSendMailEndpoint.ProtoReflect.Descriptor instead.
 func (*MsGraphSendMailEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{64}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *MsGraphSendMailEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5377,7 +5465,7 @@ type SlackEndpoint struct {
 func (x *SlackEndpoint) Reset() {
 	*x = SlackEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[65]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5390,7 +5478,7 @@ func (x *SlackEndpoint) String() string {
 func (*SlackEndpoint) ProtoMessage() {}
 
 func (x *SlackEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[65]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5403,7 +5491,7 @@ func (x *SlackEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlackEndpoint.ProtoReflect.Descriptor instead.
 func (*SlackEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{65}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *SlackEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5444,7 +5532,7 @@ type OpsgenieEndpoint struct {
 func (x *OpsgenieEndpoint) Reset() {
 	*x = OpsgenieEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[66]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5457,7 +5545,7 @@ func (x *OpsgenieEndpoint) String() string {
 func (*OpsgenieEndpoint) ProtoMessage() {}
 
 func (x *OpsgenieEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[66]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5470,7 +5558,7 @@ func (x *OpsgenieEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpsgenieEndpoint.ProtoReflect.Descriptor instead.
 func (*OpsgenieEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{66}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *OpsgenieEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5513,7 +5601,7 @@ type PushoverEndpoint struct {
 func (x *PushoverEndpoint) Reset() {
 	*x = PushoverEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[67]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5526,7 +5614,7 @@ func (x *PushoverEndpoint) String() string {
 func (*PushoverEndpoint) ProtoMessage() {}
 
 func (x *PushoverEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[67]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5539,7 +5627,7 @@ func (x *PushoverEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PushoverEndpoint.ProtoReflect.Descriptor instead.
 func (*PushoverEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{67}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *PushoverEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5589,7 +5677,7 @@ type PagerdutyEndpoint struct {
 func (x *PagerdutyEndpoint) Reset() {
 	*x = PagerdutyEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[68]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5602,7 +5690,7 @@ func (x *PagerdutyEndpoint) String() string {
 func (*PagerdutyEndpoint) ProtoMessage() {}
 
 func (x *PagerdutyEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[68]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5615,7 +5703,7 @@ func (x *PagerdutyEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PagerdutyEndpoint.ProtoReflect.Descriptor instead.
 func (*PagerdutyEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{68}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PagerdutyEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5665,7 +5753,7 @@ type VictorOpsEndpoint struct {
 func (x *VictorOpsEndpoint) Reset() {
 	*x = VictorOpsEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[69]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5678,7 +5766,7 @@ func (x *VictorOpsEndpoint) String() string {
 func (*VictorOpsEndpoint) ProtoMessage() {}
 
 func (x *VictorOpsEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[69]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5691,7 +5779,7 @@ func (x *VictorOpsEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VictorOpsEndpoint.ProtoReflect.Descriptor instead.
 func (*VictorOpsEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{69}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *VictorOpsEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5739,7 +5827,7 @@ type GoogleChatEndpoint struct {
 func (x *GoogleChatEndpoint) Reset() {
 	*x = GoogleChatEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[70]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5752,7 +5840,7 @@ func (x *GoogleChatEndpoint) String() string {
 func (*GoogleChatEndpoint) ProtoMessage() {}
 
 func (x *GoogleChatEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[70]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5765,7 +5853,7 @@ func (x *GoogleChatEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleChatEndpoint.ProtoReflect.Descriptor instead.
 func (*GoogleChatEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{70}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GoogleChatEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5806,7 +5894,7 @@ type MsTeamsEndpoint struct {
 func (x *MsTeamsEndpoint) Reset() {
 	*x = MsTeamsEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[71]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5819,7 +5907,7 @@ func (x *MsTeamsEndpoint) String() string {
 func (*MsTeamsEndpoint) ProtoMessage() {}
 
 func (x *MsTeamsEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[71]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5832,7 +5920,7 @@ func (x *MsTeamsEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MsTeamsEndpoint.ProtoReflect.Descriptor instead.
 func (*MsTeamsEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{71}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *MsTeamsEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5873,7 +5961,7 @@ type SendgridEndpoint struct {
 func (x *SendgridEndpoint) Reset() {
 	*x = SendgridEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[72]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5886,7 +5974,7 @@ func (x *SendgridEndpoint) String() string {
 func (*SendgridEndpoint) ProtoMessage() {}
 
 func (x *SendgridEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[72]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5899,7 +5987,7 @@ func (x *SendgridEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendgridEndpoint.ProtoReflect.Descriptor instead.
 func (*SendgridEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{72}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *SendgridEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -5941,7 +6029,7 @@ type CueSendgridEndpoint struct {
 func (x *CueSendgridEndpoint) Reset() {
 	*x = CueSendgridEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[73]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5954,7 +6042,7 @@ func (x *CueSendgridEndpoint) String() string {
 func (*CueSendgridEndpoint) ProtoMessage() {}
 
 func (x *CueSendgridEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[73]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5967,7 +6055,7 @@ func (x *CueSendgridEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSendgridEndpoint.ProtoReflect.Descriptor instead.
 func (*CueSendgridEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{73}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *CueSendgridEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6006,7 +6094,7 @@ type SyslogEndpoint struct {
 func (x *SyslogEndpoint) Reset() {
 	*x = SyslogEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[74]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6019,7 +6107,7 @@ func (x *SyslogEndpoint) String() string {
 func (*SyslogEndpoint) ProtoMessage() {}
 
 func (x *SyslogEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[74]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6032,7 +6120,7 @@ func (x *SyslogEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyslogEndpoint.ProtoReflect.Descriptor instead.
 func (*SyslogEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{74}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *SyslogEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6064,7 +6152,7 @@ type CueSyslogEndpoint struct {
 func (x *CueSyslogEndpoint) Reset() {
 	*x = CueSyslogEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[75]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6077,7 +6165,7 @@ func (x *CueSyslogEndpoint) String() string {
 func (*CueSyslogEndpoint) ProtoMessage() {}
 
 func (x *CueSyslogEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[75]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6090,7 +6178,7 @@ func (x *CueSyslogEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSyslogEndpoint.ProtoReflect.Descriptor instead.
 func (*CueSyslogEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{75}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *CueSyslogEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6122,7 +6210,7 @@ type SNMPEndpoint struct {
 func (x *SNMPEndpoint) Reset() {
 	*x = SNMPEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[76]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6135,7 +6223,7 @@ func (x *SNMPEndpoint) String() string {
 func (*SNMPEndpoint) ProtoMessage() {}
 
 func (x *SNMPEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[76]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6148,7 +6236,7 @@ func (x *SNMPEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SNMPEndpoint.ProtoReflect.Descriptor instead.
 func (*SNMPEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{76}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *SNMPEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6180,7 +6268,7 @@ type CueSNMPEndpoint struct {
 func (x *CueSNMPEndpoint) Reset() {
 	*x = CueSNMPEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[77]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6193,7 +6281,7 @@ func (x *CueSNMPEndpoint) String() string {
 func (*CueSNMPEndpoint) ProtoMessage() {}
 
 func (x *CueSNMPEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[77]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6206,7 +6294,7 @@ func (x *CueSNMPEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CueSNMPEndpoint.ProtoReflect.Descriptor instead.
 func (*CueSNMPEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{77}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *CueSNMPEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6240,7 +6328,7 @@ type ZoomEndpoint struct {
 func (x *ZoomEndpoint) Reset() {
 	*x = ZoomEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[78]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6253,7 +6341,7 @@ func (x *ZoomEndpoint) String() string {
 func (*ZoomEndpoint) ProtoMessage() {}
 
 func (x *ZoomEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[78]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6266,7 +6354,7 @@ func (x *ZoomEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoomEndpoint.ProtoReflect.Descriptor instead.
 func (*ZoomEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{78}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ZoomEndpoint) GetSendResolved() *wrapperspb.BoolValue {
@@ -6308,7 +6396,7 @@ type CvActionEndpoint struct {
 func (x *CvActionEndpoint) Reset() {
 	*x = CvActionEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[79]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6321,7 +6409,7 @@ func (x *CvActionEndpoint) String() string {
 func (*CvActionEndpoint) ProtoMessage() {}
 
 func (x *CvActionEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[79]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6334,7 +6422,7 @@ func (x *CvActionEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CvActionEndpoint.ProtoReflect.Descriptor instead.
 func (*CvActionEndpoint) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{79}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *CvActionEndpoint) GetOnFiring() *CvActions {
@@ -6364,7 +6452,7 @@ type CvActions struct {
 func (x *CvActions) Reset() {
 	*x = CvActions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[80]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6377,7 +6465,7 @@ func (x *CvActions) String() string {
 func (*CvActions) ProtoMessage() {}
 
 func (x *CvActions) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[80]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6390,7 +6478,7 @@ func (x *CvActions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CvActions.ProtoReflect.Descriptor instead.
 func (*CvActions) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{80}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *CvActions) GetValues() []*CvAction {
@@ -6413,7 +6501,7 @@ type CvAction struct {
 func (x *CvAction) Reset() {
 	*x = CvAction{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[81]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6426,7 +6514,7 @@ func (x *CvAction) String() string {
 func (*CvAction) ProtoMessage() {}
 
 func (x *CvAction) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[81]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6439,7 +6527,7 @@ func (x *CvAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CvAction.ProtoReflect.Descriptor instead.
 func (*CvAction) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{81}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *CvAction) GetActionId() *wrapperspb.StringValue {
@@ -6462,7 +6550,7 @@ type TemplateKey struct {
 func (x *TemplateKey) Reset() {
 	*x = TemplateKey{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[82]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6475,7 +6563,7 @@ func (x *TemplateKey) String() string {
 func (*TemplateKey) ProtoMessage() {}
 
 func (x *TemplateKey) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[82]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6488,7 +6576,7 @@ func (x *TemplateKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateKey.ProtoReflect.Descriptor instead.
 func (*TemplateKey) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{82}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *TemplateKey) GetTemplateType() TemplateType {
@@ -6518,7 +6606,7 @@ type TemplateConfig struct {
 func (x *TemplateConfig) Reset() {
 	*x = TemplateConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[83]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6531,7 +6619,7 @@ func (x *TemplateConfig) String() string {
 func (*TemplateConfig) ProtoMessage() {}
 
 func (x *TemplateConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[83]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6544,7 +6632,7 @@ func (x *TemplateConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateConfig.ProtoReflect.Descriptor instead.
 func (*TemplateConfig) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{83}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *TemplateConfig) GetKey() *TemplateKey {
@@ -6595,7 +6683,7 @@ type DefaultTemplate struct {
 func (x *DefaultTemplate) Reset() {
 	*x = DefaultTemplate{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_arista_alert_v1_alert_proto_msgTypes[84]
+		mi := &file_arista_alert_v1_alert_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6608,7 +6696,7 @@ func (x *DefaultTemplate) String() string {
 func (*DefaultTemplate) ProtoMessage() {}
 
 func (x *DefaultTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_arista_alert_v1_alert_proto_msgTypes[84]
+	mi := &file_arista_alert_v1_alert_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6621,7 +6709,7 @@ func (x *DefaultTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DefaultTemplate.ProtoReflect.Descriptor instead.
 func (*DefaultTemplate) Descriptor() ([]byte, []int) {
-	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{84}
+	return file_arista_alert_v1_alert_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *DefaultTemplate) GetKey() *TemplateKey {
@@ -6976,73 +7064,96 @@ var file_arista_alert_v1_alert_proto_rawDesc = []byte{
 	0x07, 0x61, 0x75, 0x74, 0x68, 0x55, 0x72, 0x69, 0x12, 0x2b, 0x0a, 0x06, 0x73, 0x63, 0x6f, 0x70,
 	0x65, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x66, 0x6d, 0x70, 0x2e, 0x52,
 	0x65, 0x70, 0x65, 0x61, 0x74, 0x65, 0x64, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x06, 0x73,
-	0x63, 0x6f, 0x70, 0x65, 0x73, 0x22, 0x82, 0x02, 0x0a, 0x0c, 0x48, 0x74, 0x74, 0x70, 0x53, 0x65,
-	0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x38, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61,
-	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65,
-	0x12, 0x38, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x63, 0x6f, 0x70, 0x65, 0x73, 0x22, 0x86, 0x02, 0x0a, 0x17, 0x4f, 0x41, 0x75, 0x74, 0x68, 0x32,
+	0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c,
+	0x73, 0x12, 0x39, 0x0a, 0x09, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x52, 0x08, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x41, 0x0a, 0x0d,
+	0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x52, 0x0c, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x65, 0x63, 0x72, 0x65, 0x74, 0x12,
+	0x39, 0x0a, 0x09, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x03, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
-	0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x39, 0x0a, 0x09, 0x70, 0x72,
-	0x6f, 0x78, 0x79, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x08, 0x70, 0x72, 0x6f,
-	0x78, 0x79, 0x55, 0x72, 0x6c, 0x12, 0x43, 0x0a, 0x0e, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x5f,
-	0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
-	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e,
-	0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x52, 0x0d, 0x63, 0x75, 0x73,
-	0x74, 0x6f, 0x6d, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x22, 0xa9, 0x01, 0x0a, 0x0b, 0x48,
-	0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12, 0x40, 0x0a, 0x06, 0x76, 0x61,
-	0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x61, 0x72, 0x69,
-	0x73, 0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x74, 0x74,
-	0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45,
-	0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x1a, 0x58, 0x0a, 0x0b,
-	0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b,
-	0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x33, 0x0a,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x61,
-	0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x48,
-	0x65, 0x61, 0x64, 0x65, 0x72, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x52, 0x05, 0x76, 0x61, 0x6c,
-	0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x26, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
-	0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x3f,
-	0x0a, 0x0d, 0x53, 0x6c, 0x61, 0x63, 0x6b, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12,
-	0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53,
-	0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22,
-	0x73, 0x0a, 0x11, 0x56, 0x69, 0x63, 0x74, 0x6f, 0x72, 0x6f, 0x70, 0x73, 0x53, 0x65, 0x74, 0x74,
-	0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x52, 0x08, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x55, 0x72, 0x6c, 0x12, 0x32, 0x0a, 0x05, 0x73, 0x63,
+	0x6f, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x73, 0x63, 0x6f, 0x70, 0x65, 0x22, 0x82,
+	0x02, 0x0a, 0x0c, 0x48, 0x74, 0x74, 0x70, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12,
+	0x38, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
-	0x03, 0x6b, 0x65, 0x79, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
-	0x03, 0x75, 0x72, 0x6c, 0x22, 0x43, 0x0a, 0x11, 0x50, 0x61, 0x67, 0x65, 0x72, 0x64, 0x75, 0x74,
-	0x79, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x38, 0x0a, 0x08, 0x70, 0x61, 0x73,
+	0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74,
+	0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x12, 0x39, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x5f, 0x75, 0x72, 0x6c,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56,
-	0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x72, 0x0a, 0x10, 0x4f, 0x70, 0x73,
-	0x67, 0x65, 0x6e, 0x69, 0x65, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a,
+	0x61, 0x6c, 0x75, 0x65, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x55, 0x72, 0x6c, 0x12, 0x43,
+	0x0a, 0x0e, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e,
+	0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61,
+	0x64, 0x65, 0x72, 0x73, 0x52, 0x0d, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x48, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x73, 0x22, 0xa9, 0x01, 0x0a, 0x0b, 0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x73, 0x12, 0x40, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65,
+	0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
+	0x73, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x73, 0x1a, 0x58, 0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x45,
+	0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x33, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61,
+	0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x73, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22,
+	0x26, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x12,
+	0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52,
+	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0x3f, 0x0a, 0x0d, 0x53, 0x6c, 0x61, 0x63, 0x6b,
+	0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x73, 0x0a, 0x11, 0x56, 0x69, 0x63, 0x74,
+	0x6f, 0x72, 0x6f, 0x70, 0x73, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a,
 	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f,
 	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72,
 	0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2e, 0x0a,
 	0x03, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f,
 	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72,
-	0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x44, 0x0a,
-	0x12, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x43, 0x68, 0x61, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69,
-	0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03,
-	0x75, 0x72, 0x6c, 0x22, 0x41, 0x0a, 0x0f, 0x4d, 0x73, 0x54, 0x65, 0x61, 0x6d, 0x73, 0x53, 0x65,
-	0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20,
+	0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x43, 0x0a,
+	0x11, 0x50, 0x61, 0x67, 0x65, 0x72, 0x64, 0x75, 0x74, 0x79, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e,
+	0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75,
+	0x72, 0x6c, 0x22, 0x72, 0x0a, 0x10, 0x4f, 0x70, 0x73, 0x67, 0x65, 0x6e, 0x69, 0x65, 0x53, 0x65,
+	0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x50, 0x0a, 0x0f, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f,
-	0x6b, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x3d, 0x0a, 0x0c, 0x61, 0x7a, 0x75,
-	0x72, 0x65, 0x5f, 0x6f, 0x5f, 0x61, 0x75, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x1b, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76,
-	0x31, 0x2e, 0x41, 0x7a, 0x75, 0x72, 0x65, 0x4f, 0x41, 0x75, 0x74, 0x68, 0x52, 0x0a, 0x61, 0x7a,
-	0x75, 0x72, 0x65, 0x4f, 0x41, 0x75, 0x74, 0x68, 0x22, 0xf7, 0x01, 0x0a, 0x17, 0x4d, 0x73, 0x47,
+	0x65, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x44, 0x0a, 0x12, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x43, 0x68, 0x61, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2e, 0x0a, 0x03,
+	0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x41, 0x0a, 0x0f,
+	0x4d, 0x73, 0x54, 0x65, 0x61, 0x6d, 0x73, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12,
+	0x2e, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53,
+	0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22,
+	0xb6, 0x01, 0x0a, 0x0f, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x53, 0x65, 0x74, 0x74, 0x69,
+	0x6e, 0x67, 0x73, 0x12, 0x3d, 0x0a, 0x0c, 0x61, 0x7a, 0x75, 0x72, 0x65, 0x5f, 0x6f, 0x5f, 0x61,
+	0x75, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x61, 0x72, 0x69, 0x73,
+	0x74, 0x61, 0x2e, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x7a, 0x75, 0x72,
+	0x65, 0x4f, 0x41, 0x75, 0x74, 0x68, 0x52, 0x0a, 0x61, 0x7a, 0x75, 0x72, 0x65, 0x4f, 0x41, 0x75,
+	0x74, 0x68, 0x12, 0x64, 0x0a, 0x19, 0x6f, 0x61, 0x75, 0x74, 0x68, 0x32, 0x5f, 0x63, 0x6c, 0x69,
+	0x65, 0x6e, 0x74, 0x5f, 0x63, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x61,
+	0x6c, 0x65, 0x72, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4f, 0x41, 0x75, 0x74, 0x68, 0x32, 0x43, 0x6c,
+	0x69, 0x65, 0x6e, 0x74, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x52,
+	0x17, 0x6f, 0x61, 0x75, 0x74, 0x68, 0x32, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x43, 0x72, 0x65,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0x73, 0x22, 0xf7, 0x01, 0x0a, 0x17, 0x4d, 0x73, 0x47,
 	0x72, 0x61, 0x70, 0x68, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x61, 0x69, 0x6c, 0x53, 0x65, 0x74, 0x74,
 	0x69, 0x6e, 0x67, 0x73, 0x12, 0x4f, 0x0a, 0x16, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x5f, 0x61,
 	0x6c, 0x65, 0x72, 0x74, 0x5f, 0x70, 0x65, 0x72, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x01,
@@ -8042,7 +8153,7 @@ func file_arista_alert_v1_alert_proto_rawDescGZIP() []byte {
 }
 
 var file_arista_alert_v1_alert_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
-var file_arista_alert_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 89)
+var file_arista_alert_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 90)
 var file_arista_alert_v1_alert_proto_goTypes = []interface{}{
 	(ConfigErrorType)(0),             // 0: arista.alert.v1.ConfigErrorType
 	(EndpointType)(0),                // 1: arista.alert.v1.EndpointType
@@ -8069,355 +8180,361 @@ var file_arista_alert_v1_alert_proto_goTypes = []interface{}{
 	(*Settings)(nil),                 // 22: arista.alert.v1.Settings
 	(*EmailSettings)(nil),            // 23: arista.alert.v1.EmailSettings
 	(*AzureOAuth)(nil),               // 24: arista.alert.v1.AzureOAuth
-	(*HttpSettings)(nil),             // 25: arista.alert.v1.HttpSettings
-	(*HttpHeaders)(nil),              // 26: arista.alert.v1.HttpHeaders
-	(*HeaderValues)(nil),             // 27: arista.alert.v1.HeaderValues
-	(*SlackSettings)(nil),            // 28: arista.alert.v1.SlackSettings
-	(*VictoropsSettings)(nil),        // 29: arista.alert.v1.VictoropsSettings
-	(*PagerdutySettings)(nil),        // 30: arista.alert.v1.PagerdutySettings
-	(*OpsgenieSettings)(nil),         // 31: arista.alert.v1.OpsgenieSettings
-	(*GoogleChatSettings)(nil),       // 32: arista.alert.v1.GoogleChatSettings
-	(*MsTeamsSettings)(nil),          // 33: arista.alert.v1.MsTeamsSettings
-	(*WebhookSettings)(nil),          // 34: arista.alert.v1.WebhookSettings
-	(*MsGraphSendMailSettings)(nil),  // 35: arista.alert.v1.MsGraphSendMailSettings
-	(*SyslogSettings)(nil),           // 36: arista.alert.v1.SyslogSettings
-	(*Priorities)(nil),               // 37: arista.alert.v1.Priorities
-	(*CueData)(nil),                  // 38: arista.alert.v1.CueData
-	(*CueSyslogSettings)(nil),        // 39: arista.alert.v1.CueSyslogSettings
-	(*SNMPSettings)(nil),             // 40: arista.alert.v1.SNMPSettings
-	(*SNMPAuth)(nil),                 // 41: arista.alert.v1.SNMPAuth
-	(*CueSNMPAuth)(nil),              // 42: arista.alert.v1.CueSNMPAuth
-	(*CueSNMPSettings)(nil),          // 43: arista.alert.v1.CueSNMPSettings
-	(*SendgridSettings)(nil),         // 44: arista.alert.v1.SendgridSettings
-	(*CueSendgridSettings)(nil),      // 45: arista.alert.v1.CueSendgridSettings
-	(*ZoomSettings)(nil),             // 46: arista.alert.v1.ZoomSettings
-	(*CvActionSettings)(nil),         // 47: arista.alert.v1.CvActionSettings
-	(*InhibitionSettings)(nil),       // 48: arista.alert.v1.InhibitionSettings
-	(*EventList)(nil),                // 49: arista.alert.v1.EventList
-	(*Rules)(nil),                    // 50: arista.alert.v1.Rules
-	(*Rule)(nil),                     // 51: arista.alert.v1.Rule
-	(*Matches)(nil),                  // 52: arista.alert.v1.Matches
-	(*BroadcastGroups)(nil),          // 53: arista.alert.v1.BroadcastGroups
-	(*BroadcastGroup)(nil),           // 54: arista.alert.v1.BroadcastGroup
-	(*EmailEndpoints)(nil),           // 55: arista.alert.v1.EmailEndpoints
-	(*WebhookEndpoints)(nil),         // 56: arista.alert.v1.WebhookEndpoints
-	(*SlackEndpoints)(nil),           // 57: arista.alert.v1.SlackEndpoints
-	(*OpsgenieEndpoints)(nil),        // 58: arista.alert.v1.OpsgenieEndpoints
-	(*PushoverEndpoints)(nil),        // 59: arista.alert.v1.PushoverEndpoints
-	(*PagerdutyEndpoints)(nil),       // 60: arista.alert.v1.PagerdutyEndpoints
-	(*VictorOpsEndpoints)(nil),       // 61: arista.alert.v1.VictorOpsEndpoints
-	(*GoogleChatEndpoints)(nil),      // 62: arista.alert.v1.GoogleChatEndpoints
-	(*MsTeamsEndpoints)(nil),         // 63: arista.alert.v1.MsTeamsEndpoints
-	(*SendgridEndpoints)(nil),        // 64: arista.alert.v1.SendgridEndpoints
-	(*CueSendgridEndpoints)(nil),     // 65: arista.alert.v1.CueSendgridEndpoints
-	(*SyslogEndpoints)(nil),          // 66: arista.alert.v1.SyslogEndpoints
-	(*CueSyslogEndpoints)(nil),       // 67: arista.alert.v1.CueSyslogEndpoints
-	(*SNMPEndpoints)(nil),            // 68: arista.alert.v1.SNMPEndpoints
-	(*CueSnmpEndpoints)(nil),         // 69: arista.alert.v1.CueSnmpEndpoints
-	(*ZoomEndpoints)(nil),            // 70: arista.alert.v1.ZoomEndpoints
-	(*MsGraphSendMailEndpoints)(nil), // 71: arista.alert.v1.MsGraphSendMailEndpoints
-	(*CvActionEndpoints)(nil),        // 72: arista.alert.v1.CvActionEndpoints
-	(*EmailEndpoint)(nil),            // 73: arista.alert.v1.EmailEndpoint
-	(*WebhookEndpoint)(nil),          // 74: arista.alert.v1.WebhookEndpoint
-	(*MsGraphSendMailEndpoint)(nil),  // 75: arista.alert.v1.MsGraphSendMailEndpoint
-	(*SlackEndpoint)(nil),            // 76: arista.alert.v1.SlackEndpoint
-	(*OpsgenieEndpoint)(nil),         // 77: arista.alert.v1.OpsgenieEndpoint
-	(*PushoverEndpoint)(nil),         // 78: arista.alert.v1.PushoverEndpoint
-	(*PagerdutyEndpoint)(nil),        // 79: arista.alert.v1.PagerdutyEndpoint
-	(*VictorOpsEndpoint)(nil),        // 80: arista.alert.v1.VictorOpsEndpoint
-	(*GoogleChatEndpoint)(nil),       // 81: arista.alert.v1.GoogleChatEndpoint
-	(*MsTeamsEndpoint)(nil),          // 82: arista.alert.v1.MsTeamsEndpoint
-	(*SendgridEndpoint)(nil),         // 83: arista.alert.v1.SendgridEndpoint
-	(*CueSendgridEndpoint)(nil),      // 84: arista.alert.v1.CueSendgridEndpoint
-	(*SyslogEndpoint)(nil),           // 85: arista.alert.v1.SyslogEndpoint
-	(*CueSyslogEndpoint)(nil),        // 86: arista.alert.v1.CueSyslogEndpoint
-	(*SNMPEndpoint)(nil),             // 87: arista.alert.v1.SNMPEndpoint
-	(*CueSNMPEndpoint)(nil),          // 88: arista.alert.v1.CueSNMPEndpoint
-	(*ZoomEndpoint)(nil),             // 89: arista.alert.v1.ZoomEndpoint
-	(*CvActionEndpoint)(nil),         // 90: arista.alert.v1.CvActionEndpoint
-	(*CvActions)(nil),                // 91: arista.alert.v1.CvActions
-	(*CvAction)(nil),                 // 92: arista.alert.v1.CvAction
-	(*TemplateKey)(nil),              // 93: arista.alert.v1.TemplateKey
-	(*TemplateConfig)(nil),           // 94: arista.alert.v1.TemplateConfig
-	(*DefaultTemplate)(nil),          // 95: arista.alert.v1.DefaultTemplate
-	nil,                              // 96: arista.alert.v1.HttpHeaders.ValuesEntry
-	nil,                              // 97: arista.alert.v1.CueData.ValuesEntry
-	nil,                              // 98: arista.alert.v1.InhibitionSettings.ValuesEntry
-	nil,                              // 99: arista.alert.v1.BroadcastGroups.ValuesEntry
-	(*timestamppb.Timestamp)(nil),    // 100: google.protobuf.Timestamp
-	(*wrapperspb.StringValue)(nil),   // 101: google.protobuf.StringValue
-	(*wrapperspb.BoolValue)(nil),     // 102: google.protobuf.BoolValue
-	(*wrapperspb.Int32Value)(nil),    // 103: google.protobuf.Int32Value
-	(*wrapperspb.UInt32Value)(nil),   // 104: google.protobuf.UInt32Value
-	(*fmp.RepeatedString)(nil),       // 105: fmp.RepeatedString
-	(*durationpb.Duration)(nil),      // 106: google.protobuf.Duration
+	(*OAuth2ClientCredentials)(nil),  // 25: arista.alert.v1.OAuth2ClientCredentials
+	(*HttpSettings)(nil),             // 26: arista.alert.v1.HttpSettings
+	(*HttpHeaders)(nil),              // 27: arista.alert.v1.HttpHeaders
+	(*HeaderValues)(nil),             // 28: arista.alert.v1.HeaderValues
+	(*SlackSettings)(nil),            // 29: arista.alert.v1.SlackSettings
+	(*VictoropsSettings)(nil),        // 30: arista.alert.v1.VictoropsSettings
+	(*PagerdutySettings)(nil),        // 31: arista.alert.v1.PagerdutySettings
+	(*OpsgenieSettings)(nil),         // 32: arista.alert.v1.OpsgenieSettings
+	(*GoogleChatSettings)(nil),       // 33: arista.alert.v1.GoogleChatSettings
+	(*MsTeamsSettings)(nil),          // 34: arista.alert.v1.MsTeamsSettings
+	(*WebhookSettings)(nil),          // 35: arista.alert.v1.WebhookSettings
+	(*MsGraphSendMailSettings)(nil),  // 36: arista.alert.v1.MsGraphSendMailSettings
+	(*SyslogSettings)(nil),           // 37: arista.alert.v1.SyslogSettings
+	(*Priorities)(nil),               // 38: arista.alert.v1.Priorities
+	(*CueData)(nil),                  // 39: arista.alert.v1.CueData
+	(*CueSyslogSettings)(nil),        // 40: arista.alert.v1.CueSyslogSettings
+	(*SNMPSettings)(nil),             // 41: arista.alert.v1.SNMPSettings
+	(*SNMPAuth)(nil),                 // 42: arista.alert.v1.SNMPAuth
+	(*CueSNMPAuth)(nil),              // 43: arista.alert.v1.CueSNMPAuth
+	(*CueSNMPSettings)(nil),          // 44: arista.alert.v1.CueSNMPSettings
+	(*SendgridSettings)(nil),         // 45: arista.alert.v1.SendgridSettings
+	(*CueSendgridSettings)(nil),      // 46: arista.alert.v1.CueSendgridSettings
+	(*ZoomSettings)(nil),             // 47: arista.alert.v1.ZoomSettings
+	(*CvActionSettings)(nil),         // 48: arista.alert.v1.CvActionSettings
+	(*InhibitionSettings)(nil),       // 49: arista.alert.v1.InhibitionSettings
+	(*EventList)(nil),                // 50: arista.alert.v1.EventList
+	(*Rules)(nil),                    // 51: arista.alert.v1.Rules
+	(*Rule)(nil),                     // 52: arista.alert.v1.Rule
+	(*Matches)(nil),                  // 53: arista.alert.v1.Matches
+	(*BroadcastGroups)(nil),          // 54: arista.alert.v1.BroadcastGroups
+	(*BroadcastGroup)(nil),           // 55: arista.alert.v1.BroadcastGroup
+	(*EmailEndpoints)(nil),           // 56: arista.alert.v1.EmailEndpoints
+	(*WebhookEndpoints)(nil),         // 57: arista.alert.v1.WebhookEndpoints
+	(*SlackEndpoints)(nil),           // 58: arista.alert.v1.SlackEndpoints
+	(*OpsgenieEndpoints)(nil),        // 59: arista.alert.v1.OpsgenieEndpoints
+	(*PushoverEndpoints)(nil),        // 60: arista.alert.v1.PushoverEndpoints
+	(*PagerdutyEndpoints)(nil),       // 61: arista.alert.v1.PagerdutyEndpoints
+	(*VictorOpsEndpoints)(nil),       // 62: arista.alert.v1.VictorOpsEndpoints
+	(*GoogleChatEndpoints)(nil),      // 63: arista.alert.v1.GoogleChatEndpoints
+	(*MsTeamsEndpoints)(nil),         // 64: arista.alert.v1.MsTeamsEndpoints
+	(*SendgridEndpoints)(nil),        // 65: arista.alert.v1.SendgridEndpoints
+	(*CueSendgridEndpoints)(nil),     // 66: arista.alert.v1.CueSendgridEndpoints
+	(*SyslogEndpoints)(nil),          // 67: arista.alert.v1.SyslogEndpoints
+	(*CueSyslogEndpoints)(nil),       // 68: arista.alert.v1.CueSyslogEndpoints
+	(*SNMPEndpoints)(nil),            // 69: arista.alert.v1.SNMPEndpoints
+	(*CueSnmpEndpoints)(nil),         // 70: arista.alert.v1.CueSnmpEndpoints
+	(*ZoomEndpoints)(nil),            // 71: arista.alert.v1.ZoomEndpoints
+	(*MsGraphSendMailEndpoints)(nil), // 72: arista.alert.v1.MsGraphSendMailEndpoints
+	(*CvActionEndpoints)(nil),        // 73: arista.alert.v1.CvActionEndpoints
+	(*EmailEndpoint)(nil),            // 74: arista.alert.v1.EmailEndpoint
+	(*WebhookEndpoint)(nil),          // 75: arista.alert.v1.WebhookEndpoint
+	(*MsGraphSendMailEndpoint)(nil),  // 76: arista.alert.v1.MsGraphSendMailEndpoint
+	(*SlackEndpoint)(nil),            // 77: arista.alert.v1.SlackEndpoint
+	(*OpsgenieEndpoint)(nil),         // 78: arista.alert.v1.OpsgenieEndpoint
+	(*PushoverEndpoint)(nil),         // 79: arista.alert.v1.PushoverEndpoint
+	(*PagerdutyEndpoint)(nil),        // 80: arista.alert.v1.PagerdutyEndpoint
+	(*VictorOpsEndpoint)(nil),        // 81: arista.alert.v1.VictorOpsEndpoint
+	(*GoogleChatEndpoint)(nil),       // 82: arista.alert.v1.GoogleChatEndpoint
+	(*MsTeamsEndpoint)(nil),          // 83: arista.alert.v1.MsTeamsEndpoint
+	(*SendgridEndpoint)(nil),         // 84: arista.alert.v1.SendgridEndpoint
+	(*CueSendgridEndpoint)(nil),      // 85: arista.alert.v1.CueSendgridEndpoint
+	(*SyslogEndpoint)(nil),           // 86: arista.alert.v1.SyslogEndpoint
+	(*CueSyslogEndpoint)(nil),        // 87: arista.alert.v1.CueSyslogEndpoint
+	(*SNMPEndpoint)(nil),             // 88: arista.alert.v1.SNMPEndpoint
+	(*CueSNMPEndpoint)(nil),          // 89: arista.alert.v1.CueSNMPEndpoint
+	(*ZoomEndpoint)(nil),             // 90: arista.alert.v1.ZoomEndpoint
+	(*CvActionEndpoint)(nil),         // 91: arista.alert.v1.CvActionEndpoint
+	(*CvActions)(nil),                // 92: arista.alert.v1.CvActions
+	(*CvAction)(nil),                 // 93: arista.alert.v1.CvAction
+	(*TemplateKey)(nil),              // 94: arista.alert.v1.TemplateKey
+	(*TemplateConfig)(nil),           // 95: arista.alert.v1.TemplateConfig
+	(*DefaultTemplate)(nil),          // 96: arista.alert.v1.DefaultTemplate
+	nil,                              // 97: arista.alert.v1.HttpHeaders.ValuesEntry
+	nil,                              // 98: arista.alert.v1.CueData.ValuesEntry
+	nil,                              // 99: arista.alert.v1.InhibitionSettings.ValuesEntry
+	nil,                              // 100: arista.alert.v1.BroadcastGroups.ValuesEntry
+	(*timestamppb.Timestamp)(nil),    // 101: google.protobuf.Timestamp
+	(*wrapperspb.StringValue)(nil),   // 102: google.protobuf.StringValue
+	(*wrapperspb.BoolValue)(nil),     // 103: google.protobuf.BoolValue
+	(*wrapperspb.Int32Value)(nil),    // 104: google.protobuf.Int32Value
+	(*wrapperspb.UInt32Value)(nil),   // 105: google.protobuf.UInt32Value
+	(*fmp.RepeatedString)(nil),       // 106: fmp.RepeatedString
+	(*durationpb.Duration)(nil),      // 107: google.protobuf.Duration
 }
 var file_arista_alert_v1_alert_proto_depIdxs = []int32{
 	22,  // 0: arista.alert.v1.AlertConfig.settings:type_name -> arista.alert.v1.Settings
-	50,  // 1: arista.alert.v1.AlertConfig.rules:type_name -> arista.alert.v1.Rules
-	53,  // 2: arista.alert.v1.AlertConfig.broadcast_groups:type_name -> arista.alert.v1.BroadcastGroups
+	51,  // 1: arista.alert.v1.AlertConfig.rules:type_name -> arista.alert.v1.Rules
+	54,  // 2: arista.alert.v1.AlertConfig.broadcast_groups:type_name -> arista.alert.v1.BroadcastGroups
 	13,  // 3: arista.alert.v1.Alert.configuration_errors:type_name -> arista.alert.v1.ConfigErrors
 	20,  // 4: arista.alert.v1.Alert.endpoint_errors:type_name -> arista.alert.v1.EndpointErrors
-	100, // 5: arista.alert.v1.Alert.last_modified_at:type_name -> google.protobuf.Timestamp
-	101, // 6: arista.alert.v1.Alert.last_modified_by:type_name -> google.protobuf.StringValue
+	101, // 5: arista.alert.v1.Alert.last_modified_at:type_name -> google.protobuf.Timestamp
+	102, // 6: arista.alert.v1.Alert.last_modified_by:type_name -> google.protobuf.StringValue
 	14,  // 7: arista.alert.v1.ConfigErrors.values:type_name -> arista.alert.v1.ConfigError
-	101, // 8: arista.alert.v1.ConfigError.path:type_name -> google.protobuf.StringValue
+	102, // 8: arista.alert.v1.ConfigError.path:type_name -> google.protobuf.StringValue
 	0,   // 9: arista.alert.v1.ConfigError.error_type:type_name -> arista.alert.v1.ConfigErrorType
-	101, // 10: arista.alert.v1.ConfigError.error:type_name -> google.protobuf.StringValue
-	101, // 11: arista.alert.v1.SenderStatusKey.broadcast_group_name:type_name -> google.protobuf.StringValue
+	102, // 10: arista.alert.v1.ConfigError.error:type_name -> google.protobuf.StringValue
+	102, // 11: arista.alert.v1.SenderStatusKey.broadcast_group_name:type_name -> google.protobuf.StringValue
 	1,   // 12: arista.alert.v1.SenderStatusKey.endpoint_type:type_name -> arista.alert.v1.EndpointType
 	15,  // 13: arista.alert.v1.SenderStatus.key:type_name -> arista.alert.v1.SenderStatusKey
-	102, // 14: arista.alert.v1.SenderStatus.success:type_name -> google.protobuf.BoolValue
-	103, // 15: arista.alert.v1.SenderStatus.config_index:type_name -> google.protobuf.Int32Value
-	104, // 16: arista.alert.v1.SenderStatus.remaining_retries:type_name -> google.protobuf.UInt32Value
+	103, // 14: arista.alert.v1.SenderStatus.success:type_name -> google.protobuf.BoolValue
+	104, // 15: arista.alert.v1.SenderStatus.config_index:type_name -> google.protobuf.Int32Value
+	105, // 16: arista.alert.v1.SenderStatus.remaining_retries:type_name -> google.protobuf.UInt32Value
 	2,   // 17: arista.alert.v1.SenderStatus.error_type:type_name -> arista.alert.v1.EndpointErrorType
-	101, // 18: arista.alert.v1.SenderStatus.error_message:type_name -> google.protobuf.StringValue
+	102, // 18: arista.alert.v1.SenderStatus.error_message:type_name -> google.protobuf.StringValue
 	17,  // 19: arista.alert.v1.SenderStatus.events:type_name -> arista.alert.v1.EventIdentifiers
-	104, // 20: arista.alert.v1.SenderStatus.previous_attempts:type_name -> google.protobuf.UInt32Value
+	105, // 20: arista.alert.v1.SenderStatus.previous_attempts:type_name -> google.protobuf.UInt32Value
 	18,  // 21: arista.alert.v1.EventIdentifiers.values:type_name -> arista.alert.v1.EventIdentifier
-	101, // 22: arista.alert.v1.EventIdentifier.key:type_name -> google.protobuf.StringValue
-	100, // 23: arista.alert.v1.EventIdentifier.time:type_name -> google.protobuf.Timestamp
-	103, // 24: arista.alert.v1.EventIdentifier.alerter_rule_index:type_name -> google.protobuf.Int32Value
-	102, // 25: arista.alert.v1.EventIdentifier.firing:type_name -> google.protobuf.BoolValue
-	102, // 26: arista.alert.v1.EventIdentifier.is_test:type_name -> google.protobuf.BoolValue
-	101, // 27: arista.alert.v1.EventIdentifier.event_type:type_name -> google.protobuf.StringValue
+	102, // 22: arista.alert.v1.EventIdentifier.key:type_name -> google.protobuf.StringValue
+	101, // 23: arista.alert.v1.EventIdentifier.time:type_name -> google.protobuf.Timestamp
+	104, // 24: arista.alert.v1.EventIdentifier.alerter_rule_index:type_name -> google.protobuf.Int32Value
+	103, // 25: arista.alert.v1.EventIdentifier.firing:type_name -> google.protobuf.BoolValue
+	103, // 26: arista.alert.v1.EventIdentifier.is_test:type_name -> google.protobuf.BoolValue
+	102, // 27: arista.alert.v1.EventIdentifier.event_type:type_name -> google.protobuf.StringValue
 	17,  // 28: arista.alert.v1.EventFilter.events:type_name -> arista.alert.v1.EventIdentifiers
-	102, // 29: arista.alert.v1.EventFilter.is_test:type_name -> google.protobuf.BoolValue
+	103, // 29: arista.alert.v1.EventFilter.is_test:type_name -> google.protobuf.BoolValue
 	21,  // 30: arista.alert.v1.EndpointErrors.values:type_name -> arista.alert.v1.EndpointError
-	101, // 31: arista.alert.v1.EndpointError.endpoint_type:type_name -> google.protobuf.StringValue
-	101, // 32: arista.alert.v1.EndpointError.broadcast_group_name:type_name -> google.protobuf.StringValue
-	103, // 33: arista.alert.v1.EndpointError.config_index:type_name -> google.protobuf.Int32Value
+	102, // 31: arista.alert.v1.EndpointError.endpoint_type:type_name -> google.protobuf.StringValue
+	102, // 32: arista.alert.v1.EndpointError.broadcast_group_name:type_name -> google.protobuf.StringValue
+	104, // 33: arista.alert.v1.EndpointError.config_index:type_name -> google.protobuf.Int32Value
 	2,   // 34: arista.alert.v1.EndpointError.error_type:type_name -> arista.alert.v1.EndpointErrorType
-	101, // 35: arista.alert.v1.EndpointError.error:type_name -> google.protobuf.StringValue
+	102, // 35: arista.alert.v1.EndpointError.error:type_name -> google.protobuf.StringValue
 	23,  // 36: arista.alert.v1.Settings.email:type_name -> arista.alert.v1.EmailSettings
-	25,  // 37: arista.alert.v1.Settings.http:type_name -> arista.alert.v1.HttpSettings
-	28,  // 38: arista.alert.v1.Settings.slack:type_name -> arista.alert.v1.SlackSettings
-	29,  // 39: arista.alert.v1.Settings.victorops:type_name -> arista.alert.v1.VictoropsSettings
-	30,  // 40: arista.alert.v1.Settings.pagerduty:type_name -> arista.alert.v1.PagerdutySettings
-	31,  // 41: arista.alert.v1.Settings.opsgenie:type_name -> arista.alert.v1.OpsgenieSettings
-	32,  // 42: arista.alert.v1.Settings.gchat:type_name -> arista.alert.v1.GoogleChatSettings
-	33,  // 43: arista.alert.v1.Settings.msteams:type_name -> arista.alert.v1.MsTeamsSettings
-	48,  // 44: arista.alert.v1.Settings.inhibition:type_name -> arista.alert.v1.InhibitionSettings
-	101, // 45: arista.alert.v1.Settings.base_url:type_name -> google.protobuf.StringValue
-	101, // 46: arista.alert.v1.Settings.timezone:type_name -> google.protobuf.StringValue
-	36,  // 47: arista.alert.v1.Settings.syslog:type_name -> arista.alert.v1.SyslogSettings
-	40,  // 48: arista.alert.v1.Settings.snmp:type_name -> arista.alert.v1.SNMPSettings
-	44,  // 49: arista.alert.v1.Settings.sendgrid:type_name -> arista.alert.v1.SendgridSettings
-	39,  // 50: arista.alert.v1.Settings.cue_syslog:type_name -> arista.alert.v1.CueSyslogSettings
-	43,  // 51: arista.alert.v1.Settings.cue_snmp:type_name -> arista.alert.v1.CueSNMPSettings
-	45,  // 52: arista.alert.v1.Settings.cue_sendgrid:type_name -> arista.alert.v1.CueSendgridSettings
-	102, // 53: arista.alert.v1.Settings.hide_tags:type_name -> google.protobuf.BoolValue
-	46,  // 54: arista.alert.v1.Settings.zoom:type_name -> arista.alert.v1.ZoomSettings
-	34,  // 55: arista.alert.v1.Settings.webhook:type_name -> arista.alert.v1.WebhookSettings
-	35,  // 56: arista.alert.v1.Settings.ms_graph_send_mail:type_name -> arista.alert.v1.MsGraphSendMailSettings
-	47,  // 57: arista.alert.v1.Settings.cv_action:type_name -> arista.alert.v1.CvActionSettings
-	101, // 58: arista.alert.v1.EmailSettings.from:type_name -> google.protobuf.StringValue
-	101, // 59: arista.alert.v1.EmailSettings.smarthost:type_name -> google.protobuf.StringValue
-	101, // 60: arista.alert.v1.EmailSettings.auth_username:type_name -> google.protobuf.StringValue
-	101, // 61: arista.alert.v1.EmailSettings.auth_password:type_name -> google.protobuf.StringValue
-	102, // 62: arista.alert.v1.EmailSettings.require_tls:type_name -> google.protobuf.BoolValue
-	102, // 63: arista.alert.v1.EmailSettings.single_alert_per_email:type_name -> google.protobuf.BoolValue
+	26,  // 37: arista.alert.v1.Settings.http:type_name -> arista.alert.v1.HttpSettings
+	29,  // 38: arista.alert.v1.Settings.slack:type_name -> arista.alert.v1.SlackSettings
+	30,  // 39: arista.alert.v1.Settings.victorops:type_name -> arista.alert.v1.VictoropsSettings
+	31,  // 40: arista.alert.v1.Settings.pagerduty:type_name -> arista.alert.v1.PagerdutySettings
+	32,  // 41: arista.alert.v1.Settings.opsgenie:type_name -> arista.alert.v1.OpsgenieSettings
+	33,  // 42: arista.alert.v1.Settings.gchat:type_name -> arista.alert.v1.GoogleChatSettings
+	34,  // 43: arista.alert.v1.Settings.msteams:type_name -> arista.alert.v1.MsTeamsSettings
+	49,  // 44: arista.alert.v1.Settings.inhibition:type_name -> arista.alert.v1.InhibitionSettings
+	102, // 45: arista.alert.v1.Settings.base_url:type_name -> google.protobuf.StringValue
+	102, // 46: arista.alert.v1.Settings.timezone:type_name -> google.protobuf.StringValue
+	37,  // 47: arista.alert.v1.Settings.syslog:type_name -> arista.alert.v1.SyslogSettings
+	41,  // 48: arista.alert.v1.Settings.snmp:type_name -> arista.alert.v1.SNMPSettings
+	45,  // 49: arista.alert.v1.Settings.sendgrid:type_name -> arista.alert.v1.SendgridSettings
+	40,  // 50: arista.alert.v1.Settings.cue_syslog:type_name -> arista.alert.v1.CueSyslogSettings
+	44,  // 51: arista.alert.v1.Settings.cue_snmp:type_name -> arista.alert.v1.CueSNMPSettings
+	46,  // 52: arista.alert.v1.Settings.cue_sendgrid:type_name -> arista.alert.v1.CueSendgridSettings
+	103, // 53: arista.alert.v1.Settings.hide_tags:type_name -> google.protobuf.BoolValue
+	47,  // 54: arista.alert.v1.Settings.zoom:type_name -> arista.alert.v1.ZoomSettings
+	35,  // 55: arista.alert.v1.Settings.webhook:type_name -> arista.alert.v1.WebhookSettings
+	36,  // 56: arista.alert.v1.Settings.ms_graph_send_mail:type_name -> arista.alert.v1.MsGraphSendMailSettings
+	48,  // 57: arista.alert.v1.Settings.cv_action:type_name -> arista.alert.v1.CvActionSettings
+	102, // 58: arista.alert.v1.EmailSettings.from:type_name -> google.protobuf.StringValue
+	102, // 59: arista.alert.v1.EmailSettings.smarthost:type_name -> google.protobuf.StringValue
+	102, // 60: arista.alert.v1.EmailSettings.auth_username:type_name -> google.protobuf.StringValue
+	102, // 61: arista.alert.v1.EmailSettings.auth_password:type_name -> google.protobuf.StringValue
+	103, // 62: arista.alert.v1.EmailSettings.require_tls:type_name -> google.protobuf.BoolValue
+	103, // 63: arista.alert.v1.EmailSettings.single_alert_per_email:type_name -> google.protobuf.BoolValue
 	24,  // 64: arista.alert.v1.EmailSettings.azure_o_auth:type_name -> arista.alert.v1.AzureOAuth
-	101, // 65: arista.alert.v1.AzureOAuth.client_id:type_name -> google.protobuf.StringValue
-	101, // 66: arista.alert.v1.AzureOAuth.tenant_id:type_name -> google.protobuf.StringValue
-	101, // 67: arista.alert.v1.AzureOAuth.client_secret:type_name -> google.protobuf.StringValue
-	101, // 68: arista.alert.v1.AzureOAuth.auth_uri:type_name -> google.protobuf.StringValue
-	105, // 69: arista.alert.v1.AzureOAuth.scopes:type_name -> fmp.RepeatedString
-	101, // 70: arista.alert.v1.HttpSettings.username:type_name -> google.protobuf.StringValue
-	101, // 71: arista.alert.v1.HttpSettings.password:type_name -> google.protobuf.StringValue
-	101, // 72: arista.alert.v1.HttpSettings.proxy_url:type_name -> google.protobuf.StringValue
-	26,  // 73: arista.alert.v1.HttpSettings.custom_headers:type_name -> arista.alert.v1.HttpHeaders
-	96,  // 74: arista.alert.v1.HttpHeaders.values:type_name -> arista.alert.v1.HttpHeaders.ValuesEntry
-	101, // 75: arista.alert.v1.SlackSettings.url:type_name -> google.protobuf.StringValue
-	101, // 76: arista.alert.v1.VictoropsSettings.key:type_name -> google.protobuf.StringValue
-	101, // 77: arista.alert.v1.VictoropsSettings.url:type_name -> google.protobuf.StringValue
-	101, // 78: arista.alert.v1.PagerdutySettings.url:type_name -> google.protobuf.StringValue
-	101, // 79: arista.alert.v1.OpsgenieSettings.key:type_name -> google.protobuf.StringValue
-	101, // 80: arista.alert.v1.OpsgenieSettings.url:type_name -> google.protobuf.StringValue
-	101, // 81: arista.alert.v1.GoogleChatSettings.url:type_name -> google.protobuf.StringValue
-	101, // 82: arista.alert.v1.MsTeamsSettings.url:type_name -> google.protobuf.StringValue
-	24,  // 83: arista.alert.v1.WebhookSettings.azure_o_auth:type_name -> arista.alert.v1.AzureOAuth
-	102, // 84: arista.alert.v1.MsGraphSendMailSettings.single_alert_per_email:type_name -> google.protobuf.BoolValue
-	24,  // 85: arista.alert.v1.MsGraphSendMailSettings.azure_o_auth:type_name -> arista.alert.v1.AzureOAuth
-	101, // 86: arista.alert.v1.MsGraphSendMailSettings.user_principal_name:type_name -> google.protobuf.StringValue
-	101, // 87: arista.alert.v1.SyslogSettings.network:type_name -> google.protobuf.StringValue
-	101, // 88: arista.alert.v1.SyslogSettings.address:type_name -> google.protobuf.StringValue
-	103, // 89: arista.alert.v1.SyslogSettings.facility:type_name -> google.protobuf.Int32Value
-	37,  // 90: arista.alert.v1.SyslogSettings.priorities:type_name -> arista.alert.v1.Priorities
-	101, // 91: arista.alert.v1.SyslogSettings.tag:type_name -> google.protobuf.StringValue
-	102, // 92: arista.alert.v1.SyslogSettings.per_device:type_name -> google.protobuf.BoolValue
-	102, // 93: arista.alert.v1.SyslogSettings.use_tls:type_name -> google.protobuf.BoolValue
-	103, // 94: arista.alert.v1.Priorities.critical:type_name -> google.protobuf.Int32Value
-	103, // 95: arista.alert.v1.Priorities.error:type_name -> google.protobuf.Int32Value
-	103, // 96: arista.alert.v1.Priorities.warn:type_name -> google.protobuf.Int32Value
-	103, // 97: arista.alert.v1.Priorities.info:type_name -> google.protobuf.Int32Value
-	97,  // 98: arista.alert.v1.CueData.values:type_name -> arista.alert.v1.CueData.ValuesEntry
-	101, // 99: arista.alert.v1.CueSyslogSettings.network:type_name -> google.protobuf.StringValue
-	101, // 100: arista.alert.v1.CueSyslogSettings.address:type_name -> google.protobuf.StringValue
-	103, // 101: arista.alert.v1.CueSyslogSettings.port:type_name -> google.protobuf.Int32Value
-	3,   // 102: arista.alert.v1.CueSyslogSettings.message_format:type_name -> arista.alert.v1.CueSyslogMessageFormat
-	102, // 103: arista.alert.v1.CueSyslogSettings.append_bom_header:type_name -> google.protobuf.BoolValue
-	38,  // 104: arista.alert.v1.CueSyslogSettings.data:type_name -> arista.alert.v1.CueData
-	101, // 105: arista.alert.v1.SNMPSettings.target:type_name -> google.protobuf.StringValue
-	103, // 106: arista.alert.v1.SNMPSettings.port:type_name -> google.protobuf.Int32Value
-	101, // 107: arista.alert.v1.SNMPSettings.transport:type_name -> google.protobuf.StringValue
-	103, // 108: arista.alert.v1.SNMPSettings.version:type_name -> google.protobuf.Int32Value
-	41,  // 109: arista.alert.v1.SNMPSettings.auth:type_name -> arista.alert.v1.SNMPAuth
-	101, // 110: arista.alert.v1.SNMPSettings.engine_id:type_name -> google.protobuf.StringValue
-	101, // 111: arista.alert.v1.SNMPAuth.community:type_name -> google.protobuf.StringValue
-	101, // 112: arista.alert.v1.SNMPAuth.username:type_name -> google.protobuf.StringValue
-	4,   // 113: arista.alert.v1.SNMPAuth.security_level:type_name -> arista.alert.v1.SNMPSecurityLevel
-	5,   // 114: arista.alert.v1.SNMPAuth.authentication_protocol:type_name -> arista.alert.v1.SNMPAuthProtocol
-	101, // 115: arista.alert.v1.SNMPAuth.authentication_passphrase:type_name -> google.protobuf.StringValue
-	6,   // 116: arista.alert.v1.SNMPAuth.privacy_protocol:type_name -> arista.alert.v1.SNMPPrivProtocol
-	101, // 117: arista.alert.v1.SNMPAuth.privacy_passphrase:type_name -> google.protobuf.StringValue
-	101, // 118: arista.alert.v1.CueSNMPAuth.community:type_name -> google.protobuf.StringValue
-	101, // 119: arista.alert.v1.CueSNMPAuth.username:type_name -> google.protobuf.StringValue
-	4,   // 120: arista.alert.v1.CueSNMPAuth.security_level:type_name -> arista.alert.v1.SNMPSecurityLevel
-	7,   // 121: arista.alert.v1.CueSNMPAuth.authentication_protocol:type_name -> arista.alert.v1.CueSNMPAuthProtocol
-	101, // 122: arista.alert.v1.CueSNMPAuth.authentication_passphrase:type_name -> google.protobuf.StringValue
-	8,   // 123: arista.alert.v1.CueSNMPAuth.privacy_protocol:type_name -> arista.alert.v1.CueSNMPPrivProtocol
-	101, // 124: arista.alert.v1.CueSNMPAuth.privacy_passphrase:type_name -> google.protobuf.StringValue
-	101, // 125: arista.alert.v1.CueSNMPSettings.target:type_name -> google.protobuf.StringValue
-	103, // 126: arista.alert.v1.CueSNMPSettings.port:type_name -> google.protobuf.Int32Value
-	101, // 127: arista.alert.v1.CueSNMPSettings.transport:type_name -> google.protobuf.StringValue
-	103, // 128: arista.alert.v1.CueSNMPSettings.version:type_name -> google.protobuf.Int32Value
-	42,  // 129: arista.alert.v1.CueSNMPSettings.auth:type_name -> arista.alert.v1.CueSNMPAuth
-	38,  // 130: arista.alert.v1.CueSNMPSettings.data:type_name -> arista.alert.v1.CueData
-	101, // 131: arista.alert.v1.SendgridSettings.api_key:type_name -> google.protobuf.StringValue
-	101, // 132: arista.alert.v1.SendgridSettings.from:type_name -> google.protobuf.StringValue
-	101, // 133: arista.alert.v1.CueSendgridSettings.api_key:type_name -> google.protobuf.StringValue
-	101, // 134: arista.alert.v1.CueSendgridSettings.from:type_name -> google.protobuf.StringValue
-	101, // 135: arista.alert.v1.ZoomSettings.url:type_name -> google.protobuf.StringValue
-	101, // 136: arista.alert.v1.ZoomSettings.verification_token:type_name -> google.protobuf.StringValue
-	98,  // 137: arista.alert.v1.InhibitionSettings.values:type_name -> arista.alert.v1.InhibitionSettings.ValuesEntry
-	105, // 138: arista.alert.v1.EventList.event_types:type_name -> fmp.RepeatedString
-	51,  // 139: arista.alert.v1.Rules.values:type_name -> arista.alert.v1.Rule
-	101, // 140: arista.alert.v1.Rule.sends_to:type_name -> google.protobuf.StringValue
-	52,  // 141: arista.alert.v1.Rule.match_criteria:type_name -> arista.alert.v1.Matches
-	102, // 142: arista.alert.v1.Rule.continue_checks:type_name -> google.protobuf.BoolValue
-	101, // 143: arista.alert.v1.Rule.comment:type_name -> google.protobuf.StringValue
-	106, // 144: arista.alert.v1.Rule.suppress_for:type_name -> google.protobuf.Duration
-	105, // 145: arista.alert.v1.Matches.severities:type_name -> fmp.RepeatedString
-	105, // 146: arista.alert.v1.Matches.devices:type_name -> fmp.RepeatedString
-	105, // 147: arista.alert.v1.Matches.event_types:type_name -> fmp.RepeatedString
-	101, // 148: arista.alert.v1.Matches.device_tags:type_name -> google.protobuf.StringValue
-	101, // 149: arista.alert.v1.Matches.intf_tags:type_name -> google.protobuf.StringValue
-	101, // 150: arista.alert.v1.Matches.virtual_tags:type_name -> google.protobuf.StringValue
-	105, // 151: arista.alert.v1.Matches.rule_ids:type_name -> fmp.RepeatedString
-	99,  // 152: arista.alert.v1.BroadcastGroups.values:type_name -> arista.alert.v1.BroadcastGroups.ValuesEntry
-	55,  // 153: arista.alert.v1.BroadcastGroup.email:type_name -> arista.alert.v1.EmailEndpoints
-	56,  // 154: arista.alert.v1.BroadcastGroup.webhook:type_name -> arista.alert.v1.WebhookEndpoints
-	57,  // 155: arista.alert.v1.BroadcastGroup.slack:type_name -> arista.alert.v1.SlackEndpoints
-	58,  // 156: arista.alert.v1.BroadcastGroup.opsgenie:type_name -> arista.alert.v1.OpsgenieEndpoints
-	59,  // 157: arista.alert.v1.BroadcastGroup.pushover:type_name -> arista.alert.v1.PushoverEndpoints
-	60,  // 158: arista.alert.v1.BroadcastGroup.pagerduty:type_name -> arista.alert.v1.PagerdutyEndpoints
-	61,  // 159: arista.alert.v1.BroadcastGroup.victorops:type_name -> arista.alert.v1.VictorOpsEndpoints
-	62,  // 160: arista.alert.v1.BroadcastGroup.gchat:type_name -> arista.alert.v1.GoogleChatEndpoints
-	63,  // 161: arista.alert.v1.BroadcastGroup.msteams:type_name -> arista.alert.v1.MsTeamsEndpoints
-	64,  // 162: arista.alert.v1.BroadcastGroup.sendgrid:type_name -> arista.alert.v1.SendgridEndpoints
-	66,  // 163: arista.alert.v1.BroadcastGroup.syslog:type_name -> arista.alert.v1.SyslogEndpoints
-	68,  // 164: arista.alert.v1.BroadcastGroup.snmp:type_name -> arista.alert.v1.SNMPEndpoints
-	67,  // 165: arista.alert.v1.BroadcastGroup.cue_syslog:type_name -> arista.alert.v1.CueSyslogEndpoints
-	69,  // 166: arista.alert.v1.BroadcastGroup.cue_snmp:type_name -> arista.alert.v1.CueSnmpEndpoints
-	65,  // 167: arista.alert.v1.BroadcastGroup.cue_sendgrid:type_name -> arista.alert.v1.CueSendgridEndpoints
-	70,  // 168: arista.alert.v1.BroadcastGroup.zoom:type_name -> arista.alert.v1.ZoomEndpoints
-	71,  // 169: arista.alert.v1.BroadcastGroup.ms_graph_send_mail:type_name -> arista.alert.v1.MsGraphSendMailEndpoints
-	72,  // 170: arista.alert.v1.BroadcastGroup.cv_action:type_name -> arista.alert.v1.CvActionEndpoints
-	101, // 171: arista.alert.v1.BroadcastGroup.sensor_name:type_name -> google.protobuf.StringValue
-	73,  // 172: arista.alert.v1.EmailEndpoints.values:type_name -> arista.alert.v1.EmailEndpoint
-	74,  // 173: arista.alert.v1.WebhookEndpoints.values:type_name -> arista.alert.v1.WebhookEndpoint
-	76,  // 174: arista.alert.v1.SlackEndpoints.values:type_name -> arista.alert.v1.SlackEndpoint
-	77,  // 175: arista.alert.v1.OpsgenieEndpoints.values:type_name -> arista.alert.v1.OpsgenieEndpoint
-	78,  // 176: arista.alert.v1.PushoverEndpoints.values:type_name -> arista.alert.v1.PushoverEndpoint
-	79,  // 177: arista.alert.v1.PagerdutyEndpoints.values:type_name -> arista.alert.v1.PagerdutyEndpoint
-	80,  // 178: arista.alert.v1.VictorOpsEndpoints.values:type_name -> arista.alert.v1.VictorOpsEndpoint
-	81,  // 179: arista.alert.v1.GoogleChatEndpoints.values:type_name -> arista.alert.v1.GoogleChatEndpoint
-	82,  // 180: arista.alert.v1.MsTeamsEndpoints.values:type_name -> arista.alert.v1.MsTeamsEndpoint
-	83,  // 181: arista.alert.v1.SendgridEndpoints.values:type_name -> arista.alert.v1.SendgridEndpoint
-	84,  // 182: arista.alert.v1.CueSendgridEndpoints.values:type_name -> arista.alert.v1.CueSendgridEndpoint
-	85,  // 183: arista.alert.v1.SyslogEndpoints.values:type_name -> arista.alert.v1.SyslogEndpoint
-	86,  // 184: arista.alert.v1.CueSyslogEndpoints.values:type_name -> arista.alert.v1.CueSyslogEndpoint
-	87,  // 185: arista.alert.v1.SNMPEndpoints.values:type_name -> arista.alert.v1.SNMPEndpoint
-	88,  // 186: arista.alert.v1.CueSnmpEndpoints.values:type_name -> arista.alert.v1.CueSNMPEndpoint
-	89,  // 187: arista.alert.v1.ZoomEndpoints.values:type_name -> arista.alert.v1.ZoomEndpoint
-	75,  // 188: arista.alert.v1.MsGraphSendMailEndpoints.values:type_name -> arista.alert.v1.MsGraphSendMailEndpoint
-	90,  // 189: arista.alert.v1.CvActionEndpoints.values:type_name -> arista.alert.v1.CvActionEndpoint
-	102, // 190: arista.alert.v1.EmailEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 191: arista.alert.v1.EmailEndpoint.to:type_name -> google.protobuf.StringValue
-	102, // 192: arista.alert.v1.WebhookEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 193: arista.alert.v1.WebhookEndpoint.url:type_name -> google.protobuf.StringValue
-	25,  // 194: arista.alert.v1.WebhookEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	102, // 195: arista.alert.v1.WebhookEndpoint.simple_output:type_name -> google.protobuf.BoolValue
-	102, // 196: arista.alert.v1.WebhookEndpoint.single_alert:type_name -> google.protobuf.BoolValue
-	34,  // 197: arista.alert.v1.WebhookEndpoint.settings_override:type_name -> arista.alert.v1.WebhookSettings
-	102, // 198: arista.alert.v1.MsGraphSendMailEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 199: arista.alert.v1.MsGraphSendMailEndpoint.to:type_name -> google.protobuf.StringValue
-	25,  // 200: arista.alert.v1.MsGraphSendMailEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	35,  // 201: arista.alert.v1.MsGraphSendMailEndpoint.settings_override:type_name -> arista.alert.v1.MsGraphSendMailSettings
-	102, // 202: arista.alert.v1.SlackEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	25,  // 203: arista.alert.v1.SlackEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	28,  // 204: arista.alert.v1.SlackEndpoint.settings_override:type_name -> arista.alert.v1.SlackSettings
-	102, // 205: arista.alert.v1.OpsgenieEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	25,  // 206: arista.alert.v1.OpsgenieEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	31,  // 207: arista.alert.v1.OpsgenieEndpoint.settings_override:type_name -> arista.alert.v1.OpsgenieSettings
-	102, // 208: arista.alert.v1.PushoverEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 209: arista.alert.v1.PushoverEndpoint.token:type_name -> google.protobuf.StringValue
-	101, // 210: arista.alert.v1.PushoverEndpoint.user_key:type_name -> google.protobuf.StringValue
-	25,  // 211: arista.alert.v1.PushoverEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	102, // 212: arista.alert.v1.PagerdutyEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 213: arista.alert.v1.PagerdutyEndpoint.routing_key:type_name -> google.protobuf.StringValue
-	25,  // 214: arista.alert.v1.PagerdutyEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	30,  // 215: arista.alert.v1.PagerdutyEndpoint.settings_override:type_name -> arista.alert.v1.PagerdutySettings
-	102, // 216: arista.alert.v1.VictorOpsEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 217: arista.alert.v1.VictorOpsEndpoint.routing_key:type_name -> google.protobuf.StringValue
-	25,  // 218: arista.alert.v1.VictorOpsEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	29,  // 219: arista.alert.v1.VictorOpsEndpoint.settings_override:type_name -> arista.alert.v1.VictoropsSettings
-	102, // 220: arista.alert.v1.GoogleChatEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	25,  // 221: arista.alert.v1.GoogleChatEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	32,  // 222: arista.alert.v1.GoogleChatEndpoint.settings_override:type_name -> arista.alert.v1.GoogleChatSettings
-	102, // 223: arista.alert.v1.MsTeamsEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	25,  // 224: arista.alert.v1.MsTeamsEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	33,  // 225: arista.alert.v1.MsTeamsEndpoint.settings_override:type_name -> arista.alert.v1.MsTeamsSettings
-	102, // 226: arista.alert.v1.SendgridEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 227: arista.alert.v1.SendgridEndpoint.to:type_name -> google.protobuf.StringValue
-	25,  // 228: arista.alert.v1.SendgridEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	102, // 229: arista.alert.v1.CueSendgridEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	101, // 230: arista.alert.v1.CueSendgridEndpoint.to:type_name -> google.protobuf.StringValue
-	25,  // 231: arista.alert.v1.CueSendgridEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	102, // 232: arista.alert.v1.SyslogEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	36,  // 233: arista.alert.v1.SyslogEndpoint.settings_override:type_name -> arista.alert.v1.SyslogSettings
-	102, // 234: arista.alert.v1.CueSyslogEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	39,  // 235: arista.alert.v1.CueSyslogEndpoint.settings_override:type_name -> arista.alert.v1.CueSyslogSettings
-	102, // 236: arista.alert.v1.SNMPEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	40,  // 237: arista.alert.v1.SNMPEndpoint.settings_override:type_name -> arista.alert.v1.SNMPSettings
-	102, // 238: arista.alert.v1.CueSNMPEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	43,  // 239: arista.alert.v1.CueSNMPEndpoint.settings_override:type_name -> arista.alert.v1.CueSNMPSettings
-	102, // 240: arista.alert.v1.ZoomEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
-	25,  // 241: arista.alert.v1.ZoomEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
-	46,  // 242: arista.alert.v1.ZoomEndpoint.settings_override:type_name -> arista.alert.v1.ZoomSettings
-	91,  // 243: arista.alert.v1.CvActionEndpoint.on_firing:type_name -> arista.alert.v1.CvActions
-	91,  // 244: arista.alert.v1.CvActionEndpoint.on_resolving:type_name -> arista.alert.v1.CvActions
-	92,  // 245: arista.alert.v1.CvActions.values:type_name -> arista.alert.v1.CvAction
-	101, // 246: arista.alert.v1.CvAction.action_id:type_name -> google.protobuf.StringValue
-	9,   // 247: arista.alert.v1.TemplateKey.template_type:type_name -> arista.alert.v1.TemplateType
-	93,  // 248: arista.alert.v1.TemplateConfig.key:type_name -> arista.alert.v1.TemplateKey
-	101, // 249: arista.alert.v1.TemplateConfig.template:type_name -> google.protobuf.StringValue
-	93,  // 250: arista.alert.v1.DefaultTemplate.key:type_name -> arista.alert.v1.TemplateKey
-	101, // 251: arista.alert.v1.DefaultTemplate.template:type_name -> google.protobuf.StringValue
-	102, // 252: arista.alert.v1.DefaultTemplate.multi_alert:type_name -> google.protobuf.BoolValue
-	101, // 253: arista.alert.v1.DefaultTemplate.description:type_name -> google.protobuf.StringValue
-	101, // 254: arista.alert.v1.DefaultTemplate.external_documentation:type_name -> google.protobuf.StringValue
-	10,  // 255: arista.alert.v1.DefaultTemplate.output_format:type_name -> arista.alert.v1.TemplateOutput
-	101, // 256: arista.alert.v1.DefaultTemplate.display_name:type_name -> google.protobuf.StringValue
-	27,  // 257: arista.alert.v1.HttpHeaders.ValuesEntry.value:type_name -> arista.alert.v1.HeaderValues
-	49,  // 258: arista.alert.v1.InhibitionSettings.ValuesEntry.value:type_name -> arista.alert.v1.EventList
-	54,  // 259: arista.alert.v1.BroadcastGroups.ValuesEntry.value:type_name -> arista.alert.v1.BroadcastGroup
-	260, // [260:260] is the sub-list for method output_type
-	260, // [260:260] is the sub-list for method input_type
-	260, // [260:260] is the sub-list for extension type_name
-	260, // [260:260] is the sub-list for extension extendee
-	0,   // [0:260] is the sub-list for field type_name
+	102, // 65: arista.alert.v1.AzureOAuth.client_id:type_name -> google.protobuf.StringValue
+	102, // 66: arista.alert.v1.AzureOAuth.tenant_id:type_name -> google.protobuf.StringValue
+	102, // 67: arista.alert.v1.AzureOAuth.client_secret:type_name -> google.protobuf.StringValue
+	102, // 68: arista.alert.v1.AzureOAuth.auth_uri:type_name -> google.protobuf.StringValue
+	106, // 69: arista.alert.v1.AzureOAuth.scopes:type_name -> fmp.RepeatedString
+	102, // 70: arista.alert.v1.OAuth2ClientCredentials.client_id:type_name -> google.protobuf.StringValue
+	102, // 71: arista.alert.v1.OAuth2ClientCredentials.client_secret:type_name -> google.protobuf.StringValue
+	102, // 72: arista.alert.v1.OAuth2ClientCredentials.token_url:type_name -> google.protobuf.StringValue
+	102, // 73: arista.alert.v1.OAuth2ClientCredentials.scope:type_name -> google.protobuf.StringValue
+	102, // 74: arista.alert.v1.HttpSettings.username:type_name -> google.protobuf.StringValue
+	102, // 75: arista.alert.v1.HttpSettings.password:type_name -> google.protobuf.StringValue
+	102, // 76: arista.alert.v1.HttpSettings.proxy_url:type_name -> google.protobuf.StringValue
+	27,  // 77: arista.alert.v1.HttpSettings.custom_headers:type_name -> arista.alert.v1.HttpHeaders
+	97,  // 78: arista.alert.v1.HttpHeaders.values:type_name -> arista.alert.v1.HttpHeaders.ValuesEntry
+	102, // 79: arista.alert.v1.SlackSettings.url:type_name -> google.protobuf.StringValue
+	102, // 80: arista.alert.v1.VictoropsSettings.key:type_name -> google.protobuf.StringValue
+	102, // 81: arista.alert.v1.VictoropsSettings.url:type_name -> google.protobuf.StringValue
+	102, // 82: arista.alert.v1.PagerdutySettings.url:type_name -> google.protobuf.StringValue
+	102, // 83: arista.alert.v1.OpsgenieSettings.key:type_name -> google.protobuf.StringValue
+	102, // 84: arista.alert.v1.OpsgenieSettings.url:type_name -> google.protobuf.StringValue
+	102, // 85: arista.alert.v1.GoogleChatSettings.url:type_name -> google.protobuf.StringValue
+	102, // 86: arista.alert.v1.MsTeamsSettings.url:type_name -> google.protobuf.StringValue
+	24,  // 87: arista.alert.v1.WebhookSettings.azure_o_auth:type_name -> arista.alert.v1.AzureOAuth
+	25,  // 88: arista.alert.v1.WebhookSettings.oauth2_client_credentials:type_name -> arista.alert.v1.OAuth2ClientCredentials
+	103, // 89: arista.alert.v1.MsGraphSendMailSettings.single_alert_per_email:type_name -> google.protobuf.BoolValue
+	24,  // 90: arista.alert.v1.MsGraphSendMailSettings.azure_o_auth:type_name -> arista.alert.v1.AzureOAuth
+	102, // 91: arista.alert.v1.MsGraphSendMailSettings.user_principal_name:type_name -> google.protobuf.StringValue
+	102, // 92: arista.alert.v1.SyslogSettings.network:type_name -> google.protobuf.StringValue
+	102, // 93: arista.alert.v1.SyslogSettings.address:type_name -> google.protobuf.StringValue
+	104, // 94: arista.alert.v1.SyslogSettings.facility:type_name -> google.protobuf.Int32Value
+	38,  // 95: arista.alert.v1.SyslogSettings.priorities:type_name -> arista.alert.v1.Priorities
+	102, // 96: arista.alert.v1.SyslogSettings.tag:type_name -> google.protobuf.StringValue
+	103, // 97: arista.alert.v1.SyslogSettings.per_device:type_name -> google.protobuf.BoolValue
+	103, // 98: arista.alert.v1.SyslogSettings.use_tls:type_name -> google.protobuf.BoolValue
+	104, // 99: arista.alert.v1.Priorities.critical:type_name -> google.protobuf.Int32Value
+	104, // 100: arista.alert.v1.Priorities.error:type_name -> google.protobuf.Int32Value
+	104, // 101: arista.alert.v1.Priorities.warn:type_name -> google.protobuf.Int32Value
+	104, // 102: arista.alert.v1.Priorities.info:type_name -> google.protobuf.Int32Value
+	98,  // 103: arista.alert.v1.CueData.values:type_name -> arista.alert.v1.CueData.ValuesEntry
+	102, // 104: arista.alert.v1.CueSyslogSettings.network:type_name -> google.protobuf.StringValue
+	102, // 105: arista.alert.v1.CueSyslogSettings.address:type_name -> google.protobuf.StringValue
+	104, // 106: arista.alert.v1.CueSyslogSettings.port:type_name -> google.protobuf.Int32Value
+	3,   // 107: arista.alert.v1.CueSyslogSettings.message_format:type_name -> arista.alert.v1.CueSyslogMessageFormat
+	103, // 108: arista.alert.v1.CueSyslogSettings.append_bom_header:type_name -> google.protobuf.BoolValue
+	39,  // 109: arista.alert.v1.CueSyslogSettings.data:type_name -> arista.alert.v1.CueData
+	102, // 110: arista.alert.v1.SNMPSettings.target:type_name -> google.protobuf.StringValue
+	104, // 111: arista.alert.v1.SNMPSettings.port:type_name -> google.protobuf.Int32Value
+	102, // 112: arista.alert.v1.SNMPSettings.transport:type_name -> google.protobuf.StringValue
+	104, // 113: arista.alert.v1.SNMPSettings.version:type_name -> google.protobuf.Int32Value
+	42,  // 114: arista.alert.v1.SNMPSettings.auth:type_name -> arista.alert.v1.SNMPAuth
+	102, // 115: arista.alert.v1.SNMPSettings.engine_id:type_name -> google.protobuf.StringValue
+	102, // 116: arista.alert.v1.SNMPAuth.community:type_name -> google.protobuf.StringValue
+	102, // 117: arista.alert.v1.SNMPAuth.username:type_name -> google.protobuf.StringValue
+	4,   // 118: arista.alert.v1.SNMPAuth.security_level:type_name -> arista.alert.v1.SNMPSecurityLevel
+	5,   // 119: arista.alert.v1.SNMPAuth.authentication_protocol:type_name -> arista.alert.v1.SNMPAuthProtocol
+	102, // 120: arista.alert.v1.SNMPAuth.authentication_passphrase:type_name -> google.protobuf.StringValue
+	6,   // 121: arista.alert.v1.SNMPAuth.privacy_protocol:type_name -> arista.alert.v1.SNMPPrivProtocol
+	102, // 122: arista.alert.v1.SNMPAuth.privacy_passphrase:type_name -> google.protobuf.StringValue
+	102, // 123: arista.alert.v1.CueSNMPAuth.community:type_name -> google.protobuf.StringValue
+	102, // 124: arista.alert.v1.CueSNMPAuth.username:type_name -> google.protobuf.StringValue
+	4,   // 125: arista.alert.v1.CueSNMPAuth.security_level:type_name -> arista.alert.v1.SNMPSecurityLevel
+	7,   // 126: arista.alert.v1.CueSNMPAuth.authentication_protocol:type_name -> arista.alert.v1.CueSNMPAuthProtocol
+	102, // 127: arista.alert.v1.CueSNMPAuth.authentication_passphrase:type_name -> google.protobuf.StringValue
+	8,   // 128: arista.alert.v1.CueSNMPAuth.privacy_protocol:type_name -> arista.alert.v1.CueSNMPPrivProtocol
+	102, // 129: arista.alert.v1.CueSNMPAuth.privacy_passphrase:type_name -> google.protobuf.StringValue
+	102, // 130: arista.alert.v1.CueSNMPSettings.target:type_name -> google.protobuf.StringValue
+	104, // 131: arista.alert.v1.CueSNMPSettings.port:type_name -> google.protobuf.Int32Value
+	102, // 132: arista.alert.v1.CueSNMPSettings.transport:type_name -> google.protobuf.StringValue
+	104, // 133: arista.alert.v1.CueSNMPSettings.version:type_name -> google.protobuf.Int32Value
+	43,  // 134: arista.alert.v1.CueSNMPSettings.auth:type_name -> arista.alert.v1.CueSNMPAuth
+	39,  // 135: arista.alert.v1.CueSNMPSettings.data:type_name -> arista.alert.v1.CueData
+	102, // 136: arista.alert.v1.SendgridSettings.api_key:type_name -> google.protobuf.StringValue
+	102, // 137: arista.alert.v1.SendgridSettings.from:type_name -> google.protobuf.StringValue
+	102, // 138: arista.alert.v1.CueSendgridSettings.api_key:type_name -> google.protobuf.StringValue
+	102, // 139: arista.alert.v1.CueSendgridSettings.from:type_name -> google.protobuf.StringValue
+	102, // 140: arista.alert.v1.ZoomSettings.url:type_name -> google.protobuf.StringValue
+	102, // 141: arista.alert.v1.ZoomSettings.verification_token:type_name -> google.protobuf.StringValue
+	99,  // 142: arista.alert.v1.InhibitionSettings.values:type_name -> arista.alert.v1.InhibitionSettings.ValuesEntry
+	106, // 143: arista.alert.v1.EventList.event_types:type_name -> fmp.RepeatedString
+	52,  // 144: arista.alert.v1.Rules.values:type_name -> arista.alert.v1.Rule
+	102, // 145: arista.alert.v1.Rule.sends_to:type_name -> google.protobuf.StringValue
+	53,  // 146: arista.alert.v1.Rule.match_criteria:type_name -> arista.alert.v1.Matches
+	103, // 147: arista.alert.v1.Rule.continue_checks:type_name -> google.protobuf.BoolValue
+	102, // 148: arista.alert.v1.Rule.comment:type_name -> google.protobuf.StringValue
+	107, // 149: arista.alert.v1.Rule.suppress_for:type_name -> google.protobuf.Duration
+	106, // 150: arista.alert.v1.Matches.severities:type_name -> fmp.RepeatedString
+	106, // 151: arista.alert.v1.Matches.devices:type_name -> fmp.RepeatedString
+	106, // 152: arista.alert.v1.Matches.event_types:type_name -> fmp.RepeatedString
+	102, // 153: arista.alert.v1.Matches.device_tags:type_name -> google.protobuf.StringValue
+	102, // 154: arista.alert.v1.Matches.intf_tags:type_name -> google.protobuf.StringValue
+	102, // 155: arista.alert.v1.Matches.virtual_tags:type_name -> google.protobuf.StringValue
+	106, // 156: arista.alert.v1.Matches.rule_ids:type_name -> fmp.RepeatedString
+	100, // 157: arista.alert.v1.BroadcastGroups.values:type_name -> arista.alert.v1.BroadcastGroups.ValuesEntry
+	56,  // 158: arista.alert.v1.BroadcastGroup.email:type_name -> arista.alert.v1.EmailEndpoints
+	57,  // 159: arista.alert.v1.BroadcastGroup.webhook:type_name -> arista.alert.v1.WebhookEndpoints
+	58,  // 160: arista.alert.v1.BroadcastGroup.slack:type_name -> arista.alert.v1.SlackEndpoints
+	59,  // 161: arista.alert.v1.BroadcastGroup.opsgenie:type_name -> arista.alert.v1.OpsgenieEndpoints
+	60,  // 162: arista.alert.v1.BroadcastGroup.pushover:type_name -> arista.alert.v1.PushoverEndpoints
+	61,  // 163: arista.alert.v1.BroadcastGroup.pagerduty:type_name -> arista.alert.v1.PagerdutyEndpoints
+	62,  // 164: arista.alert.v1.BroadcastGroup.victorops:type_name -> arista.alert.v1.VictorOpsEndpoints
+	63,  // 165: arista.alert.v1.BroadcastGroup.gchat:type_name -> arista.alert.v1.GoogleChatEndpoints
+	64,  // 166: arista.alert.v1.BroadcastGroup.msteams:type_name -> arista.alert.v1.MsTeamsEndpoints
+	65,  // 167: arista.alert.v1.BroadcastGroup.sendgrid:type_name -> arista.alert.v1.SendgridEndpoints
+	67,  // 168: arista.alert.v1.BroadcastGroup.syslog:type_name -> arista.alert.v1.SyslogEndpoints
+	69,  // 169: arista.alert.v1.BroadcastGroup.snmp:type_name -> arista.alert.v1.SNMPEndpoints
+	68,  // 170: arista.alert.v1.BroadcastGroup.cue_syslog:type_name -> arista.alert.v1.CueSyslogEndpoints
+	70,  // 171: arista.alert.v1.BroadcastGroup.cue_snmp:type_name -> arista.alert.v1.CueSnmpEndpoints
+	66,  // 172: arista.alert.v1.BroadcastGroup.cue_sendgrid:type_name -> arista.alert.v1.CueSendgridEndpoints
+	71,  // 173: arista.alert.v1.BroadcastGroup.zoom:type_name -> arista.alert.v1.ZoomEndpoints
+	72,  // 174: arista.alert.v1.BroadcastGroup.ms_graph_send_mail:type_name -> arista.alert.v1.MsGraphSendMailEndpoints
+	73,  // 175: arista.alert.v1.BroadcastGroup.cv_action:type_name -> arista.alert.v1.CvActionEndpoints
+	102, // 176: arista.alert.v1.BroadcastGroup.sensor_name:type_name -> google.protobuf.StringValue
+	74,  // 177: arista.alert.v1.EmailEndpoints.values:type_name -> arista.alert.v1.EmailEndpoint
+	75,  // 178: arista.alert.v1.WebhookEndpoints.values:type_name -> arista.alert.v1.WebhookEndpoint
+	77,  // 179: arista.alert.v1.SlackEndpoints.values:type_name -> arista.alert.v1.SlackEndpoint
+	78,  // 180: arista.alert.v1.OpsgenieEndpoints.values:type_name -> arista.alert.v1.OpsgenieEndpoint
+	79,  // 181: arista.alert.v1.PushoverEndpoints.values:type_name -> arista.alert.v1.PushoverEndpoint
+	80,  // 182: arista.alert.v1.PagerdutyEndpoints.values:type_name -> arista.alert.v1.PagerdutyEndpoint
+	81,  // 183: arista.alert.v1.VictorOpsEndpoints.values:type_name -> arista.alert.v1.VictorOpsEndpoint
+	82,  // 184: arista.alert.v1.GoogleChatEndpoints.values:type_name -> arista.alert.v1.GoogleChatEndpoint
+	83,  // 185: arista.alert.v1.MsTeamsEndpoints.values:type_name -> arista.alert.v1.MsTeamsEndpoint
+	84,  // 186: arista.alert.v1.SendgridEndpoints.values:type_name -> arista.alert.v1.SendgridEndpoint
+	85,  // 187: arista.alert.v1.CueSendgridEndpoints.values:type_name -> arista.alert.v1.CueSendgridEndpoint
+	86,  // 188: arista.alert.v1.SyslogEndpoints.values:type_name -> arista.alert.v1.SyslogEndpoint
+	87,  // 189: arista.alert.v1.CueSyslogEndpoints.values:type_name -> arista.alert.v1.CueSyslogEndpoint
+	88,  // 190: arista.alert.v1.SNMPEndpoints.values:type_name -> arista.alert.v1.SNMPEndpoint
+	89,  // 191: arista.alert.v1.CueSnmpEndpoints.values:type_name -> arista.alert.v1.CueSNMPEndpoint
+	90,  // 192: arista.alert.v1.ZoomEndpoints.values:type_name -> arista.alert.v1.ZoomEndpoint
+	76,  // 193: arista.alert.v1.MsGraphSendMailEndpoints.values:type_name -> arista.alert.v1.MsGraphSendMailEndpoint
+	91,  // 194: arista.alert.v1.CvActionEndpoints.values:type_name -> arista.alert.v1.CvActionEndpoint
+	103, // 195: arista.alert.v1.EmailEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 196: arista.alert.v1.EmailEndpoint.to:type_name -> google.protobuf.StringValue
+	103, // 197: arista.alert.v1.WebhookEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 198: arista.alert.v1.WebhookEndpoint.url:type_name -> google.protobuf.StringValue
+	26,  // 199: arista.alert.v1.WebhookEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	103, // 200: arista.alert.v1.WebhookEndpoint.simple_output:type_name -> google.protobuf.BoolValue
+	103, // 201: arista.alert.v1.WebhookEndpoint.single_alert:type_name -> google.protobuf.BoolValue
+	35,  // 202: arista.alert.v1.WebhookEndpoint.settings_override:type_name -> arista.alert.v1.WebhookSettings
+	103, // 203: arista.alert.v1.MsGraphSendMailEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 204: arista.alert.v1.MsGraphSendMailEndpoint.to:type_name -> google.protobuf.StringValue
+	26,  // 205: arista.alert.v1.MsGraphSendMailEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	36,  // 206: arista.alert.v1.MsGraphSendMailEndpoint.settings_override:type_name -> arista.alert.v1.MsGraphSendMailSettings
+	103, // 207: arista.alert.v1.SlackEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	26,  // 208: arista.alert.v1.SlackEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	29,  // 209: arista.alert.v1.SlackEndpoint.settings_override:type_name -> arista.alert.v1.SlackSettings
+	103, // 210: arista.alert.v1.OpsgenieEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	26,  // 211: arista.alert.v1.OpsgenieEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	32,  // 212: arista.alert.v1.OpsgenieEndpoint.settings_override:type_name -> arista.alert.v1.OpsgenieSettings
+	103, // 213: arista.alert.v1.PushoverEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 214: arista.alert.v1.PushoverEndpoint.token:type_name -> google.protobuf.StringValue
+	102, // 215: arista.alert.v1.PushoverEndpoint.user_key:type_name -> google.protobuf.StringValue
+	26,  // 216: arista.alert.v1.PushoverEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	103, // 217: arista.alert.v1.PagerdutyEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 218: arista.alert.v1.PagerdutyEndpoint.routing_key:type_name -> google.protobuf.StringValue
+	26,  // 219: arista.alert.v1.PagerdutyEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	31,  // 220: arista.alert.v1.PagerdutyEndpoint.settings_override:type_name -> arista.alert.v1.PagerdutySettings
+	103, // 221: arista.alert.v1.VictorOpsEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 222: arista.alert.v1.VictorOpsEndpoint.routing_key:type_name -> google.protobuf.StringValue
+	26,  // 223: arista.alert.v1.VictorOpsEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	30,  // 224: arista.alert.v1.VictorOpsEndpoint.settings_override:type_name -> arista.alert.v1.VictoropsSettings
+	103, // 225: arista.alert.v1.GoogleChatEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	26,  // 226: arista.alert.v1.GoogleChatEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	33,  // 227: arista.alert.v1.GoogleChatEndpoint.settings_override:type_name -> arista.alert.v1.GoogleChatSettings
+	103, // 228: arista.alert.v1.MsTeamsEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	26,  // 229: arista.alert.v1.MsTeamsEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	34,  // 230: arista.alert.v1.MsTeamsEndpoint.settings_override:type_name -> arista.alert.v1.MsTeamsSettings
+	103, // 231: arista.alert.v1.SendgridEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 232: arista.alert.v1.SendgridEndpoint.to:type_name -> google.protobuf.StringValue
+	26,  // 233: arista.alert.v1.SendgridEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	103, // 234: arista.alert.v1.CueSendgridEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	102, // 235: arista.alert.v1.CueSendgridEndpoint.to:type_name -> google.protobuf.StringValue
+	26,  // 236: arista.alert.v1.CueSendgridEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	103, // 237: arista.alert.v1.SyslogEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	37,  // 238: arista.alert.v1.SyslogEndpoint.settings_override:type_name -> arista.alert.v1.SyslogSettings
+	103, // 239: arista.alert.v1.CueSyslogEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	40,  // 240: arista.alert.v1.CueSyslogEndpoint.settings_override:type_name -> arista.alert.v1.CueSyslogSettings
+	103, // 241: arista.alert.v1.SNMPEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	41,  // 242: arista.alert.v1.SNMPEndpoint.settings_override:type_name -> arista.alert.v1.SNMPSettings
+	103, // 243: arista.alert.v1.CueSNMPEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	44,  // 244: arista.alert.v1.CueSNMPEndpoint.settings_override:type_name -> arista.alert.v1.CueSNMPSettings
+	103, // 245: arista.alert.v1.ZoomEndpoint.send_resolved:type_name -> google.protobuf.BoolValue
+	26,  // 246: arista.alert.v1.ZoomEndpoint.http_override:type_name -> arista.alert.v1.HttpSettings
+	47,  // 247: arista.alert.v1.ZoomEndpoint.settings_override:type_name -> arista.alert.v1.ZoomSettings
+	92,  // 248: arista.alert.v1.CvActionEndpoint.on_firing:type_name -> arista.alert.v1.CvActions
+	92,  // 249: arista.alert.v1.CvActionEndpoint.on_resolving:type_name -> arista.alert.v1.CvActions
+	93,  // 250: arista.alert.v1.CvActions.values:type_name -> arista.alert.v1.CvAction
+	102, // 251: arista.alert.v1.CvAction.action_id:type_name -> google.protobuf.StringValue
+	9,   // 252: arista.alert.v1.TemplateKey.template_type:type_name -> arista.alert.v1.TemplateType
+	94,  // 253: arista.alert.v1.TemplateConfig.key:type_name -> arista.alert.v1.TemplateKey
+	102, // 254: arista.alert.v1.TemplateConfig.template:type_name -> google.protobuf.StringValue
+	94,  // 255: arista.alert.v1.DefaultTemplate.key:type_name -> arista.alert.v1.TemplateKey
+	102, // 256: arista.alert.v1.DefaultTemplate.template:type_name -> google.protobuf.StringValue
+	103, // 257: arista.alert.v1.DefaultTemplate.multi_alert:type_name -> google.protobuf.BoolValue
+	102, // 258: arista.alert.v1.DefaultTemplate.description:type_name -> google.protobuf.StringValue
+	102, // 259: arista.alert.v1.DefaultTemplate.external_documentation:type_name -> google.protobuf.StringValue
+	10,  // 260: arista.alert.v1.DefaultTemplate.output_format:type_name -> arista.alert.v1.TemplateOutput
+	102, // 261: arista.alert.v1.DefaultTemplate.display_name:type_name -> google.protobuf.StringValue
+	28,  // 262: arista.alert.v1.HttpHeaders.ValuesEntry.value:type_name -> arista.alert.v1.HeaderValues
+	50,  // 263: arista.alert.v1.InhibitionSettings.ValuesEntry.value:type_name -> arista.alert.v1.EventList
+	55,  // 264: arista.alert.v1.BroadcastGroups.ValuesEntry.value:type_name -> arista.alert.v1.BroadcastGroup
+	265, // [265:265] is the sub-list for method output_type
+	265, // [265:265] is the sub-list for method input_type
+	265, // [265:265] is the sub-list for extension type_name
+	265, // [265:265] is the sub-list for extension extendee
+	0,   // [0:265] is the sub-list for field type_name
 }
 
 func init() { file_arista_alert_v1_alert_proto_init() }
@@ -8595,7 +8712,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HttpSettings); i {
+			switch v := v.(*OAuth2ClientCredentials); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8607,7 +8724,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HttpHeaders); i {
+			switch v := v.(*HttpSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8619,7 +8736,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HeaderValues); i {
+			switch v := v.(*HttpHeaders); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8631,7 +8748,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SlackSettings); i {
+			switch v := v.(*HeaderValues); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8643,7 +8760,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VictoropsSettings); i {
+			switch v := v.(*SlackSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8655,7 +8772,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PagerdutySettings); i {
+			switch v := v.(*VictoropsSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8667,7 +8784,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*OpsgenieSettings); i {
+			switch v := v.(*PagerdutySettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8679,7 +8796,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GoogleChatSettings); i {
+			switch v := v.(*OpsgenieSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8691,7 +8808,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsTeamsSettings); i {
+			switch v := v.(*GoogleChatSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8703,7 +8820,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WebhookSettings); i {
+			switch v := v.(*MsTeamsSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8715,7 +8832,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsGraphSendMailSettings); i {
+			switch v := v.(*WebhookSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8727,7 +8844,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyslogSettings); i {
+			switch v := v.(*MsGraphSendMailSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8739,7 +8856,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Priorities); i {
+			switch v := v.(*SyslogSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8751,7 +8868,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueData); i {
+			switch v := v.(*Priorities); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8763,7 +8880,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSyslogSettings); i {
+			switch v := v.(*CueData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8775,7 +8892,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SNMPSettings); i {
+			switch v := v.(*CueSyslogSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8787,7 +8904,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SNMPAuth); i {
+			switch v := v.(*SNMPSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8799,7 +8916,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSNMPAuth); i {
+			switch v := v.(*SNMPAuth); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8811,7 +8928,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSNMPSettings); i {
+			switch v := v.(*CueSNMPAuth); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8823,7 +8940,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SendgridSettings); i {
+			switch v := v.(*CueSNMPSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8835,7 +8952,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSendgridSettings); i {
+			switch v := v.(*SendgridSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8847,7 +8964,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ZoomSettings); i {
+			switch v := v.(*CueSendgridSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8859,7 +8976,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CvActionSettings); i {
+			switch v := v.(*ZoomSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8871,7 +8988,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InhibitionSettings); i {
+			switch v := v.(*CvActionSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8883,7 +9000,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventList); i {
+			switch v := v.(*InhibitionSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8895,7 +9012,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Rules); i {
+			switch v := v.(*EventList); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8907,7 +9024,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Rule); i {
+			switch v := v.(*Rules); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8919,7 +9036,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Matches); i {
+			switch v := v.(*Rule); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8931,7 +9048,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BroadcastGroups); i {
+			switch v := v.(*Matches); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8943,7 +9060,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BroadcastGroup); i {
+			switch v := v.(*BroadcastGroups); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8955,7 +9072,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EmailEndpoints); i {
+			switch v := v.(*BroadcastGroup); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8967,7 +9084,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WebhookEndpoints); i {
+			switch v := v.(*EmailEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8979,7 +9096,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SlackEndpoints); i {
+			switch v := v.(*WebhookEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -8991,7 +9108,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*OpsgenieEndpoints); i {
+			switch v := v.(*SlackEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9003,7 +9120,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PushoverEndpoints); i {
+			switch v := v.(*OpsgenieEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9015,7 +9132,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PagerdutyEndpoints); i {
+			switch v := v.(*PushoverEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9027,7 +9144,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VictorOpsEndpoints); i {
+			switch v := v.(*PagerdutyEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9039,7 +9156,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GoogleChatEndpoints); i {
+			switch v := v.(*VictorOpsEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9051,7 +9168,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsTeamsEndpoints); i {
+			switch v := v.(*GoogleChatEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9063,7 +9180,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SendgridEndpoints); i {
+			switch v := v.(*MsTeamsEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9075,7 +9192,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSendgridEndpoints); i {
+			switch v := v.(*SendgridEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9087,7 +9204,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyslogEndpoints); i {
+			switch v := v.(*CueSendgridEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9099,7 +9216,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSyslogEndpoints); i {
+			switch v := v.(*SyslogEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9111,7 +9228,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SNMPEndpoints); i {
+			switch v := v.(*CueSyslogEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9123,7 +9240,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSnmpEndpoints); i {
+			switch v := v.(*SNMPEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9135,7 +9252,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ZoomEndpoints); i {
+			switch v := v.(*CueSnmpEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9147,7 +9264,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsGraphSendMailEndpoints); i {
+			switch v := v.(*ZoomEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9159,7 +9276,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CvActionEndpoints); i {
+			switch v := v.(*MsGraphSendMailEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9171,7 +9288,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EmailEndpoint); i {
+			switch v := v.(*CvActionEndpoints); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9183,7 +9300,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WebhookEndpoint); i {
+			switch v := v.(*EmailEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9195,7 +9312,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsGraphSendMailEndpoint); i {
+			switch v := v.(*WebhookEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9207,7 +9324,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SlackEndpoint); i {
+			switch v := v.(*MsGraphSendMailEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9219,7 +9336,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*OpsgenieEndpoint); i {
+			switch v := v.(*SlackEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9231,7 +9348,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PushoverEndpoint); i {
+			switch v := v.(*OpsgenieEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9243,7 +9360,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PagerdutyEndpoint); i {
+			switch v := v.(*PushoverEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9255,7 +9372,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*VictorOpsEndpoint); i {
+			switch v := v.(*PagerdutyEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9267,7 +9384,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GoogleChatEndpoint); i {
+			switch v := v.(*VictorOpsEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9279,7 +9396,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MsTeamsEndpoint); i {
+			switch v := v.(*GoogleChatEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9291,7 +9408,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SendgridEndpoint); i {
+			switch v := v.(*MsTeamsEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9303,7 +9420,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSendgridEndpoint); i {
+			switch v := v.(*SendgridEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9315,7 +9432,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyslogEndpoint); i {
+			switch v := v.(*CueSendgridEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9327,7 +9444,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSyslogEndpoint); i {
+			switch v := v.(*SyslogEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9339,7 +9456,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SNMPEndpoint); i {
+			switch v := v.(*CueSyslogEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9351,7 +9468,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CueSNMPEndpoint); i {
+			switch v := v.(*SNMPEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9363,7 +9480,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ZoomEndpoint); i {
+			switch v := v.(*CueSNMPEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9375,7 +9492,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CvActionEndpoint); i {
+			switch v := v.(*ZoomEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9387,7 +9504,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CvActions); i {
+			switch v := v.(*CvActionEndpoint); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9399,7 +9516,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CvAction); i {
+			switch v := v.(*CvActions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9411,7 +9528,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateKey); i {
+			switch v := v.(*CvAction); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9423,7 +9540,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateConfig); i {
+			switch v := v.(*TemplateKey); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9435,6 +9552,18 @@ func file_arista_alert_v1_alert_proto_init() {
 			}
 		}
 		file_arista_alert_v1_alert_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TemplateConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_arista_alert_v1_alert_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DefaultTemplate); i {
 			case 0:
 				return &v.state
@@ -9453,7 +9582,7 @@ func file_arista_alert_v1_alert_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_arista_alert_v1_alert_proto_rawDesc,
 			NumEnums:      11,
-			NumMessages:   89,
+			NumMessages:   90,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
