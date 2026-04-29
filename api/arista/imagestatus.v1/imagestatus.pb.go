@@ -529,6 +529,64 @@ func (InfoCode) EnumDescriptor() ([]byte, []int) {
 	return file_arista_imagestatus_v1_imagestatus_proto_rawDescGZIP(), []int{5}
 }
 
+// ImageSource indicates the source type for the image configuration.
+type ImageSource int32
+
+const (
+	// IMAGE_SOURCE_UNSPECIFIED uninitialized value
+	ImageSource_IMAGE_SOURCE_UNSPECIFIED ImageSource = 0
+	// IMAGE_SOURCE_STUDIO - image configured from studio
+	ImageSource_IMAGE_SOURCE_STUDIO ImageSource = 1
+	// IMAGE_SOURCE_NETWORK_PROVISIONING - image configured from
+	// network provisioning workflow
+	ImageSource_IMAGE_SOURCE_NETWORK_PROVISIONING ImageSource = 2
+	// IMAGE_SOURCE_HIERARCHY - image configured from hierarchy workflow
+	ImageSource_IMAGE_SOURCE_HIERARCHY ImageSource = 3
+)
+
+// Enum value maps for ImageSource.
+var (
+	ImageSource_name = map[int32]string{
+		0: "IMAGE_SOURCE_UNSPECIFIED",
+		1: "IMAGE_SOURCE_STUDIO",
+		2: "IMAGE_SOURCE_NETWORK_PROVISIONING",
+		3: "IMAGE_SOURCE_HIERARCHY",
+	}
+	ImageSource_value = map[string]int32{
+		"IMAGE_SOURCE_UNSPECIFIED":          0,
+		"IMAGE_SOURCE_STUDIO":               1,
+		"IMAGE_SOURCE_NETWORK_PROVISIONING": 2,
+		"IMAGE_SOURCE_HIERARCHY":            3,
+	}
+)
+
+func (x ImageSource) Enum() *ImageSource {
+	p := new(ImageSource)
+	*p = x
+	return p
+}
+
+func (x ImageSource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImageSource) Descriptor() protoreflect.EnumDescriptor {
+	return file_arista_imagestatus_v1_imagestatus_proto_enumTypes[6].Descriptor()
+}
+
+func (ImageSource) Type() protoreflect.EnumType {
+	return &file_arista_imagestatus_v1_imagestatus_proto_enumTypes[6]
+}
+
+func (x ImageSource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImageSource.Descriptor instead.
+func (ImageSource) EnumDescriptor() ([]byte, []int) {
+	return file_arista_imagestatus_v1_imagestatus_proto_rawDescGZIP(), []int{6}
+}
+
 // SoftwareImage provides information of the running/designed EOS image.
 type SoftwareImage struct {
 	state         protoimpl.MessageState
@@ -2514,16 +2572,24 @@ var file_arista_imagestatus_v1_imagestatus_proto_rawDesc = []byte{
 	0x45, 0x52, 0x53, 0x49, 0x4f, 0x4e, 0x5f, 0x41, 0x56, 0x41, 0x49, 0x4c, 0x41, 0x42, 0x4c, 0x45,
 	0x10, 0x01, 0x12, 0x2a, 0x0a, 0x26, 0x49, 0x4e, 0x46, 0x4f, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f,
 	0x55, 0x4e, 0x49, 0x56, 0x45, 0x52, 0x53, 0x41, 0x4c, 0x5f, 0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f,
-	0x41, 0x52, 0x43, 0x48, 0x5f, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x45, 0x44, 0x10, 0x02, 0x42, 0x7a,
-	0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x69, 0x6d, 0x61,
-	0x67, 0x65, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x49, 0x6d, 0x61,
-	0x67, 0x65, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x50, 0x01, 0x5a, 0x4e, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f,
-	0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f,
-	0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x3b, 0x69,
-	0x6d, 0x61, 0x67, 0x65, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x41, 0x52, 0x43, 0x48, 0x5f, 0x41, 0x50, 0x50, 0x4c, 0x49, 0x45, 0x44, 0x10, 0x02, 0x2a, 0x87,
+	0x01, 0x0a, 0x0b, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x1c,
+	0x0a, 0x18, 0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x53, 0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x55,
+	0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x17, 0x0a, 0x13,
+	0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x53, 0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x53, 0x54, 0x55,
+	0x44, 0x49, 0x4f, 0x10, 0x01, 0x12, 0x25, 0x0a, 0x21, 0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x53,
+	0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x4e, 0x45, 0x54, 0x57, 0x4f, 0x52, 0x4b, 0x5f, 0x50, 0x52,
+	0x4f, 0x56, 0x49, 0x53, 0x49, 0x4f, 0x4e, 0x49, 0x4e, 0x47, 0x10, 0x02, 0x12, 0x1a, 0x0a, 0x16,
+	0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x53, 0x4f, 0x55, 0x52, 0x43, 0x45, 0x5f, 0x48, 0x49, 0x45,
+	0x52, 0x41, 0x52, 0x43, 0x48, 0x59, 0x10, 0x03, 0x42, 0x7a, 0x0a, 0x19, 0x63, 0x6f, 0x6d, 0x2e,
+	0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x50, 0x01, 0x5a, 0x4e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f,
+	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2f, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x76, 0x31, 0x3b, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2538,7 +2604,7 @@ func file_arista_imagestatus_v1_imagestatus_proto_rawDescGZIP() []byte {
 	return file_arista_imagestatus_v1_imagestatus_proto_rawDescData
 }
 
-var file_arista_imagestatus_v1_imagestatus_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_arista_imagestatus_v1_imagestatus_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_arista_imagestatus_v1_imagestatus_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_arista_imagestatus_v1_imagestatus_proto_goTypes = []interface{}{
 	(ExtensionInstallStatus)(0),     // 0: arista.imagestatus.v1.ExtensionInstallStatus
@@ -2547,109 +2613,110 @@ var file_arista_imagestatus_v1_imagestatus_proto_goTypes = []interface{}{
 	(ErrorCode)(0),                  // 3: arista.imagestatus.v1.ErrorCode
 	(WarningCode)(0),                // 4: arista.imagestatus.v1.WarningCode
 	(InfoCode)(0),                   // 5: arista.imagestatus.v1.InfoCode
-	(*SoftwareImage)(nil),           // 6: arista.imagestatus.v1.SoftwareImage
-	(*ImageMetadata)(nil),           // 7: arista.imagestatus.v1.ImageMetadata
-	(*Extension)(nil),               // 8: arista.imagestatus.v1.Extension
-	(*Extensions)(nil),              // 9: arista.imagestatus.v1.Extensions
-	(*ComplianceStatus)(nil),        // 10: arista.imagestatus.v1.ComplianceStatus
-	(*ComplianceStatusBySup)(nil),   // 11: arista.imagestatus.v1.ComplianceStatusBySup
-	(*RebootRequired)(nil),          // 12: arista.imagestatus.v1.RebootRequired
-	(*SoftwareImageDiff)(nil),       // 13: arista.imagestatus.v1.SoftwareImageDiff
-	(*SoftwareImageDiffsBySup)(nil), // 14: arista.imagestatus.v1.SoftwareImageDiffsBySup
-	(*ExtensionDiff)(nil),           // 15: arista.imagestatus.v1.ExtensionDiff
-	(*TerminAttrDiffsBySup)(nil),    // 16: arista.imagestatus.v1.TerminAttrDiffsBySup
-	(*ExtensionDiffs)(nil),          // 17: arista.imagestatus.v1.ExtensionDiffs
-	(*ExtensionDiffsBySup)(nil),     // 18: arista.imagestatus.v1.ExtensionDiffsBySup
-	(*ImageSummary)(nil),            // 19: arista.imagestatus.v1.ImageSummary
-	(*SummaryKey)(nil),              // 20: arista.imagestatus.v1.SummaryKey
-	(*Summary)(nil),                 // 21: arista.imagestatus.v1.Summary
-	(*ImageError)(nil),              // 22: arista.imagestatus.v1.ImageError
-	(*ImageErrors)(nil),             // 23: arista.imagestatus.v1.ImageErrors
-	(*ImageWarning)(nil),            // 24: arista.imagestatus.v1.ImageWarning
-	(*ImageWarnings)(nil),           // 25: arista.imagestatus.v1.ImageWarnings
-	(*ImageInfo)(nil),               // 26: arista.imagestatus.v1.ImageInfo
-	(*ImageInfos)(nil),              // 27: arista.imagestatus.v1.ImageInfos
-	nil,                             // 28: arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry
-	nil,                             // 29: arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry
-	nil,                             // 30: arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry
-	nil,                             // 31: arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry
-	(*wrapperspb.StringValue)(nil),  // 32: google.protobuf.StringValue
-	(*wrapperspb.BoolValue)(nil),    // 33: google.protobuf.BoolValue
-	(*timestamppb.Timestamp)(nil),   // 34: google.protobuf.Timestamp
-	(*wrapperspb.Int32Value)(nil),   // 35: google.protobuf.Int32Value
+	(ImageSource)(0),                // 6: arista.imagestatus.v1.ImageSource
+	(*SoftwareImage)(nil),           // 7: arista.imagestatus.v1.SoftwareImage
+	(*ImageMetadata)(nil),           // 8: arista.imagestatus.v1.ImageMetadata
+	(*Extension)(nil),               // 9: arista.imagestatus.v1.Extension
+	(*Extensions)(nil),              // 10: arista.imagestatus.v1.Extensions
+	(*ComplianceStatus)(nil),        // 11: arista.imagestatus.v1.ComplianceStatus
+	(*ComplianceStatusBySup)(nil),   // 12: arista.imagestatus.v1.ComplianceStatusBySup
+	(*RebootRequired)(nil),          // 13: arista.imagestatus.v1.RebootRequired
+	(*SoftwareImageDiff)(nil),       // 14: arista.imagestatus.v1.SoftwareImageDiff
+	(*SoftwareImageDiffsBySup)(nil), // 15: arista.imagestatus.v1.SoftwareImageDiffsBySup
+	(*ExtensionDiff)(nil),           // 16: arista.imagestatus.v1.ExtensionDiff
+	(*TerminAttrDiffsBySup)(nil),    // 17: arista.imagestatus.v1.TerminAttrDiffsBySup
+	(*ExtensionDiffs)(nil),          // 18: arista.imagestatus.v1.ExtensionDiffs
+	(*ExtensionDiffsBySup)(nil),     // 19: arista.imagestatus.v1.ExtensionDiffsBySup
+	(*ImageSummary)(nil),            // 20: arista.imagestatus.v1.ImageSummary
+	(*SummaryKey)(nil),              // 21: arista.imagestatus.v1.SummaryKey
+	(*Summary)(nil),                 // 22: arista.imagestatus.v1.Summary
+	(*ImageError)(nil),              // 23: arista.imagestatus.v1.ImageError
+	(*ImageErrors)(nil),             // 24: arista.imagestatus.v1.ImageErrors
+	(*ImageWarning)(nil),            // 25: arista.imagestatus.v1.ImageWarning
+	(*ImageWarnings)(nil),           // 26: arista.imagestatus.v1.ImageWarnings
+	(*ImageInfo)(nil),               // 27: arista.imagestatus.v1.ImageInfo
+	(*ImageInfos)(nil),              // 28: arista.imagestatus.v1.ImageInfos
+	nil,                             // 29: arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry
+	nil,                             // 30: arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry
+	nil,                             // 31: arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry
+	nil,                             // 32: arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry
+	(*wrapperspb.StringValue)(nil),  // 33: google.protobuf.StringValue
+	(*wrapperspb.BoolValue)(nil),    // 34: google.protobuf.BoolValue
+	(*timestamppb.Timestamp)(nil),   // 35: google.protobuf.Timestamp
+	(*wrapperspb.Int32Value)(nil),   // 36: google.protobuf.Int32Value
 }
 var file_arista_imagestatus_v1_imagestatus_proto_depIdxs = []int32{
-	32, // 0: arista.imagestatus.v1.SoftwareImage.name:type_name -> google.protobuf.StringValue
-	32, // 1: arista.imagestatus.v1.SoftwareImage.version:type_name -> google.protobuf.StringValue
-	7,  // 2: arista.imagestatus.v1.SoftwareImage.metadata:type_name -> arista.imagestatus.v1.ImageMetadata
-	32, // 3: arista.imagestatus.v1.ImageMetadata.version:type_name -> google.protobuf.StringValue
-	32, // 4: arista.imagestatus.v1.ImageMetadata.release:type_name -> google.protobuf.StringValue
-	32, // 5: arista.imagestatus.v1.ImageMetadata.flavor:type_name -> google.protobuf.StringValue
-	32, // 6: arista.imagestatus.v1.ImageMetadata.variant:type_name -> google.protobuf.StringValue
-	32, // 7: arista.imagestatus.v1.ImageMetadata.arch:type_name -> google.protobuf.StringValue
-	32, // 8: arista.imagestatus.v1.Extension.name:type_name -> google.protobuf.StringValue
-	32, // 9: arista.imagestatus.v1.Extension.version:type_name -> google.protobuf.StringValue
-	33, // 10: arista.imagestatus.v1.Extension.reboot_required:type_name -> google.protobuf.BoolValue
-	33, // 11: arista.imagestatus.v1.Extension.present:type_name -> google.protobuf.BoolValue
+	33, // 0: arista.imagestatus.v1.SoftwareImage.name:type_name -> google.protobuf.StringValue
+	33, // 1: arista.imagestatus.v1.SoftwareImage.version:type_name -> google.protobuf.StringValue
+	8,  // 2: arista.imagestatus.v1.SoftwareImage.metadata:type_name -> arista.imagestatus.v1.ImageMetadata
+	33, // 3: arista.imagestatus.v1.ImageMetadata.version:type_name -> google.protobuf.StringValue
+	33, // 4: arista.imagestatus.v1.ImageMetadata.release:type_name -> google.protobuf.StringValue
+	33, // 5: arista.imagestatus.v1.ImageMetadata.flavor:type_name -> google.protobuf.StringValue
+	33, // 6: arista.imagestatus.v1.ImageMetadata.variant:type_name -> google.protobuf.StringValue
+	33, // 7: arista.imagestatus.v1.ImageMetadata.arch:type_name -> google.protobuf.StringValue
+	33, // 8: arista.imagestatus.v1.Extension.name:type_name -> google.protobuf.StringValue
+	33, // 9: arista.imagestatus.v1.Extension.version:type_name -> google.protobuf.StringValue
+	34, // 10: arista.imagestatus.v1.Extension.reboot_required:type_name -> google.protobuf.BoolValue
+	34, // 11: arista.imagestatus.v1.Extension.present:type_name -> google.protobuf.BoolValue
 	0,  // 12: arista.imagestatus.v1.Extension.installed:type_name -> arista.imagestatus.v1.ExtensionInstallStatus
-	32, // 13: arista.imagestatus.v1.Extension.status_detail:type_name -> google.protobuf.StringValue
-	33, // 14: arista.imagestatus.v1.Extension.is_embedded:type_name -> google.protobuf.BoolValue
-	32, // 15: arista.imagestatus.v1.Extension.arch:type_name -> google.protobuf.StringValue
-	8,  // 16: arista.imagestatus.v1.Extensions.values:type_name -> arista.imagestatus.v1.Extension
+	33, // 13: arista.imagestatus.v1.Extension.status_detail:type_name -> google.protobuf.StringValue
+	34, // 14: arista.imagestatus.v1.Extension.is_embedded:type_name -> google.protobuf.BoolValue
+	33, // 15: arista.imagestatus.v1.Extension.arch:type_name -> google.protobuf.StringValue
+	9,  // 16: arista.imagestatus.v1.Extensions.values:type_name -> arista.imagestatus.v1.Extension
 	1,  // 17: arista.imagestatus.v1.ComplianceStatus.software_image_compliance_code:type_name -> arista.imagestatus.v1.SoftwareComplianceCode
 	1,  // 18: arista.imagestatus.v1.ComplianceStatus.terminattr_compliance_code:type_name -> arista.imagestatus.v1.SoftwareComplianceCode
 	1,  // 19: arista.imagestatus.v1.ComplianceStatus.extensions_compliance_code:type_name -> arista.imagestatus.v1.SoftwareComplianceCode
-	28, // 20: arista.imagestatus.v1.ComplianceStatusBySup.values:type_name -> arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry
-	33, // 21: arista.imagestatus.v1.RebootRequired.software_image_reboot_required:type_name -> google.protobuf.BoolValue
-	33, // 22: arista.imagestatus.v1.RebootRequired.terminattr_reboot_required:type_name -> google.protobuf.BoolValue
-	33, // 23: arista.imagestatus.v1.RebootRequired.extension_reboot_required:type_name -> google.protobuf.BoolValue
+	29, // 20: arista.imagestatus.v1.ComplianceStatusBySup.values:type_name -> arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry
+	34, // 21: arista.imagestatus.v1.RebootRequired.software_image_reboot_required:type_name -> google.protobuf.BoolValue
+	34, // 22: arista.imagestatus.v1.RebootRequired.terminattr_reboot_required:type_name -> google.protobuf.BoolValue
+	34, // 23: arista.imagestatus.v1.RebootRequired.extension_reboot_required:type_name -> google.protobuf.BoolValue
 	2,  // 24: arista.imagestatus.v1.SoftwareImageDiff.code:type_name -> arista.imagestatus.v1.DiffOp
-	6,  // 25: arista.imagestatus.v1.SoftwareImageDiff.a:type_name -> arista.imagestatus.v1.SoftwareImage
-	6,  // 26: arista.imagestatus.v1.SoftwareImageDiff.b:type_name -> arista.imagestatus.v1.SoftwareImage
+	7,  // 25: arista.imagestatus.v1.SoftwareImageDiff.a:type_name -> arista.imagestatus.v1.SoftwareImage
+	7,  // 26: arista.imagestatus.v1.SoftwareImageDiff.b:type_name -> arista.imagestatus.v1.SoftwareImage
 	2,  // 27: arista.imagestatus.v1.SoftwareImageDiff.text_code:type_name -> arista.imagestatus.v1.DiffOp
-	29, // 28: arista.imagestatus.v1.SoftwareImageDiffsBySup.values:type_name -> arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry
+	30, // 28: arista.imagestatus.v1.SoftwareImageDiffsBySup.values:type_name -> arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry
 	2,  // 29: arista.imagestatus.v1.ExtensionDiff.code:type_name -> arista.imagestatus.v1.DiffOp
-	8,  // 30: arista.imagestatus.v1.ExtensionDiff.a:type_name -> arista.imagestatus.v1.Extension
-	8,  // 31: arista.imagestatus.v1.ExtensionDiff.b:type_name -> arista.imagestatus.v1.Extension
+	9,  // 30: arista.imagestatus.v1.ExtensionDiff.a:type_name -> arista.imagestatus.v1.Extension
+	9,  // 31: arista.imagestatus.v1.ExtensionDiff.b:type_name -> arista.imagestatus.v1.Extension
 	2,  // 32: arista.imagestatus.v1.ExtensionDiff.text_code:type_name -> arista.imagestatus.v1.DiffOp
-	30, // 33: arista.imagestatus.v1.TerminAttrDiffsBySup.values:type_name -> arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry
-	15, // 34: arista.imagestatus.v1.ExtensionDiffs.values:type_name -> arista.imagestatus.v1.ExtensionDiff
-	31, // 35: arista.imagestatus.v1.ExtensionDiffsBySup.values:type_name -> arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry
-	32, // 36: arista.imagestatus.v1.ImageSummary.sku:type_name -> google.protobuf.StringValue
-	34, // 37: arista.imagestatus.v1.ImageSummary.running_image_update_time:type_name -> google.protobuf.Timestamp
-	34, // 38: arista.imagestatus.v1.ImageSummary.designed_image_update_time:type_name -> google.protobuf.Timestamp
-	33, // 39: arista.imagestatus.v1.ImageSummary.dual_sup:type_name -> google.protobuf.BoolValue
-	35, // 40: arista.imagestatus.v1.ImageSummary.active_slot:type_name -> google.protobuf.Int32Value
-	35, // 41: arista.imagestatus.v1.ImageSummary.standby_slot:type_name -> google.protobuf.Int32Value
-	14, // 42: arista.imagestatus.v1.ImageSummary.software_image_diff:type_name -> arista.imagestatus.v1.SoftwareImageDiffsBySup
-	16, // 43: arista.imagestatus.v1.ImageSummary.terminattr_diff:type_name -> arista.imagestatus.v1.TerminAttrDiffsBySup
-	18, // 44: arista.imagestatus.v1.ImageSummary.extensions_diff:type_name -> arista.imagestatus.v1.ExtensionDiffsBySup
+	31, // 33: arista.imagestatus.v1.TerminAttrDiffsBySup.values:type_name -> arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry
+	16, // 34: arista.imagestatus.v1.ExtensionDiffs.values:type_name -> arista.imagestatus.v1.ExtensionDiff
+	32, // 35: arista.imagestatus.v1.ExtensionDiffsBySup.values:type_name -> arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry
+	33, // 36: arista.imagestatus.v1.ImageSummary.sku:type_name -> google.protobuf.StringValue
+	35, // 37: arista.imagestatus.v1.ImageSummary.running_image_update_time:type_name -> google.protobuf.Timestamp
+	35, // 38: arista.imagestatus.v1.ImageSummary.designed_image_update_time:type_name -> google.protobuf.Timestamp
+	34, // 39: arista.imagestatus.v1.ImageSummary.dual_sup:type_name -> google.protobuf.BoolValue
+	36, // 40: arista.imagestatus.v1.ImageSummary.active_slot:type_name -> google.protobuf.Int32Value
+	36, // 41: arista.imagestatus.v1.ImageSummary.standby_slot:type_name -> google.protobuf.Int32Value
+	15, // 42: arista.imagestatus.v1.ImageSummary.software_image_diff:type_name -> arista.imagestatus.v1.SoftwareImageDiffsBySup
+	17, // 43: arista.imagestatus.v1.ImageSummary.terminattr_diff:type_name -> arista.imagestatus.v1.TerminAttrDiffsBySup
+	19, // 44: arista.imagestatus.v1.ImageSummary.extensions_diff:type_name -> arista.imagestatus.v1.ExtensionDiffsBySup
 	1,  // 45: arista.imagestatus.v1.ImageSummary.compliance_status:type_name -> arista.imagestatus.v1.SoftwareComplianceCode
-	11, // 46: arista.imagestatus.v1.ImageSummary.compliance:type_name -> arista.imagestatus.v1.ComplianceStatusBySup
-	12, // 47: arista.imagestatus.v1.ImageSummary.reboot_required:type_name -> arista.imagestatus.v1.RebootRequired
-	32, // 48: arista.imagestatus.v1.ImageSummary.digest:type_name -> google.protobuf.StringValue
-	32, // 49: arista.imagestatus.v1.SummaryKey.device_id:type_name -> google.protobuf.StringValue
-	20, // 50: arista.imagestatus.v1.Summary.key:type_name -> arista.imagestatus.v1.SummaryKey
-	19, // 51: arista.imagestatus.v1.Summary.summary:type_name -> arista.imagestatus.v1.ImageSummary
-	23, // 52: arista.imagestatus.v1.Summary.errors:type_name -> arista.imagestatus.v1.ImageErrors
-	25, // 53: arista.imagestatus.v1.Summary.warnings:type_name -> arista.imagestatus.v1.ImageWarnings
-	27, // 54: arista.imagestatus.v1.Summary.infos:type_name -> arista.imagestatus.v1.ImageInfos
-	32, // 55: arista.imagestatus.v1.ImageError.sku:type_name -> google.protobuf.StringValue
+	12, // 46: arista.imagestatus.v1.ImageSummary.compliance:type_name -> arista.imagestatus.v1.ComplianceStatusBySup
+	13, // 47: arista.imagestatus.v1.ImageSummary.reboot_required:type_name -> arista.imagestatus.v1.RebootRequired
+	33, // 48: arista.imagestatus.v1.ImageSummary.digest:type_name -> google.protobuf.StringValue
+	33, // 49: arista.imagestatus.v1.SummaryKey.device_id:type_name -> google.protobuf.StringValue
+	21, // 50: arista.imagestatus.v1.Summary.key:type_name -> arista.imagestatus.v1.SummaryKey
+	20, // 51: arista.imagestatus.v1.Summary.summary:type_name -> arista.imagestatus.v1.ImageSummary
+	24, // 52: arista.imagestatus.v1.Summary.errors:type_name -> arista.imagestatus.v1.ImageErrors
+	26, // 53: arista.imagestatus.v1.Summary.warnings:type_name -> arista.imagestatus.v1.ImageWarnings
+	28, // 54: arista.imagestatus.v1.Summary.infos:type_name -> arista.imagestatus.v1.ImageInfos
+	33, // 55: arista.imagestatus.v1.ImageError.sku:type_name -> google.protobuf.StringValue
 	3,  // 56: arista.imagestatus.v1.ImageError.error_code:type_name -> arista.imagestatus.v1.ErrorCode
-	32, // 57: arista.imagestatus.v1.ImageError.error_msg:type_name -> google.protobuf.StringValue
-	22, // 58: arista.imagestatus.v1.ImageErrors.values:type_name -> arista.imagestatus.v1.ImageError
-	32, // 59: arista.imagestatus.v1.ImageWarning.sku:type_name -> google.protobuf.StringValue
+	33, // 57: arista.imagestatus.v1.ImageError.error_msg:type_name -> google.protobuf.StringValue
+	23, // 58: arista.imagestatus.v1.ImageErrors.values:type_name -> arista.imagestatus.v1.ImageError
+	33, // 59: arista.imagestatus.v1.ImageWarning.sku:type_name -> google.protobuf.StringValue
 	4,  // 60: arista.imagestatus.v1.ImageWarning.warning_code:type_name -> arista.imagestatus.v1.WarningCode
-	32, // 61: arista.imagestatus.v1.ImageWarning.warning_msg:type_name -> google.protobuf.StringValue
-	24, // 62: arista.imagestatus.v1.ImageWarnings.values:type_name -> arista.imagestatus.v1.ImageWarning
-	32, // 63: arista.imagestatus.v1.ImageInfo.sku:type_name -> google.protobuf.StringValue
+	33, // 61: arista.imagestatus.v1.ImageWarning.warning_msg:type_name -> google.protobuf.StringValue
+	25, // 62: arista.imagestatus.v1.ImageWarnings.values:type_name -> arista.imagestatus.v1.ImageWarning
+	33, // 63: arista.imagestatus.v1.ImageInfo.sku:type_name -> google.protobuf.StringValue
 	5,  // 64: arista.imagestatus.v1.ImageInfo.info_code:type_name -> arista.imagestatus.v1.InfoCode
-	32, // 65: arista.imagestatus.v1.ImageInfo.info_msg:type_name -> google.protobuf.StringValue
-	26, // 66: arista.imagestatus.v1.ImageInfos.values:type_name -> arista.imagestatus.v1.ImageInfo
-	10, // 67: arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ComplianceStatus
-	13, // 68: arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.SoftwareImageDiff
-	15, // 69: arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ExtensionDiff
-	17, // 70: arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ExtensionDiffs
+	33, // 65: arista.imagestatus.v1.ImageInfo.info_msg:type_name -> google.protobuf.StringValue
+	27, // 66: arista.imagestatus.v1.ImageInfos.values:type_name -> arista.imagestatus.v1.ImageInfo
+	11, // 67: arista.imagestatus.v1.ComplianceStatusBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ComplianceStatus
+	14, // 68: arista.imagestatus.v1.SoftwareImageDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.SoftwareImageDiff
+	16, // 69: arista.imagestatus.v1.TerminAttrDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ExtensionDiff
+	18, // 70: arista.imagestatus.v1.ExtensionDiffsBySup.ValuesEntry.value:type_name -> arista.imagestatus.v1.ExtensionDiffs
 	71, // [71:71] is the sub-list for method output_type
 	71, // [71:71] is the sub-list for method input_type
 	71, // [71:71] is the sub-list for extension type_name
@@ -2933,7 +3000,7 @@ func file_arista_imagestatus_v1_imagestatus_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_arista_imagestatus_v1_imagestatus_proto_rawDesc,
-			NumEnums:      6,
+			NumEnums:      7,
 			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   0,
