@@ -1480,6 +1480,12 @@ type Workspace struct {
 	// exclude_network_provisioning indicates whether the workspace is
 	// configured to exclude Network Provisioning.
 	ExcludeNetworkProvisioning *wrapperspb.BoolValue `protobuf:"bytes,15,opt,name=exclude_network_provisioning,json=excludeNetworkProvisioning,proto3" json:"exclude_network_provisioning,omitempty"`
+	// decommission_request_ids provides, for each device staged for
+	// decommission in this workspace, the corresponding request UUID passed
+	// to inventory.v1.DeviceDecommissioningConfig. These request UUIDs can
+	// be used to track the status using the inventory.v1.DeviceDecommissioning
+	// resource.
+	DecommissionRequestIds *fmp.MapStringString `protobuf:"bytes,16,opt,name=decommission_request_ids,json=decommissionRequestIds,proto3" json:"decommission_request_ids,omitempty"`
 }
 
 func (x *Workspace) Reset() {
@@ -1615,6 +1621,13 @@ func (x *Workspace) GetDescription() *wrapperspb.StringValue {
 func (x *Workspace) GetExcludeNetworkProvisioning() *wrapperspb.BoolValue {
 	if x != nil {
 		return x.ExcludeNetworkProvisioning
+	}
+	return nil
+}
+
+func (x *Workspace) GetDecommissionRequestIds() *fmp.MapStringString {
+	if x != nil {
+		return x.DecommissionRequestIds
 	}
 	return nil
 }
@@ -4022,7 +4035,7 @@ var file_arista_workspace_v1_workspace_proto_rawDesc = []byte{
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c,
 	0x75, 0x65, 0x52, 0x1a, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x4e, 0x65, 0x74, 0x77, 0x6f,
 	0x72, 0x6b, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x73, 0x69, 0x6f, 0x6e, 0x69, 0x6e, 0x67, 0x3a, 0x06,
-	0xfa, 0x8d, 0x19, 0x02, 0x72, 0x77, 0x22, 0xd4, 0x07, 0x0a, 0x09, 0x57, 0x6f, 0x72, 0x6b, 0x73,
+	0xfa, 0x8d, 0x19, 0x02, 0x72, 0x77, 0x22, 0xa4, 0x08, 0x0a, 0x09, 0x57, 0x6f, 0x72, 0x6b, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x12, 0x33, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x21, 0x2e, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x6f, 0x72, 0x6b, 0x73, 0x70, 0x61, 0x63,
@@ -4083,7 +4096,12 @@ var file_arista_workspace_v1_workspace_proto_rawDesc = []byte{
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
 	0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x1a, 0x65, 0x78, 0x63, 0x6c, 0x75,
 	0x64, 0x65, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x73, 0x69,
-	0x6f, 0x6e, 0x69, 0x6e, 0x67, 0x3a, 0x06, 0xfa, 0x8d, 0x19, 0x02, 0x72, 0x6f, 0x22, 0xd5, 0x01,
+	0x6f, 0x6e, 0x69, 0x6e, 0x67, 0x12, 0x4e, 0x0a, 0x18, 0x64, 0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x69,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64,
+	0x73, 0x18, 0x10, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x66, 0x6d, 0x70, 0x2e, 0x4d, 0x61,
+	0x70, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x16, 0x64,
+	0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x49, 0x64, 0x73, 0x3a, 0x06, 0xfa, 0x8d, 0x19, 0x02, 0x72, 0x6f, 0x22, 0xd5, 0x01,
 	0x0a, 0x0a, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x08,
 	0x66, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
@@ -4876,15 +4894,16 @@ var file_arista_workspace_v1_workspace_proto_goTypes = []interface{}{
 	(*wrapperspb.BoolValue)(nil),            // 60: google.protobuf.BoolValue
 	(*timestamppb.Timestamp)(nil),           // 61: google.protobuf.Timestamp
 	(*fmp.RepeatedString)(nil),              // 62: fmp.RepeatedString
-	(*wrapperspb.UInt32Value)(nil),          // 63: google.protobuf.UInt32Value
-	(*configstatus_v1.ConfigSummary)(nil),   // 64: arista.configstatus.v1.ConfigSummary
-	(*configstatus_v1.ConfigErrors)(nil),    // 65: arista.configstatus.v1.ConfigErrors
-	(*configstatus_v1.ConfigSources)(nil),   // 66: arista.configstatus.v1.ConfigSources
-	(*imagestatus_v1.ImageSummary)(nil),     // 67: arista.imagestatus.v1.ImageSummary
-	(*imagestatus_v1.ImageErrors)(nil),      // 68: arista.imagestatus.v1.ImageErrors
-	(*imagestatus_v1.ImageWarnings)(nil),    // 69: arista.imagestatus.v1.ImageWarnings
-	(*imagestatus_v1.ImageInfos)(nil),       // 70: arista.imagestatus.v1.ImageInfos
-	(imagestatus_v1.ImageSource)(0),         // 71: arista.imagestatus.v1.ImageSource
+	(*fmp.MapStringString)(nil),             // 63: fmp.MapStringString
+	(*wrapperspb.UInt32Value)(nil),          // 64: google.protobuf.UInt32Value
+	(*configstatus_v1.ConfigSummary)(nil),   // 65: arista.configstatus.v1.ConfigSummary
+	(*configstatus_v1.ConfigErrors)(nil),    // 66: arista.configstatus.v1.ConfigErrors
+	(*configstatus_v1.ConfigSources)(nil),   // 67: arista.configstatus.v1.ConfigSources
+	(*imagestatus_v1.ImageSummary)(nil),     // 68: arista.imagestatus.v1.ImageSummary
+	(*imagestatus_v1.ImageErrors)(nil),      // 69: arista.imagestatus.v1.ImageErrors
+	(*imagestatus_v1.ImageWarnings)(nil),    // 70: arista.imagestatus.v1.ImageWarnings
+	(*imagestatus_v1.ImageInfos)(nil),       // 71: arista.imagestatus.v1.ImageInfos
+	(imagestatus_v1.ImageSource)(0),         // 72: arista.imagestatus.v1.ImageSource
 }
 var file_arista_workspace_v1_workspace_proto_depIdxs = []int32{
 	59,  // 0: arista.workspace.v1.RequestParams.request_id:type_name -> google.protobuf.StringValue
@@ -4914,118 +4933,119 @@ var file_arista_workspace_v1_workspace_proto_depIdxs = []int32{
 	59,  // 24: arista.workspace.v1.Workspace.display_name:type_name -> google.protobuf.StringValue
 	59,  // 25: arista.workspace.v1.Workspace.description:type_name -> google.protobuf.StringValue
 	60,  // 26: arista.workspace.v1.Workspace.exclude_network_provisioning:type_name -> google.protobuf.BoolValue
-	59,  // 27: arista.workspace.v1.InputError.field_id:type_name -> google.protobuf.StringValue
-	62,  // 28: arista.workspace.v1.InputError.path:type_name -> fmp.RepeatedString
-	62,  // 29: arista.workspace.v1.InputError.members:type_name -> fmp.RepeatedString
-	59,  // 30: arista.workspace.v1.InputError.message:type_name -> google.protobuf.StringValue
-	22,  // 31: arista.workspace.v1.InputErrors.values:type_name -> arista.workspace.v1.InputError
-	59,  // 32: arista.workspace.v1.HierarchyError.message:type_name -> google.protobuf.StringValue
-	6,   // 33: arista.workspace.v1.HierarchyError.code:type_name -> arista.workspace.v1.HierarchyErrorCode
-	24,  // 34: arista.workspace.v1.HierarchyErrors.values:type_name -> arista.workspace.v1.HierarchyError
-	59,  // 35: arista.workspace.v1.InputWarning.field_id:type_name -> google.protobuf.StringValue
-	62,  // 36: arista.workspace.v1.InputWarning.path:type_name -> fmp.RepeatedString
-	62,  // 37: arista.workspace.v1.InputWarning.members:type_name -> fmp.RepeatedString
-	59,  // 38: arista.workspace.v1.InputWarning.message:type_name -> google.protobuf.StringValue
-	26,  // 39: arista.workspace.v1.InputWarnings.values:type_name -> arista.workspace.v1.InputWarning
-	23,  // 40: arista.workspace.v1.InputValidationResult.input_schema_errors:type_name -> arista.workspace.v1.InputErrors
-	23,  // 41: arista.workspace.v1.InputValidationResult.input_value_errors:type_name -> arista.workspace.v1.InputErrors
-	62,  // 42: arista.workspace.v1.InputValidationResult.other_errors:type_name -> fmp.RepeatedString
-	27,  // 43: arista.workspace.v1.InputValidationResult.input_warnings:type_name -> arista.workspace.v1.InputWarnings
-	25,  // 44: arista.workspace.v1.InputValidationResult.hierarchy_errors:type_name -> arista.workspace.v1.HierarchyErrors
-	56,  // 45: arista.workspace.v1.InputValidationResults.values:type_name -> arista.workspace.v1.InputValidationResults.ValuesEntry
-	63,  // 46: arista.workspace.v1.TemplateError.line_num:type_name -> google.protobuf.UInt32Value
-	59,  // 47: arista.workspace.v1.TemplateError.exception:type_name -> google.protobuf.StringValue
-	59,  // 48: arista.workspace.v1.TemplateError.detail:type_name -> google.protobuf.StringValue
-	59,  // 49: arista.workspace.v1.TemplateError.exception_msg:type_name -> google.protobuf.StringValue
-	30,  // 50: arista.workspace.v1.TemplateErrors.values:type_name -> arista.workspace.v1.TemplateError
-	31,  // 51: arista.workspace.v1.ConfigletBuildResult.template_errors:type_name -> arista.workspace.v1.TemplateErrors
-	59,  // 52: arista.workspace.v1.ConfigletBuildResult.generated_config:type_name -> google.protobuf.StringValue
-	59,  // 53: arista.workspace.v1.ConfigletBuildResult.other_error:type_name -> google.protobuf.StringValue
-	59,  // 54: arista.workspace.v1.ConfigletBuildResult.execution_id:type_name -> google.protobuf.StringValue
-	23,  // 55: arista.workspace.v1.ConfigletBuildResult.input_errors:type_name -> arista.workspace.v1.InputErrors
-	57,  // 56: arista.workspace.v1.ConfigletBuildResults.values:type_name -> arista.workspace.v1.ConfigletBuildResults.ValuesEntry
-	64,  // 57: arista.workspace.v1.ConfigValidationResult.summary:type_name -> arista.configstatus.v1.ConfigSummary
-	65,  // 58: arista.workspace.v1.ConfigValidationResult.errors:type_name -> arista.configstatus.v1.ConfigErrors
-	65,  // 59: arista.workspace.v1.ConfigValidationResult.warnings:type_name -> arista.configstatus.v1.ConfigErrors
-	66,  // 60: arista.workspace.v1.ConfigValidationResult.config_sources:type_name -> arista.configstatus.v1.ConfigSources
-	60,  // 61: arista.workspace.v1.ConfigValidationResult.only_filter_inputs_changed:type_name -> google.protobuf.BoolValue
-	67,  // 62: arista.workspace.v1.ImageValidationResult.summary:type_name -> arista.imagestatus.v1.ImageSummary
-	68,  // 63: arista.workspace.v1.ImageValidationResult.errors:type_name -> arista.imagestatus.v1.ImageErrors
-	69,  // 64: arista.workspace.v1.ImageValidationResult.warnings:type_name -> arista.imagestatus.v1.ImageWarnings
-	59,  // 65: arista.workspace.v1.ImageValidationResult.image_input_error:type_name -> google.protobuf.StringValue
-	70,  // 66: arista.workspace.v1.ImageValidationResult.infos:type_name -> arista.imagestatus.v1.ImageInfos
-	71,  // 67: arista.workspace.v1.ImageValidationResult.image_source:type_name -> arista.imagestatus.v1.ImageSource
-	64,  // 68: arista.workspace.v1.ConfigSyncResult.summary:type_name -> arista.configstatus.v1.ConfigSummary
-	65,  // 69: arista.workspace.v1.ConfigSyncResult.errors:type_name -> arista.configstatus.v1.ConfigErrors
-	66,  // 70: arista.workspace.v1.ConfigSyncResult.config_sources:type_name -> arista.configstatus.v1.ConfigSources
-	58,  // 71: arista.workspace.v1.BuildStageState.values:type_name -> arista.workspace.v1.BuildStageState.ValuesEntry
-	60,  // 72: arista.workspace.v1.AuthzResult.has_unauthorized_tag_change:type_name -> google.protobuf.BoolValue
-	60,  // 73: arista.workspace.v1.AuthzResult.has_unauthorized_device_change:type_name -> google.protobuf.BoolValue
-	59,  // 74: arista.workspace.v1.AuthzResult.error:type_name -> google.protobuf.StringValue
-	29,  // 75: arista.workspace.v1.StudioBuildDetails.input_validation_results:type_name -> arista.workspace.v1.InputValidationResults
-	59,  // 76: arista.workspace.v1.HierarchyBuildStatus.build_id:type_name -> google.protobuf.StringValue
-	8,   // 77: arista.workspace.v1.HierarchyBuildStatus.build_status:type_name -> arista.workspace.v1.HierarchyBuildStatusCode
-	59,  // 78: arista.workspace.v1.WorkspaceBuildKey.workspace_id:type_name -> google.protobuf.StringValue
-	59,  // 79: arista.workspace.v1.WorkspaceBuildKey.build_id:type_name -> google.protobuf.StringValue
-	41,  // 80: arista.workspace.v1.WorkspaceBuild.key:type_name -> arista.workspace.v1.WorkspaceBuildKey
-	4,   // 81: arista.workspace.v1.WorkspaceBuild.state:type_name -> arista.workspace.v1.BuildState
-	59,  // 82: arista.workspace.v1.WorkspaceBuild.error:type_name -> google.protobuf.StringValue
-	59,  // 83: arista.workspace.v1.WorkspaceBuild.built_by:type_name -> google.protobuf.StringValue
-	38,  // 84: arista.workspace.v1.WorkspaceBuild.authz_result:type_name -> arista.workspace.v1.AuthzResult
-	39,  // 85: arista.workspace.v1.WorkspaceBuild.studio_build_details:type_name -> arista.workspace.v1.StudioBuildDetails
-	40,  // 86: arista.workspace.v1.WorkspaceBuild.hierarchy_build_status:type_name -> arista.workspace.v1.HierarchyBuildStatus
-	59,  // 87: arista.workspace.v1.WorkspaceBuildDetailsKey.workspace_id:type_name -> google.protobuf.StringValue
-	59,  // 88: arista.workspace.v1.WorkspaceBuildDetailsKey.build_id:type_name -> google.protobuf.StringValue
-	59,  // 89: arista.workspace.v1.WorkspaceBuildDetailsKey.device_id:type_name -> google.protobuf.StringValue
-	43,  // 90: arista.workspace.v1.WorkspaceBuildDetails.key:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
-	4,   // 91: arista.workspace.v1.WorkspaceBuildDetails.state:type_name -> arista.workspace.v1.BuildState
-	5,   // 92: arista.workspace.v1.WorkspaceBuildDetails.stage:type_name -> arista.workspace.v1.BuildStage
-	29,  // 93: arista.workspace.v1.WorkspaceBuildDetails.input_validation_results:type_name -> arista.workspace.v1.InputValidationResults
-	33,  // 94: arista.workspace.v1.WorkspaceBuildDetails.configlet_build_results:type_name -> arista.workspace.v1.ConfigletBuildResults
-	34,  // 95: arista.workspace.v1.WorkspaceBuildDetails.config_validation_result:type_name -> arista.workspace.v1.ConfigValidationResult
-	35,  // 96: arista.workspace.v1.WorkspaceBuildDetails.image_validation_result:type_name -> arista.workspace.v1.ImageValidationResult
-	9,   // 97: arista.workspace.v1.WorkspaceBuildDetails.config_validation_skip_cause:type_name -> arista.workspace.v1.ConfigValidationSkipCause
-	10,  // 98: arista.workspace.v1.WorkspaceBuildDetails.image_validation_skip_cause:type_name -> arista.workspace.v1.ImageValidationSkipCause
-	37,  // 99: arista.workspace.v1.WorkspaceBuildDetails.build_stage_state:type_name -> arista.workspace.v1.BuildStageState
-	7,   // 100: arista.workspace.v1.WorkspaceBuildDetails.authz_status:type_name -> arista.workspace.v1.DeviceAuthzStatus
-	36,  // 101: arista.workspace.v1.WorkspaceBuildDetails.config_sync_result:type_name -> arista.workspace.v1.ConfigSyncResult
-	11,  // 102: arista.workspace.v1.WorkspaceBuildDetails.config_sync_skip_cause:type_name -> arista.workspace.v1.ConfigSyncSkipCause
-	59,  // 103: arista.workspace.v1.WorkspaceSyncKey.workspace_id:type_name -> google.protobuf.StringValue
-	12,  // 104: arista.workspace.v1.WorkspaceSyncKey.sync_operation:type_name -> arista.workspace.v1.SyncOperation
-	45,  // 105: arista.workspace.v1.WorkspaceSyncConfig.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
-	62,  // 106: arista.workspace.v1.WorkspaceSyncConfig.device_ids:type_name -> fmp.RepeatedString
-	59,  // 107: arista.workspace.v1.StudioGeneratedConfigurationKey.workspace_id:type_name -> google.protobuf.StringValue
-	59,  // 108: arista.workspace.v1.StudioGeneratedConfigurationKey.build_id:type_name -> google.protobuf.StringValue
-	59,  // 109: arista.workspace.v1.StudioGeneratedConfigurationKey.device_id:type_name -> google.protobuf.StringValue
-	59,  // 110: arista.workspace.v1.StudioGeneratedConfigurationKey.studio:type_name -> google.protobuf.StringValue
-	47,  // 111: arista.workspace.v1.StudioGeneratedConfiguration.key:type_name -> arista.workspace.v1.StudioGeneratedConfigurationKey
-	59,  // 112: arista.workspace.v1.StudioGeneratedConfiguration.generated_config:type_name -> google.protobuf.StringValue
-	15,  // 113: arista.workspace.v1.DiffEntry.op:type_name -> arista.workspace.v1.DiffOp
-	62,  // 114: arista.workspace.v1.DiffEntry.path:type_name -> fmp.RepeatedString
-	59,  // 115: arista.workspace.v1.DiffEntry.value_a:type_name -> google.protobuf.StringValue
-	59,  // 116: arista.workspace.v1.DiffEntry.value_b:type_name -> google.protobuf.StringValue
-	63,  // 117: arista.workspace.v1.DiffEntry.index_b:type_name -> google.protobuf.UInt32Value
-	62,  // 118: arista.workspace.v1.DiffEntry.key_path:type_name -> fmp.RepeatedString
-	59,  // 119: arista.workspace.v1.DiffKey.workspace_id:type_name -> google.protobuf.StringValue
-	14,  // 120: arista.workspace.v1.DiffKey.diff_type:type_name -> arista.workspace.v1.DiffType
-	13,  // 121: arista.workspace.v1.DiffKey.entity_type:type_name -> arista.workspace.v1.EntityType
-	62,  // 122: arista.workspace.v1.DiffKey.entity_ids:type_name -> fmp.RepeatedString
-	49,  // 123: arista.workspace.v1.DiffEntries.values:type_name -> arista.workspace.v1.DiffEntry
-	59,  // 124: arista.workspace.v1.WorkspaceDiffSet.workspace_a:type_name -> google.protobuf.StringValue
-	59,  // 125: arista.workspace.v1.WorkspaceDiffSet.workspace_b:type_name -> google.protobuf.StringValue
-	51,  // 126: arista.workspace.v1.WorkspaceDiffSet.entries:type_name -> arista.workspace.v1.DiffEntries
-	52,  // 127: arista.workspace.v1.WorkspaceDiffSets.values:type_name -> arista.workspace.v1.WorkspaceDiffSet
-	50,  // 128: arista.workspace.v1.WorkspaceDiffs.key:type_name -> arista.workspace.v1.DiffKey
-	53,  // 129: arista.workspace.v1.WorkspaceDiffs.diffs:type_name -> arista.workspace.v1.WorkspaceDiffSets
-	17,  // 130: arista.workspace.v1.Responses.ValuesEntry.value:type_name -> arista.workspace.v1.Response
-	28,  // 131: arista.workspace.v1.InputValidationResults.ValuesEntry.value:type_name -> arista.workspace.v1.InputValidationResult
-	32,  // 132: arista.workspace.v1.ConfigletBuildResults.ValuesEntry.value:type_name -> arista.workspace.v1.ConfigletBuildResult
-	4,   // 133: arista.workspace.v1.BuildStageState.ValuesEntry.value:type_name -> arista.workspace.v1.BuildState
-	134, // [134:134] is the sub-list for method output_type
-	134, // [134:134] is the sub-list for method input_type
-	134, // [134:134] is the sub-list for extension type_name
-	134, // [134:134] is the sub-list for extension extendee
-	0,   // [0:134] is the sub-list for field type_name
+	63,  // 27: arista.workspace.v1.Workspace.decommission_request_ids:type_name -> fmp.MapStringString
+	59,  // 28: arista.workspace.v1.InputError.field_id:type_name -> google.protobuf.StringValue
+	62,  // 29: arista.workspace.v1.InputError.path:type_name -> fmp.RepeatedString
+	62,  // 30: arista.workspace.v1.InputError.members:type_name -> fmp.RepeatedString
+	59,  // 31: arista.workspace.v1.InputError.message:type_name -> google.protobuf.StringValue
+	22,  // 32: arista.workspace.v1.InputErrors.values:type_name -> arista.workspace.v1.InputError
+	59,  // 33: arista.workspace.v1.HierarchyError.message:type_name -> google.protobuf.StringValue
+	6,   // 34: arista.workspace.v1.HierarchyError.code:type_name -> arista.workspace.v1.HierarchyErrorCode
+	24,  // 35: arista.workspace.v1.HierarchyErrors.values:type_name -> arista.workspace.v1.HierarchyError
+	59,  // 36: arista.workspace.v1.InputWarning.field_id:type_name -> google.protobuf.StringValue
+	62,  // 37: arista.workspace.v1.InputWarning.path:type_name -> fmp.RepeatedString
+	62,  // 38: arista.workspace.v1.InputWarning.members:type_name -> fmp.RepeatedString
+	59,  // 39: arista.workspace.v1.InputWarning.message:type_name -> google.protobuf.StringValue
+	26,  // 40: arista.workspace.v1.InputWarnings.values:type_name -> arista.workspace.v1.InputWarning
+	23,  // 41: arista.workspace.v1.InputValidationResult.input_schema_errors:type_name -> arista.workspace.v1.InputErrors
+	23,  // 42: arista.workspace.v1.InputValidationResult.input_value_errors:type_name -> arista.workspace.v1.InputErrors
+	62,  // 43: arista.workspace.v1.InputValidationResult.other_errors:type_name -> fmp.RepeatedString
+	27,  // 44: arista.workspace.v1.InputValidationResult.input_warnings:type_name -> arista.workspace.v1.InputWarnings
+	25,  // 45: arista.workspace.v1.InputValidationResult.hierarchy_errors:type_name -> arista.workspace.v1.HierarchyErrors
+	56,  // 46: arista.workspace.v1.InputValidationResults.values:type_name -> arista.workspace.v1.InputValidationResults.ValuesEntry
+	64,  // 47: arista.workspace.v1.TemplateError.line_num:type_name -> google.protobuf.UInt32Value
+	59,  // 48: arista.workspace.v1.TemplateError.exception:type_name -> google.protobuf.StringValue
+	59,  // 49: arista.workspace.v1.TemplateError.detail:type_name -> google.protobuf.StringValue
+	59,  // 50: arista.workspace.v1.TemplateError.exception_msg:type_name -> google.protobuf.StringValue
+	30,  // 51: arista.workspace.v1.TemplateErrors.values:type_name -> arista.workspace.v1.TemplateError
+	31,  // 52: arista.workspace.v1.ConfigletBuildResult.template_errors:type_name -> arista.workspace.v1.TemplateErrors
+	59,  // 53: arista.workspace.v1.ConfigletBuildResult.generated_config:type_name -> google.protobuf.StringValue
+	59,  // 54: arista.workspace.v1.ConfigletBuildResult.other_error:type_name -> google.protobuf.StringValue
+	59,  // 55: arista.workspace.v1.ConfigletBuildResult.execution_id:type_name -> google.protobuf.StringValue
+	23,  // 56: arista.workspace.v1.ConfigletBuildResult.input_errors:type_name -> arista.workspace.v1.InputErrors
+	57,  // 57: arista.workspace.v1.ConfigletBuildResults.values:type_name -> arista.workspace.v1.ConfigletBuildResults.ValuesEntry
+	65,  // 58: arista.workspace.v1.ConfigValidationResult.summary:type_name -> arista.configstatus.v1.ConfigSummary
+	66,  // 59: arista.workspace.v1.ConfigValidationResult.errors:type_name -> arista.configstatus.v1.ConfigErrors
+	66,  // 60: arista.workspace.v1.ConfigValidationResult.warnings:type_name -> arista.configstatus.v1.ConfigErrors
+	67,  // 61: arista.workspace.v1.ConfigValidationResult.config_sources:type_name -> arista.configstatus.v1.ConfigSources
+	60,  // 62: arista.workspace.v1.ConfigValidationResult.only_filter_inputs_changed:type_name -> google.protobuf.BoolValue
+	68,  // 63: arista.workspace.v1.ImageValidationResult.summary:type_name -> arista.imagestatus.v1.ImageSummary
+	69,  // 64: arista.workspace.v1.ImageValidationResult.errors:type_name -> arista.imagestatus.v1.ImageErrors
+	70,  // 65: arista.workspace.v1.ImageValidationResult.warnings:type_name -> arista.imagestatus.v1.ImageWarnings
+	59,  // 66: arista.workspace.v1.ImageValidationResult.image_input_error:type_name -> google.protobuf.StringValue
+	71,  // 67: arista.workspace.v1.ImageValidationResult.infos:type_name -> arista.imagestatus.v1.ImageInfos
+	72,  // 68: arista.workspace.v1.ImageValidationResult.image_source:type_name -> arista.imagestatus.v1.ImageSource
+	65,  // 69: arista.workspace.v1.ConfigSyncResult.summary:type_name -> arista.configstatus.v1.ConfigSummary
+	66,  // 70: arista.workspace.v1.ConfigSyncResult.errors:type_name -> arista.configstatus.v1.ConfigErrors
+	67,  // 71: arista.workspace.v1.ConfigSyncResult.config_sources:type_name -> arista.configstatus.v1.ConfigSources
+	58,  // 72: arista.workspace.v1.BuildStageState.values:type_name -> arista.workspace.v1.BuildStageState.ValuesEntry
+	60,  // 73: arista.workspace.v1.AuthzResult.has_unauthorized_tag_change:type_name -> google.protobuf.BoolValue
+	60,  // 74: arista.workspace.v1.AuthzResult.has_unauthorized_device_change:type_name -> google.protobuf.BoolValue
+	59,  // 75: arista.workspace.v1.AuthzResult.error:type_name -> google.protobuf.StringValue
+	29,  // 76: arista.workspace.v1.StudioBuildDetails.input_validation_results:type_name -> arista.workspace.v1.InputValidationResults
+	59,  // 77: arista.workspace.v1.HierarchyBuildStatus.build_id:type_name -> google.protobuf.StringValue
+	8,   // 78: arista.workspace.v1.HierarchyBuildStatus.build_status:type_name -> arista.workspace.v1.HierarchyBuildStatusCode
+	59,  // 79: arista.workspace.v1.WorkspaceBuildKey.workspace_id:type_name -> google.protobuf.StringValue
+	59,  // 80: arista.workspace.v1.WorkspaceBuildKey.build_id:type_name -> google.protobuf.StringValue
+	41,  // 81: arista.workspace.v1.WorkspaceBuild.key:type_name -> arista.workspace.v1.WorkspaceBuildKey
+	4,   // 82: arista.workspace.v1.WorkspaceBuild.state:type_name -> arista.workspace.v1.BuildState
+	59,  // 83: arista.workspace.v1.WorkspaceBuild.error:type_name -> google.protobuf.StringValue
+	59,  // 84: arista.workspace.v1.WorkspaceBuild.built_by:type_name -> google.protobuf.StringValue
+	38,  // 85: arista.workspace.v1.WorkspaceBuild.authz_result:type_name -> arista.workspace.v1.AuthzResult
+	39,  // 86: arista.workspace.v1.WorkspaceBuild.studio_build_details:type_name -> arista.workspace.v1.StudioBuildDetails
+	40,  // 87: arista.workspace.v1.WorkspaceBuild.hierarchy_build_status:type_name -> arista.workspace.v1.HierarchyBuildStatus
+	59,  // 88: arista.workspace.v1.WorkspaceBuildDetailsKey.workspace_id:type_name -> google.protobuf.StringValue
+	59,  // 89: arista.workspace.v1.WorkspaceBuildDetailsKey.build_id:type_name -> google.protobuf.StringValue
+	59,  // 90: arista.workspace.v1.WorkspaceBuildDetailsKey.device_id:type_name -> google.protobuf.StringValue
+	43,  // 91: arista.workspace.v1.WorkspaceBuildDetails.key:type_name -> arista.workspace.v1.WorkspaceBuildDetailsKey
+	4,   // 92: arista.workspace.v1.WorkspaceBuildDetails.state:type_name -> arista.workspace.v1.BuildState
+	5,   // 93: arista.workspace.v1.WorkspaceBuildDetails.stage:type_name -> arista.workspace.v1.BuildStage
+	29,  // 94: arista.workspace.v1.WorkspaceBuildDetails.input_validation_results:type_name -> arista.workspace.v1.InputValidationResults
+	33,  // 95: arista.workspace.v1.WorkspaceBuildDetails.configlet_build_results:type_name -> arista.workspace.v1.ConfigletBuildResults
+	34,  // 96: arista.workspace.v1.WorkspaceBuildDetails.config_validation_result:type_name -> arista.workspace.v1.ConfigValidationResult
+	35,  // 97: arista.workspace.v1.WorkspaceBuildDetails.image_validation_result:type_name -> arista.workspace.v1.ImageValidationResult
+	9,   // 98: arista.workspace.v1.WorkspaceBuildDetails.config_validation_skip_cause:type_name -> arista.workspace.v1.ConfigValidationSkipCause
+	10,  // 99: arista.workspace.v1.WorkspaceBuildDetails.image_validation_skip_cause:type_name -> arista.workspace.v1.ImageValidationSkipCause
+	37,  // 100: arista.workspace.v1.WorkspaceBuildDetails.build_stage_state:type_name -> arista.workspace.v1.BuildStageState
+	7,   // 101: arista.workspace.v1.WorkspaceBuildDetails.authz_status:type_name -> arista.workspace.v1.DeviceAuthzStatus
+	36,  // 102: arista.workspace.v1.WorkspaceBuildDetails.config_sync_result:type_name -> arista.workspace.v1.ConfigSyncResult
+	11,  // 103: arista.workspace.v1.WorkspaceBuildDetails.config_sync_skip_cause:type_name -> arista.workspace.v1.ConfigSyncSkipCause
+	59,  // 104: arista.workspace.v1.WorkspaceSyncKey.workspace_id:type_name -> google.protobuf.StringValue
+	12,  // 105: arista.workspace.v1.WorkspaceSyncKey.sync_operation:type_name -> arista.workspace.v1.SyncOperation
+	45,  // 106: arista.workspace.v1.WorkspaceSyncConfig.key:type_name -> arista.workspace.v1.WorkspaceSyncKey
+	62,  // 107: arista.workspace.v1.WorkspaceSyncConfig.device_ids:type_name -> fmp.RepeatedString
+	59,  // 108: arista.workspace.v1.StudioGeneratedConfigurationKey.workspace_id:type_name -> google.protobuf.StringValue
+	59,  // 109: arista.workspace.v1.StudioGeneratedConfigurationKey.build_id:type_name -> google.protobuf.StringValue
+	59,  // 110: arista.workspace.v1.StudioGeneratedConfigurationKey.device_id:type_name -> google.protobuf.StringValue
+	59,  // 111: arista.workspace.v1.StudioGeneratedConfigurationKey.studio:type_name -> google.protobuf.StringValue
+	47,  // 112: arista.workspace.v1.StudioGeneratedConfiguration.key:type_name -> arista.workspace.v1.StudioGeneratedConfigurationKey
+	59,  // 113: arista.workspace.v1.StudioGeneratedConfiguration.generated_config:type_name -> google.protobuf.StringValue
+	15,  // 114: arista.workspace.v1.DiffEntry.op:type_name -> arista.workspace.v1.DiffOp
+	62,  // 115: arista.workspace.v1.DiffEntry.path:type_name -> fmp.RepeatedString
+	59,  // 116: arista.workspace.v1.DiffEntry.value_a:type_name -> google.protobuf.StringValue
+	59,  // 117: arista.workspace.v1.DiffEntry.value_b:type_name -> google.protobuf.StringValue
+	64,  // 118: arista.workspace.v1.DiffEntry.index_b:type_name -> google.protobuf.UInt32Value
+	62,  // 119: arista.workspace.v1.DiffEntry.key_path:type_name -> fmp.RepeatedString
+	59,  // 120: arista.workspace.v1.DiffKey.workspace_id:type_name -> google.protobuf.StringValue
+	14,  // 121: arista.workspace.v1.DiffKey.diff_type:type_name -> arista.workspace.v1.DiffType
+	13,  // 122: arista.workspace.v1.DiffKey.entity_type:type_name -> arista.workspace.v1.EntityType
+	62,  // 123: arista.workspace.v1.DiffKey.entity_ids:type_name -> fmp.RepeatedString
+	49,  // 124: arista.workspace.v1.DiffEntries.values:type_name -> arista.workspace.v1.DiffEntry
+	59,  // 125: arista.workspace.v1.WorkspaceDiffSet.workspace_a:type_name -> google.protobuf.StringValue
+	59,  // 126: arista.workspace.v1.WorkspaceDiffSet.workspace_b:type_name -> google.protobuf.StringValue
+	51,  // 127: arista.workspace.v1.WorkspaceDiffSet.entries:type_name -> arista.workspace.v1.DiffEntries
+	52,  // 128: arista.workspace.v1.WorkspaceDiffSets.values:type_name -> arista.workspace.v1.WorkspaceDiffSet
+	50,  // 129: arista.workspace.v1.WorkspaceDiffs.key:type_name -> arista.workspace.v1.DiffKey
+	53,  // 130: arista.workspace.v1.WorkspaceDiffs.diffs:type_name -> arista.workspace.v1.WorkspaceDiffSets
+	17,  // 131: arista.workspace.v1.Responses.ValuesEntry.value:type_name -> arista.workspace.v1.Response
+	28,  // 132: arista.workspace.v1.InputValidationResults.ValuesEntry.value:type_name -> arista.workspace.v1.InputValidationResult
+	32,  // 133: arista.workspace.v1.ConfigletBuildResults.ValuesEntry.value:type_name -> arista.workspace.v1.ConfigletBuildResult
+	4,   // 134: arista.workspace.v1.BuildStageState.ValuesEntry.value:type_name -> arista.workspace.v1.BuildState
+	135, // [135:135] is the sub-list for method output_type
+	135, // [135:135] is the sub-list for method input_type
+	135, // [135:135] is the sub-list for extension type_name
+	135, // [135:135] is the sub-list for extension extendee
+	0,   // [0:135] is the sub-list for field type_name
 }
 
 func init() { file_arista_workspace_v1_workspace_proto_init() }
