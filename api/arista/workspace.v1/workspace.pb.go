@@ -3536,9 +3536,11 @@ type DiffEntry struct {
 	//
 	// Example:
 	//
-	//	users = [\{"id":"u1","name":"Alice"\}]
-	//	key_path = ["users", "[id=u1]", "name"]
-	//	path     = ["users", "0", "name"]
+	// ```
+	// users = [{"id":"u1","name":"Alice"}]
+	// key_path = ["users", "[id=u1]", "name"]
+	// path     = ["users", "0", "name"]
+	// ```
 	KeyPath *fmp.RepeatedString `protobuf:"bytes,6,opt,name=key_path,json=keyPath,proto3" json:"key_path,omitempty"`
 }
 

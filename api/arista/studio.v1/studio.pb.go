@@ -868,12 +868,16 @@ type Entities struct {
 	// values is a map from EntityType enum name to Entity.
 	// Keys are the EntityType enum names defined below, e.g.:
 	//
+	// ```
+	//
 	//	"ENTITY_TYPE_INPUTS" -> Entity{
 	//	    entity_type:      ENTITY_TYPE_INPUTS,
 	//	    last_modified_at: 2026-05-07T12:34:56Z,
 	//	    last_modified_by: "admin",
 	//	    removed:          false,
 	//	}
+	//
+	// ```
 	Values map[string]*Entity `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
@@ -1754,12 +1758,15 @@ type FloatInputFieldProps struct {
 	// `{ fieldId: field_id }`.
 	//
 	// E.g,
+	//
+	// ```
 	// [
 	//
-	//	`{ fieldId: floatField1ID }`,
-	//	`{ fieldId: floatField2ID }`
+	//	{ fieldId: floatField1ID },
+	//	{ fieldId: floatField2ID }
 	//
 	// ]
+	// ```
 	// Here, the possible values for the floats identified by
 	// `floatField1ID` and `floatField2ID` are used as the
 	// possible values for this float.
