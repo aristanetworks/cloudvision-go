@@ -378,8 +378,6 @@ type ElementStreamRequest struct {
 	//     until end.
 	//   - Each Element response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -535,8 +533,6 @@ type ElementBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Element response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -927,8 +923,6 @@ type TagStreamRequest struct {
 	//     until end.
 	//   - Each Tag response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1073,8 +1067,6 @@ type TagBatchedStreamRequest struct {
 	//     until end.
 	//   - Each Tag response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1458,8 +1450,6 @@ type TagAssignmentStreamRequest struct {
 	//     until end.
 	//   - Each TagAssignment response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -1604,8 +1594,6 @@ type TagAssignmentBatchedStreamRequest struct {
 	//     until end.
 	//   - Each TagAssignment response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -1989,8 +1977,6 @@ type TagAssignmentConfigStreamRequest struct {
 	//     until end.
 	//   - Each TagAssignmentConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -2135,8 +2121,6 @@ type TagAssignmentConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each TagAssignmentConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
@@ -3080,8 +3064,6 @@ type TagConfigStreamRequest struct {
 	//     until end.
 	//   - Each TagConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 }
 
@@ -3226,8 +3208,6 @@ type TagConfigBatchedStreamRequest struct {
 	//     until end.
 	//   - Each TagConfig response at start is fully-specified, but updates until end may
 	//     be partial.
-	//
-	// This field is not allowed in the Subscribe RPC.
 	Time *time.TimeBounds `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// MaxMessages limits the maximum number of messages that can be contained in one batch.
 	// MaxMessages is required to be at least 1.
