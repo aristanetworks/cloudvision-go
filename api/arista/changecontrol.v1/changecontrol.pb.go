@@ -154,28 +154,28 @@ func (StepStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 // ChangeControlStatus defines the possible execution statuses of
-// a change control.
+// a Change Control.
 type ChangeControlStatus int32
 
 const (
-	// CHANGE_CONTROL_STATUS_UNSPECIFIED means the change control status is unknown.
+	// CHANGE_CONTROL_STATUS_UNSPECIFIED means the Change Control status is unknown.
 	ChangeControlStatus_CHANGE_CONTROL_STATUS_UNSPECIFIED ChangeControlStatus = 0
-	// CHANGE_CONTROL_STATUS_RUNNING means the change control has begun
+	// CHANGE_CONTROL_STATUS_RUNNING means the Change Control has begun
 	// execution.
 	ChangeControlStatus_CHANGE_CONTROL_STATUS_RUNNING ChangeControlStatus = 1
-	// CHANGE_CONTROL_STATUS_COMPLETED means the change control has ceased
-	// execution. Success/failure of a change control cannot be inferred
-	// from this status alone but rather this status plus the change control
+	// CHANGE_CONTROL_STATUS_COMPLETED means the Change Control has ceased
+	// execution. Success/failure of a Change Control cannot be inferred
+	// from this status alone but rather this status plus the Change Control
 	// error. That is, no error implies success and some error implies failure.
 	ChangeControlStatus_CHANGE_CONTROL_STATUS_COMPLETED ChangeControlStatus = 2
-	// CHANGE_CONTROL_STATUS_SCHEDULED means the change control has been
+	// CHANGE_CONTROL_STATUS_SCHEDULED means the Change Control has been
 	// scheduled for execution at some time. Any failure that occurs during
 	// this process will cause a transition back to the unspecified status,
 	// a reset of the schedule flag by the system, and an error on the change
 	// control reporting the details of the failure.
 	ChangeControlStatus_CHANGE_CONTROL_STATUS_SCHEDULED ChangeControlStatus = 3
-	// CHANGE_CONTROL_STATUS_NOT_STARTED means the change control has not been
-	// started. This would include approved and not approved change controls.
+	// CHANGE_CONTROL_STATUS_NOT_STARTED means the Change Control has not been
+	// started. This would include approved and not approved Change Controls.
 	ChangeControlStatus_CHANGE_CONTROL_STATUS_NOT_STARTED ChangeControlStatus = 4
 )
 
@@ -224,17 +224,17 @@ func (ChangeControlStatus) EnumDescriptor() ([]byte, []int) {
 	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{2}
 }
 
-// CompletionReason describes the reason behind the terminal state of an executed change control.
+// CompletionReason describes the reason behind the terminal state of an executed Change Control.
 type CompletionReason int32
 
 const (
 	// COMPLETION_REASON_UNSPECIFIED means the completion reason is unknown.
 	CompletionReason_COMPLETION_REASON_UNSPECIFIED CompletionReason = 0
-	// COMPLETION_REASON_SUCCESS means the change control completed successfully.
+	// COMPLETION_REASON_SUCCESS means the Change Control completed successfully.
 	CompletionReason_COMPLETION_REASON_SUCCESS CompletionReason = 1
-	// COMPLETION_REASON_FAILED means the change control completed due to failure.
+	// COMPLETION_REASON_FAILED means the Change Control completed due to failure.
 	CompletionReason_COMPLETION_REASON_FAILED CompletionReason = 2
-	// COMPLETION_REASON_STOPPED means the change control was stopped by a user.
+	// COMPLETION_REASON_STOPPED means the Change Control was stopped by a user.
 	CompletionReason_COMPLETION_REASON_STOPPED CompletionReason = 3
 )
 
@@ -289,7 +289,7 @@ const (
 	// is unknown.
 	OverrideReason_OVERRIDE_REASON_UNSPECIFIED OverrideReason = 0
 	// OVERRIDE_REASON_USER_FORCED indicates that the user has overridden the validation and forced
-	// the approval of the change control.
+	// the approval of the Change Control.
 	OverrideReason_OVERRIDE_REASON_USER_FORCED OverrideReason = 1
 )
 
@@ -332,7 +332,7 @@ func (OverrideReason) EnumDescriptor() ([]byte, []int) {
 	return file_arista_changecontrol_v1_changecontrol_proto_rawDescGZIP(), []int{4}
 }
 
-// ChangeControlValidationStatus is used to indicate the status of the change control validation.
+// ChangeControlValidationStatus is used to indicate the status of the Change Control validation.
 type ChangeControlValidationStatus int32
 
 const (
@@ -342,8 +342,13 @@ const (
 	// CHANGE_CONTROL_VALIDATION_STATUS_SUCCESS indicates that the validation has succeeded.
 	ChangeControlValidationStatus_CHANGE_CONTROL_VALIDATION_STATUS_SUCCESS ChangeControlValidationStatus = 1
 	// CHANGE_CONTROL_VALIDATION_STATUS_OBSOLETED indicates that the validation has failed, and the
-	// change control has been obsoleted. This is due to the execution of a newer change control.
+	// Change Control has been obsoleted. This is due to the execution of a newer Change Control.
 	ChangeControlValidationStatus_CHANGE_CONTROL_VALIDATION_STATUS_OBSOLETED ChangeControlValidationStatus = 2
+	// CHANGE_CONTROL_VALIDATION_STATUS_CONCURRENT_EXECUTION indicates that validation failed
+	// because execution would conflict with another Change Control that is currently running
+	// on one or more target devices. This Change Control is blocked until the conflicting
+	// execution completes.
+	ChangeControlValidationStatus_CHANGE_CONTROL_VALIDATION_STATUS_CONCURRENT_EXECUTION ChangeControlValidationStatus = 3
 )
 
 // Enum value maps for ChangeControlValidationStatus.
@@ -352,11 +357,13 @@ var (
 		0: "CHANGE_CONTROL_VALIDATION_STATUS_UNSPECIFIED",
 		1: "CHANGE_CONTROL_VALIDATION_STATUS_SUCCESS",
 		2: "CHANGE_CONTROL_VALIDATION_STATUS_OBSOLETED",
+		3: "CHANGE_CONTROL_VALIDATION_STATUS_CONCURRENT_EXECUTION",
 	}
 	ChangeControlValidationStatus_value = map[string]int32{
-		"CHANGE_CONTROL_VALIDATION_STATUS_UNSPECIFIED": 0,
-		"CHANGE_CONTROL_VALIDATION_STATUS_SUCCESS":     1,
-		"CHANGE_CONTROL_VALIDATION_STATUS_OBSOLETED":   2,
+		"CHANGE_CONTROL_VALIDATION_STATUS_UNSPECIFIED":          0,
+		"CHANGE_CONTROL_VALIDATION_STATUS_SUCCESS":              1,
+		"CHANGE_CONTROL_VALIDATION_STATUS_OBSOLETED":            2,
+		"CHANGE_CONTROL_VALIDATION_STATUS_CONCURRENT_EXECUTION": 3,
 	}
 )
 
@@ -395,11 +402,14 @@ const (
 	// is unknown.
 	DeviceValidationFailure_DEVICE_VALIDATION_FAILURE_UNSPECIFIED DeviceValidationFailure = 0
 	// DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER indicates that the designed config is out of
-	// order due to the execution of a newer change control.
+	// order due to the execution of a newer Change Control.
 	DeviceValidationFailure_DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER DeviceValidationFailure = 1
 	// DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER indicates that the designed image is out of
-	// order due to the execution of a newer change control.
+	// order due to the execution of a newer Change Control.
 	DeviceValidationFailure_DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER DeviceValidationFailure = 2
+	// DEVICE_VALIDATION_FAILURE_CONCURRENT_EXECUTION indicates that the device is currently
+	// executing another Change Control.
+	DeviceValidationFailure_DEVICE_VALIDATION_FAILURE_CONCURRENT_EXECUTION DeviceValidationFailure = 3
 )
 
 // Enum value maps for DeviceValidationFailure.
@@ -408,11 +418,13 @@ var (
 		0: "DEVICE_VALIDATION_FAILURE_UNSPECIFIED",
 		1: "DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER",
 		2: "DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER",
+		3: "DEVICE_VALIDATION_FAILURE_CONCURRENT_EXECUTION",
 	}
 	DeviceValidationFailure_value = map[string]int32{
-		"DEVICE_VALIDATION_FAILURE_UNSPECIFIED":         0,
-		"DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER": 1,
-		"DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER":  2,
+		"DEVICE_VALIDATION_FAILURE_UNSPECIFIED":          0,
+		"DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER":  1,
+		"DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER":   2,
+		"DEVICE_VALIDATION_FAILURE_CONCURRENT_EXECUTION": 3,
 	}
 )
 
@@ -494,13 +506,13 @@ func (x *RepeatedRepeatedString) GetValues() []*fmp.RepeatedString {
 	return nil
 }
 
-// ChangeControlKey uniquely identifies a change control.
+// ChangeControlKey uniquely identifies a Change Control.
 type ChangeControlKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// id is the ID of the change control.
+	// id is the ID of the Change Control.
 	Id *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 }
 
@@ -544,7 +556,7 @@ func (x *ChangeControlKey) GetId() *wrapperspb.StringValue {
 }
 
 // Action is an action to perform during the execution of
-// a stage of a change control. Available actions can be
+// a stage of a Change Control. Available actions can be
 // fetched using the "action" services.
 type Action struct {
 	state         protoimpl.MessageState
@@ -698,7 +710,7 @@ func (x *StageConfig) GetRows() *RepeatedRepeatedString {
 
 // StageConfigMap wraps a map from stage ID to `StageConfig`.
 // This defines the configuration and order of execution
-// for the stages in a change control.
+// for the stages in a Change Control.
 //
 // For example:
 //
@@ -716,7 +728,7 @@ func (x *StageConfig) GetRows() *RepeatedRepeatedString {
 //
 // ```
 //
-// Assuming the root stage ID of the enclosing change control
+// Assuming the root stage ID of the enclosing Change Control
 // is "root", this would mean to do the following in sequence:
 //
 // ```
@@ -856,7 +868,7 @@ func (x *ChangeConfig) GetNotes() *wrapperspb.StringValue {
 	return nil
 }
 
-// FlagConfig is used to set a flag on a change control that takes
+// FlagConfig is used to set a flag on a Change Control that takes
 // a boolean value (e.g. start/stop, approve/unapprove).
 type FlagConfig struct {
 	state         protoimpl.MessageState
@@ -915,7 +927,7 @@ func (x *FlagConfig) GetNotes() *wrapperspb.StringValue {
 	return nil
 }
 
-// TimestampFlagConfig is used to set a flag on a change control
+// TimestampFlagConfig is used to set a flag on a Change Control
 // that takes a timestamp value (e.g. schedule/unschedule).
 type TimestampFlagConfig struct {
 	state         protoimpl.MessageState
@@ -974,23 +986,23 @@ func (x *TimestampFlagConfig) GetNotes() *wrapperspb.StringValue {
 	return nil
 }
 
-// ChangeControlConfig holds the configuration of a change control.
+// ChangeControlConfig holds the configuration of a Change Control.
 type ChangeControlConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// key uniquely identifies the change control.
+	// key uniquely identifies the Change Control.
 	Key *ChangeControlKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// change is the change subject to execution.
 	Change *ChangeConfig `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
 	// start is the flag to start (`start.value` set to `true`)
 	// or stop (`start.value` set to `false`) execution of the
-	// change control.
+	// Change Control.
 	Start *FlagConfig `protobuf:"bytes,3,opt,name=start,proto3" json:"start,omitempty"`
 	// schedule is the flag to schedule (`schedule.value` set to
 	// some timestamp) or unschedule (`schedule.value` set to
-	// `nil`) the change control for execution.
+	// `nil`) the Change Control for execution.
 	Schedule *TimestampFlagConfig `protobuf:"bytes,4,opt,name=schedule,proto3" json:"schedule,omitempty"`
 }
 
@@ -1203,7 +1215,7 @@ type Stage struct {
 	// end_time is the time when status change to Completed.
 	EndTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	// steps represent the granular steps and their statuses
-	// associated with the action performed in the change control stage.
+	// associated with the action performed in the Change Control stage.
 	// Each stage generally defines either an action
 	// or a series of sub-stages.
 	Steps *ActionSteps `protobuf:"bytes,8,opt,name=steps,proto3" json:"steps,omitempty"`
@@ -1349,7 +1361,7 @@ func (x *StageMap) GetValues() map[string]*Stage {
 }
 
 // Change holds the configuration and status of the change of a
-// change control.
+// Change Control.
 type Change struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1598,15 +1610,15 @@ func (x *TimestampFlag) GetUser() *wrapperspb.StringValue {
 	return nil
 }
 
-// Creation holds information about when and by whom a change control was created.
+// Creation holds information about when and by whom a Change Control was created.
 type Creation struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// time is the time when the change control was created.
+	// time is the time when the Change Control was created.
 	Time *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
-	// user is the user who created the change control.
+	// user is the user who created the Change Control.
 	User *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
 }
 
@@ -1757,53 +1769,53 @@ func (x *DeviceToStageMap) GetValues() map[string]*fmp.RepeatedString {
 	return nil
 }
 
-// ChangeControl holds the configuration and status of a change control.
+// ChangeControl holds the configuration and status of a Change Control.
 type ChangeControl struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// key uniquely identifies the change control.
+	// key uniquely identifies the Change Control.
 	Key *ChangeControlKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// change holds the configuration and status of the change of
-	// the change control.
+	// the Change Control.
 	Change *Change `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
-	// approve indicates whether the change control was flagged
+	// approve indicates whether the Change Control was flagged
 	// as approved (`approve.value` set to `true`) or unapproved
 	// (`approve.value` set to `false`).
 	Approve *Flag `protobuf:"bytes,3,opt,name=approve,proto3" json:"approve,omitempty"`
-	// start indicates whether the change control was flagged to
+	// start indicates whether the Change Control was flagged to
 	// start (`start.value` set to `true`) or stop (`start.value`
 	// set to `false`) execution.
 	Start *Flag `protobuf:"bytes,4,opt,name=start,proto3" json:"start,omitempty"`
-	// status is the execution status of the change control.
+	// status is the execution status of the Change Control.
 	Status ChangeControlStatus `protobuf:"varint,5,opt,name=status,proto3,enum=arista.changecontrol.v1.ChangeControlStatus" json:"status,omitempty"`
 	// error is any error that occurred during the execution of the
-	// change control.
+	// Change Control.
 	Error *wrapperspb.StringValue `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`
-	// schedule indicates whether the change control was flagged
+	// schedule indicates whether the Change Control was flagged
 	// to be scheduled (`schedule.value` set to some timestamp) or
 	// unscheduled (`schedule.value` set to `nil`) for execution.
 	Schedule *TimestampFlag `protobuf:"bytes,7,opt,name=schedule,proto3" json:"schedule,omitempty"`
-	// device_ids is a list of device IDs on which the change control will operate.
+	// device_ids is a list of device IDs on which the Change Control will operate.
 	DeviceIds *fmp.RepeatedString `protobuf:"bytes,8,opt,name=device_ids,json=deviceIds,proto3" json:"device_ids,omitempty"`
 	// device_id_to_stage_ids is a map of device IDs to the stages present in the
 	// specified Change state.
 	// This is not affected by the device ID based custom filtering and will contain
 	// info about all the devices associated with a CC ID.
 	DeviceIdToStageIds *DeviceToStageMap `protobuf:"bytes,9,opt,name=device_id_to_stage_ids,json=deviceIdToStageIds,proto3" json:"device_id_to_stage_ids,omitempty"`
-	// creation holds information about when and by whom the change control was created.
+	// creation holds information about when and by whom the Change Control was created.
 	Creation *Creation `protobuf:"bytes,10,opt,name=creation,proto3" json:"creation,omitempty"`
-	// completion_reason indicates why the change control completed (only relevant when
+	// completion_reason indicates why the Change Control completed (only relevant when
 	// status is CHANGE_CONTROL_STATUS_COMPLETED).
 	CompletionReason CompletionReason `protobuf:"varint,11,opt,name=completion_reason,json=completionReason,proto3,enum=arista.changecontrol.v1.CompletionReason" json:"completion_reason,omitempty"`
-	// validation_statuses indicates failed validation statuses for the change control.
+	// validation_statuses indicates failed validation statuses for the Change Control.
 	// This is only relevant when one or more devices fail validation.
 	ValidationStatuses *ChangeControlValidationStatuses `protobuf:"bytes,12,opt,name=validation_statuses,json=validationStatuses,proto3" json:"validation_statuses,omitempty"`
 	// validation_detail contains additional information about the validation statuses.
 	// This is only relevant when one or more devices fail validation.
 	ValidationDetail *ChangeControlValidationDetail `protobuf:"bytes,13,opt,name=validation_detail,json=validationDetail,proto3" json:"validation_detail,omitempty"`
-	// override_reason indicates user intent to override change control validation.
+	// override_reason indicates user intent to override Change Control validation.
 	OverrideReason OverrideReason `protobuf:"varint,14,opt,name=override_reason,json=overrideReason,proto3,enum=arista.changecontrol.v1.OverrideReason" json:"override_reason,omitempty"`
 }
 
@@ -1937,23 +1949,23 @@ func (x *ChangeControl) GetOverrideReason() OverrideReason {
 	return OverrideReason_OVERRIDE_REASON_UNSPECIFIED
 }
 
-// ApproveConfig is used to configure the approval of a change control.
+// ApproveConfig is used to configure the approval of a Change Control.
 type ApproveConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// key uniquely identifies the change control.
+	// key uniquely identifies the Change Control.
 	Key *ChangeControlKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// approve is the flag to approve (`approve.value` set to `true`)
-	// or unapprove (`approve.value` set to `false`) the change control.
+	// or unapprove (`approve.value` set to `false`) the Change Control.
 	Approve *FlagConfig `protobuf:"bytes,2,opt,name=approve,proto3" json:"approve,omitempty"`
-	// version is the timestamp of the change control to approve.
+	// version is the timestamp of the Change Control to approve.
 	// This field must be set when `approve.value` is set to `true`
-	// and is intended to safeguard against approving a change control
+	// and is intended to safeguard against approving a Change Control
 	// that has been updated since last read.
 	Version *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
-	// override_reason indicates user intent to override change control validation.
+	// override_reason indicates user intent to override Change Control validation.
 	OverrideReason OverrideReason `protobuf:"varint,4,opt,name=override_reason,json=overrideReason,proto3,enum=arista.changecontrol.v1.OverrideReason" json:"override_reason,omitempty"`
 }
 
@@ -2017,7 +2029,7 @@ func (x *ApproveConfig) GetOverrideReason() OverrideReason {
 	return OverrideReason_OVERRIDE_REASON_UNSPECIFIED
 }
 
-// ActionSummary provides detailed information about actions in a change control.
+// ActionSummary provides detailed information about actions in a Change Control.
 type ActionSummary struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2030,7 +2042,7 @@ type ActionSummary struct {
 	Id *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// name is the name of the action.
 	Name *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// count is the number of times this action appears in the change control.
+	// count is the number of times this action appears in the Change Control.
 	Count *wrapperspb.UInt32Value `protobuf:"bytes,3,opt,name=count,proto3" json:"count,omitempty"`
 }
 
@@ -2136,29 +2148,29 @@ func (x *ActionSummaries) GetValues() []*ActionSummary {
 	return nil
 }
 
-// ChangeControlSummary provides the summary of the change control.
+// ChangeControlSummary provides the summary of the Change Control.
 type ChangeControlSummary struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// key uniquely identifies the change control.
+	// key uniquely identifies the Change Control.
 	Key *ChangeControlKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// name is the name of the change control.
+	// name is the name of the Change Control.
 	Name *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// status is the status of the change control.
+	// status is the status of the Change Control.
 	Status ChangeControlStatus `protobuf:"varint,3,opt,name=status,proto3,enum=arista.changecontrol.v1.ChangeControlStatus" json:"status,omitempty"`
-	// device_count is the count of the devices impacted in the change control.
+	// device_count is the count of the devices impacted in the Change Control.
 	DeviceCount *wrapperspb.UInt32Value `protobuf:"bytes,4,opt,name=device_count,json=deviceCount,proto3" json:"device_count,omitempty"`
-	// action_summaries provides detailed information about each action type used in the change control.
+	// action_summaries provides detailed information about each action type used in the Change Control.
 	ActionSummaries *ActionSummaries `protobuf:"bytes,5,opt,name=action_summaries,json=actionSummaries,proto3" json:"action_summaries,omitempty"`
-	// created_time is the time at which the change control was created.
+	// created_time is the time at which the Change Control was created.
 	CreatedTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_time,json=createdTime,proto3" json:"created_time,omitempty"`
-	// created_user is the user by whom the change control was created.
+	// created_user is the user by whom the Change Control was created.
 	CreatedUser *wrapperspb.StringValue `protobuf:"bytes,7,opt,name=created_user,json=createdUser,proto3" json:"created_user,omitempty"`
-	// last_edited_time is the time at which the change control was last edited.
+	// last_edited_time is the time at which the Change Control was last edited.
 	LastEditedTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=last_edited_time,json=lastEditedTime,proto3" json:"last_edited_time,omitempty"`
-	// last_edited_user is the user by whom the change control was last edited.
+	// last_edited_user is the user by whom the Change Control was last edited.
 	LastEditedUser *wrapperspb.StringValue `protobuf:"bytes,9,opt,name=last_edited_user,json=lastEditedUser,proto3" json:"last_edited_user,omitempty"`
 	// last_approved_time is the time of the last approve or unapprove operation.
 	LastApprovedTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_approved_time,json=lastApprovedTime,proto3" json:"last_approved_time,omitempty"`
@@ -2168,21 +2180,25 @@ type ChangeControlSummary struct {
 	LastScheduledTime *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=last_scheduled_time,json=lastScheduledTime,proto3" json:"last_scheduled_time,omitempty"`
 	// last_scheduled_user is the user who performed the last schedule or unschedule operation.
 	LastScheduledUser *wrapperspb.StringValue `protobuf:"bytes,13,opt,name=last_scheduled_user,json=lastScheduledUser,proto3" json:"last_scheduled_user,omitempty"`
-	// start_time is the time at which the change control execution was started.
+	// start_time is the time at which the Change Control execution was started.
 	StartTime *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	// start_user is the user who started the change control execution.
+	// start_user is the user who started the Change Control execution.
 	StartUser *wrapperspb.StringValue `protobuf:"bytes,15,opt,name=start_user,json=startUser,proto3" json:"start_user,omitempty"`
-	// end_time is the time at which the change control execution was completed.
+	// end_time is the time at which the Change Control execution was completed.
 	EndTime *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
-	// error is any error that occurred during the execution of the change control.
+	// error is any error that occurred during the execution of the Change Control.
 	Error *wrapperspb.StringValue `protobuf:"bytes,17,opt,name=error,proto3" json:"error,omitempty"`
-	// approved indicates whether the change control is currently approved or unapproved.
+	// approved indicates whether the Change Control is currently approved or unapproved.
 	Approved *wrapperspb.BoolValue `protobuf:"bytes,18,opt,name=approved,proto3" json:"approved,omitempty"`
-	// completion_reason indicates why the change control completed (only relevant when
+	// completion_reason indicates why the Change Control completed (only relevant when
 	// status is CHANGE_CONTROL_STATUS_COMPLETED).
 	CompletionReason CompletionReason `protobuf:"varint,19,opt,name=completion_reason,json=completionReason,proto3,enum=arista.changecontrol.v1.CompletionReason" json:"completion_reason,omitempty"`
-	// validation_statuses indicates failed validation statuses for the change control.
-	// This field is only populated when one or more validations fail.
+	// validation_statuses indicates the active failed validation statuses surfaced
+	// in the Change Control summary. This field may contain multiple values when
+	// more than one validation condition fails. For example, a Change Control may
+	// be obsolete due to ordering and also temporarily blocked by concurrent
+	// execution. An empty value means there are no active validation failures to
+	// surface in the summary.
 	ValidationStatuses *ChangeControlValidationStatuses `protobuf:"bytes,20,opt,name=validation_statuses,json=validationStatuses,proto3" json:"validation_statuses,omitempty"`
 }
 
@@ -2358,7 +2374,7 @@ func (x *ChangeControlSummary) GetValidationStatuses() *ChangeControlValidationS
 	return nil
 }
 
-// ChangeControlValidationStatuses is a list of validation statuses for the change control.
+// ChangeControlValidationStatuses is a list of validation statuses for the Change Control.
 type ChangeControlValidationStatuses struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2407,13 +2423,13 @@ func (x *ChangeControlValidationStatuses) GetValues() []ChangeControlValidationS
 	return nil
 }
 
-// ChangeControlValidationDetail contains validation details for a change control.
+// ChangeControlValidationDetail contains validation details for a Change Control.
 type ChangeControlValidationDetail struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// devices is a list of devices that failed the change control validation.
+	// devices is a list of devices that failed the Change Control validation.
 	// The failure type is included in the details.
 	Devices *DeviceValidationDetails `protobuf:"bytes,1,opt,name=devices,proto3" json:"devices,omitempty"`
 }
@@ -2518,11 +2534,13 @@ type DeviceValidationDetail struct {
 	// failure_type indicates the type of validation failure.
 	FailureType DeviceValidationFailure `protobuf:"varint,2,opt,name=failure_type,json=failureType,proto3,enum=arista.changecontrol.v1.DeviceValidationFailure" json:"failure_type,omitempty"`
 	// metadata is a string that contains additional information related to the failure.
+	// This field may contain multiple values when more than one validation condition fails.
 	// Current failures and their corresponding metadata are:
 	// DEVICE_VALIDATION_FAILURE_CONFIG_OUT_OF_ORDER: ID of the newer Change Control that
 	// caused the designed config to be out of order.
 	// DEVICE_VALIDATION_FAILURE_IMAGE_OUT_OF_ORDER: ID of the newer Change Control that
 	// caused the designed image to be out of order.
+	// DEVICE_VALIDATION_FAILURE_CONCURRENT_EXECUTION: ID of the running Change Control.
 	Metadata *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 }
 
@@ -3089,7 +3107,7 @@ var file_arista_changecontrol_v1_changecontrol_proto_rawDesc = []byte{
 	0x56, 0x45, 0x52, 0x52, 0x49, 0x44, 0x45, 0x5f, 0x52, 0x45, 0x41, 0x53, 0x4f, 0x4e, 0x5f, 0x55,
 	0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x1f, 0x0a, 0x1b,
 	0x4f, 0x56, 0x45, 0x52, 0x52, 0x49, 0x44, 0x45, 0x5f, 0x52, 0x45, 0x41, 0x53, 0x4f, 0x4e, 0x5f,
-	0x55, 0x53, 0x45, 0x52, 0x5f, 0x46, 0x4f, 0x52, 0x43, 0x45, 0x44, 0x10, 0x01, 0x2a, 0xaf, 0x01,
+	0x55, 0x53, 0x45, 0x52, 0x5f, 0x46, 0x4f, 0x52, 0x43, 0x45, 0x44, 0x10, 0x01, 0x2a, 0xea, 0x01,
 	0x0a, 0x1d, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x56,
 	0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12,
 	0x30, 0x0a, 0x2c, 0x43, 0x48, 0x41, 0x4e, 0x47, 0x45, 0x5f, 0x43, 0x4f, 0x4e, 0x54, 0x52, 0x4f,
@@ -3100,24 +3118,31 @@ var file_arista_changecontrol_v1_changecontrol_proto_rawDesc = []byte{
 	0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x53, 0x55, 0x43, 0x43, 0x45, 0x53, 0x53, 0x10, 0x01, 0x12,
 	0x2e, 0x0a, 0x2a, 0x43, 0x48, 0x41, 0x4e, 0x47, 0x45, 0x5f, 0x43, 0x4f, 0x4e, 0x54, 0x52, 0x4f,
 	0x4c, 0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x53, 0x54, 0x41,
-	0x54, 0x55, 0x53, 0x5f, 0x4f, 0x42, 0x53, 0x4f, 0x4c, 0x45, 0x54, 0x45, 0x44, 0x10, 0x02, 0x2a,
-	0xa9, 0x01, 0x0a, 0x17, 0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x12, 0x29, 0x0a, 0x25, 0x44,
-	0x45, 0x56, 0x49, 0x43, 0x45, 0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e,
-	0x5f, 0x46, 0x41, 0x49, 0x4c, 0x55, 0x52, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49,
-	0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x31, 0x0a, 0x2d, 0x44, 0x45, 0x56, 0x49, 0x43, 0x45,
+	0x54, 0x55, 0x53, 0x5f, 0x4f, 0x42, 0x53, 0x4f, 0x4c, 0x45, 0x54, 0x45, 0x44, 0x10, 0x02, 0x12,
+	0x39, 0x0a, 0x35, 0x43, 0x48, 0x41, 0x4e, 0x47, 0x45, 0x5f, 0x43, 0x4f, 0x4e, 0x54, 0x52, 0x4f,
+	0x4c, 0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x53, 0x54, 0x41,
+	0x54, 0x55, 0x53, 0x5f, 0x43, 0x4f, 0x4e, 0x43, 0x55, 0x52, 0x52, 0x45, 0x4e, 0x54, 0x5f, 0x45,
+	0x58, 0x45, 0x43, 0x55, 0x54, 0x49, 0x4f, 0x4e, 0x10, 0x03, 0x2a, 0xdd, 0x01, 0x0a, 0x17, 0x44,
+	0x65, 0x76, 0x69, 0x63, 0x65, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46,
+	0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x12, 0x29, 0x0a, 0x25, 0x44, 0x45, 0x56, 0x49, 0x43, 0x45,
 	0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x46, 0x41, 0x49, 0x4c,
-	0x55, 0x52, 0x45, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x4f, 0x55, 0x54, 0x5f, 0x4f,
-	0x46, 0x5f, 0x4f, 0x52, 0x44, 0x45, 0x52, 0x10, 0x01, 0x12, 0x30, 0x0a, 0x2c, 0x44, 0x45, 0x56,
-	0x49, 0x43, 0x45, 0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x46,
-	0x41, 0x49, 0x4c, 0x55, 0x52, 0x45, 0x5f, 0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x4f, 0x55, 0x54,
-	0x5f, 0x4f, 0x46, 0x5f, 0x4f, 0x52, 0x44, 0x45, 0x52, 0x10, 0x02, 0x42, 0x54, 0x5a, 0x52, 0x67,
-	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61,
-	0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69,
-	0x73, 0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73,
-	0x74, 0x61, 0x2f, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c,
-	0x2e, 0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f,
-	0x6c, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x55, 0x52, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10,
+	0x00, 0x12, 0x31, 0x0a, 0x2d, 0x44, 0x45, 0x56, 0x49, 0x43, 0x45, 0x5f, 0x56, 0x41, 0x4c, 0x49,
+	0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x46, 0x41, 0x49, 0x4c, 0x55, 0x52, 0x45, 0x5f, 0x43,
+	0x4f, 0x4e, 0x46, 0x49, 0x47, 0x5f, 0x4f, 0x55, 0x54, 0x5f, 0x4f, 0x46, 0x5f, 0x4f, 0x52, 0x44,
+	0x45, 0x52, 0x10, 0x01, 0x12, 0x30, 0x0a, 0x2c, 0x44, 0x45, 0x56, 0x49, 0x43, 0x45, 0x5f, 0x56,
+	0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x46, 0x41, 0x49, 0x4c, 0x55, 0x52,
+	0x45, 0x5f, 0x49, 0x4d, 0x41, 0x47, 0x45, 0x5f, 0x4f, 0x55, 0x54, 0x5f, 0x4f, 0x46, 0x5f, 0x4f,
+	0x52, 0x44, 0x45, 0x52, 0x10, 0x02, 0x12, 0x32, 0x0a, 0x2e, 0x44, 0x45, 0x56, 0x49, 0x43, 0x45,
+	0x5f, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x41, 0x54, 0x49, 0x4f, 0x4e, 0x5f, 0x46, 0x41, 0x49, 0x4c,
+	0x55, 0x52, 0x45, 0x5f, 0x43, 0x4f, 0x4e, 0x43, 0x55, 0x52, 0x52, 0x45, 0x4e, 0x54, 0x5f, 0x45,
+	0x58, 0x45, 0x43, 0x55, 0x54, 0x49, 0x4f, 0x4e, 0x10, 0x03, 0x42, 0x54, 0x5a, 0x52, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74, 0x61, 0x6e,
+	0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x76, 0x69, 0x73,
+	0x69, 0x6f, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x72, 0x69, 0x73, 0x74,
+	0x61, 0x2f, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x2e,
+	0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
