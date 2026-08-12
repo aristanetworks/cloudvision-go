@@ -2094,3 +2094,516 @@ var ChangeControlConfigService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "arista/changecontrol.v1/services.gen.proto",
 }
+
+const (
+	ChangeControlSummaryService_GetOne_FullMethodName           = "/arista.changecontrol.v1.ChangeControlSummaryService/GetOne"
+	ChangeControlSummaryService_GetSome_FullMethodName          = "/arista.changecontrol.v1.ChangeControlSummaryService/GetSome"
+	ChangeControlSummaryService_GetAll_FullMethodName           = "/arista.changecontrol.v1.ChangeControlSummaryService/GetAll"
+	ChangeControlSummaryService_Subscribe_FullMethodName        = "/arista.changecontrol.v1.ChangeControlSummaryService/Subscribe"
+	ChangeControlSummaryService_GetMeta_FullMethodName          = "/arista.changecontrol.v1.ChangeControlSummaryService/GetMeta"
+	ChangeControlSummaryService_SubscribeMeta_FullMethodName    = "/arista.changecontrol.v1.ChangeControlSummaryService/SubscribeMeta"
+	ChangeControlSummaryService_GetAllBatched_FullMethodName    = "/arista.changecontrol.v1.ChangeControlSummaryService/GetAllBatched"
+	ChangeControlSummaryService_SubscribeBatched_FullMethodName = "/arista.changecontrol.v1.ChangeControlSummaryService/SubscribeBatched"
+)
+
+// ChangeControlSummaryServiceClient is the client API for ChangeControlSummaryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ChangeControlSummaryServiceClient interface {
+	GetOne(ctx context.Context, in *ChangeControlSummaryRequest, opts ...grpc.CallOption) (*ChangeControlSummaryResponse, error)
+	GetSome(ctx context.Context, in *ChangeControlSummarySomeRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeMetaClient, error)
+	GetAllBatched(ctx context.Context, in *ChangeControlSummaryBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetAllBatchedClient, error)
+	SubscribeBatched(ctx context.Context, in *ChangeControlSummaryBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeBatchedClient, error)
+}
+
+type changeControlSummaryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewChangeControlSummaryServiceClient(cc grpc.ClientConnInterface) ChangeControlSummaryServiceClient {
+	return &changeControlSummaryServiceClient{cc}
+}
+
+func (c *changeControlSummaryServiceClient) GetOne(ctx context.Context, in *ChangeControlSummaryRequest, opts ...grpc.CallOption) (*ChangeControlSummaryResponse, error) {
+	out := new(ChangeControlSummaryResponse)
+	err := c.cc.Invoke(ctx, ChangeControlSummaryService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changeControlSummaryServiceClient) GetSome(ctx context.Context, in *ChangeControlSummarySomeRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[0], ChangeControlSummaryService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_GetSomeClient interface {
+	Recv() (*ChangeControlSummarySomeResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceGetSomeClient) Recv() (*ChangeControlSummarySomeResponse, error) {
+	m := new(ChangeControlSummarySomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlSummaryServiceClient) GetAll(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[1], ChangeControlSummaryService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_GetAllClient interface {
+	Recv() (*ChangeControlSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceGetAllClient) Recv() (*ChangeControlSummaryStreamResponse, error) {
+	m := new(ChangeControlSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlSummaryServiceClient) Subscribe(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[2], ChangeControlSummaryService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_SubscribeClient interface {
+	Recv() (*ChangeControlSummaryStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceSubscribeClient) Recv() (*ChangeControlSummaryStreamResponse, error) {
+	m := new(ChangeControlSummaryStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlSummaryServiceClient) GetMeta(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, ChangeControlSummaryService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changeControlSummaryServiceClient) SubscribeMeta(ctx context.Context, in *ChangeControlSummaryStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[3], ChangeControlSummaryService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlSummaryServiceClient) GetAllBatched(ctx context.Context, in *ChangeControlSummaryBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_GetAllBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[4], ChangeControlSummaryService_GetAllBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceGetAllBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_GetAllBatchedClient interface {
+	Recv() (*ChangeControlSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceGetAllBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceGetAllBatchedClient) Recv() (*ChangeControlSummaryBatchedStreamResponse, error) {
+	m := new(ChangeControlSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *changeControlSummaryServiceClient) SubscribeBatched(ctx context.Context, in *ChangeControlSummaryBatchedStreamRequest, opts ...grpc.CallOption) (ChangeControlSummaryService_SubscribeBatchedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChangeControlSummaryService_ServiceDesc.Streams[5], ChangeControlSummaryService_SubscribeBatched_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &changeControlSummaryServiceSubscribeBatchedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChangeControlSummaryService_SubscribeBatchedClient interface {
+	Recv() (*ChangeControlSummaryBatchedStreamResponse, error)
+	grpc.ClientStream
+}
+
+type changeControlSummaryServiceSubscribeBatchedClient struct {
+	grpc.ClientStream
+}
+
+func (x *changeControlSummaryServiceSubscribeBatchedClient) Recv() (*ChangeControlSummaryBatchedStreamResponse, error) {
+	m := new(ChangeControlSummaryBatchedStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// ChangeControlSummaryServiceServer is the server API for ChangeControlSummaryService service.
+// All implementations must embed UnimplementedChangeControlSummaryServiceServer
+// for forward compatibility
+type ChangeControlSummaryServiceServer interface {
+	GetOne(context.Context, *ChangeControlSummaryRequest) (*ChangeControlSummaryResponse, error)
+	GetSome(*ChangeControlSummarySomeRequest, ChangeControlSummaryService_GetSomeServer) error
+	GetAll(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_GetAllServer) error
+	Subscribe(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_SubscribeServer) error
+	GetMeta(context.Context, *ChangeControlSummaryStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_SubscribeMetaServer) error
+	GetAllBatched(*ChangeControlSummaryBatchedStreamRequest, ChangeControlSummaryService_GetAllBatchedServer) error
+	SubscribeBatched(*ChangeControlSummaryBatchedStreamRequest, ChangeControlSummaryService_SubscribeBatchedServer) error
+	mustEmbedUnimplementedChangeControlSummaryServiceServer()
+}
+
+// UnimplementedChangeControlSummaryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedChangeControlSummaryServiceServer struct {
+}
+
+func (UnimplementedChangeControlSummaryServiceServer) GetOne(context.Context, *ChangeControlSummaryRequest) (*ChangeControlSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) GetSome(*ChangeControlSummarySomeRequest, ChangeControlSummaryService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) GetAll(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) Subscribe(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) GetMeta(context.Context, *ChangeControlSummaryStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) SubscribeMeta(*ChangeControlSummaryStreamRequest, ChangeControlSummaryService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) GetAllBatched(*ChangeControlSummaryBatchedStreamRequest, ChangeControlSummaryService_GetAllBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAllBatched not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) SubscribeBatched(*ChangeControlSummaryBatchedStreamRequest, ChangeControlSummaryService_SubscribeBatchedServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeBatched not implemented")
+}
+func (UnimplementedChangeControlSummaryServiceServer) mustEmbedUnimplementedChangeControlSummaryServiceServer() {
+}
+
+// UnsafeChangeControlSummaryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChangeControlSummaryServiceServer will
+// result in compilation errors.
+type UnsafeChangeControlSummaryServiceServer interface {
+	mustEmbedUnimplementedChangeControlSummaryServiceServer()
+}
+
+func RegisterChangeControlSummaryServiceServer(s grpc.ServiceRegistrar, srv ChangeControlSummaryServiceServer) {
+	s.RegisterService(&ChangeControlSummaryService_ServiceDesc, srv)
+}
+
+func _ChangeControlSummaryService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeControlSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChangeControlSummaryServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChangeControlSummaryService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChangeControlSummaryServiceServer).GetOne(ctx, req.(*ChangeControlSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlSummaryService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummarySomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).GetSome(m, &changeControlSummaryServiceGetSomeServer{stream})
+}
+
+type ChangeControlSummaryService_GetSomeServer interface {
+	Send(*ChangeControlSummarySomeResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceGetSomeServer) Send(m *ChangeControlSummarySomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlSummaryService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).GetAll(m, &changeControlSummaryServiceGetAllServer{stream})
+}
+
+type ChangeControlSummaryService_GetAllServer interface {
+	Send(*ChangeControlSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceGetAllServer) Send(m *ChangeControlSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlSummaryService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).Subscribe(m, &changeControlSummaryServiceSubscribeServer{stream})
+}
+
+type ChangeControlSummaryService_SubscribeServer interface {
+	Send(*ChangeControlSummaryStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceSubscribeServer) Send(m *ChangeControlSummaryStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlSummaryService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeControlSummaryStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChangeControlSummaryServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChangeControlSummaryService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChangeControlSummaryServiceServer).GetMeta(ctx, req.(*ChangeControlSummaryStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChangeControlSummaryService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummaryStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).SubscribeMeta(m, &changeControlSummaryServiceSubscribeMetaServer{stream})
+}
+
+type ChangeControlSummaryService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlSummaryService_GetAllBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).GetAllBatched(m, &changeControlSummaryServiceGetAllBatchedServer{stream})
+}
+
+type ChangeControlSummaryService_GetAllBatchedServer interface {
+	Send(*ChangeControlSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceGetAllBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceGetAllBatchedServer) Send(m *ChangeControlSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ChangeControlSummaryService_SubscribeBatched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChangeControlSummaryBatchedStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChangeControlSummaryServiceServer).SubscribeBatched(m, &changeControlSummaryServiceSubscribeBatchedServer{stream})
+}
+
+type ChangeControlSummaryService_SubscribeBatchedServer interface {
+	Send(*ChangeControlSummaryBatchedStreamResponse) error
+	grpc.ServerStream
+}
+
+type changeControlSummaryServiceSubscribeBatchedServer struct {
+	grpc.ServerStream
+}
+
+func (x *changeControlSummaryServiceSubscribeBatchedServer) Send(m *ChangeControlSummaryBatchedStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// ChangeControlSummaryService_ServiceDesc is the grpc.ServiceDesc for ChangeControlSummaryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ChangeControlSummaryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.changecontrol.v1.ChangeControlSummaryService",
+	HandlerType: (*ChangeControlSummaryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _ChangeControlSummaryService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _ChangeControlSummaryService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _ChangeControlSummaryService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _ChangeControlSummaryService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _ChangeControlSummaryService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _ChangeControlSummaryService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAllBatched",
+			Handler:       _ChangeControlSummaryService_GetAllBatched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeBatched",
+			Handler:       _ChangeControlSummaryService_SubscribeBatched_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/changecontrol.v1/services.gen.proto",
+}
