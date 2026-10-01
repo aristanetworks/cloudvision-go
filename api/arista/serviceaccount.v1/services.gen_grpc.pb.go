@@ -1061,6 +1061,391 @@ var AccountConfigService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	AccountForEventActionService_GetOne_FullMethodName        = "/arista.serviceaccount.v1.AccountForEventActionService/GetOne"
+	AccountForEventActionService_GetSome_FullMethodName       = "/arista.serviceaccount.v1.AccountForEventActionService/GetSome"
+	AccountForEventActionService_GetAll_FullMethodName        = "/arista.serviceaccount.v1.AccountForEventActionService/GetAll"
+	AccountForEventActionService_Subscribe_FullMethodName     = "/arista.serviceaccount.v1.AccountForEventActionService/Subscribe"
+	AccountForEventActionService_GetMeta_FullMethodName       = "/arista.serviceaccount.v1.AccountForEventActionService/GetMeta"
+	AccountForEventActionService_SubscribeMeta_FullMethodName = "/arista.serviceaccount.v1.AccountForEventActionService/SubscribeMeta"
+)
+
+// AccountForEventActionServiceClient is the client API for AccountForEventActionService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AccountForEventActionServiceClient interface {
+	GetOne(ctx context.Context, in *AccountForEventActionRequest, opts ...grpc.CallOption) (*AccountForEventActionResponse, error)
+	GetSome(ctx context.Context, in *AccountForEventActionSomeRequest, opts ...grpc.CallOption) (AccountForEventActionService_GetSomeClient, error)
+	GetAll(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_GetAllClient, error)
+	Subscribe(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_SubscribeClient, error)
+	GetMeta(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	SubscribeMeta(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_SubscribeMetaClient, error)
+}
+
+type accountForEventActionServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAccountForEventActionServiceClient(cc grpc.ClientConnInterface) AccountForEventActionServiceClient {
+	return &accountForEventActionServiceClient{cc}
+}
+
+func (c *accountForEventActionServiceClient) GetOne(ctx context.Context, in *AccountForEventActionRequest, opts ...grpc.CallOption) (*AccountForEventActionResponse, error) {
+	out := new(AccountForEventActionResponse)
+	err := c.cc.Invoke(ctx, AccountForEventActionService_GetOne_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountForEventActionServiceClient) GetSome(ctx context.Context, in *AccountForEventActionSomeRequest, opts ...grpc.CallOption) (AccountForEventActionService_GetSomeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AccountForEventActionService_ServiceDesc.Streams[0], AccountForEventActionService_GetSome_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &accountForEventActionServiceGetSomeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AccountForEventActionService_GetSomeClient interface {
+	Recv() (*AccountForEventActionSomeResponse, error)
+	grpc.ClientStream
+}
+
+type accountForEventActionServiceGetSomeClient struct {
+	grpc.ClientStream
+}
+
+func (x *accountForEventActionServiceGetSomeClient) Recv() (*AccountForEventActionSomeResponse, error) {
+	m := new(AccountForEventActionSomeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *accountForEventActionServiceClient) GetAll(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_GetAllClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AccountForEventActionService_ServiceDesc.Streams[1], AccountForEventActionService_GetAll_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &accountForEventActionServiceGetAllClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AccountForEventActionService_GetAllClient interface {
+	Recv() (*AccountForEventActionStreamResponse, error)
+	grpc.ClientStream
+}
+
+type accountForEventActionServiceGetAllClient struct {
+	grpc.ClientStream
+}
+
+func (x *accountForEventActionServiceGetAllClient) Recv() (*AccountForEventActionStreamResponse, error) {
+	m := new(AccountForEventActionStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *accountForEventActionServiceClient) Subscribe(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AccountForEventActionService_ServiceDesc.Streams[2], AccountForEventActionService_Subscribe_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &accountForEventActionServiceSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AccountForEventActionService_SubscribeClient interface {
+	Recv() (*AccountForEventActionStreamResponse, error)
+	grpc.ClientStream
+}
+
+type accountForEventActionServiceSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *accountForEventActionServiceSubscribeClient) Recv() (*AccountForEventActionStreamResponse, error) {
+	m := new(AccountForEventActionStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *accountForEventActionServiceClient) GetMeta(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (*MetaResponse, error) {
+	out := new(MetaResponse)
+	err := c.cc.Invoke(ctx, AccountForEventActionService_GetMeta_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountForEventActionServiceClient) SubscribeMeta(ctx context.Context, in *AccountForEventActionStreamRequest, opts ...grpc.CallOption) (AccountForEventActionService_SubscribeMetaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AccountForEventActionService_ServiceDesc.Streams[3], AccountForEventActionService_SubscribeMeta_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &accountForEventActionServiceSubscribeMetaClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AccountForEventActionService_SubscribeMetaClient interface {
+	Recv() (*MetaResponse, error)
+	grpc.ClientStream
+}
+
+type accountForEventActionServiceSubscribeMetaClient struct {
+	grpc.ClientStream
+}
+
+func (x *accountForEventActionServiceSubscribeMetaClient) Recv() (*MetaResponse, error) {
+	m := new(MetaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// AccountForEventActionServiceServer is the server API for AccountForEventActionService service.
+// All implementations must embed UnimplementedAccountForEventActionServiceServer
+// for forward compatibility
+type AccountForEventActionServiceServer interface {
+	GetOne(context.Context, *AccountForEventActionRequest) (*AccountForEventActionResponse, error)
+	GetSome(*AccountForEventActionSomeRequest, AccountForEventActionService_GetSomeServer) error
+	GetAll(*AccountForEventActionStreamRequest, AccountForEventActionService_GetAllServer) error
+	Subscribe(*AccountForEventActionStreamRequest, AccountForEventActionService_SubscribeServer) error
+	GetMeta(context.Context, *AccountForEventActionStreamRequest) (*MetaResponse, error)
+	SubscribeMeta(*AccountForEventActionStreamRequest, AccountForEventActionService_SubscribeMetaServer) error
+	mustEmbedUnimplementedAccountForEventActionServiceServer()
+}
+
+// UnimplementedAccountForEventActionServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAccountForEventActionServiceServer struct {
+}
+
+func (UnimplementedAccountForEventActionServiceServer) GetOne(context.Context, *AccountForEventActionRequest) (*AccountForEventActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOne not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) GetSome(*AccountForEventActionSomeRequest, AccountForEventActionService_GetSomeServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSome not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) GetAll(*AccountForEventActionStreamRequest, AccountForEventActionService_GetAllServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) Subscribe(*AccountForEventActionStreamRequest, AccountForEventActionService_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) GetMeta(context.Context, *AccountForEventActionStreamRequest) (*MetaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMeta not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) SubscribeMeta(*AccountForEventActionStreamRequest, AccountForEventActionService_SubscribeMetaServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMeta not implemented")
+}
+func (UnimplementedAccountForEventActionServiceServer) mustEmbedUnimplementedAccountForEventActionServiceServer() {
+}
+
+// UnsafeAccountForEventActionServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AccountForEventActionServiceServer will
+// result in compilation errors.
+type UnsafeAccountForEventActionServiceServer interface {
+	mustEmbedUnimplementedAccountForEventActionServiceServer()
+}
+
+func RegisterAccountForEventActionServiceServer(s grpc.ServiceRegistrar, srv AccountForEventActionServiceServer) {
+	s.RegisterService(&AccountForEventActionService_ServiceDesc, srv)
+}
+
+func _AccountForEventActionService_GetOne_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AccountForEventActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountForEventActionServiceServer).GetOne(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountForEventActionService_GetOne_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountForEventActionServiceServer).GetOne(ctx, req.(*AccountForEventActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountForEventActionService_GetSome_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AccountForEventActionSomeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AccountForEventActionServiceServer).GetSome(m, &accountForEventActionServiceGetSomeServer{stream})
+}
+
+type AccountForEventActionService_GetSomeServer interface {
+	Send(*AccountForEventActionSomeResponse) error
+	grpc.ServerStream
+}
+
+type accountForEventActionServiceGetSomeServer struct {
+	grpc.ServerStream
+}
+
+func (x *accountForEventActionServiceGetSomeServer) Send(m *AccountForEventActionSomeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AccountForEventActionService_GetAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AccountForEventActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AccountForEventActionServiceServer).GetAll(m, &accountForEventActionServiceGetAllServer{stream})
+}
+
+type AccountForEventActionService_GetAllServer interface {
+	Send(*AccountForEventActionStreamResponse) error
+	grpc.ServerStream
+}
+
+type accountForEventActionServiceGetAllServer struct {
+	grpc.ServerStream
+}
+
+func (x *accountForEventActionServiceGetAllServer) Send(m *AccountForEventActionStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AccountForEventActionService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AccountForEventActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AccountForEventActionServiceServer).Subscribe(m, &accountForEventActionServiceSubscribeServer{stream})
+}
+
+type AccountForEventActionService_SubscribeServer interface {
+	Send(*AccountForEventActionStreamResponse) error
+	grpc.ServerStream
+}
+
+type accountForEventActionServiceSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *accountForEventActionServiceSubscribeServer) Send(m *AccountForEventActionStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AccountForEventActionService_GetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AccountForEventActionStreamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountForEventActionServiceServer).GetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountForEventActionService_GetMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountForEventActionServiceServer).GetMeta(ctx, req.(*AccountForEventActionStreamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountForEventActionService_SubscribeMeta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AccountForEventActionStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AccountForEventActionServiceServer).SubscribeMeta(m, &accountForEventActionServiceSubscribeMetaServer{stream})
+}
+
+type AccountForEventActionService_SubscribeMetaServer interface {
+	Send(*MetaResponse) error
+	grpc.ServerStream
+}
+
+type accountForEventActionServiceSubscribeMetaServer struct {
+	grpc.ServerStream
+}
+
+func (x *accountForEventActionServiceSubscribeMetaServer) Send(m *MetaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// AccountForEventActionService_ServiceDesc is the grpc.ServiceDesc for AccountForEventActionService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AccountForEventActionService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "arista.serviceaccount.v1.AccountForEventActionService",
+	HandlerType: (*AccountForEventActionServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOne",
+			Handler:    _AccountForEventActionService_GetOne_Handler,
+		},
+		{
+			MethodName: "GetMeta",
+			Handler:    _AccountForEventActionService_GetMeta_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetSome",
+			Handler:       _AccountForEventActionService_GetSome_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAll",
+			Handler:       _AccountForEventActionService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _AccountForEventActionService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMeta",
+			Handler:       _AccountForEventActionService_SubscribeMeta_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "arista/serviceaccount.v1/services.gen.proto",
+}
+
+const (
 	TokenService_GetOne_FullMethodName        = "/arista.serviceaccount.v1.TokenService/GetOne"
 	TokenService_GetSome_FullMethodName       = "/arista.serviceaccount.v1.TokenService/GetSome"
 	TokenService_GetAll_FullMethodName        = "/arista.serviceaccount.v1.TokenService/GetAll"
